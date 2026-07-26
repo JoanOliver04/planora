@@ -64,7 +64,22 @@ export function AppNavigation({
     </>
   );
 }
-export function Logo() {
+export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
+  if (variant === "login") {
+    return (
+      <div className="brand">
+        <Image
+          className="brand-logo"
+          src="/assets/logo.png"
+          alt="Planora"
+          width={1024}
+          height={1024}
+          priority
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="brand">
       <Image

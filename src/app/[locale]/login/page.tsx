@@ -1,4 +1,4 @@
-﻿import { getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/navigation";
 import { GoogleButton } from "@/features/auth/google-button";
@@ -23,7 +23,7 @@ export default async function Login({
     <main className="login">
       <div className="login-card surface">
         <section className="login-copy">
-          <Logo />
+          <Logo variant="login" />
           <div style={{ marginTop: "auto", paddingTop: "8rem" }}>
             <Sparkles size={30} />
             <h1

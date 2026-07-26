@@ -63,7 +63,6 @@ export function useWorkspace() {
       user: {
         id: user.id,
         email: user.email,
-        user_metadata: user.user_metadata,
       },
       profile,
       schedules: s.data ?? [],

@@ -1,11 +1,12 @@
-﻿import { createClient as createAdmin } from "@supabase/supabase-js";
+import "server-only";
+import { createClient as createAdmin } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 export async function DELETE(request: Request) {
   const origin = request.headers.get("origin"),
     expected = new URL(request.url).origin;
   if (
-    (origin && origin !== expected) ||
+    origin !== expected ||
     request.headers.get("x-planora-confirm") !== "delete-account"
   )
     return NextResponse.json({ error: "Invalid request" }, { status: 403 });

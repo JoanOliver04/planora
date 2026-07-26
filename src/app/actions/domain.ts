@@ -91,7 +91,7 @@ export async function saveSchedule(input: unknown) {
     emoji: v.emoji ?? null,
   };
   const q = v.id
-    ? db.from("schedules").update(payload).eq("id", v.id)
+    ? db.from("schedules").update(payload).eq("id", v.id).eq("user_id", user.id)
     : db.from("schedules").insert(payload).select("id").single();
   const { data, error } = await q;
   if (error) throw new Error("Unable to save schedule");
@@ -110,11 +110,12 @@ export async function setActiveSchedule(value: string) {
 }
 export async function setScheduleArchived(value: string, archived: boolean) {
   const scheduleId = id.parse(value),
-    { db } = await auth();
+    { db, user } = await auth();
   const { error } = await db
     .from("schedules")
     .update({ is_archived: archived })
-    .eq("id", scheduleId);
+    .eq("id", scheduleId)
+    .eq("user_id", user.id);
   if (error) throw new Error("Unable to update schedule");
   refresh();
 }
@@ -128,7 +129,11 @@ export async function saveCategory(input: unknown) {
     emoji: v.emoji ?? null,
   };
   const { error } = v.id
-    ? await db.from("categories").update(payload).eq("id", v.id)
+    ? await db
+        .from("categories")
+        .update(payload)
+        .eq("id", v.id)
+        .eq("user_id", user.id)
     : await db.from("categories").insert(payload);
   if (error) throw new Error("Unable to save category");
   refresh();
@@ -136,16 +141,18 @@ export async function saveCategory(input: unknown) {
 export async function deleteCategory(value: string, reassignTo: string | null) {
   const categoryId = id.parse(value),
     target = reassignTo ? id.parse(reassignTo) : null,
-    { db } = await auth();
+    { db, user } = await auth();
   const [{ count: taskCount }, { count: eventCount }] = await Promise.all([
     db
       .from("tasks")
       .select("id", { count: "exact", head: true })
-      .eq("category_id", categoryId),
+      .eq("category_id", categoryId)
+      .eq("user_id", user.id),
     db
       .from("events")
       .select("id", { count: "exact", head: true })
-      .eq("category_id", categoryId),
+      .eq("category_id", categoryId)
+      .eq("user_id", user.id),
   ]);
   if (((taskCount ?? 0) > 0 || (eventCount ?? 0) > 0) && !target)
     throw new Error("Reassign tasks and events first");
@@ -154,16 +161,22 @@ export async function deleteCategory(value: string, reassignTo: string | null) {
       db
         .from("tasks")
         .update({ category_id: target })
-        .eq("category_id", categoryId),
+        .eq("category_id", categoryId)
+        .eq("user_id", user.id),
       db
         .from("events")
         .update({ category_id: target })
-        .eq("category_id", categoryId),
+        .eq("category_id", categoryId)
+        .eq("user_id", user.id),
     ]);
     if (taskError || eventError)
       throw new Error("Unable to reassign category items");
   }
-  const { error } = await db.from("categories").delete().eq("id", categoryId);
+  const { error } = await db
+    .from("categories")
+    .delete()
+    .eq("id", categoryId)
+    .eq("user_id", user.id);
   if (error) throw new Error("Unable to delete category");
   refresh();
 }
@@ -194,21 +207,26 @@ export async function saveTask(input: unknown, taskId?: string) {
     is_active: true,
   };
   const { error } = taskId
-    ? await db.from("tasks").update(payload).eq("id", id.parse(taskId))
+    ? await db
+        .from("tasks")
+        .update(payload)
+        .eq("id", id.parse(taskId))
+        .eq("user_id", user.id)
     : await db.from("tasks").insert(payload);
   if (error) throw new Error("Unable to save task");
   refresh();
 }
 export async function setTaskArchived(value: string, archived: boolean) {
   const taskId = id.parse(value),
-    { db } = await auth();
+    { db, user } = await auth();
   const { error } = await db
     .from("tasks")
     .update({
       archived_at: archived ? new Date().toISOString() : null,
       is_active: !archived,
     })
-    .eq("id", taskId);
+    .eq("id", taskId)
+    .eq("user_id", user.id);
   if (error) throw new Error("Unable to update task");
   refresh();
 }
@@ -219,6 +237,7 @@ export async function duplicateTask(value: string) {
     .from("tasks")
     .select("*")
     .eq("id", taskId)
+    .eq("user_id", user.id)
     .single();
   if (error || !data) throw new Error("Task not found");
   const { id: _id, created_at: _c, updated_at: _u, ...copy } = data;
@@ -247,14 +266,22 @@ export async function saveEvent(input: unknown) {
     end_time: v.allDay ? null : (v.endTime ?? null),
   };
   const { error } = v.id
-    ? await db.from("events").update(payload).eq("id", v.id)
+    ? await db
+        .from("events")
+        .update(payload)
+        .eq("id", v.id)
+        .eq("user_id", user.id)
     : await db.from("events").insert(payload);
   if (error) throw new Error("Unable to save event");
   refresh();
 }
 export async function deleteEvent(value: string) {
-  const { db } = await auth();
-  const { error } = await db.from("events").delete().eq("id", id.parse(value));
+  const { db, user } = await auth();
+  const { error } = await db
+    .from("events")
+    .delete()
+    .eq("id", id.parse(value))
+    .eq("user_id", user.id);
   if (error) throw new Error("Unable to delete event");
   refresh();
 }
@@ -273,6 +300,7 @@ export async function duplicateSchedule(value: string, includeTasks: boolean) {
       .from("schedules")
       .select("*")
       .eq("id", scheduleId)
+      .eq("user_id", user.id)
       .single();
   if (error || !s) throw new Error("Schedule not found");
   const { data: copy, error: createError } = await db
@@ -290,9 +318,14 @@ export async function duplicateSchedule(value: string, includeTasks: boolean) {
     const { data: tasks, error: tasksError } = await db
       .from("tasks")
       .select("*")
-      .eq("schedule_id", scheduleId);
+      .eq("schedule_id", scheduleId)
+      .eq("user_id", user.id);
     if (tasksError) {
-      await db.from("schedules").delete().eq("id", copy.id);
+      await db
+        .from("schedules")
+        .delete()
+        .eq("id", copy.id)
+        .eq("user_id", user.id);
       throw new Error("Unable to copy tasks");
     }
     if (tasks?.length) {
@@ -317,7 +350,11 @@ export async function duplicateSchedule(value: string, includeTasks: boolean) {
         ),
         { error: insertError } = await db.from("tasks").insert(payload);
       if (insertError) {
-        await db.from("schedules").delete().eq("id", copy.id);
+        await db
+          .from("schedules")
+          .delete()
+          .eq("id", copy.id)
+          .eq("user_id", user.id);
         throw new Error("Unable to copy tasks");
       }
     }
@@ -338,14 +375,20 @@ export async function deleteEmptySchedule(value: string) {
     db
       .from("tasks")
       .select("id", { count: "exact", head: true })
-      .eq("schedule_id", scheduleId),
+      .eq("schedule_id", scheduleId)
+      .eq("user_id", user.id),
     db
       .from("events")
       .select("id", { count: "exact", head: true })
-      .eq("schedule_id", scheduleId),
+      .eq("schedule_id", scheduleId)
+      .eq("user_id", user.id),
   ]);
   if (tasks || events) throw new Error("Only empty schedules can be deleted");
-  const { error } = await db.from("schedules").delete().eq("id", scheduleId);
+  const { error } = await db
+    .from("schedules")
+    .delete()
+    .eq("id", scheduleId)
+    .eq("user_id", user.id);
   if (error) throw new Error("Unable to delete schedule");
   refresh();
 }

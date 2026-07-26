@@ -1,4 +1,5 @@
-﻿import { createServerClient } from "@supabase/ssr";
+import "server-only";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/types/database";
 export async function createClient() {

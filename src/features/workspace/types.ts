@@ -1,4 +1,4 @@
-﻿import type { Database, Json } from "@/types/database";
+import type { Database, Json } from "@/types/database";
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Schedule = Database["public"]["Tables"]["schedules"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
@@ -7,7 +7,7 @@ export type Completion =
   Database["public"]["Tables"]["task_completions"]["Row"];
 export type Event = Database["public"]["Tables"]["events"]["Row"];
 export type WorkspaceData = {
-  user: { id: string; email?: string; user_metadata: Record<string, unknown> };
+  user: { id: string; email?: string };
   profile: Profile;
   schedules: Schedule[];
   categories: Category[];
