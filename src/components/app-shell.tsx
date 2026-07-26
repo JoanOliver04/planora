@@ -1,11 +1,11 @@
-﻿import { AppNavigation, Logo } from "@/components/navigation";
+import { AppNavigation, Logo } from "@/components/navigation";
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <Logo />
         <nav className="side-links">
-          <AppNavigation />
+          <AppNavigation variant="desktop" />
         </nav>
         <p className="muted" style={{ marginTop: "auto", fontSize: 12 }}>
           Planora · v0.1.0
@@ -13,7 +13,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
       <main className="main">{children}</main>
       <nav className="mobile-nav">
-        <AppNavigation />
+        <AppNavigation variant="mobile" />
       </nav>
     </div>
   );

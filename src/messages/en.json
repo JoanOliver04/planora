@@ -154,6 +154,26 @@
     "wednesday": "Wednesday",
     "last7Days": "Last 7 days",
     "areYouSure": "Are you sure?",
-    "accountDeletion": "Account deletion"
+    "accountDeletion": "Account deletion",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "markComplete": "Mark as complete",
+    "noWeekGoals": "A light week with no planned tasks",
+    "weekComplete": "Week complete",
+    "remainingThisWeek": "{count} left this week",
+    "weeklyProgress": "Weekly progress",
+    "weeklyTarget": "{done} of {total} this week",
+    "clearDay": "Clear day",
+    "event": "Event",
+    "weeklyAgenda": "Weekly agenda",
+    "goToday": "Go to today",
+    "selectDay": "Select day",
+    "manageRoutines": "Organise your routines",
+    "allCategories": "All categories",
+    "noMatchingTasks": "No tasks match these filters.",
+    "completedThisWeek": "completed this week",
+    "noHistory": "No activity yet",
+    "historyHint": "Complete a task and it will appear here."
   }
 }

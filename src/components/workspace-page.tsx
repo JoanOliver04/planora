@@ -1,5 +1,6 @@
-﻿"use client";
+"use client";
 import { useEffect, useState } from "react";
+import { WorkspaceSkeleton } from "@/components/workspace-skeleton";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { setActiveSchedule } from "@/app/actions/domain";
@@ -38,12 +39,7 @@ export function WorkspacePage({
     const timer = setInterval(() => setClock((v) => v + 1), 60000);
     return () => clearInterval(timer);
   }, []);
-  if (loading)
-    return (
-      <div className="empty surface" aria-live="polite" aria-busy="true">
-        {t("loading")}
-      </div>
-    );
+  if (loading) return <WorkspaceSkeleton />;
   if (error || !data)
     return (
       <div className="empty surface" role="alert">

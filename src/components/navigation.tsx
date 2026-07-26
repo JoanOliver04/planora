@@ -1,30 +1,49 @@
-﻿"use client";
+"use client";
 import {
   CalendarDays,
   Check,
   Clock3,
+  FolderKanban,
   History,
   LayoutList,
   Plus,
   Settings,
+  Tags,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-const items = [
+const allItems = [
   ["today", Clock3],
   ["week", CalendarDays],
   ["tasks", LayoutList],
+  ["events", CalendarDays],
   ["history", History],
+  ["schedules", FolderKanban],
+  ["categories", Tags],
   ["settings", Settings],
 ] as const;
-export function AppNavigation() {
+const mobileKeys = new Set(["today", "week", "tasks", "events", "settings"]);
+export function AppNavigation({
+  variant = "mobile",
+}: {
+  variant?: "mobile" | "desktop";
+}) {
   const t = useTranslations("Nav"),
-    path = usePathname();
+    path = usePathname(),
+    items =
+      variant === "desktop"
+        ? allItems
+        : allItems.filter(([key]) => mobileKeys.has(key));
   return (
     <>
-      {items.map(([key, Icon], i) =>
-        i === 2 ? (
-          <Link className="nav-link" href="/tasks" key={key}>
+      {items.map(([key, Icon]) =>
+        variant === "mobile" && key === "tasks" ? (
+          <Link
+            className="nav-link"
+            data-active={path.includes("/tasks")}
+            href="/tasks"
+            key={key}
+          >
             <span className="add-orb">
               <Plus />
             </span>

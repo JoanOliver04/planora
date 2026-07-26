@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { WorkspaceData } from "./types";
@@ -29,7 +29,11 @@ export function useWorkspace() {
       setError(profileError?.message ?? "profile");
       return;
     }
-    const week = localWeek(profile.timezone);
+    const week = localWeek(
+      profile.timezone,
+      new Date(),
+      profile.week_starts_on === 0 ? 0 : 1,
+    );
     const from = new Date(`${week.start}T00:00:00`);
     from.setDate(from.getDate() - 90);
     const [s, c, t, e, h] = await Promise.all([

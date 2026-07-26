@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useMemo, useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { saveTask } from "@/app/actions/domain";
 import type { Category, Schedule, Task } from "./types";
 import { recurrenceFromJson } from "./types";
@@ -25,13 +25,19 @@ export function TaskForm({
   onSaved: () => void;
 }) {
   const t = useTranslations("Workspace"),
+    locale = useLocale(),
     existing = task
       ? recurrenceFromJson(task.recurrence_config, task.recurrence_type)
       : null,
     [recurrence, setRecurrence] = useState(existing?.type ?? "once"),
     [timing, setTiming] = useState(task?.time_mode ?? "anytime"),
     [pending, startTransition] = useTransition();
+
   const weekdays = existing?.type === "weekdays" ? existing.weekdays : [];
+  const weekdayLabels =
+    locale === "es"
+      ? ["L", "M", "X", "J", "V", "S", "D"]
+      : ["M", "T", "W", "T", "F", "S", "S"];
   const summary = useMemo(
     () => `${t(recurrence)} · ${t(timing)}`,
     [recurrence, timing, t],
@@ -87,7 +93,7 @@ export function TaskForm({
             {task ? t("edit") : t("add")} · {t("title")}
           </Dialog.Title>
           <Dialog.Description className="muted">{summary}</Dialog.Description>
-          <form action={submit} className="form-grid">
+          <form action={submit} className="form-grid" key={task?.id ?? "new"}>
             <label>
               {t("title")}
               <input
@@ -166,7 +172,7 @@ export function TaskForm({
                         value={d}
                         defaultChecked={weekdays.includes(d)}
                       />
-                      {["L", "M", "X", "J", "V", "S", "D"][i]}
+                      {weekdayLabels[i]}
                     </label>
                   ))}
                 </div>

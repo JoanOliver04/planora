@@ -154,6 +154,26 @@
     "wednesday": "Miércoles",
     "last7Days": "Últimos 7 días",
     "areYouSure": "¿Estás seguro?",
-    "accountDeletion": "Eliminación de cuenta"
+    "accountDeletion": "Eliminación de cuenta",
+    "goodMorning": "Buenos días",
+    "goodAfternoon": "Buenas tardes",
+    "goodEvening": "Buenas noches",
+    "markComplete": "Marcar como completada",
+    "noWeekGoals": "Una semana ligera, sin tareas previstas",
+    "weekComplete": "Semana completada",
+    "remainingThisWeek": "Te quedan {count} esta semana",
+    "weeklyProgress": "Progreso semanal",
+    "weeklyTarget": "{done} de {total} esta semana",
+    "clearDay": "Día despejado",
+    "event": "Evento",
+    "weeklyAgenda": "Agenda semanal",
+    "goToday": "Ir a hoy",
+    "selectDay": "Seleccionar día",
+    "manageRoutines": "Organiza tus rutinas",
+    "allCategories": "Todas las categorías",
+    "noMatchingTasks": "No hay tareas que coincidan con estos filtros.",
+    "completedThisWeek": "completadas esta semana",
+    "noHistory": "Todavía no hay actividad",
+    "historyHint": "Completa una tarea y aparecerá aquí."
   }
 }

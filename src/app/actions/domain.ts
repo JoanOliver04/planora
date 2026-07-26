@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { taskSchema } from "@/lib/validation/task";
@@ -137,17 +137,31 @@ export async function deleteCategory(value: string, reassignTo: string | null) {
   const categoryId = id.parse(value),
     target = reassignTo ? id.parse(reassignTo) : null,
     { db } = await auth();
-  const { count } = await db
-    .from("tasks")
-    .select("id", { count: "exact", head: true })
-    .eq("category_id", categoryId);
-  if (count && count > 0 && !target) throw new Error("Reassign tasks first");
-  if (target) {
-    const { error } = await db
+  const [{ count: taskCount }, { count: eventCount }] = await Promise.all([
+    db
       .from("tasks")
-      .update({ category_id: target })
-      .eq("category_id", categoryId);
-    if (error) throw new Error("Unable to reassign tasks");
+      .select("id", { count: "exact", head: true })
+      .eq("category_id", categoryId),
+    db
+      .from("events")
+      .select("id", { count: "exact", head: true })
+      .eq("category_id", categoryId),
+  ]);
+  if (((taskCount ?? 0) > 0 || (eventCount ?? 0) > 0) && !target)
+    throw new Error("Reassign tasks and events first");
+  if (target) {
+    const [{ error: taskError }, { error: eventError }] = await Promise.all([
+      db
+        .from("tasks")
+        .update({ category_id: target })
+        .eq("category_id", categoryId),
+      db
+        .from("events")
+        .update({ category_id: target })
+        .eq("category_id", categoryId),
+    ]);
+    if (taskError || eventError)
+      throw new Error("Unable to reassign category items");
   }
   const { error } = await db.from("categories").delete().eq("id", categoryId);
   if (error) throw new Error("Unable to delete category");

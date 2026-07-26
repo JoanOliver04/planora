@@ -1,10 +1,11 @@
-﻿import type { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: siteConfig.name,
     short_name: siteConfig.shortName,
     description: siteConfig.description.es,
+    id: "/es/today",
     start_url: "/es/today",
     display: "standalone",
     background_color: "#f7f8f4",
