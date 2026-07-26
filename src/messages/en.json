@@ -1,6 +1,6 @@
 {
   "Meta": {
-    "title": "Planora ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Your day, in harmony",
+    "title": "Planora — Your day, in harmony",
     "description": "Organise tasks, habits, schedules and events."
   },
   "Common": {
@@ -99,7 +99,7 @@
     "timeRange": "Time range",
     "dayParts": "Day parts",
     "save": "Save",
-    "welcome": "Let\u0027s set up Planora",
+    "welcome": "Let's set up Planora",
     "months": "months",
     "daily": "Every day",
     "success": "Changes saved",
@@ -120,7 +120,7 @@
     "progress": "{done} of {total}",
     "archive": "Archive",
     "add": "Add",
-    "loading": "LoadingÃ¢â‚¬Â¦",
+    "loading": "Loading…",
     "timing": "Timing",
     "date": "Date",
     "emoji": "Emoji",
@@ -148,6 +148,12 @@
     "tasks": "Tasks",
     "monday": "Monday",
     "light": "Light",
-    "reassign": "Reassign tasks to"
+    "reassign": "Reassign tasks to",
+    "configuration": "Settings",
+    "habits": "Habits",
+    "wednesday": "Wednesday",
+    "last7Days": "Last 7 days",
+    "areYouSure": "Are you sure?",
+    "accountDeletion": "Account deletion"
   }
 }
