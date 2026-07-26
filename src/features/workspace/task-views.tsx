@@ -22,7 +22,12 @@ import { duplicateTask, setTaskArchived } from "@/app/actions/domain";
 import type { Category, Completion, Task, WorkspaceData } from "./types";
 import { recurrenceFromJson } from "./types";
 import { TaskForm } from "./task-form";
-import { formatNaturalDate, greetingKey, uniqueMetadata } from "./presentation";
+import {
+  formatCategoryMetadata,
+  formatNaturalDate,
+  greetingKey,
+  uniqueMetadata,
+} from "./presentation";
 const adapter = (task: Task) => ({
   startDate: task.start_date,
   endDate: task.end_date,
@@ -54,7 +59,7 @@ function TaskCard({
         ? t(task.day_part ?? "anytime")
         : t("anytime")),
     metadata = uniqueMetadata([
-      cat ? `${cat.emoji ?? ""} ${cat.name}.trim()` : null,
+      cat ? formatCategoryMetadata(cat.name, cat.emoji) : null,
       timing,
       formatRecurrenceDescription(
         recurrenceFromJson(task.recurrence_config, task.recurrence_type),

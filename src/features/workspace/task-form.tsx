@@ -69,7 +69,7 @@ export function TaskForm({
       scheduleId: String(fd.get("scheduleId")),
       categoryId: String(fd.get("categoryId") || "") || null,
       recurrence: recurrenceValue,
-      startDate: String(fd.get("startDate")),
+      startDate: String(fd.get("startDate") || "") || localDate(timezone),
       endDate: String(fd.get("endDate") || "") || null,
       timing: timingValue,
     };
@@ -275,8 +275,7 @@ export function TaskForm({
                 <input
                   name="startDate"
                   type="date"
-                  required
-                  defaultValue={task?.start_date ?? localDate(timezone)}
+                  defaultValue={task?.start_date ?? ""}
                 />
               </label>
               <label>

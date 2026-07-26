@@ -1,10 +1,11 @@
-﻿import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import messages from "@/messages/en.json";
 import { TaskForm } from "@/features/workspace/task-form";
 vi.mock("@/app/actions/domain", () => ({ saveTask: vi.fn() }));
+afterEach(cleanup);
 const schedules = [
   {
     id: "11111111-1111-4111-8111-111111111111",
@@ -18,6 +19,30 @@ const schedules = [
   },
 ];
 describe("TaskForm", () => {
+  it("allows creating an ongoing task without date inputs", () => {
+    render(
+      <NextIntlClientProvider
+        locale="en"
+        messages={messages}
+        timeZone="Europe/Madrid"
+      >
+        <TaskForm
+          open
+          onOpenChange={() => {}}
+          schedules={schedules}
+          categories={[]}
+          timezone="Europe/Madrid"
+          onSaved={() => {}}
+        />
+      </NextIntlClientProvider>,
+    );
+
+    expect(screen.getByLabelText("Start date (optional)")).not.toBeRequired();
+    expect(screen.getByLabelText("Start date (optional)")).toHaveValue("");
+    expect(screen.getByLabelText("End date (optional)")).not.toBeRequired();
+    expect(screen.getByLabelText("End date (optional)")).toHaveValue("");
+  });
+
   it("reveals recurrence and timing controls progressively", async () => {
     const user = userEvent.setup();
     render(

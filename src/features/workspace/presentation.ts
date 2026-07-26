@@ -4,6 +4,10 @@ export function uniqueMetadata(
   return [...new Set(parts.filter((part): part is string => Boolean(part)))];
 }
 
+export function formatCategoryMetadata(name: string, emoji?: string | null) {
+  return `${emoji ?? ""} ${name}`.trim();
+}
+
 export function formatNaturalDate(
   day: string,
   locale: "es" | "en",

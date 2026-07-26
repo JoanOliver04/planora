@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatCategoryMetadata,
   formatNaturalDate,
   greetingKey,
   uniqueMetadata,
@@ -23,6 +24,11 @@ describe("workspace presentation", () => {
         "Cada día",
       ]),
     ).toEqual(["En cualquier momento", "Cada día"]);
+  });
+
+  it("formats category metadata without implementation text or extra spaces", () => {
+    expect(formatCategoryMetadata("Estudios", "📒")).toBe("📒 Estudios");
+    expect(formatCategoryMetadata("Estudios")).toBe("Estudios");
   });
 
   it("selects a contextual greeting in the user timezone", () => {
