@@ -1,1 +1,20 @@
-﻿import {AppNavigation,Logo} from "@/components/navigation";import {ChevronDown} from "lucide-react";export function AppShell({children}:{children:React.ReactNode}){return <div className="app-shell"><aside className="sidebar"><Logo/><button className="pill" style={{marginTop:"1.4rem"}}>🌿 Normal <ChevronDown size={15}/></button><nav className="side-links"><AppNavigation/></nav><p className="muted" style={{marginTop:"auto",fontSize:12}}>Planora · v0.1.0</p></aside><main className="main">{children}</main><nav className="mobile-nav"><AppNavigation/></nav></div>}
+﻿import { AppNavigation, Logo } from "@/components/navigation";
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <Logo />
+        <nav className="side-links">
+          <AppNavigation />
+        </nav>
+        <p className="muted" style={{ marginTop: "auto", fontSize: 12 }}>
+          Planora · v0.1.0
+        </p>
+      </aside>
+      <main className="main">{children}</main>
+      <nav className="mobile-nav">
+        <AppNavigation />
+      </nav>
+    </div>
+  );
+}

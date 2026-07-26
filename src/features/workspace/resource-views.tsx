@@ -1,0 +1,730 @@
+﻿"use client";
+import * as Dialog from "@radix-ui/react-dialog";
+import * as Alert from "@radix-ui/react-alert-dialog";
+import { useState, useTransition } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useTheme } from "@/components/theme-provider";
+import { useRouter } from "@/i18n/routing";
+import { Archive, Copy, Edit3, Plus, RotateCcw, Trash2 } from "lucide-react";
+import {
+  deleteCategory,
+  deleteEmptySchedule,
+  deleteEvent,
+  duplicateSchedule,
+  saveCategory,
+  saveEvent,
+  saveSchedule,
+  setActiveSchedule,
+  setScheduleArchived,
+  updateProfile,
+} from "@/app/actions/domain";
+import type { Category, Event, Schedule, WorkspaceData } from "./types";
+import { toast } from "sonner";
+const fail = (e: unknown, fallback: string) =>
+  toast.error(e instanceof Error ? e.message : fallback);
+export function EventsView({
+  data,
+  reload,
+}: {
+  data: WorkspaceData;
+  reload: () => void;
+}) {
+  const t = useTranslations("Workspace"),
+    [open, setOpen] = useState(false),
+    [editing, setEditing] = useState<Event | null>(null),
+    [allDay, setAllDay] = useState(true),
+    [pending, start] = useTransition();
+  function submit(fd: FormData) {
+    start(async () => {
+      try {
+        await saveEvent({
+          id: editing?.id,
+          title: String(fd.get("title")),
+          description: String(fd.get("description") || "") || null,
+          emoji: String(fd.get("emoji") || "") || null,
+          categoryId: String(fd.get("categoryId") || "") || null,
+          scheduleId: String(fd.get("scheduleId") || "") || null,
+          eventDate: String(fd.get("eventDate")),
+          allDay,
+          startTime: allDay ? null : String(fd.get("startTime")),
+          endTime: allDay ? null : String(fd.get("endTime") || "") || null,
+        });
+        setOpen(false);
+        reload();
+        toast.success(t("success"));
+      } catch (e) {
+        fail(e, t("error"));
+      }
+    });
+  }
+  return (
+    <>
+      <header className="topbar">
+        <h1 className="title">{t("events")}</h1>
+        <button
+          className="primary"
+          onClick={() => {
+            setEditing(null);
+            setAllDay(true);
+            setOpen(true);
+          }}
+        >
+          <Plus size={18} />
+          {t("add")}
+        </button>
+      </header>
+      <div className="task-list">
+        {data.events.map((e) => (
+          <article className="task surface" key={e.id}>
+            <span>{e.emoji || "📅"}</span>
+            <div>
+              <b>{e.title}</b>
+              <div className="muted">
+                {e.event_date} ·{" "}
+                {e.all_day ? t("allDay") : e.start_time?.slice(0, 5)} ·{" "}
+                {e.schedule_id
+                  ? data.schedules.find((s) => s.id === e.schedule_id)?.name
+                  : t("global")}
+              </div>
+            </div>
+            <div className="row-actions">
+              <button
+                className="icon-button"
+                onClick={() => {
+                  setEditing(e);
+                  setAllDay(e.all_day);
+                  setOpen(true);
+                }}
+              >
+                <Edit3 size={16} />
+              </button>
+              <button
+                className="icon-button"
+                onClick={() =>
+                  void deleteEvent(e.id)
+                    .then(reload)
+                    .catch((x) => fail(x, t("error")))
+                }
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="dialog-overlay" />
+          <Dialog.Content className="dialog-content">
+            <Dialog.Title>
+              {editing ? t("edit") : t("add")} {t("date")}
+            </Dialog.Title>
+            <form action={submit} className="form-grid">
+              <label>
+                {t("title")}
+                <input
+                  name="title"
+                  required
+                  maxLength={140}
+                  defaultValue={editing?.title}
+                />
+              </label>
+              <div className="form-row">
+                <label>
+                  {t("emoji")}
+                  <input name="emoji" defaultValue={editing?.emoji ?? ""} />
+                </label>
+                <label>
+                  {t("date")}
+                  <input
+                    name="eventDate"
+                    type="date"
+                    required
+                    defaultValue={editing?.event_date}
+                  />
+                </label>
+              </div>
+              <label>
+                {t("schedule")}
+                <select
+                  name="scheduleId"
+                  defaultValue={editing?.schedule_id ?? ""}
+                >
+                  <option value="">{t("global")}</option>
+                  {data.schedules.map((s) => (
+                    <option value={s.id} key={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                {t("category")}
+                <select
+                  name="categoryId"
+                  defaultValue={editing?.category_id ?? ""}
+                >
+                  <option value="">—</option>
+                  {data.categories.map((c) => (
+                    <option value={c.id} key={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="check-row">
+                <input
+                  type="checkbox"
+                  checked={allDay}
+                  onChange={(e) => setAllDay(e.target.checked)}
+                />
+                {t("allDay")}
+              </label>
+              {!allDay && (
+                <div className="form-row">
+                  <label>
+                    {t("startTime")}
+                    <input
+                      name="startTime"
+                      type="time"
+                      required
+                      defaultValue={editing?.start_time?.slice(0, 5)}
+                    />
+                  </label>
+                  <label>
+                    {t("endTime")}
+                    <input
+                      name="endTime"
+                      type="time"
+                      defaultValue={editing?.end_time?.slice(0, 5)}
+                    />
+                  </label>
+                </div>
+              )}
+              <label>
+                {t("description")}
+                <textarea
+                  name="description"
+                  defaultValue={editing?.description ?? ""}
+                />
+              </label>
+              <div className="dialog-actions">
+                <Dialog.Close className="pill">{t("cancel")}</Dialog.Close>
+                <button className="primary" disabled={pending}>
+                  {t("save")}
+                </button>
+              </div>
+            </form>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
+  );
+}
+export function SchedulesView({
+  data,
+  reload,
+}: {
+  data: WorkspaceData;
+  reload: () => void;
+}) {
+  const t = useTranslations("Workspace"),
+    [open, setOpen] = useState(false),
+    [editing, setEditing] = useState<Schedule | null>(null);
+  async function submit(fd: FormData) {
+    try {
+      await saveSchedule({
+        id: editing?.id,
+        name: String(fd.get("name")),
+        description: String(fd.get("description") || "") || null,
+        emoji: String(fd.get("emoji") || "") || null,
+      });
+      setOpen(false);
+      reload();
+    } catch (e) {
+      fail(e, t("error"));
+    }
+  }
+  return (
+    <>
+      <header className="topbar">
+        <h1 className="title">{t("schedules")}</h1>
+        <button
+          className="primary"
+          onClick={() => {
+            setEditing(null);
+            setOpen(true);
+          }}
+        >
+          <Plus size={18} />
+          {t("add")}
+        </button>
+      </header>
+      <div className="grid-cards">
+        {data.schedules.map((s) => (
+          <article className="surface resource-card" key={s.id}>
+            <div>
+              <span className="resource-emoji">{s.emoji || "🌿"}</span>
+              <h2>{s.name}</h2>
+              <p className="muted">{s.description}</p>
+              {data.profile.active_schedule_id === s.id && (
+                <span className="status">{t("activeSchedule")}</span>
+              )}
+            </div>
+            <div className="row-actions">
+              <button
+                className="pill"
+                disabled={s.is_archived}
+                onClick={() => void setActiveSchedule(s.id).then(reload)}
+              >
+                {t("active")}
+              </button>
+              <button
+                className="icon-button"
+                onClick={() => {
+                  setEditing(s);
+                  setOpen(true);
+                }}
+              >
+                <Edit3 size={16} />
+              </button>
+              <button
+                className="icon-button"
+                aria-label={t("duplicate")}
+                onClick={() =>
+                  void duplicateSchedule(s.id, true)
+                    .then(reload)
+                    .catch((x) => fail(x, t("error")))
+                }
+              >
+                <Copy size={16} />
+              </button>
+              <button
+                className="icon-button"
+                aria-label={t("delete")}
+                disabled={data.profile.active_schedule_id === s.id}
+                onClick={() =>
+                  void deleteEmptySchedule(s.id)
+                    .then(reload)
+                    .catch((x) => fail(x, t("error")))
+                }
+              >
+                <Trash2 size={16} />
+              </button>
+              <button
+                className="icon-button"
+                disabled={data.profile.active_schedule_id === s.id}
+                onClick={() =>
+                  void setScheduleArchived(s.id, !s.is_archived).then(reload)
+                }
+              >
+                {s.is_archived ? (
+                  <RotateCcw size={16} />
+                ) : (
+                  <Archive size={16} />
+                )}
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="dialog-overlay" />
+          <Dialog.Content className="dialog-content">
+            <Dialog.Title>{t("schedule")}</Dialog.Title>
+            <form action={submit} className="form-grid">
+              <label>
+                {t("name")}
+                <input name="name" required defaultValue={editing?.name} />
+              </label>
+              <label>
+                {t("emoji")}
+                <input name="emoji" defaultValue={editing?.emoji ?? ""} />
+              </label>
+              <label>
+                {t("description")}
+                <textarea
+                  name="description"
+                  defaultValue={editing?.description ?? ""}
+                />
+              </label>
+              <button className="primary">{t("save")}</button>
+            </form>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
+  );
+}
+export function CategoriesView({
+  data,
+  reload,
+}: {
+  data: WorkspaceData;
+  reload: () => void;
+}) {
+  const t = useTranslations("Workspace"),
+    [editing, setEditing] = useState<Category | null>(null),
+    [open, setOpen] = useState(false),
+    [deleting, setDeleting] = useState<Category | null>(null);
+  async function submit(fd: FormData) {
+    try {
+      await saveCategory({
+        id: editing?.id,
+        name: String(fd.get("name")),
+        emoji: String(fd.get("emoji") || "") || null,
+        colour: String(fd.get("colour")),
+      });
+      setOpen(false);
+      reload();
+    } catch (e) {
+      fail(e, t("error"));
+    }
+  }
+  return (
+    <>
+      <header className="topbar">
+        <h1 className="title">{t("categories")}</h1>
+        <button
+          className="primary"
+          onClick={() => {
+            setEditing(null);
+            setOpen(true);
+          }}
+        >
+          <Plus size={18} />
+          {t("add")}
+        </button>
+      </header>
+      <section className="surface">
+        {data.categories.map((c) => (
+          <div className="settings-row" key={c.id}>
+            <span className="category-name">
+              <i style={{ background: c.colour }} />
+              {c.emoji} <b>{c.name}</b>
+            </span>
+            <div className="row-actions">
+              <button
+                className="icon-button"
+                onClick={() => {
+                  setEditing(c);
+                  setOpen(true);
+                }}
+              >
+                <Edit3 size={16} />
+              </button>
+              <button
+                className="icon-button"
+                aria-label={t("delete")}
+                onClick={() => setDeleting(c)}
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </section>
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="dialog-overlay" />
+          <Dialog.Content className="dialog-content">
+            <Dialog.Title>{t("category")}</Dialog.Title>
+            <form action={submit} className="form-grid">
+              <label>
+                {t("name")}
+                <input name="name" required defaultValue={editing?.name} />
+              </label>
+              <label>
+                {t("emoji")}
+                <input name="emoji" defaultValue={editing?.emoji ?? ""} />
+              </label>
+              <label>
+                {t("category")}
+                <input
+                  name="colour"
+                  type="color"
+                  defaultValue={editing?.colour ?? "#7D9D74"}
+                />
+              </label>
+              <button className="primary">{t("save")}</button>
+            </form>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+      <Dialog.Root
+        open={!!deleting}
+        onOpenChange={(value) => !value && setDeleting(null)}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="dialog-overlay" />
+          <Dialog.Content className="dialog-content">
+            <Dialog.Title>
+              {t("delete")} {deleting?.name}
+            </Dialog.Title>
+            <form
+              className="form-grid"
+              action={async (fd) => {
+                try {
+                  await deleteCategory(
+                    deleting!.id,
+                    String(fd.get("target") || "") || null,
+                  );
+                  setDeleting(null);
+                  reload();
+                } catch (e) {
+                  fail(e, t("error"));
+                }
+              }}
+            >
+              <label>
+                {t("reassign")}
+                <select name="target">
+                  <option value="">—</option>
+                  {data.categories
+                    .filter((item) => item.id !== deleting?.id)
+                    .map((item) => (
+                      <option value={item.id} key={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <div className="dialog-actions">
+                <Dialog.Close className="pill">{t("cancel")}</Dialog.Close>
+                <button className="primary">{t("delete")}</button>
+              </div>
+            </form>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
+  );
+}
+function DayPartsSettings({
+  data,
+  reload,
+}: {
+  data: WorkspaceData;
+  reload: () => void;
+}) {
+  const t = useTranslations("Workspace"),
+    raw = data.profile.day_part_settings as Record<
+      string,
+      { start?: string; end?: string }
+    >,
+    [values, setValues] = useState({
+      morning: {
+        start: raw.morning?.start ?? "05:00",
+        end: raw.morning?.end ?? "12:00",
+      },
+      afternoon: {
+        start: raw.afternoon?.start ?? "12:00",
+        end: raw.afternoon?.end ?? "18:00",
+      },
+      night: {
+        start: raw.night?.start ?? "18:00",
+        end: raw.night?.end ?? "05:00",
+      },
+    });
+  async function save() {
+    try {
+      await updateProfile({ day_part_settings: values });
+      reload();
+      toast.success(t("success"));
+    } catch (e) {
+      fail(e, t("error"));
+    }
+  }
+  return (
+    <div className="settings-block">
+      <b>{t("dayParts")}</b>
+      {(["morning", "afternoon", "night"] as const).map((part) => (
+        <div className="settings-row" key={part}>
+          <span>{t(part)}</span>
+          <div className="row-actions">
+            <input
+              type="time"
+              value={values[part].start}
+              onChange={(e) =>
+                setValues((v) => ({
+                  ...v,
+                  [part]: { ...v[part], start: e.target.value },
+                }))
+              }
+            />
+            <span>–</span>
+            <input
+              type="time"
+              value={values[part].end}
+              onChange={(e) =>
+                setValues((v) => ({
+                  ...v,
+                  [part]: { ...v[part], end: e.target.value },
+                }))
+              }
+            />
+          </div>
+        </div>
+      ))}
+      <button className="pill" onClick={() => void save()}>
+        {t("save")}
+      </button>
+    </div>
+  );
+}
+export function SettingsView({
+  data,
+  db,
+  reload,
+}: {
+  data: WorkspaceData;
+  db: ReturnType<typeof import("@/lib/supabase/client").createClient>;
+  reload: () => void;
+}) {
+  const t = useTranslations("Workspace"),
+    locale = useLocale() as "es" | "en",
+    router = useRouter(),
+    { theme, setTheme } = useTheme(),
+    [danger, setDanger] = useState(false),
+    [confirm, setConfirm] = useState("");
+  async function profile(p: Record<string, unknown>) {
+    try {
+      await updateProfile(p);
+      reload();
+      toast.success(t("success"));
+    } catch (e) {
+      fail(e, t("error"));
+    }
+  }
+  return (
+    <>
+      <h1 className="title">{t("settings")}</h1>
+      <section className="surface">
+        <div className="settings-row">
+          <span>{t("theme")}</span>
+          <select
+            className="pill"
+            value={theme ?? data.profile.theme}
+            onChange={(e) => {
+              setTheme(e.target.value as "light" | "dark" | "system");
+              void profile({ theme: e.target.value });
+            }}
+          >
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div className="settings-row">
+          <span>{t("language")}</span>
+          <select
+            className="pill"
+            value={locale}
+            onChange={(e) => {
+              const next = e.target.value as "es" | "en";
+              void profile({ locale: next });
+              router.replace("/settings", { locale: next });
+            }}
+          >
+            <option value="es">Español</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div className="settings-row">
+          <span>{t("timezone")}</span>
+          <input
+            className="pill"
+            defaultValue={data.profile.timezone}
+            onBlur={(e) => void profile({ timezone: e.target.value })}
+          />
+        </div>
+        <div className="settings-row">
+          <span>{t("weekStart")}</span>
+          <select
+            className="pill"
+            value={data.profile.week_starts_on}
+            onChange={(e) =>
+              void profile({ week_starts_on: Number(e.target.value) })
+            }
+          >
+            <option value="1">Monday</option>
+            <option value="0">Sunday</option>
+          </select>
+        </div>
+        <DayPartsSettings data={data} reload={reload} />
+        {Intl.DateTimeFormat().resolvedOptions().timeZone !==
+          data.profile.timezone && (
+          <div className="settings-row">
+            <span>{Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
+            <button
+              className="pill"
+              onClick={() =>
+                void profile({
+                  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                })
+              }
+            >
+              {t("save")}
+            </button>
+          </div>
+        )}
+        <div className="settings-row">
+          <span>{data.user.email}</span>
+          <button
+            className="pill"
+            onClick={async () => {
+              await db.auth.signOut();
+              location.href = `/${locale}/login`;
+            }}
+          >
+            {t("signOut")}
+          </button>
+        </div>
+        <div className="settings-row danger">
+          <div>
+            <b>{t("deleteAccount")}</b>
+            <div className="muted">{t("deleteWarning")}</div>
+          </div>
+          <button className="primary" onClick={() => setDanger(true)}>
+            {t("delete")}
+          </button>
+        </div>
+      </section>
+      <Alert.Root open={danger} onOpenChange={setDanger}>
+        <Alert.Portal>
+          <Alert.Overlay className="dialog-overlay" />
+          <Alert.Content className="dialog-content">
+            <Alert.Title>{t("deleteAccount")}</Alert.Title>
+            <Alert.Description>{t("deleteWarning")}</Alert.Description>
+            <label>
+              {t("deleteConfirm")}
+              <input
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+              />
+            </label>
+            <div className="dialog-actions">
+              <Alert.Cancel className="pill">{t("cancel")}</Alert.Cancel>
+              <Alert.Action
+                className="primary"
+                disabled={confirm !== t("deleteConfirm")}
+                onClick={async () => {
+                  const r = await fetch("/api/account", {
+                    method: "DELETE",
+                    headers: { "x-planora-confirm": "delete-account" },
+                  });
+                  if (r.ok) location.href = `/${locale}/login`;
+                  else toast.error(t("error"));
+                }}
+              >
+                {t("delete")}
+              </Alert.Action>
+            </div>
+          </Alert.Content>
+        </Alert.Portal>
+      </Alert.Root>
+    </>
+  );
+}
+

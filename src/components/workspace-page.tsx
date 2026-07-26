@@ -1,12 +1,142 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
-"use client";
-import {useEffect,useState} from "react";import {createClient} from "@/lib/supabase/client";import {Check,Plus} from "lucide-react";import {toast} from "sonner";import {useLocale} from "next-intl";import {useTheme} from "next-themes";
-type Row=Record<string,any>;const labels={es:{welcome:"Vamos a preparar Planora",start:"Crear mi primer horario",schedule:"Horario",category:"Categoría",task:"Tarea",event:"Evento",empty:"Todavía no hay elementos",add:"Añadir",title:"Título",name:"Nombre",date:"Fecha",save:"Guardar",logout:"Cerrar sesión",delete:"Eliminar cuenta",confirm:"Escribe ELIMINAR para confirmar",settings:"Preferencias",theme:"Tema",language:"Idioma",timezone:"Zona horaria",history:"Historial",week:"Esta semana"},en:{welcome:"Let's set up Planora",start:"Create my first schedule",schedule:"Schedule",category:"Category",task:"Task",event:"Event",empty:"Nothing here yet",add:"Add",title:"Title",name:"Name",date:"Date",save:"Save",logout:"Sign out",delete:"Delete account",confirm:"Type DELETE to confirm",settings:"Preferences",theme:"Theme",language:"Language",timezone:"Timezone",history:"History",week:"This week"}};
-export function WorkspacePage({mode}:{mode:string}){const locale=useLocale() as "es"|"en",l=labels[locale],db=createClient(),{setTheme}=useTheme();const[data,setData]=useState<{user:Row|null;profile:Row|null;schedules:Row[];categories:Row[];tasks:Row[];events:Row[];completions:Row[]}>({user:null,profile:null,schedules:[],categories:[],tasks:[],events:[],completions:[]}),[loading,setLoading]=useState(true),[open,setOpen]=useState(false);async function load(){const {data:{user}}=await db.auth.getUser();if(!user)return;const [p,s,c,t,e,h]=await Promise.all([db.from("profiles").select("*").eq("id",user.id).single(),db.from("schedules").select("*").order("created_at"),db.from("categories").select("*").order("sort_order"),db.from("tasks").select("*").order("created_at",{ascending:false}),db.from("events").select("*").order("event_date"),db.from("task_completions").select("*").order("completed_at",{ascending:false})]);setData({user,profile:p.data,schedules:s.data??[],categories:c.data??[],tasks:t.data??[],events:e.data??[],completions:h.data??[]});setLoading(false)}useEffect(()=>{load()},[]);
-async function onboard(){if(!data.user)return;const {data:s,error}=await db.from("schedules").insert({user_id:data.user.id,name:locale==="es"?"Normal":"Normal",emoji:"🌿"}).select().single();if(error)return toast.error(error.message);await db.from("categories").insert([...["Higiene","Deporte","Estudios","Ocio"].map((name,i)=>({user_id:data.user!.id,name:locale==="es"?name:["Hygiene","Sport","Studies","Entertainment"][i],colour:["#7D9D74","#D48A57","#6C8CD5","#9877B5"][i]}))]);await db.from("profiles").update({active_schedule_id:s.id,onboarding_completed:true,locale,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||"Europe/Madrid"}).eq("id",data.user.id);load()}
-async function add(form:FormData){if(!data.user)return;let error:any;if(mode==="tasks"){const title=String(form.get("title")),schedule_id=String(form.get("schedule")),recurrence_type=String(form.get("recurrence"));({error}=await db.from("tasks").insert({user_id:data.user.id,title,schedule_id,task_kind:recurrence_type==="once"?"one_time":"habit",recurrence_type,recurrence_config:{type:recurrence_type},time_mode:"anytime",start_date:String(form.get("date"))}))}else if(mode==="events")({error}=await db.from("events").insert({user_id:data.user.id,title:String(form.get("title")),event_date:String(form.get("date")),all_day:true,schedule_id:null}));else if(mode==="schedules")({error}=await db.from("schedules").insert({user_id:data.user.id,name:String(form.get("title")),emoji:"🌿"}));else ({error}=await db.from("categories").insert({user_id:data.user.id,name:String(form.get("title")),colour:String(form.get("colour")||"#7D9D74")}));if(error)toast.error(error.message);else{toast.success(l.save);setOpen(false);load()}}
-async function complete(task:Row){const day=new Date().toISOString().slice(0,10),old=data.completions.find(x=>x.task_id===task.id&&x.occurrence_date===day);const q=old?db.from("task_completions").delete().eq("id",old.id):db.from("task_completions").insert({user_id:data.user!.id,task_id:task.id,occurrence_date:day,task_snapshot:{title:task.title,emoji:task.emoji}});const{error}=await q;if(error)toast.error(error.message);else load()}
-if(loading)return <div className="empty surface" aria-busy>Planora…</div>;if(!data.profile?.onboarding_completed||!data.schedules.length)return <div className="login"><section className="empty surface" style={{maxWidth:520}}><div style={{fontSize:48}}>🌿</div><h1>{l.welcome}</h1><p className="muted">{data.user?.user_metadata?.full_name}</p><button className="primary" onClick={onboard}>{l.start}</button></section></div>;
-const title=mode==="tasks"?l.task:mode==="events"?l.event:mode==="schedules"?l.schedule:mode==="categories"?l.category:mode==="history"?l.history:mode==="week"?l.week:l.settings;const rows=mode==="tasks"?data.tasks:mode==="events"?data.events:mode==="schedules"?data.schedules:mode==="categories"?data.categories:mode==="history"?data.completions:[];if(mode==="settings")return <><h1 className="title">{title}</h1><section className="surface"><div className="settings-row"><span>{l.theme}</span><select className="pill" onChange={e=>setTheme(e.target.value)}><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></div><div className="settings-row"><span>{l.timezone}</span><b>{data.profile.timezone}</b></div><div className="settings-row"><button className="pill" onClick={async()=>{await db.auth.signOut();location.href=`/${locale}/login`}}>{l.logout}</button><button className="primary" style={{background:"var(--destructive)"}} onClick={async()=>{const v=prompt(l.confirm);if(v===(locale==="es"?"ELIMINAR":"DELETE")){const r=await fetch("/api/account",{method:"DELETE"});if(r.ok)location.href=`/${locale}/login`}}}>{l.delete}</button></div></section></>;
-return <><header className="topbar"><h1 className="title">{title}</h1>{!["history","week"].includes(mode)&&<button className="primary" onClick={()=>setOpen(!open)}><Plus size={18}/>{l.add}</button>}</header>{open&&<form className="surface" style={{padding:18,marginBottom:20,display:"grid",gap:12}} action={add}><input className="pill" name="title" required maxLength={140} placeholder={l.title}/>{mode==="categories"&&<input name="colour" type="color" defaultValue="#7D9D74"/>}{["tasks","events"].includes(mode)&&<input className="pill" name="date" type="date" required defaultValue={new Date().toISOString().slice(0,10)}/>} {mode==="tasks"&&<><select className="pill" name="schedule">{data.schedules.map(s=><option value={s.id} key={s.id}>{s.name}</option>)}</select><select className="pill" name="recurrence"><option value="once">Once</option><option value="daily">Daily</option></select></>}<button className="primary">{l.save}</button></form>}<div className="task-list">{rows.length?rows.map(r=><article className="task surface" key={r.id}>{mode==="tasks"?<button className="task-check" data-done={data.completions.some(c=>c.task_id===r.id&&c.occurrence_date===new Date().toISOString().slice(0,10))} onClick={()=>complete(r)}><Check/></button>:<span style={{fontSize:24}}>{r.emoji||"•"}</span>}<div><b>{r.title||r.name||r.task_snapshot?.title}</b><div className="muted">{r.event_date||r.recurrence_type||r.completed_at?.slice(0,10)||""}</div></div></article>):<div className="empty surface">🌱<p>{l.empty}</p></div>}</div></>}
-
+﻿"use client";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { setActiveSchedule } from "@/app/actions/domain";
+import { useWorkspace } from "@/features/workspace/use-workspace";
+import {
+  TodayView,
+  WeekView,
+  TasksView,
+  HistoryView,
+} from "@/features/workspace/task-views";
+import {
+  CategoriesView,
+  EventsView,
+  SchedulesView,
+  SettingsView,
+} from "@/features/workspace/resource-views";
+export function WorkspacePage({
+  mode,
+}: {
+  mode:
+    | "today"
+    | "week"
+    | "tasks"
+    | "events"
+    | "history"
+    | "schedules"
+    | "categories"
+    | "settings";
+}) {
+  const t = useTranslations("Workspace"),
+    { db, data, loading, error, reload } = useWorkspace(),
+    [starters, setStarters] = useState(true),
+    [starting, setStarting] = useState(false),
+    [, setClock] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setClock((v) => v + 1), 60000);
+    return () => clearInterval(timer);
+  }, []);
+  if (loading)
+    return (
+      <div className="empty surface" aria-live="polite" aria-busy="true">
+        {t("loading")}
+      </div>
+    );
+  if (error || !data)
+    return (
+      <div className="empty surface" role="alert">
+        <h1>{t("loadError")}</h1>
+        <button className="primary" onClick={() => void reload()}>
+          {t("retry")}
+        </button>
+      </div>
+    );
+  async function onboard() {
+    setStarting(true);
+    try {
+      const timezone =
+        Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Madrid";
+      const { error: onboardingError } = await db.rpc("complete_onboarding", {
+        include_starters: starters,
+        detected_timezone: timezone,
+      });
+      if (onboardingError) throw onboardingError;
+      await reload();
+    } catch (onboardingError) {
+      toast.error(
+        onboardingError instanceof Error ? onboardingError.message : t("error"),
+      );
+    } finally {
+      setStarting(false);
+    }
+  }
+  if (!data.profile.onboarding_completed || !data.schedules.length)
+    return (
+      <main className="onboarding">
+        <section className="surface onboarding-card">
+          <div className="resource-emoji">🌿</div>
+          <h1 className="title">{t("welcome")}</h1>
+          <p className="muted">{t("onboardingHint")}</p>
+          <label className="check-row">
+            <input
+              type="checkbox"
+              checked={starters}
+              onChange={(e) => setStarters(e.target.checked)}
+            />
+            {t("starterCategories")}
+          </label>
+          <button
+            className="primary"
+            disabled={starting}
+            onClick={() => void onboard()}
+          >
+            {t("start")}
+          </button>
+        </section>
+      </main>
+    );
+  const active = data.schedules.find(
+    (s) => s.id === data.profile.active_schedule_id,
+  );
+  const content =
+    mode === "today" ? (
+      <TodayView data={data} db={db} reload={reload} />
+    ) : mode === "week" ? (
+      <WeekView data={data} />
+    ) : mode === "tasks" ? (
+      <TasksView data={data} reload={reload} />
+    ) : mode === "events" ? (
+      <EventsView data={data} reload={reload} />
+    ) : mode === "history" ? (
+      <HistoryView data={data} />
+    ) : mode === "schedules" ? (
+      <SchedulesView data={data} reload={reload} />
+    ) : mode === "categories" ? (
+      <CategoriesView data={data} reload={reload} />
+    ) : (
+      <SettingsView data={data} db={db} reload={reload} />
+    );
+  return (
+    <>
+      <div className="schedule-bar">
+        <span className="muted">{t("activeSchedule")}</span>
+        <select
+          className="pill"
+          value={active?.id ?? ""}
+          onChange={(e) => void setActiveSchedule(e.target.value).then(reload)}
+        >
+          {data.schedules
+            .filter((s) => !s.is_archived)
+            .map((s) => (
+              <option value={s.id} key={s.id}>
+                {s.emoji} {s.name}
+              </option>
+            ))}
+        </select>
+      </div>
+      {content}
+    </>
+  );
+}

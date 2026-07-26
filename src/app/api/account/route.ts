@@ -1,1 +1,31 @@
-﻿import {createClient as createAdmin} from "@supabase/supabase-js";import {createClient} from "@/lib/supabase/server";import {NextResponse} from "next/server";export async function DELETE(){const db=await createClient(),{data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});const key=process.env.SUPABASE_SERVICE_ROLE_KEY;if(!key)return NextResponse.json({error:"Not configured"},{status:503});const admin=createAdmin(process.env.NEXT_PUBLIC_SUPABASE_URL!,key,{auth:{autoRefreshToken:false,persistSession:false}});const{error}=await admin.auth.admin.deleteUser(user.id);if(error)return NextResponse.json({error:"Unable to delete account"},{status:500});return NextResponse.json({ok:true})}
+﻿import { createClient as createAdmin } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
+import { NextResponse } from "next/server";
+export async function DELETE(request: Request) {
+  const origin = request.headers.get("origin"),
+    expected = new URL(request.url).origin;
+  if (
+    (origin && origin !== expected) ||
+    request.headers.get("x-planora-confirm") !== "delete-account"
+  )
+    return NextResponse.json({ error: "Invalid request" }, { status: 403 });
+  const db = await createClient(),
+    {
+      data: { user },
+    } = await db.auth.getUser();
+  if (!user)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key)
+    return NextResponse.json({ error: "Not configured" }, { status: 503 });
+  const admin = createAdmin(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    }),
+    { error } = await admin.auth.admin.deleteUser(user.id);
+  if (error)
+    return NextResponse.json(
+      { error: "Unable to delete account" },
+      { status: 500 },
+    );
+  return NextResponse.json({ ok: true });
+}

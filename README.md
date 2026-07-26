@@ -7,7 +7,7 @@ Planora is a bilingual, mobile-first task, habit, schedule and event manager bui
 1. Install Node.js 20+ and run `npm install`.
 2. Create a Supabase project and copy `.env.example` to `.env.local`.
 3. Put the project URL and publishable key in `.env.local`. Keep the service-role key server-only.
-4. In Supabase SQL Editor, apply `supabase/migrations/20260726140000_initial_schema.sql`.
+4. In Supabase SQL Editor, apply every SQL file in `supabase/migrations` in filename order.
 5. In Authentication → Providers, enable Google and disable Email, Phone and all unused providers.
 6. In Google Cloud Console create an OAuth web client. Add the Supabase callback `https://PROJECT.supabase.co/auth/v1/callback` and set the client ID/secret in Supabase.
 7. Add `http://localhost:3000/auth/callback` and the production equivalent to Supabase Authentication → URL Configuration redirect allow-list.

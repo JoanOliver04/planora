@@ -1,5 +1,6 @@
 ﻿import { describe, expect, it } from "vitest";
 import {
+  calculateWeeklyProgress,
   classifyDayPart,
   formatRecurrenceDescription,
   getExpectedTaskOccurrences,
@@ -65,4 +66,36 @@ describe("recurrence", () => {
       recurrenceConfigSchema.safeParse({ type: "times_per_week", target: 8 })
         .success,
     ).toBe(false));
+  it("supports anchored n-week intervals", () => {
+    expect(
+      isTaskExpectedOnDate(
+        {
+          startDate: "2026-07-06",
+          recurrence: { type: "interval", every: 2, unit: "week" },
+        },
+        "2026-07-20",
+      ),
+    ).toBe(true);
+    expect(
+      isTaskExpectedOnDate(
+        {
+          startDate: "2026-07-06",
+          recurrence: { type: "interval", every: 2, unit: "week" },
+        },
+        "2026-07-13",
+      ),
+    ).toBe(false);
+  });
+  it("caps weekly-frequency progress at its target", () => {
+    const task = {
+      startDate: "2026-07-01",
+      recurrence: { type: "times_per_week" as const, target: 2 },
+    };
+    const result = calculateWeeklyProgress(
+      [task],
+      new Map([[task, ["2026-07-27", "2026-07-28", "2026-07-29"]]]),
+      "2026-07-29",
+    );
+    expect(result).toEqual({ completed: 2, expected: 2, percentage: 100 });
+  });
 });

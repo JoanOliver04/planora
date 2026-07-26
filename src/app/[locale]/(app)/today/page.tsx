@@ -1,1 +1,4 @@
-import {WorkspacePage} from '@/components/workspace-page';export default function Page(){return <WorkspacePage mode='tasks'/>}
+import { WorkspacePage } from "@/components/workspace-page";
+export default function Page() {
+  return <WorkspacePage mode="today" />;
+}

@@ -1,1 +1,4 @@
-import {WorkspacePage} from '@/components/workspace-page';export default function Page(){return <WorkspacePage mode='events'/>}
+import { WorkspacePage } from "@/components/workspace-page";
+export default function Page() {
+  return <WorkspacePage mode="events" />;
+}
