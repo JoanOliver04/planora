@@ -1,0 +1,2 @@
+﻿import createMiddleware from "next-intl/middleware";import { routing } from "@/i18n/routing";import { updateSession } from "@/lib/supabase/proxy";import type { NextRequest } from "next/server";
+const intl=createMiddleware(routing);export async function proxy(request:NextRequest){const auth=await updateSession(request);const localized=intl(request);if(auth)auth.cookies.getAll().forEach(c=>localized.cookies.set(c));return localized;}export const config={matcher:["/((?!api|auth|_next|_vercel|.*\\..*).*)"]};
