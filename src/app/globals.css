@@ -596,6 +596,10 @@ textarea:focus-visible {
 .danger {
   color: var(--destructive);
 }
+.danger-action {
+  background: var(--destructive);
+  color: white;
+}
 .onboarding {
   min-height: 70vh;
   display: grid;
@@ -910,6 +914,25 @@ select:disabled,
 }
 .week-header {
   margin-bottom: 1rem;
+}
+.week-controls {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.65rem;
+  padding: 0.7rem;
+  margin-bottom: 0.85rem;
+}
+.week-picker {
+  display: grid;
+  gap: 0.3rem;
+  color: color-mix(in srgb, var(--foreground) 62%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+.week-picker input {
+  width: 100%;
 }
 .week-mobile {
   display: block;
@@ -1333,5 +1356,14 @@ select:disabled,
   .settings-row input.pill {
     max-width: 100%;
     width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .week-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+  .week-picker {
+    grid-column: 1 / -1;
+    grid-row: 1;
   }
 }

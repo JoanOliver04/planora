@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { addDays } from "date-fns";
 import {
   Archive,
   Check,
@@ -22,6 +23,7 @@ import { duplicateTask, setTaskArchived } from "@/app/actions/domain";
 import type { Category, Completion, Task, WorkspaceData } from "./types";
 import { recurrenceFromJson } from "./types";
 import { TaskForm } from "./task-form";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   formatCategoryMetadata,
   formatNaturalDate,
@@ -392,16 +394,34 @@ export function TodayView({
 export function WeekView({ data }: { data: WorkspaceData }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
+    today = localDate(data.profile.timezone),
+    [viewDate, setViewDate] = useState(today),
     week = localWeek(
+      data.profile.timezone,
+      zonedDate(viewDate, data.profile.timezone),
+      data.profile.week_starts_on === 0 ? 0 : 1,
+    ),
+    currentWeek = localWeek(
       data.profile.timezone,
       new Date(),
       data.profile.week_starts_on === 0 ? 0 : 1,
     ),
-    today = localDate(data.profile.timezone),
     active = data.profile.active_schedule_id,
     [selectedDay, setSelectedDay] = useState(
       week.days.includes(today) ? today : week.start,
     );
+  const moveWeek = (amount: number) => {
+    const next = localDate(
+      data.profile.timezone,
+      addDays(zonedDate(week.start, data.profile.timezone), amount * 7),
+    );
+    setViewDate(next);
+    setSelectedDay(next);
+  };
+  const goToToday = () => {
+    setViewDate(today);
+    setSelectedDay(today);
+  };
   const dayContent = (day: string) => {
     const tasks = data.tasks.filter(
         (task) =>
@@ -483,13 +503,59 @@ export function WeekView({ data }: { data: WorkspaceData }) {
         <div>
           <div className="eyebrow">{t("weeklyAgenda")}</div>
           <h1 className="title">{t("week")}</h1>
+          <p className="header-context">
+            {new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+              timeZone: "UTC",
+            }).format(new Date(`${week.start}T12:00:00Z`))}
+            {" – "}
+            {new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+              timeZone: "UTC",
+            }).format(new Date(`${week.end}T12:00:00Z`))}
+          </p>
         </div>
-        {selectedDay !== today && week.days.includes(today) && (
-          <button className="pill" onClick={() => setSelectedDay(today)}>
+        {(week.start !== currentWeek.start || selectedDay !== today) && (
+          <button className="pill" onClick={goToToday}>
             {t("goToday")}
           </button>
         )}
       </header>
+      <div className="week-controls surface">
+        <button
+          className="pill"
+          type="button"
+          onClick={() => moveWeek(-1)}
+          aria-label={t("previousWeek")}
+        >
+          ← {t("previous")}
+        </button>
+        <label className="week-picker">
+          <span>{t("chooseWeek")}</span>
+          <input
+            className="pill"
+            type="date"
+            value={viewDate}
+            onChange={(event) => {
+              if (!event.target.value) return;
+              setViewDate(event.target.value);
+              setSelectedDay(event.target.value);
+            }}
+          />
+        </label>
+        <button
+          className="pill"
+          type="button"
+          onClick={() => moveWeek(1)}
+          aria-label={t("nextWeek")}
+        >
+          {t("next")} →
+        </button>
+      </div>
       <div className="week-mobile">
         <div className="day-selector" aria-label={t("selectDay")}>
           {week.days.map((day) => (
@@ -529,7 +595,8 @@ export function TasksView({
     [editing, setEditing] = useState<Task | null>(null),
     [search, setSearch] = useState(""),
     [category, setCategory] = useState("all"),
-    [status, setStatus] = useState("active");
+    [status, setStatus] = useState("active"),
+    [confirmTask, setConfirmTask] = useState<Task | null>(null);
   const tasks = useMemo(
     () =>
       data.tasks.filter(
@@ -657,9 +724,9 @@ export function TasksView({
                 <button
                   className="icon-button"
                   onClick={() =>
-                    void setTaskArchived(task.id, !task.archived_at).then(
-                      reload,
-                    )
+                    task.archived_at
+                      ? void setTaskArchived(task.id, false).then(reload)
+                      : setConfirmTask(task)
                   }
                   aria-label={task.archived_at ? t("restore") : t("archive")}
                 >
@@ -690,6 +757,24 @@ export function TasksView({
         timezone={data.profile.timezone}
         task={editing}
         onSaved={reload}
+      />
+      <ConfirmDialog
+        open={!!confirmTask}
+        onOpenChange={(open) => !open && setConfirmTask(null)}
+        title={`${t("archive")} ${confirmTask?.title ?? ""}`}
+        description={t("archiveTaskWarning")}
+        cancelLabel={t("cancel")}
+        confirmLabel={t("archive")}
+        onConfirm={async () => {
+          if (!confirmTask) return;
+          try {
+            await setTaskArchived(confirmTask.id, true);
+            await reload();
+            setConfirmTask(null);
+          } catch (error) {
+            toast.error(error instanceof Error ? error.message : t("error"));
+          }
+        }}
       />
     </>
   );

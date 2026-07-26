@@ -5,146 +5,139 @@
 <h1 align="center">Planora</h1>
 
 <p align="center">
-  <strong>Organiza tareas, hábitos, horarios y eventos en un único espacio.</strong><br />
-  Una agenda bilingüe, privada y mobile-first que se adapta a tu rutina.
+  <strong>Tasks, habits, schedules and events in one calm workspace.</strong><br />
+  A private, bilingual and mobile-first planner built for flexible routines.
 </p>
 
 <p align="center">
   <a href="https://planora-lake-one.vercel.app">
-    <img src="https://img.shields.io/badge/demo-online-52734D?style=flat-square" alt="Demo online" />
+    <img src="https://img.shields.io/badge/demo-online-52734D?style=flat-square" alt="Live demo" />
   </a>
   <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" alt="Next.js 16" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
-  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript strict" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
-  <img src="https://img.shields.io/badge/tests-29%20unitarias%20%2B%206%20E2E-brightgreen?style=flat-square" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-31%20unit%20%2B%206%20E2E-brightgreen?style=flat-square" alt="Tests" />
 </p>
 
 ---
 
-## ¿Qué es Planora?
+## About Planora
 
-Planora es una aplicación web para convertir una rutina compleja en un horario claro y manejable. Permite combinar tareas puntuales, hábitos recurrentes y eventos, organizarlos por categorías y consultar el progreso semanal desde el móvil o el ordenador.
+Planora turns complex routines into a clear and manageable schedule. It combines one-time tasks, recurring habits and dated events, then organises them by schedule and colour-coded category.
 
-Cada usuario accede con Google y conserva sus datos en una cuenta privada sincronizada entre dispositivos. La experiencia está diseñada primero para móvil, pero incluye una agenda semanal optimizada para escritorio.
+Each user signs in exclusively with Google and gets a private workspace synchronised across devices. The interface is designed mobile-first while providing a spacious weekly planner on desktop.
 
-**Aplicación:** [planora-lake-one.vercel.app](https://planora-lake-one.vercel.app)
+**Live application:** [planora-lake-one.vercel.app](https://planora-lake-one.vercel.app)
 
----
+## Features
 
-## Funcionalidades
+### Tasks and habits
 
-### Tareas y hábitos
+- One-time tasks and recurring habits.
+- Recurrence every day, on selected weekdays, a target number of times per week, or at custom day, week and month intervals.
+- Optional start and end dates. Habits can continue indefinitely until the user edits or archives them.
+- Optional timing: anytime, morning, afternoon, night, a specific time or a time range.
+- Edit, duplicate, archive and restore tasks without losing completion history.
+- Confirmation before archiving to prevent accidental removals from the active schedule.
+- Emoji, notes, category and colour for quick visual recognition.
 
-- Tareas de una sola vez y hábitos sin fecha de finalización obligatoria.
-- Repetición diaria, por días concretos, varias veces por semana o cada cierto número de días, semanas o meses.
-- Horario opcional: cualquier momento, mañana, tarde, noche, hora concreta o rango de horas.
-- Edición, duplicación y archivado sin perder el historial.
-- Emoji, descripción, categoría y color para reconocer cada tarea rápidamente.
+### Schedules and calendar
 
-### Organización
+- Multiple independent schedules for regular routines, holidays, exams or any other context.
+- Fast switching between active schedules.
+- Weekly agenda with previous/next controls, direct date selection and a quick return to the current week.
+- The current week is always selected by default.
+- Responsive day selector on mobile and full seven-day layout on desktop.
+- Custom categories with a name, emoji and colour.
+- Global or schedule-specific events with an optional time.
 
-- Varios horarios independientes, como rutina habitual, vacaciones o época de exámenes.
-- Cambio rápido del horario activo.
-- Categorías personalizadas con nombre, emoji y selector de color.
-- Eventos globales o asociados a un horario, con fecha, hora o día completo.
-- Vista de hoy agrupada por momento del día.
-- Agenda semanal responsive para móvil y escritorio.
+### Progress and history
 
-### Seguimiento
+- Complete or undo tasks for a specific occurrence date.
+- Immutable history snapshots preserve the original task and category details.
+- Weekly completion targets and progress percentage.
+- Date calculations respect the user's timezone and preferred first day of the week.
 
-- Completar y desmarcar tareas por fecha.
-- Historial inmutable con una instantánea del nombre y categoría originales.
-- Objetivos semanales y porcentaje de cumplimiento.
-- Cálculos adaptados a la zona horaria y al inicio de semana del usuario.
+### Experience and safety
 
-### Experiencia
+- Full Spanish and English interface.
+- Light, dark and system themes with theme-aware brand assets.
+- Installable PWA manifest using the product logo.
+- Confirmation dialogs for permanent deletion, archiving, account deletion and sign-out.
+- Accessible navigation, keyboard focus states and reduced-motion support.
+- Mobile-first touch targets and responsive layouts.
+- Google OAuth only; Planora stores no passwords.
 
-- Interfaz disponible en castellano e inglés.
-- Temas claro, oscuro y automático según el sistema.
-- Logos adaptados a cada tema y aplicación instalable mediante manifest web.
-- Navegación mobile-first, controles táctiles y diseño responsive.
-- Inicio de sesión exclusivamente con Google OAuth.
-
----
-
-## Arquitectura
+## Architecture
 
 ```mermaid
 flowchart LR
-    U[Usuario] --> UI[Next.js App Router]
+    U[User] --> UI[Next.js App Router]
     UI --> I18N[next-intl]
     UI --> SA[Server Actions]
-    UI --> SC[Supabase Browser Client]
-    SA --> SSR[Supabase SSR]
+    UI --> SC[Supabase browser client]
+    SA --> SSR[Supabase SSR client]
     SC --> DB[(PostgreSQL)]
     SSR --> DB
     DB --> RLS[Row Level Security]
     AUTH[Google OAuth] --> SSR
 ```
 
-Planora utiliza Next.js App Router con Server Components por defecto y componentes cliente únicamente donde hay interacción. Las Server Actions validan las mutaciones con Zod, mientras Supabase gestiona sesiones, PostgreSQL y políticas RLS.
+Next.js App Router provides Server Components by default and Client Components only where interaction is required. Server Actions validate every mutation with Zod. Supabase manages Google sessions, PostgreSQL persistence and row-level access policies.
 
-Las recurrencias se calculan bajo demanda. No se generan miles de filas futuras ni se necesita un cron para crear tareas cada día.
+Recurring occurrences are calculated on demand instead of generating unlimited future database rows. This keeps storage predictable and removes the need for scheduled jobs.
 
----
+## Technology stack
 
-## Stack técnico
+| Area           | Technology                                | Purpose                                                    |
+| -------------- | ----------------------------------------- | ---------------------------------------------------------- |
+| Framework      | **Next.js 16**                            | App Router, Server Actions, metadata and production builds |
+| UI             | **React 19 + TypeScript**                 | Strictly typed components and interactions                 |
+| Styling        | **Tailwind CSS 4 + CSS**                  | Responsive design system and themes                        |
+| Components     | **Radix UI + Lucide**                     | Accessible dialogs and icons                               |
+| Validation     | **Zod**                                   | Runtime validation for forms and server mutations          |
+| Data           | **Supabase + PostgreSQL**                 | Persistence, sessions and RLS                              |
+| Authentication | **Google OAuth**                          | Passwordless identity                                      |
+| Localisation   | **next-intl**                             | Spanish and English routes and messages                    |
+| Dates          | **date-fns + date-fns-tz**                | Recurrence and timezone-safe calculations                  |
+| Testing        | **Vitest + Testing Library + Playwright** | Unit, component and end-to-end coverage                    |
+| Hosting        | **Vercel**                                | Automatic production deployments from `main`               |
 
-| Área          | Tecnología                                | Uso                                          |
-| ------------- | ----------------------------------------- | -------------------------------------------- |
-| Framework     | **Next.js 16**                            | App Router, Server Actions, metadata y build |
-| Interfaz      | **React 19 + TypeScript**                 | Componentes tipados e interacción            |
-| Estilos       | **Tailwind CSS 4 + CSS**                  | Sistema visual responsive y temas            |
-| Componentes   | **Radix UI + Lucide**                     | Diálogos accesibles e iconografía            |
-| Formularios   | **React + Zod**                           | Estado y validación estructurada             |
-| Datos         | **Supabase + PostgreSQL**                 | Persistencia, sesiones y RLS                 |
-| Autenticación | **Google OAuth**                          | Acceso único sin contraseñas locales         |
-| Idiomas       | **next-intl**                             | Rutas y mensajes en castellano e inglés      |
-| Fechas        | **date-fns + date-fns-tz**                | Recurrencias y zonas horarias                |
-| Testing       | **Vitest + Testing Library + Playwright** | Pruebas unitarias, UI y E2E                  |
-| Hosting       | **Vercel**                                | Despliegue automático desde `main`           |
-
----
-
-## Estructura del proyecto
+## Project structure
 
 ```text
 planora/
-├── public/
-│   └── assets/                 # Logos y favicon
+├── public/assets/              # Logos, PWA artwork and favicon
 ├── src/
-│   ├── app/                    # Rutas, layouts, API y Server Actions
-│   ├── components/             # Shell, navegación y providers
+│   ├── app/                    # Routes, layouts, API handlers and Server Actions
+│   ├── components/             # Shared shell, navigation and dialogs
 │   ├── features/
-│   │   ├── auth/               # Acceso con Google
-│   │   └── workspace/          # Tareas, eventos, horarios y ajustes
-│   ├── i18n/                   # Configuración de rutas localizadas
+│   │   ├── auth/               # Google authentication
+│   │   └── workspace/          # Tasks, events, schedules and settings
+│   ├── i18n/                   # Localised routing configuration
 │   ├── lib/
-│   │   ├── dates/              # Utilidades de zona horaria
-│   │   ├── recurrence/         # Motor de recurrencias y progreso
-│   │   ├── supabase/           # Clientes browser, server y proxy
-│   │   └── validation/         # Esquemas Zod
-│   ├── messages/               # Traducciones ES/EN
-│   └── types/                  # Tipos generados de la base de datos
-├── supabase/
-│   └── migrations/             # Esquema, políticas y restricciones
-├── tests/                      # Vitest y Testing Library
-├── e2e/                        # Pruebas Playwright
-└── docs/                       # Arquitectura, seguridad y despliegue
+│   │   ├── dates/              # Timezone utilities
+│   │   ├── recurrence/         # Recurrence and progress engine
+│   │   ├── supabase/           # Browser, server and proxy clients
+│   │   └── validation/         # Zod schemas
+│   ├── messages/               # Spanish and English translations
+│   └── types/                  # Generated database types
+├── supabase/migrations/        # Schema, RLS policies and invariants
+├── tests/                      # Vitest and Testing Library
+├── e2e/                        # Playwright scenarios
+└── docs/                       # Product and engineering documentation
 ```
 
----
+## Local development
 
-## Instalación local
+### Requirements
 
-### Requisitos
+- Node.js 20 or newer.
+- A Supabase project.
+- A Google Cloud OAuth web client.
 
-- Node.js 20 o superior.
-- Una cuenta de [Supabase](https://supabase.com).
-- Un proyecto OAuth en Google Cloud.
-
-### 1. Instalar dependencias
+### Installation
 
 ```bash
 git clone https://github.com/JoanOliver04/planora.git
@@ -152,9 +145,7 @@ cd planora
 npm install
 ```
 
-### 2. Configurar variables de entorno
-
-Copia `.env.example` como `.env.local`:
+Copy `.env.example` to `.env.local` and configure:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -163,65 +154,49 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 SUPABASE_SERVICE_ROLE_KEY=server-only-account-deletion-key
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY` es exclusivamente de servidor y solo se utiliza para la eliminación verificada de cuentas. Nunca debe exponerse en el cliente.
+`SUPABASE_SERVICE_ROLE_KEY` is server-only and is used exclusively for verified account deletion. Never expose it to browser code.
 
-### 3. Preparar Supabase
+Apply every file in `supabase/migrations` in filename order. In Supabase Authentication, enable Google and disable Email, Phone and unused providers. Add the local and production `/auth/callback` URLs to the redirect allow-list.
 
-1. Ejecuta en orden los archivos de `supabase/migrations`.
-2. Activa el proveedor Google en **Authentication → Providers**.
-3. Desactiva Email, Phone y cualquier proveedor que no utilices.
-4. Añade `http://localhost:3000/auth/callback` a la lista de redirecciones permitidas.
-
-### 4. Configurar Google OAuth
-
-1. Crea un cliente OAuth web en Google Cloud Console.
-2. Añade como URI autorizada el callback de Supabase: `https://PROJECT.supabase.co/auth/v1/callback`.
-3. Copia el Client ID y el Client Secret en el proveedor Google de Supabase.
-
-### 5. Iniciar la aplicación
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000).
 
----
+## Available commands
 
-## Comandos
+| Command                 | Description                             |
+| ----------------------- | --------------------------------------- |
+| `npm run dev`           | Start the Turbopack development server  |
+| `npm run build`         | Create an optimised production build    |
+| `npm start`             | Run the production build                |
+| `npm run lint`          | Run ESLint                              |
+| `npm run typecheck`     | Run strict TypeScript checks            |
+| `npm test`              | Run unit and component tests            |
+| `npm run test:coverage` | Generate a coverage report              |
+| `npm run test:e2e`      | Run Playwright desktop and mobile flows |
+| `npm run format`        | Format the codebase with Prettier       |
+| `npm run db:types`      | Regenerate Supabase database types      |
 
-| Comando                 | Descripción                          |
-| ----------------------- | ------------------------------------ |
-| `npm run dev`           | Servidor de desarrollo con Turbopack |
-| `npm run build`         | Build optimizado de producción       |
-| `npm start`             | Ejecuta el build de producción       |
-| `npm run lint`          | Análisis con ESLint                  |
-| `npm run typecheck`     | Comprobación estricta de TypeScript  |
-| `npm test`              | Pruebas unitarias y de componentes   |
-| `npm run test:coverage` | Tests con informe de cobertura       |
-| `npm run test:e2e`      | Flujos E2E con Playwright            |
-| `npm run format`        | Formatea el proyecto con Prettier    |
-| `npm run db:types`      | Regenera los tipos de Supabase       |
+## Security
 
----
+- RLS is enabled for every user-owned table.
+- `SELECT`, `INSERT`, `UPDATE` and `DELETE` policies are scoped to `auth.uid()`.
+- Composite foreign keys prevent cross-user references.
+- Sensitive mutations include explicit ownership filters in addition to RLS.
+- Server sessions are verified through Supabase SSR.
+- Zod validates all untrusted mutation input at runtime.
+- Google OAuth requests only identity, email and profile information.
+- Security headers include CSP, frame denial, MIME sniffing protection and a restrictive permissions policy.
+- Account deletion requires a valid session, same-origin request and explicit typed confirmation.
+- User content is rendered as text and never injected as HTML.
 
-## Seguridad
+No application can be guaranteed completely secure. See [docs/security.md](docs/security.md) for the threat model and operational guidance.
 
-- Row Level Security habilitado en todas las tablas de usuario.
-- Políticas `SELECT`, `INSERT`, `UPDATE` y `DELETE` limitadas a `auth.uid()`.
-- Claves foráneas compuestas que impiden referencias entre usuarios.
-- Sesiones verificadas en servidor mediante Supabase SSR.
-- Validación Zod antes de cada mutación.
-- Google OAuth limitado a identidad, email y perfil.
-- Cabeceras CSP, `X-Frame-Options`, `nosniff` y política de permisos.
-- Eliminación de cuenta protegida por sesión, origen y confirmación explícita.
-- Contenido del usuario renderizado como texto, nunca como HTML.
-
-Consulta [docs/security.md](docs/security.md) para conocer el modelo completo.
-
----
-
-## Pruebas y calidad
+## Quality checks
 
 ```bash
 npm run lint
@@ -229,42 +204,37 @@ npm run typecheck
 npm test
 npm run test:e2e
 npm run build
+npm audit
 ```
 
-La batería actual cubre el motor de recurrencias, límites de fechas, intervalos, finales de mes, zonas horarias, formato bilingüe, formularios, estados de carga, navegación protegida y experiencia móvil de acceso.
+The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, forms, loading states, protected navigation, platform metadata and mobile authentication.
 
----
+## Deployment
 
-## Despliegue
+Planora is configured for Vercel and Supabase:
 
-El proyecto está preparado para Vercel y Supabase:
+1. Import the GitHub repository into Vercel.
+2. Configure the production environment variables.
+3. Set `NEXT_PUBLIC_SITE_URL` to the final HTTPS domain.
+4. Add the production callback to Supabase and Google.
+5. Deploy.
 
-1. Importa el repositorio en Vercel.
-2. Configura las mismas variables de entorno de producción.
-3. Establece `NEXT_PUBLIC_SITE_URL` con el dominio HTTPS definitivo.
-4. Añade el callback de producción a Supabase y Google.
-5. Despliega.
+Every push to `main` creates a production deployment automatically. Recurrence requires no cron jobs, so the project can run on the free Vercel and Supabase tiers within their usage limits.
 
-Los pushes a `main` generan automáticamente un nuevo despliegue de producción. Las recurrencias no necesitan tareas programadas, por lo que el proyecto puede funcionar dentro de los planes gratuitos de Vercel y Supabase.
+See [docs/deployment.md](docs/deployment.md) for the complete checklist.
 
-Consulta [docs/deployment.md](docs/deployment.md) para ver la lista completa.
+## Documentation
 
----
+- [Product specification](docs/product-spec.md)
+- [Architecture](docs/architecture.md)
+- [Database model](docs/database.md)
+- [Security model](docs/security.md)
+- [Testing strategy](docs/testing.md)
+- [Deployment guide](docs/deployment.md)
+- [Implementation plan](docs/implementation-plan.md)
 
-## Documentación
+## Author
 
-- [Especificación del producto](docs/product-spec.md)
-- [Arquitectura](docs/architecture.md)
-- [Modelo de base de datos](docs/database.md)
-- [Seguridad](docs/security.md)
-- [Estrategia de pruebas](docs/testing.md)
-- [Despliegue](docs/deployment.md)
-- [Plan de implementación](docs/implementation-plan.md)
-
----
-
-## Autor
-
-Desarrollado por **Joan Oliver**.
+Built by **Joan Oliver**.
 
 - GitHub: [@JoanOliver04](https://github.com/JoanOliver04)

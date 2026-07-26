@@ -20,6 +20,7 @@ import {
 } from "@/app/actions/domain";
 import type { Category, Event, Schedule, WorkspaceData } from "./types";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 const fail = (e: unknown, fallback: string) =>
   toast.error(e instanceof Error ? e.message : fallback);
 export function EventsView({
@@ -33,6 +34,7 @@ export function EventsView({
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Event | null>(null),
     [allDay, setAllDay] = useState(true),
+    [deleting, setDeleting] = useState<Event | null>(null),
     [pending, start] = useTransition();
   function submit(fd: FormData) {
     start(async () => {
@@ -100,11 +102,8 @@ export function EventsView({
               </button>
               <button
                 className="icon-button"
-                onClick={() =>
-                  void deleteEvent(e.id)
-                    .then(reload)
-                    .catch((x) => fail(x, t("error")))
-                }
+                onClick={() => setDeleting(e)}
+                aria-label={`${t("delete")} ${e.title}`}
               >
                 <Trash2 size={16} />
               </button>
@@ -112,6 +111,24 @@ export function EventsView({
           </article>
         ))}
       </div>
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title={`${t("delete")} ${deleting?.title ?? ""}`}
+        description={t("deleteEventWarning")}
+        cancelLabel={t("cancel")}
+        confirmLabel={t("delete")}
+        onConfirm={async () => {
+          if (!deleting) return;
+          try {
+            await deleteEvent(deleting.id);
+            await reload();
+            setDeleting(null);
+          } catch (error) {
+            fail(error, t("error"));
+          }
+        }}
+      />
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="dialog-overlay" />
@@ -209,7 +226,9 @@ export function EventsView({
                 />
               </label>
               <div className="dialog-actions">
-                <Dialog.Close className="pill">{t("cancel")}</Dialog.Close>
+                <Dialog.Close className="pill" type="button">
+                  {t("cancel")}
+                </Dialog.Close>
                 <button className="primary" disabled={pending}>
                   {t("save")}
                 </button>
@@ -230,7 +249,11 @@ export function SchedulesView({
 }) {
   const t = useTranslations("Workspace"),
     [open, setOpen] = useState(false),
-    [editing, setEditing] = useState<Schedule | null>(null);
+    [editing, setEditing] = useState<Schedule | null>(null),
+    [confirming, setConfirming] = useState<{
+      action: "delete" | "archive";
+      schedule: Schedule;
+    } | null>(null);
   async function submit(fd: FormData) {
     try {
       await saveSchedule({
@@ -303,11 +326,7 @@ export function SchedulesView({
                 className="icon-button"
                 aria-label={t("delete")}
                 disabled={data.profile.active_schedule_id === s.id}
-                onClick={() =>
-                  void deleteEmptySchedule(s.id)
-                    .then(reload)
-                    .catch((x) => fail(x, t("error")))
-                }
+                onClick={() => setConfirming({ action: "delete", schedule: s })}
               >
                 <Trash2 size={16} />
               </button>
@@ -315,7 +334,9 @@ export function SchedulesView({
                 className="icon-button"
                 disabled={data.profile.active_schedule_id === s.id}
                 onClick={() =>
-                  void setScheduleArchived(s.id, !s.is_archived).then(reload)
+                  s.is_archived
+                    ? void setScheduleArchived(s.id, false).then(reload)
+                    : setConfirming({ action: "archive", schedule: s })
                 }
               >
                 {s.is_archived ? (
@@ -328,6 +349,34 @@ export function SchedulesView({
           </article>
         ))}
       </div>
+      <ConfirmDialog
+        open={!!confirming}
+        onOpenChange={(open) => !open && setConfirming(null)}
+        title={
+          confirming
+            ? `${t(confirming.action)} ${confirming.schedule.name}`
+            : ""
+        }
+        description={
+          confirming?.action === "delete"
+            ? t("deleteScheduleWarning")
+            : t("archiveScheduleWarning")
+        }
+        cancelLabel={t("cancel")}
+        confirmLabel={t(confirming?.action ?? "archive")}
+        onConfirm={async () => {
+          if (!confirming) return;
+          try {
+            if (confirming.action === "delete")
+              await deleteEmptySchedule(confirming.schedule.id);
+            else await setScheduleArchived(confirming.schedule.id, true);
+            await reload();
+            setConfirming(null);
+          } catch (error) {
+            fail(error, t("error"));
+          }
+        }}
+      />
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="dialog-overlay" />
@@ -462,6 +511,9 @@ export function CategoriesView({
             <Dialog.Title>
               {t("delete")} {deleting?.name}
             </Dialog.Title>
+            <Dialog.Description className="muted">
+              {t("deleteCategoryWarning")}
+            </Dialog.Description>
             <form
               className="form-grid"
               action={async (fd) => {
@@ -491,7 +543,9 @@ export function CategoriesView({
                 </select>
               </label>
               <div className="dialog-actions">
-                <Dialog.Close className="pill">{t("cancel")}</Dialog.Close>
+                <Dialog.Close className="pill" type="button">
+                  {t("cancel")}
+                </Dialog.Close>
                 <button className="primary">{t("delete")}</button>
               </div>
             </form>
@@ -587,6 +641,7 @@ export function SettingsView({
     router = useRouter(),
     { theme, setTheme } = useTheme(),
     [danger, setDanger] = useState(false),
+    [confirmSignOut, setConfirmSignOut] = useState(false),
     [confirm, setConfirm] = useState("");
   async function profile(p: Record<string, unknown>) {
     try {
@@ -684,13 +739,7 @@ export function SettingsView({
         )}
         <div className="settings-row">
           <span>{data.user.email}</span>
-          <button
-            className="pill"
-            onClick={async () => {
-              await db.auth.signOut();
-              location.href = `/${locale}/login`;
-            }}
-          >
+          <button className="pill" onClick={() => setConfirmSignOut(true)}>
             {t("signOut")}
           </button>
         </div>
@@ -704,6 +753,22 @@ export function SettingsView({
           </button>
         </div>
       </section>
+      <ConfirmDialog
+        open={confirmSignOut}
+        onOpenChange={setConfirmSignOut}
+        title={t("signOut")}
+        description={t("signOutWarning")}
+        cancelLabel={t("cancel")}
+        confirmLabel={t("signOut")}
+        onConfirm={async () => {
+          const { error } = await db.auth.signOut();
+          if (error) {
+            fail(error, t("error"));
+            return;
+          }
+          location.href = `/${locale}/login`;
+        }}
+      />
       <Alert.Root open={danger} onOpenChange={setDanger}>
         <Alert.Portal>
           <Alert.Overlay className="dialog-overlay" />
