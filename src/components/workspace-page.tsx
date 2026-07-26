@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { WorkspaceSkeleton } from "@/components/workspace-skeleton";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -34,6 +34,7 @@ export function WorkspacePage({
     { db, data, loading, error, reload } = useWorkspace(),
     [starters, setStarters] = useState(true),
     [starting, setStarting] = useState(false),
+    [switchingSchedule, startScheduleTransition] = useTransition(),
     [, setClock] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => setClock((v) => v + 1), 60000);
@@ -70,7 +71,7 @@ export function WorkspacePage({
   }
   if (!data.profile.onboarding_completed || !data.schedules.length)
     return (
-      <main className="onboarding">
+      <div className="onboarding">
         <section className="surface onboarding-card">
           <div className="resource-emoji">🌿</div>
           <h1 className="title">{t("welcome")}</h1>
@@ -91,7 +92,7 @@ export function WorkspacePage({
             {t("start")}
           </button>
         </section>
-      </main>
+      </div>
     );
   const active = data.schedules.find(
     (s) => s.id === data.profile.active_schedule_id,
@@ -121,7 +122,22 @@ export function WorkspacePage({
         <select
           className="pill"
           value={active?.id ?? ""}
-          onChange={(e) => void setActiveSchedule(e.target.value).then(reload)}
+          onChange={(e) => {
+            const scheduleId = e.target.value;
+            startScheduleTransition(async () => {
+              try {
+                await setActiveSchedule(scheduleId);
+                await reload();
+              } catch (scheduleError) {
+                toast.error(
+                  scheduleError instanceof Error
+                    ? scheduleError.message
+                    : t("error"),
+                );
+              }
+            });
+          }}
+          disabled={switchingSchedule}
         >
           {data.schedules
             .filter((s) => !s.is_archived)

@@ -10,6 +10,17 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: { default: "Planora", template: "%s · Planora" },
   description: siteConfig.description.es,
+  applicationName: siteConfig.name,
+  category: "productivity",
+  formatDetection: { telephone: false, address: false, email: false },
+  openGraph: {
+    type: "website",
+    siteName: siteConfig.name,
+    title: siteConfig.name,
+    description: siteConfig.description.es,
+    url: siteConfig.url,
+    images: [{ url: "/assets/logo.png", width: 1024, height: 1024 }],
+  },
   manifest: "/manifest.webmanifest",
   icons: { icon: "/assets/logo.ico" },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Planora" },
@@ -29,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <body className={`${geist.variable} ${mono.variable}`}>{children}</body>
     </html>
   );

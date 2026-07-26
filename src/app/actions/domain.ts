@@ -4,6 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { taskSchema } from "@/lib/validation/task";
 import { z } from "zod";
 const id = z.string().uuid();
+const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+const dayPartSettingsSchema = z.object({
+  morning: z.object({ start: time, end: time }),
+  afternoon: z.object({ start: time, end: time }),
+  night: z.object({ start: time, end: time }),
+});
 const scheduleSchema = z.object({
   id: id.optional(),
   name: z.string().trim().min(1).max(80),
@@ -68,7 +74,7 @@ const profileSchema = z.object({
     .optional(),
   theme: z.enum(["light", "dark", "system"]).optional(),
   week_starts_on: z.number().int().min(0).max(6).optional(),
-  day_part_settings: z.record(z.unknown()).optional(),
+  day_part_settings: dayPartSettingsSchema.optional(),
   onboarding_completed: z.boolean().optional(),
   active_schedule_id: id.optional(),
 });
@@ -110,10 +116,11 @@ export async function setActiveSchedule(value: string) {
 }
 export async function setScheduleArchived(value: string, archived: boolean) {
   const scheduleId = id.parse(value),
+    shouldArchive = z.boolean().parse(archived),
     { db, user } = await auth();
   const { error } = await db
     .from("schedules")
-    .update({ is_archived: archived })
+    .update({ is_archived: shouldArchive })
     .eq("id", scheduleId)
     .eq("user_id", user.id);
   if (error) throw new Error("Unable to update schedule");
@@ -218,12 +225,13 @@ export async function saveTask(input: unknown, taskId?: string) {
 }
 export async function setTaskArchived(value: string, archived: boolean) {
   const taskId = id.parse(value),
+    shouldArchive = z.boolean().parse(archived),
     { db, user } = await auth();
   const { error } = await db
     .from("tasks")
     .update({
-      archived_at: archived ? new Date().toISOString() : null,
-      is_active: !archived,
+      archived_at: shouldArchive ? new Date().toISOString() : null,
+      is_active: !shouldArchive,
     })
     .eq("id", taskId)
     .eq("user_id", user.id);
@@ -295,6 +303,7 @@ export async function updateProfile(input: unknown) {
 
 export async function duplicateSchedule(value: string, includeTasks: boolean) {
   const scheduleId = id.parse(value),
+    shouldIncludeTasks = z.boolean().parse(includeTasks),
     { db, user } = await auth(),
     { data: s, error } = await db
       .from("schedules")
@@ -314,7 +323,7 @@ export async function duplicateSchedule(value: string, includeTasks: boolean) {
     .select("id")
     .single();
   if (createError) throw new Error("Unable to duplicate schedule");
-  if (includeTasks) {
+  if (shouldIncludeTasks) {
     const { data: tasks, error: tasksError } = await db
       .from("tasks")
       .select("*")

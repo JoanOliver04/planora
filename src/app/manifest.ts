@@ -8,6 +8,11 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/es/today",
     start_url: "/es/today",
     display: "standalone",
+    scope: "/",
+    lang: "es",
+    dir: "ltr",
+    categories: ["productivity", "utilities", "lifestyle"],
+    orientation: "any",
     background_color: "#f7f8f4",
     theme_color: "#546a42",
     icons: [

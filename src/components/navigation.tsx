@@ -41,6 +41,7 @@ export function AppNavigation({
           <Link
             className="nav-link"
             data-active={path.includes("/tasks")}
+            aria-current={path.includes("/tasks") ? "page" : undefined}
             href="/tasks"
             key={key}
           >
@@ -53,6 +54,7 @@ export function AppNavigation({
           <Link
             className="nav-link"
             data-active={path.includes(`/${key}`)}
+            aria-current={path.includes(`/${key}`) ? "page" : undefined}
             href={`/${key}`}
             key={key}
           >

@@ -1,4 +1,4 @@
-﻿import { AppShell } from "@/components/app-shell";
+import { AppShell } from "@/components/app-shell";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 export default async function PrivateLayout({
@@ -15,5 +15,5 @@ export default async function PrivateLayout({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${locale}/login`);
-  return <AppShell>{children}</AppShell>;
+  return <AppShell locale={locale as "es" | "en"}>{children}</AppShell>;
 }

@@ -17,7 +17,7 @@
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
-  <img src="https://img.shields.io/badge/tests-27%20unitarias%20%2B%206%20E2E-brightgreen?style=flat-square" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-29%20unitarias%20%2B%206%20E2E-brightgreen?style=flat-square" alt="Tests" />
 </p>
 
 ---

@@ -76,6 +76,22 @@ textarea:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--ring) 55%, transparent);
   outline-offset: 2px;
 }
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--foreground);
+  color: var(--background);
+  text-decoration: none;
+  font-weight: 700;
+  transform: translateY(-160%);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
 .surface {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -852,7 +868,7 @@ select:disabled,
   font-size: 0.72rem;
 }
 .task-metadata > span:not(:last-child)::after {
-  content: "?";
+  content: "•";
   margin-left: 0.55rem;
   color: color-mix(in srgb, var(--foreground) 30%, transparent);
 }
