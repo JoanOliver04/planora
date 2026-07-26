@@ -1,7 +1,6 @@
 "use client";
 import {
   CalendarDays,
-  Check,
   Clock3,
   FolderKanban,
   History,
@@ -10,6 +9,7 @@ import {
   Settings,
   Tags,
 } from "lucide-react";
+import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 const allItems = [
@@ -67,10 +67,22 @@ export function AppNavigation({
 export function Logo() {
   return (
     <div className="brand">
-      <span className="mark">
-        <Check size={22} />
-      </span>
-      <span>Planora</span>
+      <Image
+        className="brand-logo brand-logo-light"
+        src="/assets/logo_modo_claro.png"
+        alt="Planora"
+        width={1024}
+        height={1024}
+        priority
+      />
+      <Image
+        className="brand-logo brand-logo-dark"
+        src="/assets/logo_modo_oscuro.png"
+        alt="Planora"
+        width={1024}
+        height={1024}
+        priority
+      />
     </div>
   );
 }

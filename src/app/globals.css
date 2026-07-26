@@ -328,18 +328,27 @@ textarea:focus-visible {
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  font-weight: 800;
 }
-.mark {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: #ddebce;
-  color: #314328;
-  display: grid;
-  place-items: center;
+.brand-logo {
+  width: 140px;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
 }
+.brand-logo-dark {
+  display: none;
+}
+.dark .brand-logo-light {
+  display: none;
+}
+.dark .brand-logo-dark {
+  display: block;
+}
+.login-copy .brand-logo {
+  width: 180px;
+}
+
 .login-form {
   padding: clamp(2rem, 6vw, 4rem);
   display: flex;

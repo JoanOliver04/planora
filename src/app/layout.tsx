@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: { default: "Planora", template: "%s · Planora" },
   description: siteConfig.description.es,
   manifest: "/manifest.webmanifest",
+  icons: { icon: "/assets/logo.ico" },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Planora" },
 };
 export const viewport: Viewport = {

@@ -1,4 +1,8 @@
-﻿# Planora
+<p align="center">
+  <img src="public/assets/logo_modo_oscuro.png" alt="Planora" width="220" />
+</p>
+
+# Planora
 
 Planora is a bilingual, mobile-first task, habit, schedule and event manager built with Next.js 16, React 19, TypeScript, Supabase and Tailwind CSS.
 
