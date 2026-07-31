@@ -17,14 +17,11 @@ describe("platform integration", () => {
     );
   });
 
-  it("returns an uncached, versioned health response", async () => {
+  it("returns an uncached health response without build details", async () => {
     const response = GET();
 
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    await expect(response.json()).resolves.toMatchObject({
-      status: "ok",
-      version: expect.any(String),
-    });
+    await expect(response.json()).resolves.toEqual({ status: "ok" });
   });
 });
