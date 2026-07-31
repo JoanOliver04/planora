@@ -1,45 +1,65 @@
 "use client";
 import { useEffect, useState, useTransition } from "react";
+import dynamic from "next/dynamic";
 import { WorkspaceSkeleton } from "@/components/workspace-skeleton";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { setActiveSchedule } from "@/app/actions/domain";
 import { useWorkspace } from "@/features/workspace/use-workspace";
-import {
-  TodayView,
-  WeekView,
-  TasksView,
-  HistoryView,
-} from "@/features/workspace/task-views";
-import {
-  CategoriesView,
-  EventsView,
-  SchedulesView,
-  SettingsView,
-} from "@/features/workspace/resource-views";
-export function WorkspacePage({
-  mode,
-}: {
-  mode:
-    | "today"
-    | "week"
-    | "tasks"
-    | "events"
-    | "history"
-    | "schedules"
-    | "categories"
-    | "settings";
-}) {
+import type { WorkspaceMode } from "@/features/workspace/types";
+
+const TodayView = dynamic(() =>
+  import("@/features/workspace/task-views").then((module) => module.TodayView),
+);
+const WeekView = dynamic(() =>
+  import("@/features/workspace/task-views").then((module) => module.WeekView),
+);
+const TasksView = dynamic(() =>
+  import("@/features/workspace/task-views").then((module) => module.TasksView),
+);
+const HistoryView = dynamic(() =>
+  import("@/features/workspace/task-views").then(
+    (module) => module.HistoryView,
+  ),
+);
+const EventsView = dynamic(() =>
+  import("@/features/workspace/resource-views").then(
+    (module) => module.EventsView,
+  ),
+);
+const SchedulesView = dynamic(() =>
+  import("@/features/workspace/resource-views").then(
+    (module) => module.SchedulesView,
+  ),
+);
+const CategoriesView = dynamic(() =>
+  import("@/features/workspace/resource-views").then(
+    (module) => module.CategoriesView,
+  ),
+);
+const SettingsView = dynamic(() =>
+  import("@/features/workspace/resource-views").then(
+    (module) => module.SettingsView,
+  ),
+);
+
+export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
   const t = useTranslations("Workspace"),
-    { db, data, loading, error, reload } = useWorkspace(),
+    { db, data, loading, error, reload } = useWorkspace(mode),
     [starters, setStarters] = useState(true),
     [starting, setStarting] = useState(false),
-    [switchingSchedule, startScheduleTransition] = useTransition(),
-    [, setClock] = useState(0);
+    [switchingSchedule, startScheduleTransition] = useTransition();
   useEffect(() => {
-    const timer = setInterval(() => setClock((v) => v + 1), 60000);
-    return () => clearInterval(timer);
-  }, []);
+    if (
+      mode === "today" ||
+      mode === "week" ||
+      mode === "tasks" ||
+      mode === "history"
+    )
+      void import("@/features/workspace/task-views");
+    else void import("@/features/workspace/resource-views");
+  }, [mode]);
+
   if (loading) return <WorkspaceSkeleton />;
   if (error || !data)
     return (

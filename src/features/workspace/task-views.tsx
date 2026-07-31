@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { addDays } from "date-fns";
 import {
@@ -36,7 +36,7 @@ const adapter = (task: Task) => ({
   archivedAt: task.archived_at?.slice(0, 10),
   recurrence: recurrenceFromJson(task.recurrence_config, task.recurrence_type),
 });
-function TaskCard({
+export function TaskCard({
   task,
   categories,
   completion,
@@ -47,14 +47,16 @@ function TaskCard({
   task: Task;
   categories: Category[];
   completion?: Completion;
-  onToggle?: () => void;
+  onToggle?: () => Promise<boolean>;
   onEdit?: () => void;
   progress?: string;
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
     cat = categories.find((c) => c.id === task.category_id),
-    [done, setDone] = useState(!!completion),
+    [optimisticDone, setOptimisticDone] = useState<boolean | null>(null),
+    [togglePending, setTogglePending] = useState(false),
+    done = optimisticDone ?? Boolean(completion),
     timing =
       task.start_time?.slice(0, 5) ??
       (task.time_mode === "day_part"
@@ -82,10 +84,19 @@ function TaskCard({
           className="task-check"
           data-done={done}
           aria-pressed={done}
+          aria-busy={togglePending}
+          disabled={togglePending}
           aria-label={`${done ? t("completed") : t("markComplete")}: ${task.title}`}
-          onClick={() => {
-            setDone((value) => !value);
-            onToggle();
+          onClick={async () => {
+            const previous = done;
+            setOptimisticDone(!previous);
+            setTogglePending(true);
+            try {
+              await onToggle();
+            } finally {
+              setOptimisticDone(null);
+              setTogglePending(false);
+            }
           }}
         >
           {done && <Check size={19} />}
@@ -126,7 +137,7 @@ async function toggle(
   data: WorkspaceData,
   task: Task,
   day: string,
-  reload: () => void,
+  reload: () => Promise<void>,
   errorMessage: string,
 ) {
   const old = data.completions.find(
@@ -147,8 +158,12 @@ async function toggle(
         },
       });
   const { error } = await q;
-  if (error) toast.error(errorMessage);
-  else reload();
+  if (error) {
+    toast.error(errorMessage);
+    return false;
+  }
+  await reload();
+  return true;
 }
 export function TodayView({
   data,
@@ -157,11 +172,12 @@ export function TodayView({
 }: {
   data: WorkspaceData;
   db: ReturnType<typeof import("@/lib/supabase/client").createClient>;
-  reload: () => void;
+  reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
     [open, setOpen] = useState(false),
+    [, setClock] = useState(0),
     day = localDate(data.profile.timezone),
     week = localWeek(
       data.profile.timezone,
@@ -230,6 +246,10 @@ export function TodayView({
         : remaining === 0
           ? t("weekComplete")
           : t("remainingThisWeek", { count: remaining });
+  useEffect(() => {
+    const timer = setInterval(() => setClock((value) => value + 1), 60000);
+    return () => clearInterval(timer);
+  }, []);
   const groups = ["morning", "afternoon", "night", "anytime"] as const;
   return (
     <>
@@ -325,7 +345,7 @@ export function TodayView({
                     completion={completion}
                     progress={weekly}
                     onToggle={() =>
-                      void toggle(db, data, task, day, reload, t("error"))
+                      toggle(db, data, task, day, reload, t("error"))
                     }
                   />
                 );

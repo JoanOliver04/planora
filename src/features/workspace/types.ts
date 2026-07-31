@@ -15,6 +15,15 @@ export type WorkspaceData = {
   events: Event[];
   completions: Completion[];
 };
+export type WorkspaceMode =
+  | "today"
+  | "week"
+  | "tasks"
+  | "events"
+  | "history"
+  | "schedules"
+  | "categories"
+  | "settings";
 export type RecurrenceJson =
   | { type: "once" | "daily" }
   | { type: "weekdays"; weekdays: number[] }

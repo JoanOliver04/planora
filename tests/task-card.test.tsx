@@ -1,0 +1,68 @@
+import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NextIntlClientProvider } from "next-intl";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import messages from "@/messages/en.json";
+import { TaskCard } from "@/features/workspace/task-views";
+import type { Task } from "@/features/workspace/types";
+
+vi.mock("@/app/actions/domain", () => ({
+  duplicateTask: vi.fn(),
+  saveTask: vi.fn(),
+  setTaskArchived: vi.fn(),
+}));
+
+afterEach(cleanup);
+
+const task = {
+  id: "11111111-1111-4111-8111-111111111111",
+  title: "Read",
+  emoji: "📖",
+  category_id: null,
+  recurrence_config: { type: "daily" },
+  recurrence_type: "daily",
+  time_mode: "anytime",
+  day_part: null,
+  start_time: null,
+} as unknown as Task;
+
+function renderCard(onToggle: () => Promise<boolean>) {
+  return render(
+    <NextIntlClientProvider
+      locale="en"
+      messages={messages}
+      timeZone="Europe/Madrid"
+    >
+      <TaskCard task={task} categories={[]} onToggle={onToggle} />
+    </NextIntlClientProvider>,
+  );
+}
+
+describe("TaskCard completion", () => {
+  it("rolls back the optimistic state when persistence fails", async () => {
+    const user = userEvent.setup();
+    renderCard(vi.fn().mockResolvedValue(false));
+    const button = screen.getByRole("button", { name: /mark as complete/i });
+
+    await user.click(button);
+
+    expect(button).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("prevents duplicate writes while a completion is pending", async () => {
+    const user = userEvent.setup();
+    let resolve!: (value: boolean) => void;
+    const onToggle = vi.fn(
+      () => new Promise<boolean>((done) => (resolve = done)),
+    );
+    renderCard(onToggle);
+    const button = screen.getByRole("button", { name: /mark as complete/i });
+
+    await user.click(button);
+
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+    expect(onToggle).toHaveBeenCalledOnce();
+    resolve(true);
+  });
+});
