@@ -185,6 +185,22 @@
     "noMatchingTasks": "No tasks match these filters.",
     "completedThisWeek": "completed this week",
     "noHistory": "No activity yet",
-    "historyHint": "Complete a task and it will appear here."
+    "historyHint": "Complete a task and it will appear here.",
+    "personalization": "Personalization",
+    "personalizationHint": "Make Planora look and behave exactly the way you prefer.",
+    "accentColor": "Accent color",
+    "customColor": "Custom accent color",
+    "density": "Layout density",
+    "compact": "Compact",
+    "comfortable": "Comfortable",
+    "spacious": "Spacious",
+    "textSize": "Text size",
+    "corners": "Corner style",
+    "square": "Square",
+    "soft": "Soft",
+    "rounded": "Rounded",
+    "reduceMotion": "Reduce animations",
+    "showCompleted": "Keep completed tasks visible today",
+    "reset": "Reset"
   }
 }

@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 :root {
+  --font-scale: 1;
+  --accent-contrast: #ffffff;
   --background: #f3f5ef;
   --foreground: #172015;
   --surface: #ffffff;
@@ -20,6 +22,55 @@
   --radius-lg: 1.55rem;
   --shadow-sm: 0 4px 16px rgba(36, 49, 31, 0.055);
   --shadow: 0 14px 38px rgba(36, 49, 31, 0.075);
+}
+html {
+  font-size: calc(100% * var(--font-scale));
+}
+html[data-radius="square"] {
+  --radius-sm: 0.2rem;
+  --radius: 0.3rem;
+  --radius-lg: 0.45rem;
+}
+html[data-radius="soft"] {
+  --radius-sm: 0.55rem;
+  --radius: 0.8rem;
+  --radius-lg: 1rem;
+}
+html[data-density="compact"] .main {
+  padding-block: 0.75rem 6rem;
+}
+html[data-density="compact"] .section {
+  margin-top: 1.1rem;
+}
+html[data-density="compact"] .task-list,
+html[data-density="compact"] .grid-cards {
+  gap: 0.35rem;
+}
+html[data-density="compact"] .task {
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+}
+html[data-density="spacious"] .main {
+  padding-block: 2rem 8rem;
+}
+html[data-density="spacious"] .section {
+  margin-top: 2.5rem;
+}
+html[data-density="spacious"] .task-list,
+html[data-density="spacious"] .grid-cards {
+  gap: 1rem;
+}
+html[data-density="spacious"] .task {
+  gap: 1.1rem;
+  padding: 1.1rem;
+}
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }
 .dark {
   --background: #0f130e;
@@ -153,7 +204,7 @@ textarea:focus-visible {
   border: 0;
   border-radius: 50%;
   background: var(--primary);
-  color: var(--background);
+  color: var(--accent-contrast);
   box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 35%, transparent);
   display: grid;
   place-items: center;
@@ -287,7 +338,7 @@ textarea:focus-visible {
 .primary {
   border: 0;
   background: var(--primary);
-  color: var(--background);
+  color: var(--accent-contrast);
   border-radius: 0.85rem;
   padding: 0.75rem 1rem;
   font-weight: 700;
@@ -1298,6 +1349,47 @@ select:disabled,
 .settings-block {
   padding: 1rem;
   border-top: 1px solid var(--border);
+}
+.personalization {
+  border-block: 1px solid var(--border);
+  padding-block: 1rem;
+}
+.personalization > div:first-child p {
+  margin: 0.3rem 0 0;
+}
+.accent-picker,
+.range-setting {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.accent-swatch {
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--border);
+}
+.accent-swatch[data-selected="true"] {
+  box-shadow: 0 0 0 3px var(--foreground);
+}
+.accent-picker input[type="color"] {
+  width: 38px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.range-setting input {
+  accent-color: var(--primary);
+}
+.range-setting output {
+  min-width: 3.3rem;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
 }
 .settings-block > b {
   display: block;

@@ -19,6 +19,7 @@ export type Database = {
           week_starts_on: number;
           active_schedule_id: string | null;
           day_part_settings: Json;
+          preferences: Json;
           onboarding_completed: boolean;
           created_at: string;
           updated_at: string;

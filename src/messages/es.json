@@ -185,6 +185,22 @@
     "noMatchingTasks": "No hay tareas que coincidan con estos filtros.",
     "completedThisWeek": "completadas esta semana",
     "noHistory": "Todavía no hay actividad",
-    "historyHint": "Completa una tarea y aparecerá aquí."
+    "historyHint": "Completa una tarea y aparecerá aquí.",
+    "personalization": "Personalizaci\u00f3n",
+    "personalizationHint": "Haz que Planora se vea y se comporte exactamente como prefieras.",
+    "accentColor": "Color de acento",
+    "customColor": "Color de acento personalizado",
+    "density": "Densidad de la interfaz",
+    "compact": "Compacta",
+    "comfortable": "C\u00f3moda",
+    "spacious": "Espaciosa",
+    "textSize": "Tama\u00f1o del texto",
+    "corners": "Estilo de esquinas",
+    "square": "Cuadradas",
+    "soft": "Suaves",
+    "rounded": "Redondeadas",
+    "reduceMotion": "Reducir animaciones",
+    "showCompleted": "Mantener visibles las tareas completadas de hoy",
+    "reset": "Restablecer"
   }
 }

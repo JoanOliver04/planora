@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { setActiveSchedule } from "@/app/actions/domain";
 import { useWorkspace } from "@/features/workspace/use-workspace";
 import type { WorkspaceMode } from "@/features/workspace/types";
+import { applyPreferences, normalizePreferences } from "@/lib/preferences";
 
 const TodayView = dynamic(() =>
   import("@/features/workspace/task-views").then((module) => module.TodayView),
@@ -59,6 +60,10 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
       void import("@/features/workspace/task-views");
     else void import("@/features/workspace/resource-views");
   }, [mode]);
+  useEffect(() => {
+    if (data?.profile.preferences)
+      applyPreferences(normalizePreferences(data.profile.preferences));
+  }, [data?.profile.preferences]);
 
   if (loading) return <WorkspaceSkeleton />;
   if (error || !data)

@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { taskSchema } from "@/lib/validation/task";
+import { preferencesSchema } from "@/lib/validation/preferences";
 import { z } from "zod";
 const id = z.string().uuid();
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
@@ -77,6 +78,7 @@ const profileSchema = z.object({
   day_part_settings: dayPartSettingsSchema.optional(),
   onboarding_completed: z.boolean().optional(),
   active_schedule_id: id.optional(),
+  preferences: preferencesSchema.optional(),
 });
 async function auth() {
   const db = await createClient(),

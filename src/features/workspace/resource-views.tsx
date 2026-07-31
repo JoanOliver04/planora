@@ -1,7 +1,7 @@
 "use client";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Alert from "@radix-ui/react-alert-dialog";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "@/components/theme-provider";
 import { Link, useRouter } from "@/i18n/routing";
@@ -21,6 +21,12 @@ import {
 import type { Category, Event, Schedule, WorkspaceData } from "./types";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import {
+  applyPreferences,
+  defaultPreferences,
+  normalizePreferences,
+  type UserPreferences,
+} from "@/lib/preferences";
 const fail = (e: unknown, fallback: string) =>
   toast.error(e instanceof Error ? e.message : fallback);
 export function EventsView({
@@ -627,6 +633,143 @@ function DayPartsSettings({
     </div>
   );
 }
+
+const accentPresets = [
+  "#4f6b45",
+  "#2563eb",
+  "#7c3aed",
+  "#be185d",
+  "#c2410c",
+  "#0f766e",
+  "#475569",
+  "#111827",
+];
+
+function PersonalizationSettings({
+  data,
+  save,
+}: {
+  data: WorkspaceData;
+  save: (value: Record<string, unknown>) => Promise<void>;
+}) {
+  const t = useTranslations("Workspace"),
+    [preferences, setPreferences] = useState(() =>
+      normalizePreferences(data.profile.preferences),
+    );
+  useEffect(() => {
+    applyPreferences(preferences);
+  }, [preferences]);
+  function update<K extends keyof UserPreferences>(
+    key: K,
+    value: UserPreferences[K],
+  ) {
+    setPreferences((current) => ({ ...current, [key]: value }));
+  }
+  return (
+    <div className="settings-block personalization">
+      <div>
+        <b>{t("personalization")}</b>
+        <p className="muted">{t("personalizationHint")}</p>
+      </div>
+      <div className="settings-row">
+        <span>{t("accentColor")}</span>
+        <div className="accent-picker">
+          {accentPresets.map((accent) => (
+            <button
+              key={accent}
+              type="button"
+              className="accent-swatch"
+              data-selected={preferences.accent === accent}
+              style={{ background: accent }}
+              aria-label={accent}
+              aria-pressed={preferences.accent === accent}
+              onClick={() => update("accent", accent)}
+            />
+          ))}
+          <input
+            type="color"
+            value={preferences.accent}
+            aria-label={t("customColor")}
+            onChange={(event) => update("accent", event.target.value)}
+          />
+        </div>
+      </div>
+      <div className="settings-row">
+        <span>{t("density")}</span>
+        <select
+          className="pill"
+          value={preferences.density}
+          onChange={(event) =>
+            update("density", event.target.value as UserPreferences["density"])
+          }
+        >
+          <option value="compact">{t("compact")}</option>
+          <option value="comfortable">{t("comfortable")}</option>
+          <option value="spacious">{t("spacious")}</option>
+        </select>
+      </div>
+      <div className="settings-row">
+        <label htmlFor="font-scale">{t("textSize")}</label>
+        <div className="range-setting">
+          <input
+            id="font-scale"
+            type="range"
+            min="85"
+            max="125"
+            step="5"
+            value={preferences.fontScale}
+            onChange={(event) =>
+              update("fontScale", Number(event.target.value))
+            }
+          />
+          <output htmlFor="font-scale">{preferences.fontScale}%</output>
+        </div>
+      </div>
+      <div className="settings-row">
+        <span>{t("corners")}</span>
+        <select
+          className="pill"
+          value={preferences.radius}
+          onChange={(event) =>
+            update("radius", event.target.value as UserPreferences["radius"])
+          }
+        >
+          <option value="square">{t("square")}</option>
+          <option value="soft">{t("soft")}</option>
+          <option value="rounded">{t("rounded")}</option>
+        </select>
+      </div>
+      <label className="settings-row check-row">
+        <span>{t("reduceMotion")}</span>
+        <input
+          type="checkbox"
+          checked={preferences.reduceMotion}
+          onChange={(event) => update("reduceMotion", event.target.checked)}
+        />
+      </label>
+      <label className="settings-row check-row">
+        <span>{t("showCompleted")}</span>
+        <input
+          type="checkbox"
+          checked={preferences.showCompleted}
+          onChange={(event) => update("showCompleted", event.target.checked)}
+        />
+      </label>
+      <div className="row-actions">
+        <button
+          className="pill"
+          onClick={() => setPreferences(defaultPreferences)}
+        >
+          {t("reset")}
+        </button>
+        <button className="primary" onClick={() => void save({ preferences })}>
+          {t("save")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function SettingsView({
   data,
   db,
@@ -720,6 +863,7 @@ export function SettingsView({
             <option value="0">Sunday</option>
           </select>
         </div>
+        <PersonalizationSettings data={data} save={profile} />
         <DayPartsSettings data={data} reload={reload} />
         {Intl.DateTimeFormat().resolvedOptions().timeZone !==
           data.profile.timezone && (

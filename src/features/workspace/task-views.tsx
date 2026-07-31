@@ -23,6 +23,7 @@ import { duplicateTask, setTaskArchived } from "@/app/actions/domain";
 import type { Category, Completion, Task, WorkspaceData } from "./types";
 import { recurrenceFromJson } from "./types";
 import { TaskForm } from "./task-form";
+import { normalizePreferences } from "@/lib/preferences";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   formatCategoryMetadata,
@@ -186,6 +187,7 @@ export function TodayView({
     ),
     active = data.profile.active_schedule_id,
     activeSchedule = data.schedules.find((item) => item.id === active),
+    preferences = normalizePreferences(data.profile.preferences),
     tasks = data.tasks
       .filter(
         (task) =>
@@ -215,7 +217,14 @@ export function TodayView({
             (item) => item.task_id === task.id && item.occurrence_date === day,
           )
         );
-      }),
+      })
+      .filter(
+        (task) =>
+          preferences.showCompleted ||
+          !data.completions.some(
+            (item) => item.task_id === task.id && item.occurrence_date === day,
+          ),
+      ),
     events = data.events.filter(
       (event) =>
         event.event_date === day &&
