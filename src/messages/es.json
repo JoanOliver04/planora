@@ -31,7 +31,8 @@
     "settings": "Ajustes",
     "templates": "Plantillas",
     "statistics": "Estadísticas",
-    "reminders": "Recordatorios"
+    "reminders": "Recordatorios",
+    "data": "Tus datos"
   },
   "Today": {
     "greeting": "Buenos días",

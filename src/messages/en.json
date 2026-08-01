@@ -31,7 +31,8 @@
     "settings": "Settings",
     "templates": "Templates",
     "statistics": "Statistics",
-    "reminders": "Reminders"
+    "reminders": "Reminders",
+    "data": "Your data"
   },
   "Today": {
     "greeting": "Good morning",

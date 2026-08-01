@@ -11,6 +11,7 @@ import {
   LibraryBig,
   ChartNoAxesCombined,
   BellRing,
+  DatabaseBackup,
 } from "lucide-react";
 import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
@@ -27,6 +28,7 @@ const allItems = [
   ["categories", Tags],
   ["templates", LibraryBig],
   ["settings", Settings],
+  ["data", DatabaseBackup],
 ] as const;
 const mobileKeys = new Set(["today", "week", "tasks", "events", "settings"]);
 export function AppNavigation({

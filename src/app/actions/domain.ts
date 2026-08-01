@@ -7,6 +7,7 @@ import { z } from "zod";
 import { getTemplate } from "@/features/templates/catalog";
 import type { Json } from "@/types/database";
 import { nextDailyTrigger } from "@/features/reminders/schedule";
+import { backupSchema, summarizeBackup } from "@/features/backup/format";
 const id = z.string().uuid();
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const dayPartSettingsSchema = z.object({
@@ -656,4 +657,26 @@ export async function deleteEmptySchedule(value: string) {
     .eq("user_id", user.id);
   if (error) throw new Error("Unable to delete schedule");
   refresh();
+}
+
+export async function restoreBackup(input: unknown) {
+  const backup = backupSchema.parse(input);
+  const { db, user } = await auth();
+  const ids = new Map<string, string>();
+  const mapped = (value: unknown) => typeof value === "string" ? ids.get(value) ?? null : null;
+  const fresh = (value: unknown) => { const next = crypto.randomUUID(); if (typeof value === "string") ids.set(value, next); return next; };
+  const clean = (item: Record<string, unknown>, allowed: string[]) => Object.fromEntries(allowed.filter((key) => key in item).map((key) => [key, item[key]]));
+  const schedules = backup.data.schedules.map((item) => ({ ...clean(item, ["name", "description", "emoji", "is_archived", "sort_order"]), id: fresh(item.id), user_id: user.id }));
+  const categories = backup.data.categories.map((item) => ({ ...clean(item, ["name", "colour", "emoji", "sort_order"]), id: fresh(item.id), user_id: user.id }));
+  const tasks = backup.data.tasks.map((item) => ({ ...clean(item, ["title", "description", "emoji", "task_kind", "recurrence_type", "recurrence_config", "time_mode", "day_part", "start_time", "end_time", "start_date", "end_date", "is_active", "sort_order", "archived_at"]), id: fresh(item.id), user_id: user.id, schedule_id: mapped(item.schedule_id), category_id: mapped(item.category_id) }));
+  const events = backup.data.events.map((item) => ({ ...clean(item, ["title", "description", "emoji", "event_date", "all_day", "start_time", "end_time"]), id: fresh(item.id), user_id: user.id, schedule_id: mapped(item.schedule_id), category_id: mapped(item.category_id) }));
+  const completions = backup.data.completions.flatMap((item) => { const taskId = mapped(item.task_id); return taskId ? [{ ...clean(item, ["occurrence_date", "completed_at", "task_snapshot"]), id: crypto.randomUUID(), user_id: user.id, task_id: taskId }] : []; });
+  const templates = backup.data.templates.map((item) => ({ ...clean(item, ["emoji", "content"]), id: crypto.randomUUID(), user_id: user.id, name: String(item.name ?? "Imported template").slice(0, 65) + " (imported)" }));
+  const reminders = backup.data.reminders.flatMap((item) => { const taskId = mapped(item.task_id), eventId = mapped(item.event_id); if (item.kind !== "daily_summary" && !taskId && !eventId) return []; return [{ ...clean(item, ["kind", "minutes_before", "recurrence", "time_of_day", "timezone", "next_trigger_at"]), id: crypto.randomUUID(), user_id: user.id, task_id: taskId, event_id: eventId, enabled: false, delivery_status: "pending" as const, snoozed_until: null }]; });
+  const inserts = [["schedules", schedules], ["categories", categories], ["tasks", tasks], ["events", events], ["task_completions", completions], ["schedule_templates", templates], ["reminders", reminders]] as const;
+  for (const [table, rows] of inserts) { if (!rows.length) continue; const { error } = await db.from(table).insert(rows as never); if (error) throw new Error("Restore failed while importing " + table); }
+  const profile = backup.data.profile;
+  if (profile) await db.from("profiles").update({ ...clean(profile, ["locale", "timezone", "theme", "week_starts_on", "day_part_settings", "preferences"]), active_schedule_id: mapped(profile.active_schedule_id) }).eq("id", user.id);
+  refresh();
+  return summarizeBackup(backup);
 }
