@@ -1464,6 +1464,53 @@ textarea:focus-visible {
 .statistics-empty {
   min-height: 400px;
 }
+.sortable-resource {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  touch-action: pan-y;
+}
+.sortable-resource[data-dragging="true"] {
+  z-index: 10;
+  opacity: 0.72;
+}
+.sortable-content {
+  min-width: 0;
+  flex: 1;
+}
+.sortable-content > .resource-card,
+.sortable-content > .task,
+.sortable-content > .settings-row {
+  height: 100%;
+}
+.drag-handle {
+  width: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--muted-foreground);
+  background: var(--surface);
+  cursor: grab;
+  touch-action: none;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+.drag-handle:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ring) 35%, transparent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sortable-resource {
+    transition: none !important;
+  }
+}
+[data-reduce-motion="true"] .sortable-resource {
+  transition: none !important;
+}
 @media (max-width: 700px) {
   .statistics-kpis {
     grid-template-columns: 1fr;

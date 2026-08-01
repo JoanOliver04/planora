@@ -19,12 +19,17 @@ import {
   isTaskExpectedOnDate,
 } from "@/lib/recurrence";
 import { localDate, localWeek, zonedDate } from "@/lib/dates/timezone";
-import { duplicateTask, setTaskArchived } from "@/app/actions/domain";
+import {
+  duplicateTask,
+  reorderResources,
+  setTaskArchived,
+} from "@/app/actions/domain";
 import type { Category, Completion, Task, WorkspaceData } from "./types";
 import { recurrenceFromJson } from "./types";
 import { TaskForm } from "./task-form";
 import { normalizePreferences } from "@/lib/preferences";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { SortableResourceList } from "@/components/sortable-resource-list";
 import {
   formatCategoryMetadata,
   formatNaturalDate,
@@ -692,8 +697,28 @@ export function TasksView({
           <option value="all">{t("all")}</option>
         </select>
       </div>
-      <div className="task-list management-list">
-        {tasks.map((task) => {
+      <SortableResourceList
+        key={tasks.map((item) => item.id).join()}
+        items={tasks}
+        className="task-list management-list"
+        locale={locale}
+        getLabel={(item) => item.title}
+        onCommit={async (ids) => {
+          const visible = new Set(ids);
+          const iterator = ids[Symbol.iterator]();
+          const merged = data.tasks
+            .filter(
+              (item) =>
+                item.schedule_id === data.profile.active_schedule_id &&
+                !item.archived_at,
+            )
+            .map((item) =>
+              visible.has(item.id) ? iterator.next().value! : item.id,
+            );
+          await reorderResources({ type: "tasks", ids: merged });
+        }}
+        onError={() => toast.error(t("error"))}
+        renderItem={(task) => {
           const categoryItem = data.categories.find(
               (item) => item.id === task.category_id,
             ),
@@ -768,15 +793,15 @@ export function TasksView({
               </div>
             </article>
           );
-        })}
-        {!tasks.length && (
-          <div className="empty empty-compact surface">
-            <span className="empty-icon">📋</span>
-            <h2>{t("empty")}</h2>
-            <p>{t("noMatchingTasks")}</p>
-          </div>
-        )}
-      </div>
+        }}
+      />
+      {!tasks.length && (
+        <div className="empty empty-compact surface">
+          <span className="empty-icon">📋</span>
+          <h2>{t("empty")}</h2>
+          <p>{t("noMatchingTasks")}</p>
+        </div>
+      )}
       <TaskForm
         key={open ? (editing?.id ?? "new") : "closed"}
         open={open}

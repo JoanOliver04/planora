@@ -183,6 +183,25 @@ export async function savePersonalTemplate(input: unknown) {
   if (error) throw new Error("Unable to save template");
   refresh();
 }
+export async function reorderResources(input: unknown) {
+  const value = z
+    .object({
+      type: z.enum(["tasks", "categories", "schedules"]),
+      ids: z
+        .array(id)
+        .min(1)
+        .max(500)
+        .refine((ids) => new Set(ids).size === ids.length),
+    })
+    .parse(input);
+  const { db } = await auth();
+  const { error } = await db.rpc("reorder_resources", {
+    resource_type: value.type,
+    ordered_ids: value.ids,
+  });
+  if (error) throw new Error("Unable to save order");
+  refresh();
+}
 export async function saveSchedule(input: unknown) {
   const v = scheduleSchema.parse(input),
     { db, user } = await auth();

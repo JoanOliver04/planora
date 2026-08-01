@@ -36,6 +36,7 @@ export type Database = {
           description: string | null;
           emoji: string | null;
           is_archived: boolean;
+          sort_order: number;
           created_at: string;
           updated_at: string;
         };
@@ -162,6 +163,10 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      reorder_resources: {
+        Args: { resource_type: string; ordered_ids: string[] };
+        Returns: undefined;
+      };
       import_schedule_template: {
         Args: {
           request_id: string;

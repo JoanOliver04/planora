@@ -17,7 +17,9 @@ import {
   setActiveSchedule,
   setScheduleArchived,
   updateProfile,
+  reorderResources,
 } from "@/app/actions/domain";
+import { SortableResourceList } from "@/components/sortable-resource-list";
 import type { Category, Event, Schedule, WorkspaceData } from "./types";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -254,6 +256,7 @@ export function SchedulesView({
   reload: () => void;
 }) {
   const t = useTranslations("Workspace"),
+    locale = useLocale() as "es" | "en",
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Schedule | null>(null),
     [confirming, setConfirming] = useState<{
@@ -289,8 +292,15 @@ export function SchedulesView({
           {t("add")}
         </button>
       </header>
-      <div className="grid-cards">
-        {data.schedules.map((s) => (
+      <SortableResourceList
+        key={data.schedules.map((item) => item.id).join()}
+        items={data.schedules}
+        className="grid-cards"
+        locale={locale}
+        getLabel={(item) => item.name}
+        onCommit={(ids) => reorderResources({ type: "schedules", ids })}
+        onError={() => toast.error(t("error"))}
+        renderItem={(s) => (
           <article className="surface resource-card" key={s.id}>
             <div>
               <span className="resource-emoji">{s.emoji || "🌿"}</span>
@@ -353,8 +363,8 @@ export function SchedulesView({
               </button>
             </div>
           </article>
-        ))}
-      </div>
+        )}
+      />
       <ConfirmDialog
         open={!!confirming}
         onOpenChange={(open) => !open && setConfirming(null)}
@@ -420,6 +430,7 @@ export function CategoriesView({
   reload: () => void;
 }) {
   const t = useTranslations("Workspace"),
+    locale = useLocale() as "es" | "en",
     [editing, setEditing] = useState<Category | null>(null),
     [open, setOpen] = useState(false),
     [deleting, setDeleting] = useState<Category | null>(null);
@@ -453,32 +464,40 @@ export function CategoriesView({
         </button>
       </header>
       <section className="surface">
-        {data.categories.map((c) => (
-          <div className="settings-row" key={c.id}>
-            <span className="category-name">
-              <i style={{ background: c.colour }} />
-              {c.emoji} <b>{c.name}</b>
-            </span>
-            <div className="row-actions">
-              <button
-                className="icon-button"
-                onClick={() => {
-                  setEditing(c);
-                  setOpen(true);
-                }}
-              >
-                <Edit3 size={16} />
-              </button>
-              <button
-                className="icon-button"
-                aria-label={t("delete")}
-                onClick={() => setDeleting(c)}
-              >
-                <Trash2 size={16} />
-              </button>
+        <SortableResourceList
+          key={data.categories.map((item) => item.id).join()}
+          items={data.categories}
+          locale={locale}
+          getLabel={(item) => item.name}
+          onCommit={(ids) => reorderResources({ type: "categories", ids })}
+          onError={() => toast.error(t("error"))}
+          renderItem={(c) => (
+            <div className="settings-row" key={c.id}>
+              <span className="category-name">
+                <i style={{ background: c.colour }} />
+                {c.emoji} <b>{c.name}</b>
+              </span>
+              <div className="row-actions">
+                <button
+                  className="icon-button"
+                  onClick={() => {
+                    setEditing(c);
+                    setOpen(true);
+                  }}
+                >
+                  <Edit3 size={16} />
+                </button>
+                <button
+                  className="icon-button"
+                  aria-label={t("delete")}
+                  onClick={() => setDeleting(c)}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          )}
+        />
       </section>
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>

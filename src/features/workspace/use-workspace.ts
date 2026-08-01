@@ -61,7 +61,11 @@ export function useWorkspace(mode: WorkspaceMode) {
     else if (mode === "week")
       eventsQuery.gte("event_date", historyFrom.toISOString().slice(0, 10));
     const [s, c, t, e, h] = await Promise.all([
-      db.from("schedules").select("*").order("created_at"),
+      db
+        .from("schedules")
+        .select("*")
+        .order("sort_order")
+        .order("created_at"),
       needed.has("categories")
         ? db.from("categories").select("*").order("sort_order")
         : empty,
