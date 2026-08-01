@@ -30,7 +30,8 @@
     "categories": "Categories",
     "settings": "Settings",
     "templates": "Templates",
-    "statistics": "Statistics"
+    "statistics": "Statistics",
+    "reminders": "Reminders"
   },
   "Today": {
     "greeting": "Good morning",

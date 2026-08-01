@@ -160,6 +160,34 @@ export type Database = {
         Update: Record<string, unknown>;
         Relationships: [];
       };
+      reminders: {
+        Row: {
+          id: string;
+          user_id: string;
+          task_id: string | null;
+          event_id: string | null;
+          kind: "relative" | "daily_summary";
+          minutes_before: number | null;
+          recurrence: "once" | "daily" | "weekly";
+          time_of_day: string | null;
+          timezone: string;
+          next_trigger_at: string;
+          snoozed_until: string | null;
+          enabled: boolean;
+          delivery_status:
+            | "pending"
+            | "delivered"
+            | "permission_denied"
+            | "failed"
+            | "snoozed";
+          last_delivered_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

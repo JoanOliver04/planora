@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { OfflineStatus } from "@/components/offline-status";
+import { ReminderScheduler } from "@/components/reminder-scheduler";
 export function Providers({
   children,
   locale,
@@ -28,6 +29,7 @@ export function Providers({
       <ThemeProvider>
         <Toaster richColors position="top-center" />
         <OfflineStatus locale={locale} />
+        <ReminderScheduler locale={locale} />
         {children}
       </ThemeProvider>
     </NextIntlClientProvider>

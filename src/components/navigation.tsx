@@ -10,6 +10,7 @@ import {
   Tags,
   LibraryBig,
   ChartNoAxesCombined,
+  BellRing,
 } from "lucide-react";
 import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
@@ -21,6 +22,7 @@ const allItems = [
   ["events", CalendarDays],
   ["history", History],
   ["statistics", ChartNoAxesCombined],
+  ["reminders", BellRing],
   ["schedules", FolderKanban],
   ["categories", Tags],
   ["templates", LibraryBig],

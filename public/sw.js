@@ -75,3 +75,17 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = event.notification.data?.url || "/es/today";
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clients) => {
+        const existing = clients.find((client) => "focus" in client);
+        return existing
+          ? existing.navigate(target).then(() => existing.focus())
+          : self.clients.openWindow(target);
+      }),
+  );
+});

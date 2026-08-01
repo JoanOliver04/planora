@@ -1542,6 +1542,106 @@ textarea:focus-visible {
   color: inherit;
   background: var(--background);
 }
+.permission-card {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.permission-card > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.permission-card p {
+  margin: 4px 0 0;
+}
+.permission-card[data-permission="granted"] {
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+  background: var(--primary-2);
+}
+.timezone-warning {
+  margin-top: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-color: color-mix(in srgb, var(--warning) 45%, var(--border));
+}
+.timezone-warning span {
+  flex: 1;
+  font-size: 0.84rem;
+}
+.timezone-warning button {
+  color: var(--primary);
+  background: transparent;
+  font-weight: 800;
+}
+.reminder-forms {
+  margin: 14px 0 38px;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 14px;
+}
+.reminder-form {
+  padding: 22px;
+  display: grid;
+  align-content: start;
+  gap: 15px;
+}
+.reminder-form h2,
+.reminder-form p {
+  margin: 0;
+}
+.reminder-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.reminder-form select,
+.reminder-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--foreground);
+  background: var(--background);
+}
+.reminder-list {
+  display: grid;
+  gap: 10px;
+}
+.reminder-row {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+.reminder-row p {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+}
+@media (max-width: 700px) {
+  .permission-card,
+  .timezone-warning {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .reminder-forms {
+    grid-template-columns: 1fr;
+  }
+  .reminder-row {
+    grid-template-columns: auto 1fr;
+  }
+  .reminder-row .row-actions {
+    grid-column: 1 / -1;
+  }
+}
 @media (max-width: 700px) {
   .offline-status {
     bottom: 86px;
