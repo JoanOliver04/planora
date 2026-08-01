@@ -17,7 +17,8 @@
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
-  <img src="https://img.shields.io/badge/tests-31%20unit%20%2B%206%20E2E-brightgreen?style=flat-square" alt="Tests" />
+  <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <img src="https://img.shields.io/badge/tests-65%20unit%20%2B%2016%20E2E-brightgreen?style=flat-square" alt="Tests" />
 </p>
 
 ---
@@ -68,6 +69,16 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Accessible navigation, keyboard focus states and reduced-motion support.
 - Mobile-first touch targets and responsive layouts.
 - Google OAuth only; Planora stores no passwords.
+- Public no-registration demo, guided onboarding and reusable schedule templates.
+- Offline mutation queue, installable PWA and timezone-safe reminders.
+- Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports.
+- Optional cookie-free analytics, sanitized error telemetry and rate-limited sensitive endpoints.
+
+## Product preview
+
+![Planora weekly workspace](public/assets/planora-desktop.png)
+
+Planora is a portfolio case study in turning irregular routines into a calm planning system. Recurrence, timezone boundaries, data isolation and offline changes are handled as domain rules rather than visual shortcuts. A public demo makes the complete product easy to evaluate while real workspaces remain private.
 
 ## Architecture
 
@@ -231,6 +242,8 @@ See [docs/deployment.md](docs/deployment.md) for the complete checklist.
 - [Security model](docs/security.md)
 - [Testing strategy](docs/testing.md)
 - [Deployment guide](docs/deployment.md)
+- [Backup and restore](docs/backup-and-restore.md)
+- [Operations and status](docs/operations.md)
 - [Implementation plan](docs/implementation-plan.md)
 
 ## Author
