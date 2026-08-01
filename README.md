@@ -76,9 +76,51 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 
 ## Product preview
 
-![Planora weekly workspace](public/assets/planora-desktop.png)
+<p align="center">
+  <img src="docs/images/01-landing.png" alt="Planora public landing page" width="100%" />
+</p>
 
 Planora is a portfolio case study in turning irregular routines into a calm planning system. Recurrence, timezone boundaries, data isolation and offline changes are handled as domain rules rather than visual shortcuts. A public demo makes the complete product easy to evaluate while real workspaces remain private.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%" align="center"><strong>Today at a glance</strong><br/><img src="docs/images/02-today.png" alt="Planora Today view with daily progress and grouped tasks" width="100%" /></td>
+    <td width="50%" align="center"><strong>Weekly planning</strong><br/><img src="docs/images/03-week.png" alt="Planora weekly schedule" width="100%" /></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><strong>Task management</strong><br/><img src="docs/images/04-tasks.png" alt="Planora task management view" width="100%" /></td>
+    <td width="50%" align="center"><strong>Events</strong><br/><img src="docs/images/05-events.png" alt="Planora events view" width="100%" /></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><strong>Completion history</strong><br/><img src="docs/images/06-history.png" alt="Planora completion history" width="100%" /></td>
+    <td width="50%" align="center"><strong>Deep personalization</strong><br/><img src="docs/images/09-settings.png" alt="Planora appearance and behavior settings" width="100%" /></td>
+  </tr>
+</table>
+
+<details>
+<summary><strong>More workspace views</strong></summary>
+<br/>
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/07-schedules.png" alt="Schedule management" width="100%" /><br/><sub>Independent schedules for every context</sub></td>
+    <td align="center"><img src="docs/images/08-categories.png" alt="Category management" width="100%" /><br/><sub>Color-coded categories</sub></td>
+  </tr>
+</table>
+</details>
+
+<details>
+<summary><strong>Mobile experience</strong></summary>
+<br/>
+<p align="center">
+  <img src="docs/images/10-mobile-landing.png" alt="Planora mobile landing page" width="30%" />
+  &nbsp;
+  <img src="docs/images/11-mobile-today.png" alt="Planora Today view on mobile" width="30%" />
+  &nbsp;
+  <img src="docs/images/12-mobile-week.png" alt="Planora Week view on mobile" width="30%" />
+</p>
+</details>
 
 ## Architecture
 
