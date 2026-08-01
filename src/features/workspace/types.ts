@@ -21,6 +21,7 @@ export type WorkspaceMode =
   | "tasks"
   | "events"
   | "history"
+  | "statistics"
   | "schedules"
   | "categories"
   | "settings";

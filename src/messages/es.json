@@ -29,7 +29,8 @@
     "schedules": "Horarios",
     "categories": "Categorías",
     "settings": "Ajustes",
-    "templates": "Plantillas"
+    "templates": "Plantillas",
+    "statistics": "Estadísticas"
   },
   "Today": {
     "greeting": "Buenos días",

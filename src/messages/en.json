@@ -29,7 +29,8 @@
     "schedules": "Schedules",
     "categories": "Categories",
     "settings": "Settings",
-    "templates": "Templates"
+    "templates": "Templates",
+    "statistics": "Statistics"
   },
   "Today": {
     "greeting": "Good morning",

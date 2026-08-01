@@ -23,6 +23,11 @@ const HistoryView = dynamic(() =>
     (module) => module.HistoryView,
   ),
 );
+const StatisticsView = dynamic(() =>
+  import("@/features/statistics/statistics-view").then(
+    (module) => module.StatisticsView,
+  ),
+);
 const EventsView = dynamic(() =>
   import("@/features/workspace/resource-views").then(
     (module) => module.EventsView,
@@ -133,6 +138,8 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
       <EventsView data={data} reload={reload} />
     ) : mode === "history" ? (
       <HistoryView data={data} />
+    ) : mode === "statistics" ? (
+      <StatisticsView data={data} />
     ) : mode === "schedules" ? (
       <SchedulesView data={data} reload={reload} />
     ) : mode === "categories" ? (

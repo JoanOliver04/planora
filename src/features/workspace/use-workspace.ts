@@ -14,6 +14,7 @@ const requirements: Record<
   tasks: new Set(["categories", "tasks"]),
   events: new Set(["categories", "events"]),
   history: new Set(["completions"]),
+  statistics: new Set(["categories", "tasks", "completions"]),
   schedules: new Set(),
   categories: new Set(["categories"]),
   settings: new Set(),

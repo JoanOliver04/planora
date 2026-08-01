@@ -37,8 +37,9 @@ describe("main navigation", () => {
 
   it("exposes all management areas on desktop", () => {
     renderNavigation("desktop");
-    expect(screen.getAllByRole("link")).toHaveLength(9);
+    expect(screen.getAllByRole("link")).toHaveLength(10);
     expect(screen.getByRole("link", { name: "Categorías" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Plantillas" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Estadísticas" })).toBeVisible();
   });
 });

@@ -9,6 +9,7 @@ import {
   Settings,
   Tags,
   LibraryBig,
+  ChartNoAxesCombined,
 } from "lucide-react";
 import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
@@ -19,6 +20,7 @@ const allItems = [
   ["tasks", LayoutList],
   ["events", CalendarDays],
   ["history", History],
+  ["statistics", ChartNoAxesCombined],
   ["schedules", FolderKanban],
   ["categories", Tags],
   ["templates", LibraryBig],
