@@ -123,6 +123,17 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      complete_guided_onboarding: {
+        Args: {
+          goal: string;
+          schedule_name: string;
+          detected_timezone: string;
+          week_start: number;
+          accent_colour: string;
+          skip_setup?: boolean;
+        };
+        Returns: string;
+      };
       complete_onboarding: {
         Args: { include_starters: boolean; detected_timezone: string };
         Returns: string;

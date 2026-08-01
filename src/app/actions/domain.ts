@@ -80,6 +80,14 @@ const profileSchema = z.object({
   active_schedule_id: id.optional(),
   preferences: preferencesSchema.optional(),
 });
+const guidedOnboardingSchema = z.object({
+  goal: z.enum(["studies", "work", "habits", "personal"]),
+  scheduleName: z.string().trim().min(1).max(80),
+  timezone: z.string().min(1).max(100),
+  weekStart: z.union([z.literal(0), z.literal(1)]),
+  accent: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  skip: z.boolean().default(false),
+});
 async function auth() {
   const db = await createClient(),
     {
@@ -89,6 +97,20 @@ async function auth() {
   return { db, user };
 }
 const refresh = () => revalidatePath("/", "layout");
+export async function completeGuidedOnboarding(input: unknown) {
+  const value = guidedOnboardingSchema.parse(input);
+  const { db } = await auth();
+  const { error } = await db.rpc("complete_guided_onboarding", {
+    goal: value.goal,
+    schedule_name: value.scheduleName,
+    detected_timezone: value.timezone,
+    week_start: value.weekStart,
+    accent_colour: value.accent,
+    skip_setup: value.skip,
+  });
+  if (error) throw new Error("Unable to complete onboarding");
+  refresh();
+}
 export async function saveSchedule(input: unknown) {
   const v = scheduleSchema.parse(input),
     { db, user } = await auth();
