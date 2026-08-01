@@ -16,7 +16,9 @@
     "subtitle": "Flexible routines for every season of your life.",
     "google": "Continue with Google",
     "privacy": "We only use your name, email and photo to identify your account.",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "demo": "Try the interactive demo",
+    "demoHint": "No registration. Sample data stays only in this browser."
   },
   "Nav": {
     "today": "Today",

@@ -1396,6 +1396,75 @@ select:disabled,
   margin-bottom: 0.55rem;
   color: var(--primary-strong);
 }
+.demo-entry {
+  width: 100%;
+  justify-content: center;
+  text-decoration: none;
+}
+.demo-entry-hint {
+  margin: -0.4rem 0 0;
+  text-align: center;
+  font-size: 0.78rem;
+}
+.demo-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+}
+.demo-topbar > div {
+  display: grid;
+  gap: 0.15rem;
+}
+.demo-topbar .primary {
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.demo-badge {
+  display: grid;
+  gap: 0.2rem;
+  margin-top: auto;
+  padding: 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--primary-2);
+  color: var(--primary-strong);
+  font-size: 0.72rem;
+}
+.demo-mobile-links {
+  display: contents;
+}
+.demo-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+}
+.demo-form input {
+  min-width: min(100%, 220px);
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.8rem;
+  background: var(--surface);
+  color: var(--foreground);
+}
+.demo-settings {
+  padding: 1.2rem;
+}
+.demo-settings .pill,
+.resource-card .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+@media (min-width: 860px) {
+  .demo-sidebar {
+    display: flex;
+  }
+}
 .settings-row {
   min-height: 58px;
   gap: 1rem;

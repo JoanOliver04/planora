@@ -41,6 +41,11 @@ export default async function Login({
           <h2>Planora</h2>
           <p className="muted">{t("subtitle")}</p>
           <GoogleButton />
+          <Link className="pill demo-entry" href={`/${locale}/demo/today`}>
+            <Sparkles size={18} />
+            {t("demo")}
+          </Link>
+          <p className="muted demo-entry-hint">{t("demoHint")}</p>
           <p
             className="muted"
             style={{ fontSize: 12, display: "flex", gap: 8 }}

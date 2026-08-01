@@ -16,7 +16,9 @@
     "subtitle": "Rutinas flexibles para cada etapa de tu vida.",
     "google": "Continuar con Google",
     "privacy": "Solo usamos tu nombre, correo y foto para identificar tu cuenta.",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "demo": "Probar la demo interactiva",
+    "demoHint": "Sin registro. Los datos de prueba solo viven en este navegador."
   },
   "Nav": {
     "today": "Hoy",
