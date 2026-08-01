@@ -28,7 +28,8 @@
     "history": "History",
     "schedules": "Schedules",
     "categories": "Categories",
-    "settings": "Settings"
+    "settings": "Settings",
+    "templates": "Templates"
   },
   "Today": {
     "greeting": "Good morning",

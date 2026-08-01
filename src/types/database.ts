@@ -120,9 +120,62 @@ export type Database = {
         Update: Record<string, unknown>;
         Relationships: [];
       };
+      schedule_templates: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          emoji: string | null;
+          content: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          emoji?: string | null;
+          content: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          emoji?: string | null;
+          content?: Json;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      template_imports: {
+        Row: {
+          request_id: string;
+          user_id: string;
+          template_key: string;
+          schedule_id: string;
+          created_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
+      import_schedule_template: {
+        Args: {
+          request_id: string;
+          template_key: string;
+          template_content: Json;
+          include_categories: boolean;
+          include_tasks: boolean;
+        };
+        Returns: string;
+      };
+      save_personal_template: {
+        Args: { source_schedule_id: string; template_name: string };
+        Returns: string;
+      };
       complete_guided_onboarding: {
         Args: {
           goal: string;

@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { taskSchema } from "@/lib/validation/task";
 import { preferencesSchema } from "@/lib/validation/preferences";
 import { z } from "zod";
+import { getTemplate } from "@/features/templates/catalog";
+import type { Json } from "@/types/database";
 const id = z.string().uuid();
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const dayPartSettingsSchema = z.object({
@@ -109,6 +111,76 @@ export async function completeGuidedOnboarding(input: unknown) {
     skip_setup: value.skip,
   });
   if (error) throw new Error("Unable to complete onboarding");
+  refresh();
+}
+const templateImportSchema = z.object({
+  templateId: z.string().min(1).max(120),
+  locale: z.enum(["es", "en"]),
+  requestId: z.string().uuid(),
+  categories: z.boolean(),
+  tasks: z.boolean(),
+  personal: z.boolean().default(false),
+});
+export async function importTemplate(input: unknown) {
+  const value = templateImportSchema.parse(input);
+  const { db, user } = await auth();
+  let content: Json;
+  if (value.personal) {
+    const { data, error } = await db
+      .from("schedule_templates")
+      .select("content")
+      .eq("id", id.parse(value.templateId))
+      .eq("user_id", user.id)
+      .single();
+    if (error || !data) throw new Error("Template not found");
+    content = data.content;
+  } else {
+    const template = getTemplate(value.templateId);
+    if (!template) throw new Error("Template not found");
+    content = {
+      name: template.name[value.locale],
+      emoji: template.emoji,
+      categories: template.categories.map((category) => ({
+        key: category.key,
+        name: category.name[value.locale],
+        colour: category.colour,
+        emoji: category.emoji,
+      })),
+      tasks: template.tasks.map((task) => ({
+        title: task.title[value.locale],
+        emoji: task.emoji,
+        categoryKey: task.categoryKey,
+        recurrence: task.recurrence,
+        config:
+          task.recurrence === "weekdays"
+            ? { weekdays: [1, 2, 3, 4, 5] }
+            : task.recurrence === "times_per_week"
+              ? { target: task.target ?? 1 }
+              : {},
+      })),
+    };
+  }
+  const { error } = await db.rpc("import_schedule_template", {
+    request_id: value.requestId,
+    template_key:
+      (value.personal ? "personal:" : "builtin:") + value.templateId,
+    template_content: content,
+    include_categories: value.categories,
+    include_tasks: value.tasks,
+  });
+  if (error) throw new Error("Unable to import template");
+  refresh();
+}
+export async function savePersonalTemplate(input: unknown) {
+  const value = z
+    .object({ scheduleId: id, name: z.string().trim().min(1).max(80) })
+    .parse(input);
+  const { db } = await auth();
+  const { error } = await db.rpc("save_personal_template", {
+    source_schedule_id: value.scheduleId,
+    template_name: value.name,
+  });
+  if (error) throw new Error("Unable to save template");
   refresh();
 }
 export async function saveSchedule(input: unknown) {

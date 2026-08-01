@@ -8,6 +8,7 @@ import {
   Plus,
   Settings,
   Tags,
+  LibraryBig,
 } from "lucide-react";
 import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
@@ -20,6 +21,7 @@ const allItems = [
   ["history", History],
   ["schedules", FolderKanban],
   ["categories", Tags],
+  ["templates", LibraryBig],
   ["settings", Settings],
 ] as const;
 const mobileKeys = new Set(["today", "week", "tasks", "events", "settings"]);
