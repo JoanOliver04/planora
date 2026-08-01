@@ -1,4 +1,24 @@
 ﻿import { expect, test } from "@playwright/test";
+test("public landing exposes product and conversion paths", async ({
+  page,
+}) => {
+  await page.goto("/es");
+  await expect(
+    page.getByRole("heading", { name: /Tu vida cambia/i }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /Probar demo gratis/i }).first(),
+  ).toHaveAttribute("href", "/es/demo/today");
+  await expect(
+    page.getByAltText(/Vista de escritorio de Planora/i),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "English" }).click();
+  await page.waitForURL("**/en");
+  expect(new URL(page.url()).pathname).toBe("/en");
+  await expect(
+    page.getByRole("heading", { name: /Your life changes/i }),
+  ).toBeVisible();
+});
 test("protected route redirects to Google login", async ({ page }) => {
   await page.goto("/es/today");
   await expect(page).toHaveURL(/\/es\/login/);
