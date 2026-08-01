@@ -1,5 +1,4 @@
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
-import { addDays, endOfWeek, startOfWeek } from "date-fns";
 export const localDate = (timezone: string, instant: Date = new Date()) =>
   formatInTimeZone(instant, timezone, "yyyy-MM-dd");
 export const zonedDate = (day: string, timezone: string) =>
@@ -9,14 +8,15 @@ export function localWeek(
   instant: Date = new Date(),
   weekStartsOn: 0 | 1 = 1,
 ) {
-  const day = zonedDate(localDate(timezone, instant), timezone),
-    start = startOfWeek(day, { weekStartsOn }),
-    end = endOfWeek(day, { weekStartsOn });
+  const calendarDay = localDate(timezone, instant),
+    day = new Date(calendarDay + "T00:00:00Z"),
+    offset = (day.getUTCDay() - weekStartsOn + 7) % 7,
+    start = new Date(day);
+  start.setUTCDate(start.getUTCDate() - offset);
+  const format = (value: Date) => value.toISOString().slice(0, 10);
   return {
-    start: formatInTimeZone(start, timezone, "yyyy-MM-dd"),
-    end: formatInTimeZone(end, timezone, "yyyy-MM-dd"),
-    days: Array.from({ length: 7 }, (_, i) =>
-      formatInTimeZone(addDays(start, i), timezone, "yyyy-MM-dd"),
-    ),
+    start: format(start),
+    end: format(new Date(start.getTime() + 6 * 86_400_000)),
+    days: Array.from({ length: 7 }, (_, i) => format(new Date(start.getTime() + i * 86_400_000))),
   };
 }
