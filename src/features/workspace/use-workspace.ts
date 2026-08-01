@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { WorkspaceData } from "./types";
 import type { WorkspaceMode } from "./types";
 import { localDate, localWeek } from "@/lib/dates/timezone";
+import { cacheWorkspace, loadCachedWorkspace } from "@/lib/offline/queue";
 
 const requirements: Record<
   WorkspaceMode,
@@ -28,10 +29,30 @@ export function useWorkspace(mode: WorkspaceMode) {
   const load = useCallback(async () => {
     setError(null);
     const {
+      data: { session },
+    } = await db.auth.getSession();
+    if (!navigator.onLine && session?.user?.id) {
+      const cached = loadCachedWorkspace(session.user.id, mode);
+      if (cached) {
+        setData(cached);
+        setLoading(false);
+        return;
+      }
+    }
+    const {
       data: { user },
       error: authError,
     } = await db.auth.getUser();
     if (authError || !user) {
+      const cached = session?.user?.id
+        ? loadCachedWorkspace(session.user.id, mode)
+        : null;
+      if (cached) {
+        setData(cached);
+        setLoading(false);
+        setError(null);
+        return;
+      }
       setLoading(false);
       setError("auth");
       return;
@@ -42,6 +63,12 @@ export function useWorkspace(mode: WorkspaceMode) {
       .eq("id", user.id)
       .single();
     if (profileError || !profile) {
+      const cached = loadCachedWorkspace(user.id, mode);
+      if (cached) {
+        setData(cached);
+        setLoading(false);
+        return;
+      }
       setLoading(false);
       setError(profileError?.message ?? "profile");
       return;
@@ -61,11 +88,7 @@ export function useWorkspace(mode: WorkspaceMode) {
     else if (mode === "week")
       eventsQuery.gte("event_date", historyFrom.toISOString().slice(0, 10));
     const [s, c, t, e, h] = await Promise.all([
-      db
-        .from("schedules")
-        .select("*")
-        .order("sort_order")
-        .order("created_at"),
+      db.from("schedules").select("*").order("sort_order").order("created_at"),
       needed.has("categories")
         ? db.from("categories").select("*").order("sort_order")
         : empty,
@@ -90,11 +113,17 @@ export function useWorkspace(mode: WorkspaceMode) {
       Boolean,
     );
     if (firstError) {
+      const cached = loadCachedWorkspace(user.id, mode);
+      if (cached) {
+        setData(cached);
+        setLoading(false);
+        return;
+      }
       setError(firstError.message);
       setLoading(false);
       return;
     }
-    setData({
+    const workspace: WorkspaceData = {
       user: {
         id: user.id,
         email: user.email,
@@ -105,11 +134,16 @@ export function useWorkspace(mode: WorkspaceMode) {
       tasks: t.data ?? [],
       events: e.data ?? [],
       completions: h.data ?? [],
-    });
+    };
+    setData(workspace);
+    cacheWorkspace(mode, workspace);
     setLoading(false);
   }, [db, mode]);
   useEffect(() => {
     queueMicrotask(() => void load());
+    const synced = () => void load();
+    window.addEventListener("planora-sync-complete", synced);
+    return () => window.removeEventListener("planora-sync-complete", synced);
   }, [load]);
   return { db, data, loading, error, reload: load };
 }

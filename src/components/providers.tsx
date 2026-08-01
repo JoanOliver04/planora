@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { NextIntlClientProvider } from "next-intl";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
+import { OfflineStatus } from "@/components/offline-status";
 export function Providers({
   children,
   locale,
@@ -14,6 +15,8 @@ export function Providers({
 }) {
   useEffect(() => {
     document.documentElement.lang = locale;
+    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator)
+      void navigator.serviceWorker.register("/sw.js", { scope: "/" });
   }, [locale]);
 
   return (
@@ -24,6 +27,7 @@ export function Providers({
     >
       <ThemeProvider>
         <Toaster richColors position="top-center" />
+        <OfflineStatus locale={locale} />
         {children}
       </ThemeProvider>
     </NextIntlClientProvider>

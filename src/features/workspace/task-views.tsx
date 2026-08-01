@@ -30,6 +30,7 @@ import { TaskForm } from "./task-form";
 import { normalizePreferences } from "@/lib/preferences";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { SortableResourceList } from "@/components/sortable-resource-list";
+import { enqueueCompletion } from "@/lib/offline/queue";
 import {
   formatCategoryMetadata,
   formatNaturalDate,
@@ -53,7 +54,7 @@ export function TaskCard({
   task: Task;
   categories: Category[];
   completion?: Completion;
-  onToggle?: () => Promise<boolean>;
+  onToggle?: (completed: boolean) => Promise<boolean>;
   onEdit?: () => void;
   progress?: string;
 }) {
@@ -98,9 +99,9 @@ export function TaskCard({
             setOptimisticDone(!previous);
             setTogglePending(true);
             try {
-              await onToggle();
+              const success = await onToggle(!previous);
+              setOptimisticDone(success ? !previous : previous);
             } finally {
-              setOptimisticDone(null);
               setTogglePending(false);
             }
           }}
@@ -143,6 +144,7 @@ async function toggle(
   data: WorkspaceData,
   task: Task,
   day: string,
+  completed: boolean,
   reload: () => Promise<void>,
   errorMessage: string,
 ) {
@@ -150,18 +152,30 @@ async function toggle(
       (c) => c.task_id === task.id && c.occurrence_date === day,
     ),
     cat = data.categories.find((c) => c.id === task.category_id);
+  const snapshot = {
+    title: task.title,
+    emoji: task.emoji,
+    category_name: cat?.name ?? null,
+    category_colour: cat?.colour ?? null,
+  };
+  if (!navigator.onLine) {
+    enqueueCompletion({
+      userId: data.user.id,
+      taskId: task.id,
+      occurrenceDate: day,
+      completed,
+      snapshot,
+    });
+    return true;
+  }
+  if (Boolean(old) === completed) return true;
   const q = old
     ? db.from("task_completions").delete().eq("id", old.id)
     : db.from("task_completions").insert({
         user_id: data.user.id,
         task_id: task.id,
         occurrence_date: day,
-        task_snapshot: {
-          title: task.title,
-          emoji: task.emoji,
-          category_name: cat?.name ?? null,
-          category_colour: cat?.colour ?? null,
-        },
+        task_snapshot: snapshot,
       });
   const { error } = await q;
   if (error) {
@@ -358,8 +372,8 @@ export function TodayView({
                     categories={data.categories}
                     completion={completion}
                     progress={weekly}
-                    onToggle={() =>
-                      toggle(db, data, task, day, reload, t("error"))
+                    onToggle={(completed) =>
+                      toggle(db, data, task, day, completed, reload, t("error"))
                     }
                   />
                 );

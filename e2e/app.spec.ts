@@ -19,6 +19,28 @@ test("public landing exposes product and conversion paths", async ({
     page.getByRole("heading", { name: /Your life changes/i }),
   ).toBeVisible();
 });
+test("PWA shell and connection status work offline", async ({
+  page,
+  context,
+  browserName,
+}) => {
+  await page.goto("/es");
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await context.setOffline(true);
+  try {
+    await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+    await expect(page.getByText("Sin conexión")).toBeVisible();
+    if (browserName === "chromium") {
+      await page.reload();
+      await expect(
+        page.getByRole("heading", { name: /Tu vida cambia/i }),
+      ).toBeVisible();
+    }
+  } finally {
+    await context.setOffline(false);
+  }
+});
 test("protected route redirects to Google login", async ({ page }) => {
   await page.goto("/es/today");
   await expect(page).toHaveURL(/\/es\/login/);
