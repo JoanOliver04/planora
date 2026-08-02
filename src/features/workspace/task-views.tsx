@@ -10,6 +10,7 @@ import {
   Plus,
   RotateCcw,
   Search,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -20,6 +21,7 @@ import {
 } from "@/lib/recurrence";
 import { localDate, localWeek, zonedDate } from "@/lib/dates/timezone";
 import {
+  deleteArchivedTask,
   duplicateTask,
   reorderResources,
   setTaskArchived,
@@ -635,7 +637,8 @@ export function TasksView({
     [search, setSearch] = useState(""),
     [category, setCategory] = useState("all"),
     [status, setStatus] = useState<TaskVisibility>("active"),
-    [confirmTask, setConfirmTask] = useState<Task | null>(null);
+    [confirmTask, setConfirmTask] = useState<Task | null>(null),
+    [deleteTask, setDeleteTask] = useState<Task | null>(null);
   const tasks = useMemo(
     () =>
       filterTasks(data.tasks, data.completions, status).filter(
@@ -798,6 +801,16 @@ export function TasksView({
                     <Archive size={16} />
                   )}
                 </button>
+                {task.archived_at && (
+                  <button
+                    className="icon-button danger-action"
+                    onClick={() => setDeleteTask(task)}
+                    aria-label={`${t("deletePermanently")} ${task.title}`}
+                    title={t("deletePermanently")}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
             </article>
           );
@@ -835,6 +848,25 @@ export function TasksView({
             setConfirmTask(null);
           } catch (error) {
             toast.error(error instanceof Error ? error.message : t("error"));
+          }
+        }}
+      />
+      <ConfirmDialog
+        open={!!deleteTask}
+        onOpenChange={(open) => !open && setDeleteTask(null)}
+        title={`${t("deletePermanently")} ${deleteTask?.title ?? ""}`}
+        description={t("deleteArchivedTaskWarning")}
+        cancelLabel={t("cancel")}
+        confirmLabel={t("deletePermanently")}
+        onConfirm={async () => {
+          if (!deleteTask) return false;
+          try {
+            await deleteArchivedTask(deleteTask.id);
+            await reload();
+            setDeleteTask(null);
+          } catch (error) {
+            toast.error(error instanceof Error ? error.message : t("error"));
+            return false;
           }
         }}
       />

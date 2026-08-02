@@ -522,6 +522,15 @@ export async function setTaskArchived(value: string, archived: boolean) {
   if (error) throw new Error("Unable to update task");
   refresh();
 }
+export async function deleteArchivedTask(value: string) {
+  const taskId = id.parse(value);
+  const { db } = await auth();
+  const { data: deleted, error } = await db.rpc("delete_archived_task", {
+    target_task_id: taskId,
+  });
+  if (error || !deleted) throw new Error("Unable to permanently delete task");
+  refresh();
+}
 export async function duplicateTask(value: string) {
   const taskId = id.parse(value),
     { db, user } = await auth();

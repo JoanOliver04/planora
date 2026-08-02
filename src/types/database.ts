@@ -192,6 +192,10 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      delete_archived_task: {
+        Args: { target_task_id: string };
+        Returns: boolean;
+      };
       restore_planora_backup: {
         Args: { backup_data: Json };
         Returns: Json;

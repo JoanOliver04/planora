@@ -228,6 +228,8 @@
     "recurrence": "Repetición",
     "noWeekTasks": "No hay tareas previstas esta semana.",
     "deleteWarning": "Esta acción es permanente.",
+    "deletePermanently": "Eliminar definitivamente",
+    "deleteArchivedTaskWarning": "La tarea, su historial de completado y sus recordatorios se eliminarán definitivamente. Esta acción no se puede deshacer.",
     "archiveTaskWarning": "La tarea dejará de aparecer en tu horario, pero podrás recuperarla desde el filtro Archivadas.",
     "deleteEventWarning": "Este evento se eliminará de forma permanente y no se podrá recuperar.",
     "deleteCategoryWarning": "La categoría se eliminará de forma permanente. Si contiene elementos, tendrás que reasignarlos antes.",

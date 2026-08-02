@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-117%20unit%20%2B%2022%20E2E-brightgreen?style=flat-square" alt="117 unit and 22 E2E tests" />
+  <img src="https://img.shields.io/badge/tests-120%20unit%20%2B%2022%20E2E-brightgreen?style=flat-square" alt="120 unit and 22 E2E tests" />
 </p>
 
 ---
@@ -83,6 +83,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Public no-registration demo, guided onboarding and reusable schedule templates.
 - Offline mutation queue, installable PWA and a customizable notification and alarm center.
 - Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports.
+- Archived tasks act as a recoverable trash area, with explicit permanent deletion for the task, its completion history and reminders.
 - Privacy-focused Vercel Web Analytics for anonymous, aggregate page-view metrics without tracking cookies or custom product events.
 - Sanitized error telemetry and rate-limited sensitive endpoints.
 

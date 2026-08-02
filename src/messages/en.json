@@ -228,6 +228,8 @@
     "recurrence": "Recurrence",
     "noWeekTasks": "No tasks are expected this week.",
     "deleteWarning": "This action is permanent.",
+    "deletePermanently": "Delete permanently",
+    "deleteArchivedTaskWarning": "The task, its completion history and its reminders will be permanently deleted. This action cannot be undone.",
     "archiveTaskWarning": "The task will disappear from your schedule, but you can restore it from the Archived filter.",
     "deleteEventWarning": "This event will be permanently deleted and cannot be recovered.",
     "deleteCategoryWarning": "The category will be permanently deleted. If it contains items, you must reassign them first.",
