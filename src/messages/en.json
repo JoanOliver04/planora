@@ -207,6 +207,11 @@
     "rounded": "Rounded",
     "reduceMotion": "Reduce animations",
     "showCompleted": "Keep completed tasks visible today",
-    "reset": "Reset"
+    "reset": "Reset",
+    "finished": "Finished",
+    "eventStatus": "Event status",
+    "taskStatus": "Task status",
+    "completedOneTime": "Completed",
+    "noMatchingEvents": "There are no events with this status."
   }
 }

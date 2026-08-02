@@ -31,6 +31,7 @@ import { normalizePreferences } from "@/lib/preferences";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { SortableResourceList } from "@/components/sortable-resource-list";
 import { enqueueCompletion } from "@/lib/offline/queue";
+import { filterTasks, type TaskVisibility } from "@/lib/workspace/visibility";
 import {
   formatCategoryMetadata,
   formatNaturalDate,
@@ -643,22 +644,24 @@ export function TasksView({
     [editing, setEditing] = useState<Task | null>(null),
     [search, setSearch] = useState(""),
     [category, setCategory] = useState("all"),
-    [status, setStatus] = useState("active"),
+    [status, setStatus] = useState<TaskVisibility>("active"),
     [confirmTask, setConfirmTask] = useState<Task | null>(null);
   const tasks = useMemo(
     () =>
-      data.tasks.filter(
+      filterTasks(data.tasks, data.completions, status).filter(
         (task) =>
           task.schedule_id === data.profile.active_schedule_id &&
           (category === "all" || task.category_id === category) &&
-          (status === "all"
-            ? true
-            : status === "archived"
-              ? !!task.archived_at
-              : !task.archived_at) &&
           task.title.toLowerCase().includes(search.toLowerCase()),
       ),
-    [data.tasks, data.profile.active_schedule_id, category, status, search],
+    [
+      data.tasks,
+      data.completions,
+      data.profile.active_schedule_id,
+      category,
+      status,
+      search,
+    ],
   );
   return (
     <>
@@ -702,11 +705,12 @@ export function TasksView({
         </select>
         <select
           className="pill"
-          aria-label={t("active")}
+          aria-label={t("taskStatus")}
           value={status}
-          onChange={(event) => setStatus(event.target.value)}
+          onChange={(event) => setStatus(event.target.value as TaskVisibility)}
         >
           <option value="active">{t("active")}</option>
+          <option value="completed">{t("completedOneTime")}</option>
           <option value="archived">{t("archived")}</option>
           <option value="all">{t("all")}</option>
         </select>

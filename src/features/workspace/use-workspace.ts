@@ -12,7 +12,7 @@ const requirements: Record<
 > = {
   today: new Set(["categories", "tasks", "events", "completions"]),
   week: new Set(["categories", "tasks", "events"]),
-  tasks: new Set(["categories", "tasks"]),
+  tasks: new Set(["categories", "tasks", "completions"]),
   events: new Set(["categories", "events"]),
   history: new Set(["completions"]),
   statistics: new Set(["categories", "tasks", "completions"]),
@@ -87,6 +87,15 @@ export function useWorkspace(mode: WorkspaceMode) {
     if (mode === "today") eventsQuery.eq("event_date", today);
     else if (mode === "week")
       eventsQuery.gte("event_date", historyFrom.toISOString().slice(0, 10));
+    let completionsQuery = db
+      .from("task_completions")
+      .select("*")
+      .order("completed_at", { ascending: false });
+    if (mode !== "tasks")
+      completionsQuery = completionsQuery.gte(
+        "occurrence_date",
+        mode === "today" ? week.start : historyFrom.toISOString().slice(0, 10),
+      );
     const [s, c, t, e, h] = await Promise.all([
       db.from("schedules").select("*").order("sort_order").order("created_at"),
       needed.has("categories")
@@ -96,18 +105,7 @@ export function useWorkspace(mode: WorkspaceMode) {
         ? db.from("tasks").select("*").order("sort_order").order("created_at")
         : empty,
       needed.has("events") ? eventsQuery : empty,
-      needed.has("completions")
-        ? db
-            .from("task_completions")
-            .select("*")
-            .gte(
-              "occurrence_date",
-              mode === "today"
-                ? week.start
-                : historyFrom.toISOString().slice(0, 10),
-            )
-            .order("completed_at", { ascending: false })
-        : empty,
+      needed.has("completions") ? completionsQuery : empty,
     ]);
     const firstError = [s.error, c.error, t.error, e.error, h.error].find(
       Boolean,

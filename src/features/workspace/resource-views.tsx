@@ -29,6 +29,7 @@ import {
   normalizePreferences,
   type UserPreferences,
 } from "@/lib/preferences";
+import { filterEvents, type EventVisibility } from "@/lib/workspace/visibility";
 const fail = (e: unknown, fallback: string) =>
   toast.error(e instanceof Error ? e.message : fallback);
 export function EventsView({
@@ -42,8 +43,10 @@ export function EventsView({
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Event | null>(null),
     [allDay, setAllDay] = useState(true),
+    [visibility, setVisibility] = useState<EventVisibility>("active"),
     [deleting, setDeleting] = useState<Event | null>(null),
     [pending, start] = useTransition();
+  const events = filterEvents(data.events, visibility, data.profile.timezone);
   function submit(fd: FormData) {
     start(async () => {
       try {
@@ -83,8 +86,22 @@ export function EventsView({
           {t("add")}
         </button>
       </header>
+      <div className="filterbar surface resource-filterbar">
+        <select
+          className="pill"
+          aria-label={t("eventStatus")}
+          value={visibility}
+          onChange={(event) =>
+            setVisibility(event.target.value as EventVisibility)
+          }
+        >
+          <option value="active">{t("upcoming")}</option>
+          <option value="finished">{t("finished")}</option>
+          <option value="all">{t("all")}</option>
+        </select>
+      </div>
       <div className="task-list">
-        {data.events.map((e) => (
+        {events.map((e) => (
           <article className="task surface" key={e.id}>
             <span>{e.emoji || "📅"}</span>
             <div>
@@ -119,6 +136,13 @@ export function EventsView({
           </article>
         ))}
       </div>
+      {!events.length && (
+        <div className="empty empty-compact surface">
+          <span className="empty-icon">{"\u{1F4C5}"}</span>
+          <h2>{t("empty")}</h2>
+          <p>{t("noMatchingEvents")}</p>
+        </div>
+      )}
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
