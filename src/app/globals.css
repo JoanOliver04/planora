@@ -24,11 +24,33 @@
   --shadow: 0 14px 38px rgba(36, 49, 31, 0.075);
 }
 
-.consent-banner { position: fixed; z-index: 100; inset: auto 1rem 1rem; max-width: 34rem; padding: 1rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--surface); box-shadow: 0 12px 40px rgb(0 0 0 / .18); }
-.consent-banner p { margin: 0 0 .75rem; }
-.legal-page { width: min(760px, calc(100% - 2rem)); margin: 0 auto; padding: 4rem 0; line-height: 1.7; }
-.legal-page h1 { margin-top: 2rem; font-size: clamp(2.2rem, 7vw, 4rem); }
-.legal-page h2 { margin-top: 2rem; }
+.consent-banner {
+  position: fixed;
+  z-index: 100;
+  inset: auto 1rem 1rem;
+  max-width: 34rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.18);
+}
+.consent-banner p {
+  margin: 0 0 0.75rem;
+}
+.legal-page {
+  width: min(760px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 4rem 0;
+  line-height: 1.7;
+}
+.legal-page h1 {
+  margin-top: 2rem;
+  font-size: clamp(2.2rem, 7vw, 4rem);
+}
+.legal-page h2 {
+  margin-top: 2rem;
+}
 html {
   font-size: calc(100% * var(--font-scale));
 }
@@ -2550,5 +2572,76 @@ select:disabled,
   .week-picker {
     grid-column: 1 / -1;
     grid-row: 1;
+  }
+}
+
+/* Keep settings usable at narrow widths and large user text scales. */
+@media (max-width: 600px) {
+  .main {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .settings-shortcuts,
+  .main > .surface,
+  .settings-block,
+  .personalization,
+  .settings-row {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .settings-row {
+    align-items: flex-start;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.7rem;
+    padding: 0.9rem;
+  }
+
+  .settings-row > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .settings-row .row-actions {
+    width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .settings-row select,
+  .settings-row input.pill {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .accent-picker,
+  .range-setting {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .range-setting input {
+    min-width: 0;
+    flex: 1 1 8rem;
+  }
+
+  .settings-block .row-actions input[type="time"] {
+    min-width: 0;
+    flex: 1 1 7rem;
+  }
+
+  .settings-row.check-row {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .settings-row.check-row > span {
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
   }
 }
