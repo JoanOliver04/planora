@@ -18,6 +18,25 @@ describe("recurrence", () => {
       getExpectedTaskOccurrences(t, "2026-06-30", "2026-07-04"),
     ).toHaveLength(3);
   });
+  it("includes a task whose start and end are the same day", () => {
+    const task = {
+      startDate: "2026-08-02",
+      endDate: "2026-08-02",
+      recurrence: { type: "daily" as const },
+    };
+
+    expect(isTaskExpectedOnDate(task, "2026-08-02")).toBe(true);
+    expect(isTaskExpectedOnDate(task, new Date("2026-08-02T12:00:00"))).toBe(
+      true,
+    );
+    expect(isTaskExpectedOnDate(task, "2026-08-03")).toBe(false);
+    expect(
+      isTaskExpectedOnDate(
+        { ...task, recurrence: { type: "once" as const } },
+        new Date("2026-08-02T18:00:00"),
+      ),
+    ).toBe(true);
+  });
   it("supports weekdays", () => {
     expect(
       isTaskExpectedOnDate(

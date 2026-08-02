@@ -9,6 +9,7 @@
   isAfter,
   isBefore,
   isSameDay,
+  startOfDay,
   startOfWeek,
 } from "date-fns";
 import { enGB, es } from "date-fns/locale";
@@ -20,7 +21,7 @@ export type RecurringTask = {
   archivedAt?: string | null;
 };
 const date = (v: string | Date) =>
-  typeof v === "string" ? new Date(`${v}T00:00:00`) : v;
+  typeof v === "string" ? new Date(`${v}T00:00:00`) : startOfDay(v);
 export function isTaskExpectedOnDate(task: RecurringTask, on: string | Date) {
   const d = date(on),
     start = date(task.startDate);

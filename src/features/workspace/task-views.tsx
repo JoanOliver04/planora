@@ -214,10 +214,7 @@ export function TodayView({
           task.schedule_id === active &&
           !task.archived_at &&
           task.is_active &&
-          isTaskExpectedOnDate(
-            adapter(task),
-            zonedDate(day, data.profile.timezone),
-          ),
+          isTaskExpectedOnDate(adapter(task), day),
       )
       .filter((task) => {
         const recurrence = recurrenceFromJson(
@@ -263,11 +260,7 @@ export function TodayView({
           .map((item) => item.occurrence_date),
       ]),
     ),
-    stats = calculateWeeklyProgress(
-      recurring,
-      completionMap,
-      zonedDate(day, data.profile.timezone),
-    ),
+    stats = calculateWeeklyProgress(recurring, completionMap, day),
     remaining = Math.max(stats.expected - stats.completed, 0),
     progressCopy =
       stats.expected === 0
@@ -476,10 +469,7 @@ export function WeekView({ data }: { data: WorkspaceData }) {
         (task) =>
           task.schedule_id === active &&
           !task.archived_at &&
-          isTaskExpectedOnDate(
-            adapter(task),
-            zonedDate(day, data.profile.timezone),
-          ),
+          isTaskExpectedOnDate(adapter(task), day),
       ),
       events = data.events.filter(
         (event) =>
