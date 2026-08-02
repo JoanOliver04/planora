@@ -83,7 +83,8 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Public no-registration demo, guided onboarding and reusable schedule templates.
 - Offline mutation queue, installable PWA and a customizable notification and alarm center.
 - Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports.
-- Optional cookie-free analytics, sanitized error telemetry and rate-limited sensitive endpoints.
+- Privacy-focused Vercel Web Analytics for anonymous, aggregate page-view metrics without tracking cookies or custom product events.
+- Sanitized error telemetry and rate-limited sensitive endpoints.
 
 ## Product preview
 
@@ -142,6 +143,7 @@ flowchart LR
     UI --> SA[Server Actions]
     UI --> SC[Supabase browser client]
     UI --> NS[Notification scheduler]
+    UI --> WA[Vercel Web Analytics]
     NS --> SW[Service worker and in-app alerts]
     SA --> SSR[Supabase SSR client]
     SC --> DB[(PostgreSQL)]
@@ -150,7 +152,7 @@ flowchart LR
     AUTH[Google OAuth] --> SSR
 ```
 
-Next.js App Router provides Server Components by default and Client Components only where interaction is required. Server Actions validate every mutation with Zod. Supabase manages Google sessions, PostgreSQL persistence and row-level access policies.
+Next.js App Router provides Server Components by default and Client Components only where interaction is required. Server Actions validate every mutation with Zod. Supabase manages Google sessions, PostgreSQL persistence and row-level access policies. Vercel Web Analytics is mounted once in the shared root layout and records automatic page views only on Vercel deployments.
 
 Recurring occurrences are calculated on demand instead of generating unlimited future database rows. This keeps storage predictable and removes the need for scheduled jobs.
 
@@ -168,6 +170,7 @@ Recurring occurrences are calculated on demand instead of generating unlimited f
 | Localisation   | **next-intl**                             | Spanish and English routes and messages                    |
 | Dates          | **date-fns + date-fns-tz**                | Recurrence and timezone-safe calculations                  |
 | Testing        | **Vitest + Testing Library + Playwright** | Unit, component and end-to-end coverage                    |
+| Analytics      | **Vercel Web Analytics**                  | Anonymous, aggregate navigation metrics without cookies    |
 | Hosting        | **Vercel**                                | Automatic production deployments from `main`               |
 
 ## Project structure
@@ -230,7 +233,7 @@ Start the development server:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). Web Analytics is only mounted when Vercel provides `VERCEL_ENV`, so local development and tests do not send page views.
 
 ## Available commands
 
@@ -259,6 +262,8 @@ Open [http://localhost:3000](http://localhost:3000).
 - Security headers include CSP, frame denial, MIME sniffing protection and a restrictive permissions policy.
 - Account deletion requires a valid session, same-origin request and explicit typed confirmation.
 - User content is rendered as text and never injected as HTML.
+- Web Analytics uses no custom events and receives no task, event, note, category, schedule, account or backup content.
+- Valid application URLs contain only controlled locale and view names; user and Supabase identifiers are not placed in page routes.
 
 No application can be guaranteed completely secure. See [docs/security.md](docs/security.md) for the threat model and operational guidance.
 
@@ -273,7 +278,7 @@ npm run build
 npm audit
 ```
 
-The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, forms, loading states, protected navigation, platform metadata and mobile authentication.
+The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, forms, loading states, protected navigation, platform metadata, mobile authentication and the single-instance, automatic-only Analytics integration.
 
 ## Deployment
 
@@ -283,9 +288,11 @@ Planora is configured for Vercel and Supabase:
 2. Configure the production environment variables.
 3. Set `NEXT_PUBLIC_SITE_URL` to the final HTTPS domain.
 4. Add the production callback to Supabase and Google.
-5. Deploy.
+5. Enable **Web Analytics** in the Vercel project dashboard.
+6. Deploy and visit several public and authenticated routes.
+7. In Analytics, use the environment selector to keep Production and Preview traffic separate, then verify that reported pages contain no sensitive values.
 
-Every push to `main` creates a production deployment automatically. Recurrence requires no cron jobs, so the project can run on the free Vercel and Supabase tiers within their usage limits.
+Every push to `main` creates a production deployment automatically. Vercel tracks initial loads and App Router client-side page transitions; localhost remains excluded by the environment guard. Recurrence requires no cron jobs, so the project can run on the free Vercel and Supabase tiers within their usage limits.
 
 See [docs/deployment.md](docs/deployment.md) for the complete checklist.
 
