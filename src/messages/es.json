@@ -32,6 +32,7 @@
     "templates": "Plantillas",
     "statistics": "Estadísticas",
     "reminders": "Recordatorios",
+    "alarms": "Alarmas",
     "data": "Tus datos"
   },
   "Today": {
@@ -97,23 +98,29 @@
     },
     "restore": {
       "title": "Restaurar una copia",
-      "description": "Selecciona una copia JSON creada por Planora para recuperar tus datos.",
+      "description": "Selecciona una copia JSON creada por Planora para sustituir tu espacio de trabajo actual.",
       "selectTitle": "Selecciona una copia de Planora",
-      "fileType": "Archivo JSON · Formato de copia v1",
+      "fileType": "Archivo JSON · Formatos de copia v1 y v2",
       "selectAction": "Seleccionar archivo",
       "removeFile": "Quitar {name}",
       "validating": "Comprobando la copia…",
       "valid": "Copia compatible. Revisa el contenido antes de restaurarla.",
-      "invalid": "El archivo no es una copia JSON compatible con Planora.",
+      "invalid": "La copia no es válida, es demasiado grande, está incompleta o no es compatible con esta versión de Planora.",
       "summaryLabel": "Contenido de la copia",
-      "behaviour": "La restauración añade copias y no elimina tus datos actuales. Los recordatorios importados se mantienen desactivados.",
+      "behaviour": "La restauración sustituye los datos actuales de tu cuenta por los contenidos en la copia. Antes de continuar puedes revisar un resumen.",
       "action": "Restaurar copia",
-      "success": "Restauración completada. Los recordatorios importados están desactivados.",
-      "error": "No se pudo completar la restauración. Tus datos actuales no se han eliminado.",
+      "success": "Restauración completada: {count} registros restaurados. Tus datos anteriores se han sustituido y los recordatorios importados están desactivados.",
+      "error": "La restauración ha fallado. La base de datos ha revertido la transacción y tus datos anteriores siguen intactos.",
       "confirmTitle": "¿Restaurar esta copia?",
-      "confirmDescription": "Planora añadirá copias de los horarios, categorías, tareas, eventos, registros, plantillas y recordatorios compatibles. No eliminará tus datos actuales y los recordatorios importados quedarán desactivados.",
+      "confirmDescription": "Tus datos actuales se sustituirán por el contenido de esta copia. Planora valida el archivo antes de realizar cambios y descarga primero una copia de seguridad.",
+      "fileName": "Archivo",
+      "createdAt": "Creada",
+      "version": "Versión del formato",
+      "replaceWarning": "Se eliminarán los horarios, categorías, tareas, eventos, historial, plantillas y recordatorios que no estén en esta copia.",
       "cancel": "Cancelar",
-      "confirmAction": "Restaurar copia",
+      "confirmAction": "Restaurar y sustituir datos",
+      "preparing": "Preparando restauración…",
+      "safety-copy": "Creando copia de seguridad…",
       "restoring": "Restaurando…"
     },
     "summary": {
@@ -123,7 +130,8 @@
       "events": "Eventos",
       "completions": "Registros",
       "templates": "Plantillas",
-      "reminders": "Recordatorios"
+      "reminders": "Recordatorios",
+      "alarms": "Alarmas"
     },
     "privacy": {
       "title": "Privacidad y control",

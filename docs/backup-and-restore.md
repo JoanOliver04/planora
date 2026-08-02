@@ -1,7 +1,27 @@
 # Backup and restore
 
-Planora exports a UTF-8, versioned JSON backup (`planora-backup`, version 1), separate CSV tables for spreadsheet analysis, and an RFC 5545-compatible ICS calendar containing events and tasks.
+Planora exports UTF-8 JSON backups with explicit metadata (`format`, `schemaVersion`, `backupId`, `createdAt`, `exportedBy`, locale and timezone), separate CSV tables, and an RFC 5545-compatible ICS calendar. Version 2 is the current JSON contract. Genuine version 1 exports are migrated in memory, validated against the current model, and never modified on disk.
 
-Imports are parsed and size-limited before a preview is shown. Nothing is written until the user confirms. Restores add new records, preserve relationships with fresh identifiers, never trust an exported `user_id`, and do not delete existing data. Imported reminders are disabled until reviewed. Keep exports private: descriptions and completion history can contain personal information.
+## Restore semantics
 
-Only version 1 is accepted. Keep the original file unchanged for future migrations. Open **Your data**, select the JSON file, review the record counts, and confirm. If a database write fails, contact support before retrying because records written earlier in that import may remain.
+**Restore backup** is replacement, not merge. The selected file is fully parsed and validated in the browser before confirmation, including its version, field types, required values, entity limits, unique identifiers and internal relationships. Files larger than 5 MiB and future schema versions are rejected before any write.
+
+Before restoring, Planora downloads a fresh safety copy of the currently loaded account data. The confirmed backup is normalized on the server, all entity IDs are regenerated, and references are rebuilt through old-to-new maps. Exported `user_id` values are discarded.
+
+The database replacement runs through `public.restore_planora_backup(jsonb)`. This PostgreSQL function:
+
+- derives ownership exclusively from `auth.uid()`;
+- serializes restores for the same account with a transaction-scoped advisory lock;
+- deletes dependent entities in foreign-key order;
+- inserts the complete replacement in dependency order;
+- disables restored reminders and alarms;
+- runs as one PostgreSQL statement, so any validation, deletion or insertion error rolls back the entire replacement;
+- cannot affect another user's rows because every delete and insert is bound to the authenticated user and RLS remains active.
+
+Restoring the same file repeatedly is idempotent at the product level: every run replaces the workspace and therefore leaves one functional copy of each exported entity. `backupId` remains stable within the file and legacy v1 files receive a deterministic migrated identifier.
+
+## Recovering from the former additive restore
+
+Use the untouched JSON exported before the duplicates were created. Open **Your data**, select it, verify the date, format version and entity counts, then choose **Restore and replace data**. Keep both that original file and the automatically downloaded pre-restore safety copy until the result has been checked.
+
+No automatic duplicate cleaner is provided. The previous importer did not persist a reliable import batch identifier, so deleting by matching names, dates or content could remove legitimate records.

@@ -1,13 +1,14 @@
 "use client";
 
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 export function ConfirmDialog({
   open,
   onOpenChange,
   title,
   description,
+  details,
   cancelLabel,
   confirmLabel,
   onConfirm,
@@ -16,7 +17,8 @@ export function ConfirmDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  description: string;
+  description: ReactNode;
+  details?: ReactNode;
   cancelLabel: string;
   confirmLabel: string;
   onConfirm: () => boolean | void | Promise<boolean | void>;
@@ -25,6 +27,7 @@ export function ConfirmDialog({
   const [pending, setPending] = useState(false);
 
   async function confirm() {
+    if (pending) return;
     setPending(true);
     try {
       const shouldClose = await onConfirm();
@@ -35,7 +38,12 @@ export function ConfirmDialog({
   }
 
   return (
-    <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
+    <AlertDialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!pending) onOpenChange(nextOpen);
+      }}
+    >
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="dialog-overlay" />
         <AlertDialog.Content className="dialog-content">
@@ -43,6 +51,7 @@ export function ConfirmDialog({
           <AlertDialog.Description className="muted">
             {description}
           </AlertDialog.Description>
+          {details}
           <div className="dialog-actions">
             <AlertDialog.Cancel className="pill" disabled={pending}>
               {cancelLabel}

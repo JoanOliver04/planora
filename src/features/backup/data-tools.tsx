@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/routing";
 import {
   Archive,
   CalendarDays,
@@ -21,6 +22,7 @@ import { restoreBackup } from "@/app/actions/domain";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   createBackup,
+  MAX_BACKUP_BYTES,
   parseBackup,
   summarizeBackup,
   toCsv,
@@ -66,6 +68,7 @@ export function DataTools({
   timezone: string;
 }) {
   const t = useTranslations("Data");
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [exporting, setExporting] = useState<ExportKind | null>(null);
   const [exportFeedback, setExportFeedback] = useState<Feedback>(null);
@@ -75,7 +78,13 @@ export function DataTools({
     "idle" | "reading" | "ready" | "invalid" | "success" | "error"
   >("idle");
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [restoring, setRestoring] = useState(false);
+  const [restoredSummary, setRestoredSummary] = useState<ReturnType<
+    typeof summarizeBackup
+  > | null>(null);
+  const [restorePhase, setRestorePhase] = useState<
+    "idle" | "preparing" | "safety-copy" | "restoring"
+  >("idle");
+  const restoring = restorePhase !== "idle";
 
   const exportOptions: Array<{
     kind: ExportKind;
@@ -121,7 +130,7 @@ export function DataTools({
     try {
       if (kind === "json") {
         download(
-          "planora-backup-v1.json",
+          "planora-backup-v2.json",
           JSON.stringify(createBackup(data), null, 2),
           "application/json",
         );
@@ -154,7 +163,10 @@ export function DataTools({
     setSelectedFile(file);
     setPreview(null);
     setImportState("reading");
-    if (!file.name.toLocaleLowerCase().endsWith(".json")) {
+    if (
+      file.size > MAX_BACKUP_BYTES ||
+      !file.name.toLocaleLowerCase().endsWith(".json")
+    ) {
       setImportState("invalid");
       return;
     }
@@ -180,19 +192,29 @@ export function DataTools({
 
   async function restore() {
     if (!preview || restoring) return false;
-    setRestoring(true);
+    setRestorePhase("preparing");
     try {
+      setRestorePhase("safety-copy");
+      download(
+        `planora-before-restore-${new Date().toISOString().slice(0, 10)}.json`,
+        JSON.stringify(createBackup(data), null, 2),
+        "application/json",
+      );
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+      setRestorePhase("restoring");
       await restoreBackup(preview);
+      setRestoredSummary(summarizeBackup(preview));
       setSelectedFile(null);
       setPreview(null);
       setImportState("success");
       if (inputRef.current) inputRef.current.value = "";
+      router.refresh();
       return true;
     } catch {
       setImportState("error");
       return false;
     } finally {
-      setRestoring(false);
+      setRestorePhase("idle");
     }
   }
 
@@ -205,6 +227,7 @@ export function DataTools({
     completions: t("summary.completions"),
     templates: t("summary.templates"),
     reminders: t("summary.reminders"),
+    alarms: t("summary.alarms"),
   };
 
   return (
@@ -375,7 +398,12 @@ export function DataTools({
             {importState === "success" && (
               <p className="data-feedback" data-tone="success" role="status">
                 <CheckCircle2 size={17} aria-hidden="true" />
-                {t("restore.success")}
+                {t("restore.success", {
+                  count: Object.values(restoredSummary ?? {}).reduce(
+                    (total, count) => total + count,
+                    0,
+                  ),
+                })}
               </p>
             )}
             {importState === "error" && (
@@ -385,14 +413,16 @@ export function DataTools({
             )}
           </div>
 
-          {summary && (
+          {(summary ?? restoredSummary) && (
             <dl className="data-summary" aria-label={t("restore.summaryLabel")}>
-              {Object.entries(summary).map(([key, count]) => (
-                <div key={key}>
-                  <dt>{summaryLabels[key as keyof typeof summaryLabels]}</dt>
-                  <dd>{count}</dd>
-                </div>
-              ))}
+              {Object.entries(summary ?? restoredSummary!).map(
+                ([key, count]) => (
+                  <div key={key}>
+                    <dt>{summaryLabels[key as keyof typeof summaryLabels]}</dt>
+                    <dd>{count}</dd>
+                  </div>
+                ),
+              )}
             </dl>
           )}
 
@@ -404,7 +434,7 @@ export function DataTools({
             onClick={() => setConfirmOpen(true)}
           >
             <RotateCcw size={18} aria-hidden="true" />
-            {t("restore.action")}
+            {restoring ? t(`restore.${restorePhase}`) : t("restore.action")}
           </button>
         </section>
       </div>
@@ -422,6 +452,42 @@ export function DataTools({
         onOpenChange={setConfirmOpen}
         title={t("restore.confirmTitle")}
         description={t("restore.confirmDescription")}
+        details={
+          preview && selectedFile && summary ? (
+            <div className="restore-confirm-details">
+              <dl>
+                <div>
+                  <dt>{t("restore.fileName")}</dt>
+                  <dd>{selectedFile.name}</dd>
+                </div>
+                <div>
+                  <dt>{t("restore.createdAt")}</dt>
+                  <dd>
+                    {new Intl.DateTimeFormat(locale, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }).format(new Date(preview.createdAt))}
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t("restore.version")}</dt>
+                  <dd>{preview.schemaVersion}</dd>
+                </div>
+              </dl>
+              <div className="restore-confirm-summary">
+                {Object.entries(summary ?? restoredSummary!).map(
+                  ([key, count]) => (
+                    <span key={key}>
+                      {summaryLabels[key as keyof typeof summaryLabels]}:{" "}
+                      {count}
+                    </span>
+                  ),
+                )}
+              </div>
+              <p>{t("restore.replaceWarning")}</p>
+            </div>
+          ) : null
+        }
         cancelLabel={t("restore.cancel")}
         confirmLabel={
           restoring ? t("restore.restoring") : t("restore.confirmAction")

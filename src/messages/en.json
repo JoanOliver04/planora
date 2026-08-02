@@ -32,6 +32,7 @@
     "templates": "Templates",
     "statistics": "Statistics",
     "reminders": "Reminders",
+    "alarms": "Alarms",
     "data": "Your data"
   },
   "Today": {
@@ -97,23 +98,29 @@
     },
     "restore": {
       "title": "Restore a backup",
-      "description": "Select a JSON backup created by Planora to recover your data.",
+      "description": "Select a JSON backup created by Planora to replace your current workspace.",
       "selectTitle": "Select a Planora backup",
-      "fileType": "JSON file · Backup format v1",
+      "fileType": "JSON file · Backup formats v1 and v2",
       "selectAction": "Select file",
       "removeFile": "Remove {name}",
       "validating": "Checking backup…",
       "valid": "Compatible backup. Review its contents before restoring.",
-      "invalid": "This file is not a JSON backup compatible with Planora.",
+      "invalid": "This backup is invalid, too large, incomplete or incompatible with this version of Planora.",
       "summaryLabel": "Backup contents",
-      "behaviour": "Restore adds copies and does not delete your current data. Imported reminders remain disabled.",
+      "behaviour": "Restore replaces your current account data with the contents of the backup. You can review a summary before continuing.",
       "action": "Restore backup",
-      "success": "Restore complete. Imported reminders are disabled.",
-      "error": "The restore could not be completed. Your current data has not been deleted.",
+      "success": "Restore complete: {count} records restored. Your previous data was replaced and imported reminders are disabled.",
+      "error": "Restore failed. The database rolled back the transaction and your previous data remains unchanged.",
       "confirmTitle": "Restore this backup?",
-      "confirmDescription": "Planora will add compatible copies of schedules, categories, tasks, events, records, templates and reminders. It will not delete your current data, and imported reminders will remain disabled.",
+      "confirmDescription": "Your current data will be replaced by this backup. Planora validates the file before making any change and downloads a safety copy first.",
+      "fileName": "File",
+      "createdAt": "Created",
+      "version": "Format version",
+      "replaceWarning": "Schedules, categories, tasks, events, history, templates and reminders not present in this backup will be removed.",
       "cancel": "Cancel",
-      "confirmAction": "Restore backup",
+      "confirmAction": "Restore and replace data",
+      "preparing": "Preparing restore…",
+      "safety-copy": "Creating safety copy…",
       "restoring": "Restoring…"
     },
     "summary": {
@@ -123,7 +130,8 @@
       "events": "Events",
       "completions": "Records",
       "templates": "Templates",
-      "reminders": "Reminders"
+      "reminders": "Reminders",
+      "alarms": "Alarms"
     },
     "privacy": {
       "title": "Privacy and control",

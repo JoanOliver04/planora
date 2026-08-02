@@ -192,6 +192,10 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      restore_planora_backup: {
+        Args: { backup_data: Json };
+        Returns: Json;
+      };
       reorder_resources: {
         Args: { resource_type: string; ordered_ids: string[] };
         Returns: undefined;
