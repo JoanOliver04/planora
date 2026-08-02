@@ -2645,3 +2645,19 @@ select:disabled,
     overflow-wrap: anywhere;
   }
 }
+
+@media (max-width: 600px) {
+  .schedule-bar {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .schedule-bar > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .schedule-bar select {
+    flex: 1 1 12rem;
+  }
+}
