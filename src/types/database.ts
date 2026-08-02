@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -166,7 +166,8 @@ export type Database = {
           user_id: string;
           task_id: string | null;
           event_id: string | null;
-          kind: "relative" | "daily_summary";
+          kind: "relative" | "daily_summary" | "alarm";
+          title: string | null;
           minutes_before: number | null;
           recurrence: "once" | "daily" | "weekly";
           time_of_day: string | null;

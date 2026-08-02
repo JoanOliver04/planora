@@ -1,17 +1,38 @@
 "use client";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, BellOff, Clock3, Trash2 } from "lucide-react";
+import {
+  AlarmClock,
+  Bell,
+  BellOff,
+  Clock3,
+  MonitorSmartphone,
+  Trash2,
+  Volume2,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   deleteReminder,
   saveReminder,
+  setReminderEnabled,
   setRemindersEnabled,
   snoozeReminder,
   updateReminderTimezone,
 } from "@/app/actions/domain";
-import { advanceTrigger, nextDailyTrigger, relativeTrigger } from "./schedule";
+import {
+  advanceTrigger,
+  customTrigger,
+  nextDailyTrigger,
+  relativeTrigger,
+} from "./schedule";
+import {
+  defaultNotificationPreferences,
+  loadNotificationPreferences,
+  saveNotificationPreferences,
+  type NotificationPreferences,
+} from "./preferences";
 import type { Database } from "@/types/database";
+
 type Reminder = Database["public"]["Tables"]["reminders"]["Row"];
 type Target = {
   id: string;
@@ -21,6 +42,33 @@ type Target = {
   time: string | null;
   type: "task" | "event";
 };
+
+function Switch({
+  checked,
+  disabled,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  label: string;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="notification-switch"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+    >
+      <span />
+    </button>
+  );
+}
+
 export function ReminderCenter({
   locale,
   timezone,
@@ -46,21 +94,35 @@ export function ReminderCenter({
     start_time: string | null;
   }>;
 }) {
-  const es = locale === "es",
-    router = useRouter();
+  const es = locale === "es";
+  const router = useRouter();
   const [permission, setPermission] = useState<
     NotificationPermission | "unsupported"
   >("default");
   const [optedOut, setOptedOut] = useState(
     reminders.length > 0 && reminders.every((item) => !item.enabled),
   );
+  const [preferences, setPreferences] = useState(
+    defaultNotificationPreferences,
+  );
   const [targetValue, setTargetValue] = useState(
     tasks[0] ? "task:" + tasks[0].id : events[0] ? "event:" + events[0].id : "",
   );
-  const [minutes, setMinutes] = useState(15),
-    [recurrence, setRecurrence] = useState<"once" | "daily" | "weekly">("once"),
-    [summaryTime, setSummaryTime] = useState("20:00"),
-    [pending, startTransition] = useTransition();
+  const [minutes, setMinutes] = useState(30);
+  const [recurrence, setRecurrence] = useState<"once" | "daily" | "weekly">(
+    "once",
+  );
+  const [summaryTime, setSummaryTime] = useState("20:00");
+
+  const [alarmTitle, setAlarmTitle] = useState("");
+  const [alarmDate, setAlarmDate] = useState(() =>
+    new Date(Date.now() + 86_400_000).toISOString().slice(0, 10),
+  );
+  const [alarmTime, setAlarmTime] = useState("20:00");
+  const [alarmRecurrence, setAlarmRecurrence] = useState<
+    "once" | "daily" | "weekly"
+  >("once");
+  const [pending, startTransition] = useTransition();
   const browserTimezone = useMemo(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone,
     [],
@@ -83,27 +145,44 @@ export function ReminderCenter({
       type: "event" as const,
     })),
   ];
+
   useEffect(() => {
-    queueMicrotask(() =>
+    queueMicrotask(() => {
       setPermission(
         "Notification" in window ? Notification.permission : "unsupported",
-      ),
-    );
+      );
+      const savedPreferences = loadNotificationPreferences();
+      setPreferences((current) =>
+        JSON.stringify(current) === JSON.stringify(savedPreferences)
+          ? current
+          : savedPreferences,
+      );
+    });
     const updated = () => router.refresh();
     window.addEventListener("planora-reminders-updated", updated);
     return () =>
       window.removeEventListener("planora-reminders-updated", updated);
   }, [router]);
-  function requestPermission() {
-    if (!("Notification" in window)) return;
-    startTransition(async () => {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-      await setRemindersEnabled(result === "granted");
-      setOptedOut(result !== "granted");
-      router.refresh();
-    });
+
+  function persistPreference(
+    key: keyof NotificationPreferences,
+    value: boolean,
+  ) {
+    const next = { ...preferences, [key]: value };
+    setPreferences(next);
+    saveNotificationPreferences(next);
   }
+
+  async function requestPermission() {
+    if (!("Notification" in window)) return;
+    const result = await Notification.requestPermission();
+    setPermission(result);
+    persistPreference("system", result === "granted");
+    await setRemindersEnabled(result === "granted");
+    setOptedOut(result !== "granted");
+    router.refresh();
+  }
+
   function createRelative() {
     const [type, id] = targetValue.split(":") as ["task" | "event", string];
     const target = targets.find((item) => item.id === id && item.type === type);
@@ -125,12 +204,13 @@ export function ReminderCenter({
         await saveReminder({
           targetType: type,
           targetId: id,
+          title: null,
           minutesBefore: minutes,
           recurrence,
           timeOfDay: null,
           timezone,
           nextTriggerAt: trigger.toISOString(),
-          enabled: permission === "granted" && !optedOut,
+          enabled: !optedOut,
         });
         toast.success(es ? "Recordatorio guardado" : "Reminder saved");
         router.refresh();
@@ -139,18 +219,54 @@ export function ReminderCenter({
       }
     });
   }
+
+  function createAlarm() {
+    const trigger = customTrigger(alarmDate, alarmTime, timezone);
+    if (trigger <= new Date()) {
+      toast.error(
+        es
+          ? "Elige una fecha y hora futuras."
+          : "Choose a future date and time.",
+      );
+      return;
+    }
+    startTransition(async () => {
+      try {
+        await saveReminder({
+          targetType: "alarm",
+          targetId: null,
+          title: alarmTitle,
+          minutesBefore: null,
+          recurrence: alarmRecurrence,
+          timeOfDay: null,
+          timezone,
+          nextTriggerAt: trigger.toISOString(),
+          enabled: !optedOut,
+        });
+        setAlarmTitle("");
+        toast.success(es ? "Alarma creada" : "Alarm created");
+        router.refresh();
+      } catch {
+        toast.error(
+          es ? "No se pudo crear la alarma" : "Could not create alarm",
+        );
+      }
+    });
+  }
+
   function saveSummary() {
     startTransition(async () => {
       try {
         await saveReminder({
           targetType: "summary",
           targetId: null,
+          title: null,
           minutesBefore: null,
           recurrence: "daily",
           timeOfDay: summaryTime,
           timezone,
           nextTriggerAt: nextDailyTrigger(summaryTime, timezone).toISOString(),
-          enabled: permission === "granted" && !optedOut,
+          enabled: !optedOut,
         });
         toast.success(es ? "Resumen diario guardado" : "Daily summary saved");
         router.refresh();
@@ -159,6 +275,7 @@ export function ReminderCenter({
       }
     });
   }
+
   const status = (value: Reminder["delivery_status"]) =>
     ({
       pending: es ? "Pendiente" : "Pending",
@@ -167,19 +284,85 @@ export function ReminderCenter({
       failed: es ? "Falló" : "Failed",
       snoozed: es ? "Pospuesto" : "Snoozed",
     })[value];
+
+  const notificationTypes = [
+    {
+      key: "tasks" as const,
+      title: es ? "Tareas" : "Tasks",
+      hint: es
+        ? "Avisos asociados a tus tareas."
+        : "Alerts linked to your tasks.",
+    },
+    {
+      key: "events" as const,
+      title: es ? "Eventos" : "Events",
+      hint: es
+        ? "Partidos, reuniones y otros eventos."
+        : "Matches, meetings and other events.",
+    },
+    {
+      key: "summaries" as const,
+      title: es ? "Resumen diario" : "Daily summary",
+      hint: es
+        ? "Una revisión diaria de tu planificación."
+        : "A daily planning review.",
+    },
+    {
+      key: "alarms" as const,
+      title: es ? "Alarmas personalizadas" : "Custom alarms",
+      hint: es
+        ? "Alarmas creadas por ti para cualquier ocasión."
+        : "Alarms you create for anything.",
+    },
+  ];
+
+  const channels = [
+    {
+      key: "inApp" as const,
+      title: es ? "Popup dentro de Planora" : "In-app popup",
+      hint: es
+        ? "Visible mientras estés usando la aplicación."
+        : "Visible while you are using the app.",
+    },
+    {
+      key: "system" as const,
+      title: es ? "Notificación del sistema" : "System notification",
+      hint: es
+        ? "Usa el centro de notificaciones del dispositivo."
+        : "Uses the device notification center.",
+    },
+    {
+      key: "sound" as const,
+      title: es ? "Sonido para alarmas" : "Alarm sound",
+      hint: es
+        ? "Suena cuando el navegador permite audio."
+        : "Plays when the browser allows audio.",
+    },
+    {
+      key: "vibration" as const,
+      title: es ? "Vibración para alarmas" : "Alarm vibration",
+      hint: es
+        ? "Disponible en dispositivos compatibles."
+        : "Available on compatible devices.",
+    },
+  ];
+
   return (
     <div className="page reminders-page">
       <header className="topbar">
         <div>
           <p className="eyebrow">{es ? "A tu ritmo" : "On your time"}</p>
-          <h1 className="title">{es ? "Recordatorios" : "Reminders"}</h1>
+          <h1 className="title">
+            {es ? "Notificaciones y alarmas" : "Notifications and alarms"}
+          </h1>
           <p className="muted">
             {es
-              ? "Planora solo avisará después de que des permiso."
-              : "Planora only notifies you after explicit permission."}
+              ? "Tú eliges qué avisos recibes y cómo quieres recibirlos."
+              : "Choose which alerts you receive and how they reach you."}
           </p>
         </div>
       </header>
+
       <section className="surface permission-card" data-permission={permission}>
         <div>
           {permission === "granted" && !optedOut ? <Bell /> : <BellOff />}
@@ -191,16 +374,16 @@ export function ReminderCenter({
                   : "Notifications enabled"
                 : permission === "denied"
                   ? es
-                    ? "Notificaciones bloqueadas en el navegador"
-                    : "Notifications blocked in browser"
+                    ? "Bloqueadas en el navegador"
+                    : "Blocked in browser"
                   : es
                     ? "Notificaciones desactivadas"
                     : "Notifications off"}
             </strong>
             <p className="muted">
               {es
-                ? "Puedes cambiarlo cuando quieras. No enviamos publicidad."
-                : "Change this anytime. We never send advertising."}
+                ? "Solo pedimos permiso cuando pulsas el botón. Sin publicidad."
+                : "Permission is only requested after your click. No advertising."}
             </p>
           </div>
         </div>
@@ -217,30 +400,90 @@ export function ReminderCenter({
                     setOptedOut(true);
                     router.refresh();
                   })
-                : requestPermission()
+                : void requestPermission()
             }
           >
             {permission === "granted" && !optedOut
               ? es
-                ? "Desactivar"
-                : "Turn off"
+                ? "Desactivar todo"
+                : "Turn all off"
               : es
                 ? "Permitir notificaciones"
                 : "Allow notifications"}
           </button>
         )}
       </section>
+
+      <section className="surface notification-preferences">
+        <div className="notification-preferences-heading">
+          <MonitorSmartphone />
+          <div>
+            <h2>{es ? "Personaliza tus avisos" : "Customize your alerts"}</h2>
+            <p className="muted">
+              {es
+                ? "Estas preferencias se guardan en este dispositivo."
+                : "These preferences are saved on this device."}
+            </p>
+          </div>
+        </div>
+        <div className="notification-settings-grid">
+          <div>
+            <h3>{es ? "Tipos" : "Types"}</h3>
+            {notificationTypes.map((item) => (
+              <div className="notification-setting" key={item.key}>
+                <div>
+                  <strong>{item.title}</strong>
+                  <p className="muted">{item.hint}</p>
+                </div>
+                <Switch
+                  checked={preferences[item.key]}
+                  label={item.title}
+                  onChange={(value) => persistPreference(item.key, value)}
+                />
+              </div>
+            ))}
+          </div>
+          <div>
+            <h3>{es ? "Canales y comportamiento" : "Channels and behavior"}</h3>
+            {channels.map((item) => (
+              <div className="notification-setting" key={item.key}>
+                <div>
+                  <strong>{item.title}</strong>
+                  <p className="muted">{item.hint}</p>
+                </div>
+                <Switch
+                  checked={preferences[item.key]}
+                  disabled={item.key === "system" && permission === "denied"}
+                  label={item.title}
+                  onChange={(value) => {
+                    if (
+                      item.key === "system" &&
+                      value &&
+                      permission === "default"
+                    ) {
+                      void requestPermission();
+                      return;
+                    }
+                    persistPreference(item.key, value);
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {browserTimezone && browserTimezone !== timezone && (
         <aside className="surface timezone-warning">
           <Clock3 />
           <span>
             {es
-              ? "Tu navegador usa " +
+              ? "Tu dispositivo usa " +
                 browserTimezone +
                 ", pero tu perfil usa " +
                 timezone +
                 "."
-              : "Your browser uses " +
+              : "Your device uses " +
                 browserTimezone +
                 ", but your profile uses " +
                 timezone +
@@ -258,14 +501,73 @@ export function ReminderCenter({
           </button>
         </aside>
       )}
-      <div className="reminder-forms">
+
+      <div className="reminder-forms reminder-forms-expanded">
+        <section className="surface reminder-form alarm-form">
+          <AlarmClock />
+          <h2>{es ? "Crear una alarma" : "Create an alarm"}</h2>
+          <p className="muted">
+            {es
+              ? "Por ejemplo: El partido del Barça empieza en 30 minutos."
+              : "For example: The Barça match starts in 30 minutes."}
+          </p>
+          <label>
+            {es ? "Nombre" : "Name"}
+            <input
+              maxLength={140}
+              placeholder={es ? "Partido del Barça" : "Barça match"}
+              value={alarmTitle}
+              onChange={(event) => setAlarmTitle(event.target.value)}
+            />
+          </label>
+          <div className="alarm-date-row">
+            <label>
+              {es ? "Fecha" : "Date"}
+              <input
+                type="date"
+                value={alarmDate}
+                onChange={(event) => setAlarmDate(event.target.value)}
+              />
+            </label>
+            <label>
+              {es ? "Hora" : "Time"}
+              <input
+                type="time"
+                value={alarmTime}
+                onChange={(event) => setAlarmTime(event.target.value)}
+              />
+            </label>
+          </div>
+          <label>
+            {es ? "Repetición" : "Repeat"}
+            <select
+              value={alarmRecurrence}
+              onChange={(event) =>
+                setAlarmRecurrence(event.target.value as typeof alarmRecurrence)
+              }
+            >
+              <option value="once">{es ? "Una vez" : "Once"}</option>
+              <option value="daily">{es ? "Cada día" : "Daily"}</option>
+              <option value="weekly">{es ? "Cada semana" : "Weekly"}</option>
+            </select>
+          </label>
+          <button
+            className="primary"
+            disabled={pending || !alarmTitle.trim() || !alarmDate || !alarmTime}
+            onClick={createAlarm}
+          >
+            {es ? "Crear alarma" : "Create alarm"}
+          </button>
+        </section>
+
         <section className="surface reminder-form">
+          <Bell />
           <h2>{es ? "Tarea o evento" : "Task or event"}</h2>
           <label>
             {es ? "Elemento" : "Item"}
             <select
               value={targetValue}
-              onChange={(e) => setTargetValue(e.target.value)}
+              onChange={(event) => setTargetValue(event.target.value)}
             >
               {targets.map((item) => (
                 <option
@@ -281,11 +583,14 @@ export function ReminderCenter({
             {es ? "Avisar antes" : "Notify before"}
             <select
               value={minutes}
-              onChange={(e) => setMinutes(Number(e.target.value))}
+              onChange={(event) => setMinutes(Number(event.target.value))}
             >
               <option value={0}>{es ? "A la hora" : "At time"}</option>
+              <option value={5}>5 min</option>
               <option value={15}>15 min</option>
+              <option value={30}>30 min</option>
               <option value={60}>1 h</option>
+              <option value={120}>2 h</option>
               <option value={1440}>{es ? "1 día" : "1 day"}</option>
             </select>
           </label>
@@ -293,8 +598,8 @@ export function ReminderCenter({
             {es ? "Repetición" : "Repeat"}
             <select
               value={recurrence}
-              onChange={(e) =>
-                setRecurrence(e.target.value as typeof recurrence)
+              onChange={(event) =>
+                setRecurrence(event.target.value as typeof recurrence)
               }
             >
               <option value="once">{es ? "Una vez" : "Once"}</option>
@@ -310,7 +615,9 @@ export function ReminderCenter({
             {es ? "Añadir recordatorio" : "Add reminder"}
           </button>
         </section>
+
         <section className="surface reminder-form">
+          <Volume2 />
           <h2>{es ? "Resumen diario" : "Daily summary"}</h2>
           <p className="muted">
             {es
@@ -322,7 +629,7 @@ export function ReminderCenter({
             <input
               type="time"
               value={summaryTime}
-              onChange={(e) => setSummaryTime(e.target.value)}
+              onChange={(event) => setSummaryTime(event.target.value)}
             />
           </label>
           <button className="primary" disabled={pending} onClick={saveSummary}>
@@ -330,6 +637,18 @@ export function ReminderCenter({
           </button>
         </section>
       </div>
+
+      <aside className="surface notification-limit-note">
+        <strong>
+          {es ? "Importante sobre las alarmas web" : "About web alarms"}
+        </strong>
+        <p className="muted">
+          {es
+            ? "Los popups, el sonido y la vibración funcionan mientras Planora está abierta o activa como PWA. El sistema operativo puede suspender una web completamente cerrada; las notificaciones del sistema dependen de los permisos y límites del navegador."
+            : "Popups, sound and vibration work while Planora is open or active as a PWA. The operating system may suspend a fully closed website; system notifications depend on browser permissions and limits."}
+        </p>
+      </aside>
+
       <section aria-labelledby="configured-reminders">
         <h2 id="configured-reminders">{es ? "Configurados" : "Configured"}</h2>
         <div className="reminder-list">
@@ -337,22 +656,26 @@ export function ReminderCenter({
             const target = targets.find(
               (item) => item.id === (reminder.task_id ?? reminder.event_id),
             );
+            const reminderName =
+              reminder.kind === "alarm"
+                ? reminder.title
+                : reminder.kind === "daily_summary"
+                  ? es
+                    ? "Resumen diario"
+                    : "Daily summary"
+                  : (target?.title ??
+                    (es ? "Elemento eliminado" : "Deleted item"));
             return (
               <article className="surface reminder-row" key={reminder.id}>
                 <span className="resource-emoji">
-                  {reminder.kind === "daily_summary"
-                    ? "☀️"
-                    : (target?.emoji ?? "🔔")}
+                  {reminder.kind === "alarm"
+                    ? "⏰"
+                    : reminder.kind === "daily_summary"
+                      ? "☀️"
+                      : (target?.emoji ?? "🔔")}
                 </span>
                 <div>
-                  <strong>
-                    {reminder.kind === "daily_summary"
-                      ? es
-                        ? "Resumen diario"
-                        : "Daily summary"
-                      : (target?.title ??
-                        (es ? "Elemento eliminado" : "Deleted item"))}
-                  </strong>
+                  <strong>{reminderName}</strong>
                   <p className="muted">
                     {new Intl.DateTimeFormat(locale, {
                       dateStyle: "medium",
@@ -363,17 +686,34 @@ export function ReminderCenter({
                   </p>
                 </div>
                 <div className="row-actions">
-                  <button
-                    className="pill"
-                    onClick={() =>
+                  <Switch
+                    checked={reminder.enabled}
+                    label={
+                      es ? "Activar " + reminderName : "Enable " + reminderName
+                    }
+                    onChange={(enabled) =>
                       startTransition(async () => {
-                        await snoozeReminder({ id: reminder.id, minutes: 10 });
+                        await setReminderEnabled({ id: reminder.id, enabled });
                         router.refresh();
                       })
                     }
-                  >
-                    {es ? "Posponer 10 min" : "Snooze 10 min"}
-                  </button>
+                  />
+                  {reminder.enabled && (
+                    <button
+                      className="pill"
+                      onClick={() =>
+                        startTransition(async () => {
+                          await snoozeReminder({
+                            id: reminder.id,
+                            minutes: 10,
+                          });
+                          router.refresh();
+                        })
+                      }
+                    >
+                      {es ? "Posponer 10 min" : "Snooze 10 min"}
+                    </button>
+                  )}
                   <button
                     className="icon-button"
                     aria-label={

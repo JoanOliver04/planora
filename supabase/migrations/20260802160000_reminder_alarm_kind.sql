@@ -1,0 +1,1 @@
+alter type public.reminder_kind add value if not exists 'alarm';

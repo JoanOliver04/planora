@@ -44,3 +44,7 @@ export function advanceTrigger(
     timezone,
   );
 }
+
+export function customTrigger(date: string, time: string, timezone: string) {
+  return fromZonedTime(date + "T" + time + ":00", timezone);
+}

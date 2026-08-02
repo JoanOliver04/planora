@@ -2,15 +2,18 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   advanceTrigger,
+  customTrigger,
   nextDailyTrigger,
   relativeTrigger,
 } from "@/features/reminders/schedule";
 import { ReminderCenter } from "@/features/reminders/reminder-center";
 
 const enable = vi.fn().mockResolvedValue(undefined);
+const save = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/app/actions/domain", () => ({
   deleteReminder: vi.fn(),
-  saveReminder: vi.fn(),
+  saveReminder: (...args: unknown[]) => save(...args),
+  setReminderEnabled: vi.fn(),
   setRemindersEnabled: (...args: unknown[]) => enable(...args),
   snoozeReminder: vi.fn(),
   updateReminderTimezone: vi.fn(),
@@ -26,6 +29,9 @@ describe("reminder scheduling", () => {
     expect(
       relativeTrigger("2026-08-03", "10:00", "Europe/Madrid", 15).toISOString(),
     ).toBe("2026-08-03T07:45:00.000Z");
+    expect(
+      customTrigger("2026-08-03", "20:30", "Europe/Madrid").toISOString(),
+    ).toBe("2026-08-03T18:30:00.000Z");
     expect(
       nextDailyTrigger(
         "20:00",
@@ -49,6 +55,34 @@ describe("reminder scheduling", () => {
     ).toBe("2026-10-25T19:00:00.000Z");
   });
 
+  it("creates a standalone personalized alarm", async () => {
+    vi.stubGlobal("Notification", {
+      permission: "granted",
+      requestPermission: vi.fn(),
+    });
+    render(
+      <ReminderCenter
+        locale="es"
+        timezone="Europe/Madrid"
+        reminders={[]}
+        tasks={[]}
+        events={[]}
+      />,
+    );
+    await act(async () => {});
+    fireEvent.change(screen.getByPlaceholderText("Partido del Barça"), {
+      target: { value: "Partido del Barça" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Crear alarma" }));
+    await act(async () => {});
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        targetType: "alarm",
+        title: "Partido del Barça",
+        recurrence: "once",
+      }),
+    );
+  });
   it("requests permission only after an explicit click", async () => {
     const requestPermission = vi.fn().mockResolvedValue("granted");
     vi.stubGlobal("Notification", {
