@@ -695,7 +695,10 @@ textarea:focus-visible {
 
 /* Public product landing */
 .landing {
+  --accent: var(--primary);
+  --accent-foreground: var(--accent-contrast);
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   color: var(--foreground);
   background:
