@@ -154,7 +154,7 @@ flowchart LR
 
 Next.js App Router provides Server Components by default and Client Components only where interaction is required. Server Actions validate every mutation with Zod. Supabase manages Google sessions, PostgreSQL persistence and row-level access policies. Vercel Web Analytics is mounted once in the shared root layout and records automatic page views only on Vercel deployments.
 
-Recurring occurrences are calculated on demand instead of generating unlimited future database rows. This keeps storage predictable and removes the need for scheduled jobs.
+Recurring occurrences are calculated on demand instead of generating unlimited future database rows. Due reminders resolve their task and event copy in two batched lookups instead of issuing one query per notification. This keeps storage predictable, removes the need for scheduled jobs and keeps background refreshes lightweight.
 
 ## Technology stack
 
@@ -253,14 +253,17 @@ Open [http://localhost:3000](http://localhost:3000). Web Analytics is only mount
 ## Security
 
 - RLS is enabled for every user-owned table.
-- `SELECT`, `INSERT`, `UPDATE` and `DELETE` policies are scoped to `auth.uid()`.
+- Database policies are restricted to authenticated sessions and scoped to `(select auth.uid())`.
 - Composite foreign keys prevent cross-user references.
 - Sensitive mutations include explicit ownership filters in addition to RLS.
 - Server sessions are verified through Supabase SSR.
 - Zod validates all untrusted mutation input at runtime.
 - Google OAuth requests only identity, email and profile information.
-- Security headers include CSP, frame denial, MIME sniffing protection and a restrictive permissions policy.
-- Account deletion requires a valid session, same-origin request and explicit typed confirmation.
+- Security headers include CSP, frame denial, MIME sniffing protection, cross-origin resource isolation and a restrictive permissions policy.
+- Account deletion requires a valid session, same-origin request, explicit typed confirmation and a per-user rate limit.
+- Authenticated pages use private, no-store responses and are never written to the service-worker cache.
+- Local workspace snapshots and pending offline changes are cleared after sign-out or account deletion.
+- Internal telemetry accepts only small same-origin JSON payloads and sanitizes technical metadata before logging.
 - User content is rendered as text and never injected as HTML.
 - Web Analytics uses no custom events and receives no task, event, note, category, schedule, account or backup content.
 - Valid application URLs contain only controlled locale and view names; user and Supabase identifiers are not placed in page routes.
