@@ -244,7 +244,7 @@
     "archiveTaskWarning": "La tarea dejará de aparecer en tu horario, pero podrás recuperarla desde el filtro Archivadas.",
     "deleteEventWarning": "Este evento se eliminará de forma permanente y no se podrá recuperar.",
     "deleteCategoryWarning": "La categoría se eliminará de forma permanente. Si contiene elementos, tendrás que reasignarlos antes.",
-    "deleteScheduleWarning": "Este horario vacío se eliminará de forma permanente y no se podrá recuperar.",
+    "deleteScheduleWarning": "El horario, sus tareas, eventos, historial y recordatorios se eliminarán de forma permanente. Esta acción no se puede deshacer.",
     "archiveScheduleWarning": "El horario dejará de estar disponible para su uso, pero podrás restaurarlo más adelante.",
     "signOutWarning": "Tendrás que volver a identificarte con Google para entrar de nuevo.",
     "previous": "Anterior",

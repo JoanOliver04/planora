@@ -244,7 +244,7 @@
     "archiveTaskWarning": "The task will disappear from your schedule, but you can restore it from the Archived filter.",
     "deleteEventWarning": "This event will be permanently deleted and cannot be recovered.",
     "deleteCategoryWarning": "The category will be permanently deleted. If it contains items, you must reassign them first.",
-    "deleteScheduleWarning": "This empty schedule will be permanently deleted and cannot be recovered.",
+    "deleteScheduleWarning": "The schedule, its tasks, events, history and reminders will be permanently deleted. This action cannot be undone.",
     "archiveScheduleWarning": "The schedule will become unavailable, but you can restore it later.",
     "signOutWarning": "You will need to sign in with Google again to return.",
     "previous": "Previous",
