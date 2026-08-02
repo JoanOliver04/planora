@@ -229,11 +229,14 @@ export function TodayView({
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
     [open, setOpen] = useState(false),
+    [viewDate, setViewDate] = useState(() => localDate(data.profile.timezone)),
     [, setClock] = useState(0),
-    day = localDate(data.profile.timezone),
+    today = localDate(data.profile.timezone),
+    day = viewDate,
+    isToday = day === today,
     week = localWeek(
       data.profile.timezone,
-      new Date(),
+      zonedDate(day, data.profile.timezone),
       data.profile.week_starts_on === 0 ? 0 : 1,
     ),
     active = data.profile.active_schedule_id,
@@ -304,6 +307,13 @@ export function TodayView({
     return () => clearInterval(timer);
   }, []);
   const groups = ["morning", "afternoon", "night", "anytime"] as const;
+  const moveDay = (amount: number) => {
+    const next = localDate(
+      data.profile.timezone,
+      addDays(zonedDate(day, data.profile.timezone), amount),
+    );
+    if (next <= today) setViewDate(next);
+  };
   return (
     <>
       <header className="today-header">
@@ -317,10 +327,42 @@ export function TodayView({
             {activeSchedule?.name}
           </p>
         </div>
-        <button className="primary" onClick={() => setOpen(true)}>
-          <Plus size={18} />
-          {t("add")}
-        </button>
+        <div className="today-actions">
+          <div className="day-navigation" aria-label={t("chooseDay")}>
+            <button
+              className="pill"
+              type="button"
+              onClick={() => moveDay(-1)}
+              aria-label={t("previousDay")}
+            >
+              ←
+            </button>
+            <input
+              className="pill"
+              type="date"
+              max={today}
+              value={day}
+              onChange={(event) => {
+                if (event.target.value && event.target.value <= today)
+                  setViewDate(event.target.value);
+              }}
+              aria-label={t("chooseDay")}
+            />
+            <button
+              className="pill"
+              type="button"
+              onClick={() => moveDay(1)}
+              disabled={isToday}
+              aria-label={t("nextDay")}
+            >
+              →
+            </button>
+          </div>
+          <button className="primary" onClick={() => setOpen(true)}>
+            <Plus size={18} />
+            {t("add")}
+          </button>
+        </div>
       </header>
       <section
         className="progress-card surface"

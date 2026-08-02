@@ -431,6 +431,34 @@ export async function setScheduleArchived(value: string, archived: boolean) {
 export async function saveCategory(input: unknown) {
   const v = categorySchema.parse(input),
     { db, user } = await auth();
+  if (v.id) {
+    const { data: current } = await db
+      .from("categories")
+      .select("schedule_id")
+      .eq("id", v.id)
+      .eq("user_id", user.id)
+      .single();
+    if (current && current.schedule_id !== (v.scheduleId ?? null)) {
+      if (v.scheduleId) {
+        const [{ count: tasks }, { count: events }] = await Promise.all([
+          db
+            .from("tasks")
+            .select("id", { count: "exact", head: true })
+            .eq("category_id", v.id)
+            .eq("user_id", user.id)
+            .neq("schedule_id", v.scheduleId),
+          db
+            .from("events")
+            .select("id", { count: "exact", head: true })
+            .eq("category_id", v.id)
+            .eq("user_id", user.id)
+            .or(`schedule_id.is.null,schedule_id.neq.${v.scheduleId}`),
+        ]);
+        if ((tasks ?? 0) > 0 || (events ?? 0) > 0)
+          throw new Error("Category has items in other schedules");
+      }
+    }
+  }
   const payload = {
     user_id: user.id,
     name: v.name,
@@ -464,6 +492,24 @@ export async function deleteCategory(value: string, reassignTo: string | null) {
       .eq("category_id", categoryId)
       .eq("user_id", user.id),
   ]);
+  if (target) {
+    const [{ data: source }, { data: destination }] = await Promise.all([
+      db
+        .from("categories")
+        .select("schedule_id")
+        .eq("id", categoryId)
+        .eq("user_id", user.id)
+        .single(),
+      db
+        .from("categories")
+        .select("schedule_id")
+        .eq("id", target)
+        .eq("user_id", user.id)
+        .single(),
+    ]);
+    if (source?.schedule_id !== destination?.schedule_id)
+      throw new Error("Categories must use the same schedule scope");
+  }
   if (((taskCount ?? 0) > 0 || (eventCount ?? 0) > 0) && !target)
     throw new Error("Reassign tasks and events first");
   if (target) {

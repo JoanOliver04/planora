@@ -84,17 +84,20 @@ export function useWorkspace(mode: WorkspaceMode) {
     const needed = requirements[mode];
     const empty = Promise.resolve({ data: [], error: null });
     const eventsQuery = db.from("events").select("*").order("event_date");
-    if (mode === "today") eventsQuery.eq("event_date", today);
+    if (mode === "today")
+      eventsQuery
+        .gte("event_date", historyFrom.toISOString().slice(0, 10))
+        .lte("event_date", today);
     else if (mode === "week")
       eventsQuery.gte("event_date", historyFrom.toISOString().slice(0, 10));
     let completionsQuery = db
       .from("task_completions")
       .select("*")
       .order("completed_at", { ascending: false });
-    if (mode !== "tasks")
+    if (mode !== "tasks" && mode !== "today")
       completionsQuery = completionsQuery.gte(
         "occurrence_date",
-        mode === "today" ? week.start : historyFrom.toISOString().slice(0, 10),
+        historyFrom.toISOString().slice(0, 10),
       );
     const [s, c, t, e, h] = await Promise.all([
       db.from("schedules").select("*").order("sort_order").order("created_at"),
