@@ -626,7 +626,7 @@ export function TasksView({
   reload,
 }: {
   data: WorkspaceData;
-  reload: () => void;
+  reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",

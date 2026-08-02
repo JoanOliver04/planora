@@ -33,7 +33,7 @@ describe("TaskForm", () => {
           schedules={schedules}
           categories={[]}
           timezone="Europe/Madrid"
-          onSaved={() => {}}
+          onSaved={async () => {}}
         />
       </NextIntlClientProvider>,
     );
@@ -58,7 +58,7 @@ describe("TaskForm", () => {
           schedules={schedules}
           categories={[]}
           timezone="Europe/Madrid"
-          onSaved={() => {}}
+          onSaved={async () => {}}
         />
       </NextIntlClientProvider>,
     );

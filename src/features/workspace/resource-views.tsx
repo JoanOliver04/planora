@@ -37,7 +37,7 @@ export function EventsView({
   reload,
 }: {
   data: WorkspaceData;
-  reload: () => void;
+  reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
     [open, setOpen] = useState(false),
@@ -62,8 +62,8 @@ export function EventsView({
           startTime: allDay ? null : String(fd.get("startTime")),
           endTime: allDay ? null : String(fd.get("endTime") || "") || null,
         });
+        await reload();
         setOpen(false);
-        reload();
         toast.success(t("success"));
       } catch (e) {
         fail(e, t("error"));
@@ -277,7 +277,7 @@ export function SchedulesView({
   reload,
 }: {
   data: WorkspaceData;
-  reload: () => void;
+  reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
@@ -295,8 +295,8 @@ export function SchedulesView({
         description: String(fd.get("description") || "") || null,
         emoji: String(fd.get("emoji") || "") || null,
       });
+      await reload();
       setOpen(false);
-      reload();
     } catch (e) {
       fail(e, t("error"));
     }
@@ -451,7 +451,7 @@ export function CategoriesView({
   reload,
 }: {
   data: WorkspaceData;
-  reload: () => void;
+  reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
@@ -466,8 +466,8 @@ export function CategoriesView({
         emoji: String(fd.get("emoji") || "") || null,
         colour: String(fd.get("colour")),
       });
+      await reload();
       setOpen(false);
-      reload();
     } catch (e) {
       fail(e, t("error"));
     }
@@ -571,8 +571,8 @@ export function CategoriesView({
                     deleting!.id,
                     String(fd.get("target") || "") || null,
                   );
+                  await reload();
                   setDeleting(null);
-                  reload();
                 } catch (e) {
                   fail(e, t("error"));
                 }
@@ -609,7 +609,7 @@ function DayPartsSettings({
   reload,
 }: {
   data: WorkspaceData;
-  reload: () => void;
+  reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
     raw = data.profile.day_part_settings as Record<
@@ -633,7 +633,7 @@ function DayPartsSettings({
   async function save() {
     try {
       await updateProfile({ day_part_settings: values });
-      reload();
+      await reload();
       toast.success(t("success"));
     } catch (e) {
       fail(e, t("error"));
@@ -820,7 +820,7 @@ export function SettingsView({
 }: {
   data: WorkspaceData;
   db: ReturnType<typeof import("@/lib/supabase/client").createClient>;
-  reload: () => void;
+  reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
@@ -832,7 +832,7 @@ export function SettingsView({
   async function profile(p: Record<string, unknown>) {
     try {
       await updateProfile(p);
-      reload();
+      await reload();
       toast.success(t("success"));
     } catch (e) {
       fail(e, t("error"));

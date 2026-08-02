@@ -22,7 +22,7 @@ export function TaskForm({
   categories: Category[];
   timezone: string;
   task?: Task | null;
-  onSaved: () => void;
+  onSaved: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale(),
@@ -76,9 +76,9 @@ export function TaskForm({
     startTransition(async () => {
       try {
         await saveTask(input, task?.id);
+        await onSaved();
         toast.success(t("success"));
         onOpenChange(false);
-        onSaved();
       } catch (e) {
         toast.error(e instanceof Error ? e.message : t("error"));
       }

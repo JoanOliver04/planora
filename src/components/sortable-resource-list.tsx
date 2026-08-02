@@ -86,7 +86,16 @@ export function SortableResourceList<T extends { id: string }>({
   locale: "es" | "en";
   className?: string;
 }) {
-  const [items, setItems] = useState(initialItems);
+  const [orderedIds, setOrderedIds] = useState(() =>
+    initialItems.map((item) => item.id),
+  );
+  const itemById = new Map(initialItems.map((item) => [item.id, item]));
+  const currentIds = initialItems.map((item) => item.id);
+  const visibleIds = [
+    ...orderedIds.filter((id) => itemById.has(id)),
+    ...currentIds.filter((id) => !orderedIds.includes(id)),
+  ];
+  const items = visibleIds.map((id) => itemById.get(id)!);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 7 } }),
     useSensor(TouchSensor, {
@@ -107,13 +116,13 @@ export function SortableResourceList<T extends { id: string }>({
       String(event.active.id),
       String(event.over.id),
     );
-    const itemById = new Map(items.map((item) => [item.id, item]));
-    const next = orderedIds.map((id) => itemById.get(id)!);
-    setItems(next);
+    const orderedItemById = new Map(items.map((item) => [item.id, item]));
+    const next = orderedIds.map((id) => orderedItemById.get(id)!);
+    setOrderedIds(next.map((item) => item.id));
     try {
       await onCommit(next.map((item) => item.id));
     } catch {
-      setItems(previous);
+      setOrderedIds(previous.map((item) => item.id));
       onError();
     }
   }
