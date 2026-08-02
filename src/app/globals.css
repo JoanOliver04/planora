@@ -2827,3 +2827,378 @@ select:disabled,
 .notification-switch[aria-checked="true"]::before {
   background: var(--primary);
 }
+
+/* Data portability center */
+.data-page {
+  width: min(100%, 1100px);
+  margin-inline: auto;
+}
+.data-page-header {
+  display: flex;
+  max-width: 760px;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: clamp(1.5rem, 4vw, 2.35rem);
+}
+.data-heading-icon,
+.data-option-icon,
+.file-picker-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--primary);
+  background: var(--primary-2);
+}
+.data-heading-icon {
+  width: 48px;
+  height: 48px;
+  margin-top: 0.15rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+  border-radius: var(--radius-sm);
+}
+.data-page-header .eyebrow,
+.data-page-header .title,
+.data-page-intro,
+.data-panel-heading h2,
+.data-panel-heading p,
+.export-option h3,
+.export-option p,
+.restore-behaviour,
+.data-privacy-note h2,
+.data-privacy-note p,
+.data-feedback {
+  margin: 0;
+}
+.data-page-intro {
+  max-width: 650px;
+  margin-top: 0.45rem;
+  color: color-mix(in srgb, var(--foreground) 66%, transparent);
+  line-height: 1.65;
+}
+.data-management-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+  align-items: start;
+  gap: 1rem;
+}
+.data-panel {
+  min-width: 0;
+  padding: clamp(1rem, 2.5vw, 1.4rem);
+}
+.data-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.15rem;
+  border-bottom: 1px solid var(--border);
+}
+.data-panel-heading > svg {
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+.data-panel-heading h2 {
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+.data-panel-heading p {
+  max-width: 620px;
+  margin-top: 0.35rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.export-options {
+  display: grid;
+  gap: 0;
+}
+.export-option {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding-block: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.export-option[data-featured="true"] {
+  margin-inline: -0.45rem;
+  padding-inline: 0.45rem;
+  background: color-mix(in srgb, var(--primary) 4%, transparent);
+  border-radius: var(--radius-sm);
+}
+.data-option-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+}
+.export-option-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.export-option h3 {
+  font-size: 0.94rem;
+}
+.export-option p {
+  margin-top: 0.25rem;
+  color: color-mix(in srgb, var(--foreground) 58%, transparent);
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+.format-badge {
+  padding: 0.2rem 0.42rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, var(--border));
+  border-radius: 999px;
+  background: var(--primary-2);
+  color: var(--primary-strong);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+.data-action {
+  min-width: 138px;
+  min-height: 44px;
+  justify-content: center;
+  white-space: nowrap;
+}
+.data-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+  color: color-mix(in srgb, var(--foreground) 68%, transparent);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.data-feedback > svg {
+  flex: 0 0 auto;
+  margin-top: 0.05rem;
+}
+.data-feedback[data-tone="success"] {
+  color: var(--success);
+}
+.data-feedback[data-tone="error"] {
+  color: var(--destructive);
+}
+.file-picker {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 132px;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px dashed color-mix(in srgb, var(--primary) 40%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface-muted) 55%, transparent);
+  cursor: pointer;
+}
+.file-picker:hover,
+.file-picker:has(+ input:focus-visible) {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+.file-picker:has(+ input:focus-visible) {
+  outline: 3px solid color-mix(in srgb, var(--ring) 55%, transparent);
+  outline-offset: 2px;
+}
+.file-picker-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+.file-picker-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+.file-picker-copy strong {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.file-picker-copy small {
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+}
+.file-picker-action {
+  grid-column: 1 / -1;
+  min-height: 44px;
+  justify-content: center;
+  background: var(--surface);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.selected-file {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+}
+.selected-file[data-valid="true"] {
+  border-color: color-mix(in srgb, var(--success) 38%, var(--border));
+}
+.selected-file > svg {
+  color: var(--primary);
+}
+.selected-file > div {
+  display: grid;
+  min-width: 0;
+}
+.selected-file strong {
+  overflow: hidden;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.selected-file span {
+  margin-top: 0.1rem;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+  font-size: 0.72rem;
+}
+.selected-file .icon-button {
+  width: 44px;
+  height: 44px;
+}
+.restore-status {
+  min-height: 2rem;
+}
+.data-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 0.8rem 0 0;
+}
+.data-summary > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.65rem;
+  background: var(--surface-muted);
+}
+.data-summary dt {
+  overflow: hidden;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.data-summary dd {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+.restore-behaviour {
+  margin-top: 0.8rem;
+  color: color-mix(in srgb, var(--foreground) 58%, transparent);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.restore-button {
+  width: 100%;
+  min-height: 46px;
+  justify-content: center;
+  margin-top: 0.9rem;
+}
+.data-privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+}
+.data-privacy-note > svg {
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+.data-privacy-note h2 {
+  font-size: 0.85rem;
+}
+.data-privacy-note p {
+  margin-top: 0.25rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.spin {
+  animation: data-spin 0.8s linear infinite;
+}
+@keyframes data-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.dark .data-page .primary {
+  color: var(--background);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .export-option,
+  .file-picker {
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      transform 160ms ease;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .export-option:hover {
+    background: color-mix(in srgb, var(--primary) 5%, transparent);
+  }
+}
+@media (max-width: 900px) {
+  .data-management-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .data-page-header {
+    gap: 0.75rem;
+  }
+  .data-heading-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .data-panel {
+    padding: 1rem;
+  }
+  .export-option {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+  .data-action {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .data-summary {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 380px) {
+  .data-page-header {
+    display: block;
+  }
+  .data-heading-icon {
+    margin-bottom: 0.75rem;
+  }
+}

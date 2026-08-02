@@ -1,19 +1,434 @@
 "use client";
-import { useState, useTransition } from "react";
+
+import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import {
+  Archive,
+  CalendarDays,
+  CheckCircle2,
+  Database,
+  Download,
+  FileJson,
+  FileSpreadsheet,
+  FileUp,
+  LoaderCircle,
+  RotateCcw,
+  ShieldCheck,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 import { restoreBackup } from "@/app/actions/domain";
-import { createBackup, parseBackup, summarizeBackup, toCsv, toIcs, type BackupData, type PlanoraBackup } from "./format";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import {
+  createBackup,
+  parseBackup,
+  summarizeBackup,
+  toCsv,
+  toIcs,
+  type BackupData,
+  type PlanoraBackup,
+} from "./format";
+
+type ExportKind = "json" | "csv" | "ics";
+type Feedback = { tone: "success" | "error"; text: string } | null;
 
 function download(name: string, content: string, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
-  const anchor = document.createElement("a"); anchor.href = url; anchor.download = name; anchor.click(); URL.revokeObjectURL(url);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = name;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }
-export function DataTools({ data, locale, timezone }: { data: BackupData; locale: "es" | "en"; timezone: string }) {
-  const es = locale === "es", [preview, setPreview] = useState<PlanoraBackup | null>(null), [message, setMessage] = useState(""), [pending, start] = useTransition();
-  const labels = es ? { title: "Tus datos", intro: "Descarga una copia privada o restaura un archivo de Planora.", backup: "Copia completa JSON", csv: "Tablas CSV", ics: "Calendario ICS", import: "Seleccionar copia", restore: "Confirmar restauración", invalid: "El archivo no es una copia compatible.", ready: "Contenido validado. Revisa el resumen antes de escribir datos.", done: "Restauración completada. Los recordatorios se importaron desactivados." } : { title: "Your data", intro: "Download a private copy or restore a Planora file.", backup: "Full JSON backup", csv: "CSV tables", ics: "ICS calendar", import: "Select backup", restore: "Confirm restore", invalid: "This file is not a compatible backup.", ready: "Validated. Review the summary before writing data.", done: "Restore complete. Imported reminders were disabled." };
-  const backup = () => download("planora-backup-v1.json", JSON.stringify(createBackup(data), null, 2), "application/json");
-  const read = async (file?: File) => { if (!file) return; try { const result = parseBackup(JSON.parse(await file.text())); if (!result.success) throw new Error(); setPreview(result.data); setMessage(labels.ready); } catch { setPreview(null); setMessage(labels.invalid); } };
-  return <main className="workspace-page"><header><p className="eyebrow">Planora</p><h1>{labels.title}</h1><p>{labels.intro}</p></header>
-    <section className="panel"><h2>{es ? "Exportar" : "Export"}</h2><div className="button-row"><button onClick={backup}>{labels.backup}</button><button onClick={() => { for (const [name, rows] of Object.entries(data)) if (Array.isArray(rows)) download("planora-" + name + ".csv", toCsv(rows), "text/csv;charset=utf-8"); }}>{labels.csv}</button><button onClick={() => download("planora-calendar.ics", toIcs(data, timezone), "text/calendar;charset=utf-8")}>{labels.ics}</button></div></section>
-    <section className="panel"><h2>{es ? "Restaurar" : "Restore"}</h2><label className="button secondary">{labels.import}<input hidden type="file" accept="application/json,.json" onChange={(event) => void read(event.target.files?.[0])} /></label>{message && <p role="status">{message}</p>}{preview && <><dl className="data-summary">{Object.entries(summarizeBackup(preview)).map(([key, count]) => <div key={key}><dt>{key}</dt><dd>{count}</dd></div>)}</dl><p>{es ? "La restauración añade copias; no elimina tus datos actuales." : "Restore adds copies; it does not delete current data."}</p><button disabled={pending} onClick={() => start(async () => { await restoreBackup(preview); setPreview(null); setMessage(labels.done); })}>{labels.restore}</button></>}</section>
-  </main>;
+
+function readableSize(bytes: number, locale: string) {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["KB", "MB", "GB"];
+  let value = bytes / 1024;
+  let index = 0;
+  while (value >= 1024 && index < units.length - 1) {
+    value /= 1024;
+    index += 1;
+  }
+  const formatted = new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 1,
+  }).format(value);
+  return `${formatted} ${units[index]}`;
+}
+
+export function DataTools({
+  data,
+  locale,
+  timezone,
+}: {
+  data: BackupData;
+  locale: "es" | "en";
+  timezone: string;
+}) {
+  const t = useTranslations("Data");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [exporting, setExporting] = useState<ExportKind | null>(null);
+  const [exportFeedback, setExportFeedback] = useState<Feedback>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<PlanoraBackup | null>(null);
+  const [importState, setImportState] = useState<
+    "idle" | "reading" | "ready" | "invalid" | "success" | "error"
+  >("idle");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+
+  const exportOptions: Array<{
+    kind: ExportKind;
+    icon: LucideIcon;
+    title: string;
+    format: string;
+    description: string;
+    action: string;
+    featured?: boolean;
+  }> = [
+    {
+      kind: "json",
+      icon: Database,
+      title: t("export.json.title"),
+      format: "JSON",
+      description: t("export.json.description"),
+      action: t("export.json.action"),
+      featured: true,
+    },
+    {
+      kind: "csv",
+      icon: FileSpreadsheet,
+      title: t("export.csv.title"),
+      format: "CSV",
+      description: t("export.csv.description"),
+      action: t("export.csv.action"),
+    },
+    {
+      kind: "ics",
+      icon: CalendarDays,
+      title: t("export.ics.title"),
+      format: "ICS",
+      description: t("export.ics.description"),
+      action: t("export.ics.action"),
+    },
+  ];
+
+  async function runExport(kind: ExportKind) {
+    if (exporting) return;
+    setExporting(kind);
+    setExportFeedback(null);
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+    try {
+      if (kind === "json") {
+        download(
+          "planora-backup-v1.json",
+          JSON.stringify(createBackup(data), null, 2),
+          "application/json",
+        );
+      } else if (kind === "csv") {
+        for (const [name, rows] of Object.entries(data)) {
+          if (Array.isArray(rows)) {
+            download(
+              `planora-${name}.csv`,
+              toCsv(rows),
+              "text/csv;charset=utf-8",
+            );
+          }
+        }
+      } else {
+        download(
+          "planora-calendar.ics",
+          toIcs(data, timezone),
+          "text/calendar;charset=utf-8",
+        );
+      }
+      setExportFeedback({ tone: "success", text: t("export.success") });
+    } catch {
+      setExportFeedback({ tone: "error", text: t("export.error") });
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  async function readFile(file: File) {
+    setSelectedFile(file);
+    setPreview(null);
+    setImportState("reading");
+    if (!file.name.toLocaleLowerCase().endsWith(".json")) {
+      setImportState("invalid");
+      return;
+    }
+    try {
+      const result = parseBackup(JSON.parse(await file.text()));
+      if (!result.success) {
+        setImportState("invalid");
+        return;
+      }
+      setPreview(result.data);
+      setImportState("ready");
+    } catch {
+      setImportState("invalid");
+    }
+  }
+
+  function clearFile() {
+    setSelectedFile(null);
+    setPreview(null);
+    setImportState("idle");
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  async function restore() {
+    if (!preview || restoring) return false;
+    setRestoring(true);
+    try {
+      await restoreBackup(preview);
+      setSelectedFile(null);
+      setPreview(null);
+      setImportState("success");
+      if (inputRef.current) inputRef.current.value = "";
+      return true;
+    } catch {
+      setImportState("error");
+      return false;
+    } finally {
+      setRestoring(false);
+    }
+  }
+
+  const summary = preview ? summarizeBackup(preview) : null;
+  const summaryLabels = {
+    schedules: t("summary.schedules"),
+    categories: t("summary.categories"),
+    tasks: t("summary.tasks"),
+    events: t("summary.events"),
+    completions: t("summary.completions"),
+    templates: t("summary.templates"),
+    reminders: t("summary.reminders"),
+  };
+
+  return (
+    <main className="workspace-page data-page">
+      <header className="data-page-header">
+        <div className="data-heading-icon" aria-hidden="true">
+          <Archive size={23} />
+        </div>
+        <div>
+          <p className="eyebrow">Planora</p>
+          <h1 className="title">{t("title")}</h1>
+          <p className="data-page-intro">{t("intro")}</p>
+        </div>
+      </header>
+
+      <div className="data-management-grid">
+        <section
+          className="surface data-panel data-export-panel"
+          aria-labelledby="data-export-title"
+        >
+          <div className="data-panel-heading">
+            <div>
+              <h2 id="data-export-title">{t("export.title")}</h2>
+              <p>{t("export.description")}</p>
+            </div>
+            <Download size={20} aria-hidden="true" />
+          </div>
+
+          <div className="export-options">
+            {exportOptions.map((option) => {
+              const Icon = option.icon;
+              const pending = exporting === option.kind;
+              return (
+                <article
+                  className="export-option"
+                  data-featured={option.featured || undefined}
+                  key={option.kind}
+                >
+                  <div className="data-option-icon" aria-hidden="true">
+                    <Icon size={21} />
+                  </div>
+                  <div className="export-option-copy">
+                    <div className="export-option-title">
+                      <h3>{option.title}</h3>
+                      <span className="format-badge">{option.format}</span>
+                    </div>
+                    <p>{option.description}</p>
+                  </div>
+                  <button
+                    className={
+                      option.featured
+                        ? "primary data-action"
+                        : "pill data-action"
+                    }
+                    type="button"
+                    disabled={exporting !== null}
+                    aria-busy={pending}
+                    onClick={() => void runExport(option.kind)}
+                  >
+                    {pending ? (
+                      <LoaderCircle
+                        className="spin"
+                        size={17}
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <Download size={17} aria-hidden="true" />
+                    )}
+                    {pending ? t("export.loading") : option.action}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+
+          {exportFeedback && (
+            <p
+              className="data-feedback"
+              data-tone={exportFeedback.tone}
+              role="status"
+            >
+              {exportFeedback.tone === "success" ? (
+                <CheckCircle2 size={17} aria-hidden="true" />
+              ) : null}
+              {exportFeedback.text}
+            </p>
+          )}
+        </section>
+
+        <section
+          className="surface data-panel data-restore-panel"
+          aria-labelledby="data-restore-title"
+        >
+          <div className="data-panel-heading">
+            <div>
+              <h2 id="data-restore-title">{t("restore.title")}</h2>
+              <p>{t("restore.description")}</p>
+            </div>
+            <RotateCcw size={20} aria-hidden="true" />
+          </div>
+
+          <label className="file-picker" htmlFor="planora-backup-file">
+            <span className="file-picker-icon" aria-hidden="true">
+              <FileUp size={25} />
+            </span>
+            <span className="file-picker-copy">
+              <strong>{t("restore.selectTitle")}</strong>
+              <small>{t("restore.fileType")}</small>
+            </span>
+            <span className="pill file-picker-action">
+              {t("restore.selectAction")}
+            </span>
+          </label>
+          <input
+            ref={inputRef}
+            className="visually-hidden"
+            id="planora-backup-file"
+            type="file"
+            aria-label={t("restore.selectTitle")}
+            accept="application/json,.json"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void readFile(file);
+            }}
+          />
+
+          {selectedFile && (
+            <div
+              className="selected-file"
+              data-valid={preview ? "true" : undefined}
+            >
+              <FileJson size={20} aria-hidden="true" />
+              <div>
+                <strong>{selectedFile.name}</strong>
+                <span>{readableSize(selectedFile.size, locale)}</span>
+              </div>
+              <button
+                className="icon-button"
+                type="button"
+                onClick={clearFile}
+                aria-label={t("restore.removeFile", {
+                  name: selectedFile.name,
+                })}
+              >
+                <Trash2 size={17} aria-hidden="true" />
+              </button>
+            </div>
+          )}
+
+          <div className="restore-status" aria-live="polite">
+            {importState === "reading" && (
+              <p className="data-feedback">
+                <LoaderCircle className="spin" size={17} aria-hidden="true" />
+                {t("restore.validating")}
+              </p>
+            )}
+            {importState === "ready" && (
+              <p className="data-feedback" data-tone="success">
+                <CheckCircle2 size={17} aria-hidden="true" />
+                {t("restore.valid")}
+              </p>
+            )}
+            {importState === "invalid" && (
+              <p className="data-feedback" data-tone="error" role="alert">
+                {t("restore.invalid")}
+              </p>
+            )}
+            {importState === "success" && (
+              <p className="data-feedback" data-tone="success" role="status">
+                <CheckCircle2 size={17} aria-hidden="true" />
+                {t("restore.success")}
+              </p>
+            )}
+            {importState === "error" && (
+              <p className="data-feedback" data-tone="error" role="alert">
+                {t("restore.error")}
+              </p>
+            )}
+          </div>
+
+          {summary && (
+            <dl className="data-summary" aria-label={t("restore.summaryLabel")}>
+              {Object.entries(summary).map(([key, count]) => (
+                <div key={key}>
+                  <dt>{summaryLabels[key as keyof typeof summaryLabels]}</dt>
+                  <dd>{count}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <p className="restore-behaviour">{t("restore.behaviour")}</p>
+          <button
+            className="primary restore-button"
+            type="button"
+            disabled={!preview || restoring}
+            onClick={() => setConfirmOpen(true)}
+          >
+            <RotateCcw size={18} aria-hidden="true" />
+            {t("restore.action")}
+          </button>
+        </section>
+      </div>
+
+      <aside className="data-privacy-note" aria-label={t("privacy.title")}>
+        <ShieldCheck size={21} aria-hidden="true" />
+        <div>
+          <h2>{t("privacy.title")}</h2>
+          <p>{t("privacy.description")}</p>
+        </div>
+      </aside>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t("restore.confirmTitle")}
+        description={t("restore.confirmDescription")}
+        cancelLabel={t("restore.cancel")}
+        confirmLabel={
+          restoring ? t("restore.restoring") : t("restore.confirmAction")
+        }
+        variant="primary"
+        onConfirm={restore}
+      />
+    </main>
+  );
 }

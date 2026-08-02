@@ -70,6 +70,66 @@
     "notFound": "We could not find this page.",
     "backHome": "Back home"
   },
+  "Data": {
+    "title": "Your data",
+    "intro": "Export a copy of your information or restore a Planora backup.",
+    "export": {
+      "title": "Export data",
+      "description": "Download a copy of your information to keep it, analyse it or use it in other applications.",
+      "loading": "Preparing…",
+      "success": "Your download is ready.",
+      "error": "The export could not be prepared. Please try again.",
+      "json": {
+        "title": "Full backup",
+        "description": "Save all data supported by Planora restore.",
+        "action": "Download JSON"
+      },
+      "csv": {
+        "title": "Data tables",
+        "description": "Export your data as tables compatible with spreadsheet applications.",
+        "action": "Download CSV"
+      },
+      "ics": {
+        "title": "Calendar",
+        "description": "Export your events and tasks for use in other calendar applications.",
+        "action": "Download ICS"
+      }
+    },
+    "restore": {
+      "title": "Restore a backup",
+      "description": "Select a JSON backup created by Planora to recover your data.",
+      "selectTitle": "Select a Planora backup",
+      "fileType": "JSON file · Backup format v1",
+      "selectAction": "Select file",
+      "removeFile": "Remove {name}",
+      "validating": "Checking backup…",
+      "valid": "Compatible backup. Review its contents before restoring.",
+      "invalid": "This file is not a JSON backup compatible with Planora.",
+      "summaryLabel": "Backup contents",
+      "behaviour": "Restore adds copies and does not delete your current data. Imported reminders remain disabled.",
+      "action": "Restore backup",
+      "success": "Restore complete. Imported reminders are disabled.",
+      "error": "The restore could not be completed. Your current data has not been deleted.",
+      "confirmTitle": "Restore this backup?",
+      "confirmDescription": "Planora will add compatible copies of schedules, categories, tasks, events, records, templates and reminders. It will not delete your current data, and imported reminders will remain disabled.",
+      "cancel": "Cancel",
+      "confirmAction": "Restore backup",
+      "restoring": "Restoring…"
+    },
+    "summary": {
+      "schedules": "Schedules",
+      "categories": "Categories",
+      "tasks": "Tasks",
+      "events": "Events",
+      "completions": "Records",
+      "templates": "Templates",
+      "reminders": "Reminders"
+    },
+    "privacy": {
+      "title": "Privacy and control",
+      "description": "Your exports are prepared on this device for you to download. Keep backups in a safe place: they may contain personal information."
+    }
+  },
   "Workspace": {
     "endTime": "End time",
     "days": "days",

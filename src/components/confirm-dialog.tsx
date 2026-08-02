@@ -11,6 +11,7 @@ export function ConfirmDialog({
   cancelLabel,
   confirmLabel,
   onConfirm,
+  variant = "danger",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -18,15 +19,16 @@ export function ConfirmDialog({
   description: string;
   cancelLabel: string;
   confirmLabel: string;
-  onConfirm: () => void | Promise<void>;
+  onConfirm: () => boolean | void | Promise<boolean | void>;
+  variant?: "danger" | "primary";
 }) {
   const [pending, setPending] = useState(false);
 
   async function confirm() {
     setPending(true);
     try {
-      await onConfirm();
-      onOpenChange(false);
+      const shouldClose = await onConfirm();
+      if (shouldClose !== false) onOpenChange(false);
     } finally {
       setPending(false);
     }
@@ -46,7 +48,7 @@ export function ConfirmDialog({
               {cancelLabel}
             </AlertDialog.Cancel>
             <button
-              className="primary danger-action"
+              className={`primary ${variant === "danger" ? "danger-action" : ""}`}
               type="button"
               disabled={pending}
               onClick={() => void confirm()}

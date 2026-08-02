@@ -70,6 +70,66 @@
     "notFound": "No encontramos esta página.",
     "backHome": "Volver al inicio"
   },
+  "Data": {
+    "title": "Tus datos",
+    "intro": "Exporta una copia de tu información o restaura una copia de seguridad de Planora.",
+    "export": {
+      "title": "Exportar datos",
+      "description": "Descarga una copia de tu información para conservarla, analizarla o utilizarla en otras aplicaciones.",
+      "loading": "Preparando…",
+      "success": "La descarga está lista.",
+      "error": "No se pudo preparar la exportación. Inténtalo de nuevo.",
+      "json": {
+        "title": "Copia completa",
+        "description": "Guarda todos los datos compatibles con la restauración de Planora.",
+        "action": "Descargar JSON"
+      },
+      "csv": {
+        "title": "Tablas de datos",
+        "description": "Exporta tus datos en tablas compatibles con hojas de cálculo.",
+        "action": "Descargar CSV"
+      },
+      "ics": {
+        "title": "Calendario",
+        "description": "Exporta tus eventos y tareas para utilizarlos en otras aplicaciones de calendario.",
+        "action": "Descargar ICS"
+      }
+    },
+    "restore": {
+      "title": "Restaurar una copia",
+      "description": "Selecciona una copia JSON creada por Planora para recuperar tus datos.",
+      "selectTitle": "Selecciona una copia de Planora",
+      "fileType": "Archivo JSON · Formato de copia v1",
+      "selectAction": "Seleccionar archivo",
+      "removeFile": "Quitar {name}",
+      "validating": "Comprobando la copia…",
+      "valid": "Copia compatible. Revisa el contenido antes de restaurarla.",
+      "invalid": "El archivo no es una copia JSON compatible con Planora.",
+      "summaryLabel": "Contenido de la copia",
+      "behaviour": "La restauración añade copias y no elimina tus datos actuales. Los recordatorios importados se mantienen desactivados.",
+      "action": "Restaurar copia",
+      "success": "Restauración completada. Los recordatorios importados están desactivados.",
+      "error": "No se pudo completar la restauración. Tus datos actuales no se han eliminado.",
+      "confirmTitle": "¿Restaurar esta copia?",
+      "confirmDescription": "Planora añadirá copias de los horarios, categorías, tareas, eventos, registros, plantillas y recordatorios compatibles. No eliminará tus datos actuales y los recordatorios importados quedarán desactivados.",
+      "cancel": "Cancelar",
+      "confirmAction": "Restaurar copia",
+      "restoring": "Restaurando…"
+    },
+    "summary": {
+      "schedules": "Horarios",
+      "categories": "Categorías",
+      "tasks": "Tareas",
+      "events": "Eventos",
+      "completions": "Registros",
+      "templates": "Plantillas",
+      "reminders": "Recordatorios"
+    },
+    "privacy": {
+      "title": "Privacidad y control",
+      "description": "Tus exportaciones se preparan en este dispositivo para que puedas descargarlas. Guarda las copias en un lugar seguro: pueden contener información personal."
+    }
+  },
   "Workspace": {
     "endTime": "Hora final",
     "days": "días",
