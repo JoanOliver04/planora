@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { useLocale, useTranslations } from "next-intl";
 import { addDays } from "date-fns";
 import {
@@ -10,6 +11,7 @@ import {
   Plus,
   RotateCcw,
   Search,
+  StickyNote,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -40,6 +42,7 @@ import {
   greetingKey,
   uniqueMetadata,
 } from "./presentation";
+import { categoriesForSchedule } from "./categories";
 const adapter = (task: Task) => ({
   startDate: task.start_date,
   endDate: task.end_date,
@@ -65,6 +68,7 @@ export function TaskCard({
     locale = useLocale() as "es" | "en",
     cat = categories.find((c) => c.id === task.category_id),
     [optimisticDone, setOptimisticDone] = useState<boolean | null>(null),
+    [noteOpen, setNoteOpen] = useState(false),
     [togglePending, setTogglePending] = useState(false),
     done = optimisticDone ?? Boolean(completion),
     timing =
@@ -138,6 +142,31 @@ export function TaskCard({
         >
           <Edit3 size={17} />
         </button>
+      )}
+      {task.description && (
+        <>
+          <button
+            className="pill note-button"
+            type="button"
+            onClick={() => setNoteOpen(true)}
+          >
+            <StickyNote size={16} /> {t("viewNote")}
+          </button>
+          <Dialog.Root open={noteOpen} onOpenChange={setNoteOpen}>
+            <Dialog.Portal>
+              <Dialog.Overlay className="dialog-overlay" />
+              <Dialog.Content className="dialog-content note-dialog">
+                <Dialog.Title>
+                  {t("note")} · {task.title}
+                </Dialog.Title>
+                <p className="task-note">{task.description}</p>
+                <div className="dialog-actions">
+                  <Dialog.Close className="pill">{t("close")}</Dialog.Close>
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
+        </>
       )}
     </article>
   );
@@ -339,8 +368,26 @@ export function TodayView({
               <h2>{t(group)}</h2>
               <span className="count-badge">{list.length}</span>
             </div>
-            <div className="task-list">
-              {list.map((task) => {
+            <SortableResourceList
+              key={list.map((item) => item.id).join()}
+              items={list}
+              className="task-list"
+              locale={locale}
+              getLabel={(item) => item.title}
+              onCommit={async (ids) => {
+                const visible = new Set(ids);
+                const iterator = ids[Symbol.iterator]();
+                const merged = data.tasks
+                  .filter(
+                    (item) => item.schedule_id === active && !item.archived_at,
+                  )
+                  .map((item) =>
+                    visible.has(item.id) ? iterator.next().value! : item.id,
+                  );
+                await reorderResources({ type: "tasks", ids: merged });
+              }}
+              onError={() => toast.error(t("error"))}
+              renderItem={(task) => {
                 const recurrence = recurrenceFromJson(
                     task.recurrence_config,
                     task.recurrence_type,
@@ -373,8 +420,8 @@ export function TodayView({
                     }
                   />
                 );
-              })}
-            </div>
+              }}
+            />
           </section>
         ) : null;
       })}
@@ -637,25 +684,45 @@ export function TasksView({
     [search, setSearch] = useState(""),
     [category, setCategory] = useState("all"),
     [status, setStatus] = useState<TaskVisibility>("active"),
+    [sort, setSort] = useState("manual"),
+    [selectedNote, setSelectedNote] = useState<Task | null>(null),
     [confirmTask, setConfirmTask] = useState<Task | null>(null),
     [deleteTask, setDeleteTask] = useState<Task | null>(null);
-  const tasks = useMemo(
-    () =>
-      filterTasks(data.tasks, data.completions, status).filter(
-        (task) =>
-          task.schedule_id === data.profile.active_schedule_id &&
-          (category === "all" || task.category_id === category) &&
-          task.title.toLowerCase().includes(search.toLowerCase()),
-      ),
-    [
-      data.tasks,
-      data.completions,
-      data.profile.active_schedule_id,
-      category,
-      status,
-      search,
-    ],
-  );
+  const tasks = useMemo(() => {
+    const filtered = filterTasks(data.tasks, data.completions, status).filter(
+      (task) =>
+        task.schedule_id === data.profile.active_schedule_id &&
+        (category === "all" || task.category_id === category) &&
+        task.title.toLowerCase().includes(search.toLowerCase()),
+    );
+    if (sort === "manual") return filtered;
+    const categoryName = (task: Task) =>
+      data.categories.find((item) => item.id === task.category_id)?.name ?? "";
+    return [...filtered].sort((left, right) => {
+      const values: Record<string, [string, string]> = {
+        name: [left.title, right.title],
+        startDate: [left.start_date, right.start_date],
+        endDate: [left.end_date ?? "9999", right.end_date ?? "9999"],
+        category: [categoryName(left), categoryName(right)],
+        time: [left.start_time ?? "99:99", right.start_time ?? "99:99"],
+      };
+      const [a, b] = values[sort] ?? values.name;
+      return a.localeCompare(b, locale === "es" ? "es" : "en", {
+        sensitivity: "base",
+        numeric: true,
+      });
+    });
+  }, [
+    data.tasks,
+    data.completions,
+    data.profile.active_schedule_id,
+    category,
+    status,
+    search,
+    sort,
+    locale,
+    data.categories,
+  ]);
   return (
     <>
       <header className="topbar">
@@ -690,7 +757,10 @@ export function TasksView({
           onChange={(event) => setCategory(event.target.value)}
         >
           <option value="all">{t("allCategories")}</option>
-          {data.categories.map((item) => (
+          {categoriesForSchedule(
+            data.categories,
+            data.profile.active_schedule_id,
+          ).map((item) => (
             <option key={item.id} value={item.id}>
               {item.emoji} {item.name}
             </option>
@@ -707,14 +777,29 @@ export function TasksView({
           <option value="archived">{t("archived")}</option>
           <option value="all">{t("all")}</option>
         </select>
+        <select
+          className="pill"
+          aria-label={t("sortBy")}
+          value={sort}
+          onChange={(event) => setSort(event.target.value)}
+        >
+          <option value="manual">{t("manualOrder")}</option>
+          <option value="name">{t("sortName")}</option>
+          <option value="startDate">{t("sortStartDate")}</option>
+          <option value="endDate">{t("sortEndDate")}</option>
+          <option value="category">{t("sortCategory")}</option>
+          <option value="time">{t("sortTime")}</option>
+        </select>
       </div>
       <SortableResourceList
         key={tasks.map((item) => item.id).join()}
         items={tasks}
         className="task-list management-list"
         locale={locale}
+        disabled={sort !== "manual"}
         getLabel={(item) => item.title}
         onCommit={async (ids) => {
+          if (sort !== "manual") return;
           const visible = new Set(ids);
           const iterator = ids[Symbol.iterator]();
           const merged = data.tasks
@@ -769,6 +854,14 @@ export function TasksView({
                 </div>
               </div>
               <div className="row-actions">
+                {task.description && (
+                  <button
+                    className="pill note-button"
+                    onClick={() => setSelectedNote(task)}
+                  >
+                    <StickyNote size={16} /> {t("viewNote")}
+                  </button>
+                )}
                 <button
                   className="icon-button"
                   onClick={() => {
@@ -833,6 +926,23 @@ export function TasksView({
         task={editing}
         onSaved={reload}
       />
+      <Dialog.Root
+        open={!!selectedNote}
+        onOpenChange={(value) => !value && setSelectedNote(null)}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="dialog-overlay" />
+          <Dialog.Content className="dialog-content note-dialog">
+            <Dialog.Title>
+              {t("note")} · {selectedNote?.title}
+            </Dialog.Title>
+            <p className="task-note">{selectedNote?.description}</p>
+            <div className="dialog-actions">
+              <Dialog.Close className="pill">{t("close")}</Dialog.Close>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
       <ConfirmDialog
         open={!!confirmTask}
         onOpenChange={(open) => !open && setConfirmTask(null)}

@@ -39,6 +39,24 @@ function renderCard(onToggle: () => Promise<boolean>) {
 }
 
 describe("TaskCard completion", () => {
+  it("opens the task note in a dialog", async () => {
+    const user = userEvent.setup();
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <TaskCard
+          task={{ ...task, description: "Remember chapter three" }}
+          categories={[]}
+        />
+      </NextIntlClientProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "View note" }));
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "Remember chapter three",
+    );
+  });
+
   it("rolls back the optimistic state when persistence fails", async () => {
     const user = userEvent.setup();
     renderCard(vi.fn().mockResolvedValue(false));

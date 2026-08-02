@@ -36,6 +36,7 @@ const categorySchema = z.object({
   name: z.string().min(1).max(60),
   colour: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   emoji: z.string().max(16).nullable(),
+  schedule_id: nullableUuid.default(null),
   sort_order: z.number().int(),
 });
 
@@ -167,6 +168,9 @@ const backupDataSchema = z
       !schedules.has(data.profile.active_schedule_id)
     )
       invalid("Profile references an unknown schedule");
+    for (const item of data.categories)
+      if (item.schedule_id && !schedules.has(item.schedule_id))
+        invalid("Category references an unknown schedule");
     for (const item of data.tasks) {
       if (!schedules.has(item.schedule_id))
         invalid("Task references an unknown schedule");
@@ -387,6 +391,7 @@ export function prepareRestorePayload(backup: PlanoraBackup) {
     categories: backup.data.categories.map((item) => ({
       ...item,
       id: categoryIds.get(item.id)!,
+      schedule_id: mapped(scheduleIds, item.schedule_id),
     })),
     tasks: backup.data.tasks.map((item) => ({
       ...item,

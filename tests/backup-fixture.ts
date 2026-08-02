@@ -39,6 +39,7 @@ export function backupFixture(): BackupData {
         name: "Work",
         colour: "#7D9D74",
         emoji: "💼",
+        schedule_id: null,
         sort_order: 0,
       },
     ],

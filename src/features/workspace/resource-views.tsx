@@ -31,6 +31,7 @@ import {
   type UserPreferences,
 } from "@/lib/preferences";
 import { filterEvents, type EventVisibility } from "@/lib/workspace/visibility";
+import { categoriesForSchedule } from "./categories";
 const fail = (e: unknown, fallback: string) =>
   toast.error(e instanceof Error ? e.message : fallback);
 export function EventsView({
@@ -44,6 +45,7 @@ export function EventsView({
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Event | null>(null),
     [allDay, setAllDay] = useState(true),
+    [eventSchedule, setEventSchedule] = useState(""),
     [visibility, setVisibility] = useState<EventVisibility>("active"),
     [deleting, setDeleting] = useState<Event | null>(null),
     [pending, start] = useTransition();
@@ -80,6 +82,7 @@ export function EventsView({
           onClick={() => {
             setEditing(null);
             setAllDay(true);
+            setEventSchedule("");
             setOpen(true);
           }}
         >
@@ -121,6 +124,7 @@ export function EventsView({
                 onClick={() => {
                   setEditing(e);
                   setAllDay(e.all_day);
+                  setEventSchedule(e.schedule_id ?? "");
                   setOpen(true);
                 }}
               >
@@ -198,7 +202,8 @@ export function EventsView({
                 {t("schedule")}
                 <select
                   name="scheduleId"
-                  defaultValue={editing?.schedule_id ?? ""}
+                  value={eventSchedule}
+                  onChange={(event) => setEventSchedule(event.target.value)}
                 >
                   <option value="">{t("global")}</option>
                   {data.schedules.map((s) => (
@@ -215,11 +220,13 @@ export function EventsView({
                   defaultValue={editing?.category_id ?? ""}
                 >
                   <option value="">—</option>
-                  {data.categories.map((c) => (
-                    <option value={c.id} key={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
+                  {categoriesForSchedule(data.categories, eventSchedule).map(
+                    (c) => (
+                      <option value={c.id} key={c.id}>
+                        {c.name}
+                      </option>
+                    ),
+                  )}
                 </select>
               </label>
               <label className="check-row">
@@ -466,6 +473,7 @@ export function CategoriesView({
         name: String(fd.get("name")),
         emoji: String(fd.get("emoji") || "") || null,
         colour: String(fd.get("colour")),
+        scheduleId: String(fd.get("scheduleId") || "") || null,
       });
       await reload();
       setOpen(false);
@@ -501,6 +509,12 @@ export function CategoriesView({
               <span className="category-name">
                 <i style={{ background: c.colour }} />
                 {c.emoji} <b>{c.name}</b>
+                <small className="muted">
+                  {c.schedule_id
+                    ? data.schedules.find((item) => item.id === c.schedule_id)
+                        ?.name
+                    : t("global")}
+                </small>
               </span>
               <div className="row-actions">
                 <button
@@ -545,6 +559,22 @@ export function CategoriesView({
                   type="color"
                   defaultValue={editing?.colour ?? "#7D9D74"}
                 />
+              </label>
+              <label>
+                {t("categoryScope")}
+                <select
+                  name="scheduleId"
+                  defaultValue={editing?.schedule_id ?? ""}
+                >
+                  <option value="">{t("global")}</option>
+                  {data.schedules
+                    .filter((item) => !item.is_archived)
+                    .map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.emoji} {item.name}
+                      </option>
+                    ))}
+                </select>
               </label>
               <button className="primary">{t("save")}</button>
             </form>

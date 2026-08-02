@@ -51,6 +51,7 @@ export type Database = {
           name: string;
           colour: string;
           emoji: string | null;
+          schedule_id?: string | null;
           sort_order: number;
           created_at: string;
           updated_at: string;

@@ -35,11 +35,13 @@ function SortableItem<T extends { id: string }>({
   label,
   render,
   locale,
+  disabled,
 }: {
   item: T;
   label: string;
   render: (item: T) => ReactNode;
   locale: "es" | "en";
+  disabled?: boolean;
 }) {
   const {
     attributes,
@@ -48,7 +50,7 @@ function SortableItem<T extends { id: string }>({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id });
+  } = useSortable({ id: item.id, disabled });
   return (
     <div
       ref={setNodeRef}
@@ -58,6 +60,7 @@ function SortableItem<T extends { id: string }>({
     >
       <button
         className="drag-handle"
+        disabled={disabled}
         aria-label={locale === "es" ? "Reordenar " + label : "Reorder " + label}
         {...attributes}
         {...listeners}
@@ -77,6 +80,7 @@ export function SortableResourceList<T extends { id: string }>({
   onError,
   locale,
   className = "",
+  disabled = false,
 }: {
   items: T[];
   renderItem: (item: T) => ReactNode;
@@ -85,6 +89,7 @@ export function SortableResourceList<T extends { id: string }>({
   onError: () => void;
   locale: "es" | "en";
   className?: string;
+  disabled?: boolean;
 }) {
   const [orderedIds, setOrderedIds] = useState(() =>
     initialItems.map((item) => item.id),
@@ -106,6 +111,7 @@ export function SortableResourceList<T extends { id: string }>({
     }),
   );
   async function finished(event: DragEndEvent) {
+    if (disabled) return;
     if (!event.over || event.active.id === event.over.id) return;
     const previous = items;
     const from = items.findIndex((item) => item.id === event.active.id);
@@ -152,6 +158,7 @@ export function SortableResourceList<T extends { id: string }>({
               label={getLabel(item)}
               render={renderItem}
               locale={locale}
+              disabled={disabled}
             />
           ))}
         </div>

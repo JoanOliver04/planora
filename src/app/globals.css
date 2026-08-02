@@ -1910,6 +1910,21 @@ select:disabled,
 .task-body {
   min-width: 0;
 }
+
+.note-button {
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.65rem;
+}
+
+.task-note {
+  margin: 1rem 0;
+  max-height: min(55vh, 32rem);
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
 .task-title {
   display: flex;
   gap: 0.42rem;

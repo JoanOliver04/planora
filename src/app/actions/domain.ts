@@ -26,6 +26,7 @@ const categorySchema = z.object({
   name: z.string().trim().min(1).max(60),
   colour: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   emoji: z.string().max(16).optional().nullable(),
+  scheduleId: id.optional().nullable(),
 });
 const eventSchema = z
   .object({
@@ -99,6 +100,23 @@ async function auth() {
     } = await db.auth.getUser();
   if (!user) throw new Error("Unauthorized");
   return { db, user };
+}
+async function assertCategoryScope(
+  db: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  categoryId: string | null | undefined,
+  scheduleId: string | null | undefined,
+) {
+  if (!categoryId) return;
+  const { data, error } = await db
+    .from("categories")
+    .select("schedule_id")
+    .eq("id", categoryId)
+    .eq("user_id", userId)
+    .single();
+  if (error || !data) throw new Error("Category not found");
+  if (data.schedule_id && data.schedule_id !== scheduleId)
+    throw new Error("Category is not available in this schedule");
 }
 const refresh = () => revalidatePath("/", "layout");
 export async function completeGuidedOnboarding(input: unknown) {
@@ -418,6 +436,7 @@ export async function saveCategory(input: unknown) {
     name: v.name,
     colour: v.colour,
     emoji: v.emoji ?? null,
+    schedule_id: v.scheduleId ?? null,
   };
   const { error } = v.id
     ? await db
@@ -476,6 +495,7 @@ export async function saveTask(input: unknown, taskId?: string) {
     { db, user } = await auth(),
     r = v.recurrence,
     t = v.timing;
+  await assertCategoryScope(db, user.id, v.categoryId, v.scheduleId);
   const payload = {
     user_id: user.id,
     schedule_id: v.scheduleId,
@@ -554,6 +574,7 @@ export async function duplicateTask(value: string) {
 export async function saveEvent(input: unknown) {
   const v = eventSchema.parse(input),
     { db, user } = await auth();
+  await assertCategoryScope(db, user.id, v.categoryId, v.scheduleId);
   const payload = {
     user_id: user.id,
     title: v.title,

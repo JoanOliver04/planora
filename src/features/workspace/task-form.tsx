@@ -7,6 +7,8 @@ import type { Category, Schedule, Task } from "./types";
 import { recurrenceFromJson } from "./types";
 import { localDate } from "@/lib/dates/timezone";
 import { toast } from "sonner";
+import { categoriesForSchedule } from "./categories";
+
 export function TaskForm({
   open,
   onOpenChange,
@@ -31,6 +33,11 @@ export function TaskForm({
       : null,
     [recurrence, setRecurrence] = useState(existing?.type ?? "once"),
     [timing, setTiming] = useState(task?.time_mode ?? "anytime"),
+    [scheduleId, setScheduleId] = useState(
+      task?.schedule_id ??
+        schedules.find((item) => !item.is_archived)?.id ??
+        "",
+    ),
     [pending, startTransition] = useTransition();
 
   const weekdays = existing?.type === "weekdays" ? existing.weekdays : [];
@@ -114,7 +121,11 @@ export function TaskForm({
               </label>
               <label>
                 {t("schedule")}
-                <select name="scheduleId" defaultValue={task?.schedule_id}>
+                <select
+                  name="scheduleId"
+                  value={scheduleId}
+                  onChange={(event) => setScheduleId(event.target.value)}
+                >
                   {schedules
                     .filter((s) => !s.is_archived)
                     .map((s) => (
@@ -129,7 +140,7 @@ export function TaskForm({
               {t("category")}
               <select name="categoryId" defaultValue={task?.category_id ?? ""}>
                 <option value="">—</option>
-                {categories.map((c) => (
+                {categoriesForSchedule(categories, scheduleId).map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.emoji} {c.name}
                   </option>
