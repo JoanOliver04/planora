@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-65%20unit%20%2B%2016%20E2E-brightgreen?style=flat-square" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-71%20unit%20%2B%2016%20E2E-brightgreen?style=flat-square" alt="Tests" />
 </p>
 
 ---
@@ -60,6 +60,17 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Weekly completion targets and progress percentage.
 - Date calculations respect the user's timezone and preferred first day of the week.
 
+### Notifications and alarms
+
+- Explicit, user-initiated browser permission flow with a global on/off control.
+- Standalone alarms with a custom name, date, time and optional daily or weekly recurrence.
+- Relative reminders for tasks and events, including 5, 15 and 30 minutes, 1 or 2 hours, and 1 day before.
+- Independent per-device filters for task, event, daily-summary and custom-alarm notifications.
+- Separate delivery controls for in-app popups, operating-system notifications, sound and vibration.
+- Individual enable/disable, ten-minute snooze and deletion controls for every configured reminder.
+- Timezone-safe scheduling, mobile-sized touch targets and responsive forms.
+- In-app alerts, sound and vibration require Planora to remain open or active as a PWA. Fully closed web apps can be suspended by the operating system, so system delivery remains subject to browser permissions and platform limits.
+
 ### Experience and safety
 
 - Full Spanish and English interface.
@@ -70,7 +81,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Mobile-first touch targets and responsive layouts.
 - Google OAuth only; Planora stores no passwords.
 - Public no-registration demo, guided onboarding and reusable schedule templates.
-- Offline mutation queue, installable PWA and timezone-safe reminders.
+- Offline mutation queue, installable PWA and a customizable notification and alarm center.
 - Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports.
 - Optional cookie-free analytics, sanitized error telemetry and rate-limited sensitive endpoints.
 
@@ -130,6 +141,8 @@ flowchart LR
     UI --> I18N[next-intl]
     UI --> SA[Server Actions]
     UI --> SC[Supabase browser client]
+    UI --> NS[Notification scheduler]
+    NS --> SW[Service worker and in-app alerts]
     SA --> SSR[Supabase SSR client]
     SC --> DB[(PostgreSQL)]
     SSR --> DB

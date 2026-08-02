@@ -2797,3 +2797,33 @@ select:disabled,
     padding: 0.8rem;
   }
 }
+
+/* Accessible touch target for notification switches. */
+.notification-switch {
+  width: 48px;
+  height: 44px;
+  flex-basis: 48px;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.notification-switch::before {
+  content: "";
+  position: absolute;
+  inset: 9px 1px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.notification-switch span {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  left: 4px;
+}
+.notification-switch[aria-checked="true"] {
+  background: transparent;
+}
+.notification-switch[aria-checked="true"]::before {
+  background: var(--primary);
+}
