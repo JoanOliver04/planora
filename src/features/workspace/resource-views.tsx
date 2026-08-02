@@ -4,6 +4,7 @@ import * as Alert from "@radix-ui/react-alert-dialog";
 import { useEffect, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "@/components/theme-provider";
+import { clearPrivateOfflineData } from "@/lib/offline/queue";
 import { useRouter } from "@/i18n/routing";
 import { Archive, Copy, Edit3, Plus, RotateCcw, Trash2 } from "lucide-react";
 import {
@@ -940,6 +941,7 @@ export function SettingsView({
             fail(error, t("error"));
             return;
           }
+          await clearPrivateOfflineData(data.user.id);
           location.href = `/${locale}/login`;
         }}
       />
@@ -966,8 +968,10 @@ export function SettingsView({
                     method: "DELETE",
                     headers: { "x-planora-confirm": "delete-account" },
                   });
-                  if (r.ok) location.href = `/${locale}/login`;
-                  else toast.error(t("error"));
+                  if (r.ok) {
+                    await clearPrivateOfflineData(data.user.id);
+                    location.href = `/${locale}/login`;
+                  } else toast.error(t("error"));
                 }}
               >
                 {t("delete")}

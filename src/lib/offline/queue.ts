@@ -122,3 +122,23 @@ export function loadCachedWorkspace(
     return null;
   }
 }
+export async function clearPrivateOfflineData(userId: string) {
+  const queue = parseQueue().filter((item) => item.userId !== userId);
+  localStorage.setItem(queueKey, JSON.stringify(queue));
+
+  const workspacePrefix = cachePrefix + userId + ":";
+  for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+    const key = localStorage.key(index);
+    if (key?.startsWith(workspacePrefix)) localStorage.removeItem(key);
+  }
+
+  if ("caches" in globalThis) {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys
+        .filter((key) => key.startsWith("planora-"))
+        .map((key) => caches.delete(key)),
+    );
+  }
+  notify();
+}

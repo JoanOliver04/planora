@@ -7,8 +7,19 @@ import { loadNotificationPreferences } from "@/features/reminders/preferences";
 import type { Database } from "@/types/database";
 
 type Reminder = Database["public"]["Tables"]["reminders"]["Row"];
+type DueReminder = Pick<
+  Reminder,
+  | "id"
+  | "task_id"
+  | "event_id"
+  | "kind"
+  | "title"
+  | "recurrence"
+  | "timezone"
+  | "next_trigger_at"
+>;
 
-function reminderType(reminder: Reminder) {
+function reminderType(reminder: DueReminder) {
   if (reminder.kind === "alarm") return "alarms" as const;
   if (reminder.kind === "daily_summary") return "summaries" as const;
   return reminder.event_id ? ("events" as const) : ("tasks" as const);
@@ -49,13 +60,43 @@ export function ReminderScheduler({ locale }: { locale: string }) {
     if (!session?.user) return;
     const { data: reminders } = await db
       .from("reminders")
-      .select("*")
+      .select(
+        "id,task_id,event_id,kind,title,recurrence,timezone,next_trigger_at",
+      )
       .eq("enabled", true)
       .lte("next_trigger_at", new Date().toISOString())
       .order("next_trigger_at")
       .limit(20);
     if (!reminders?.length) return;
 
+    const taskIds = [
+      ...new Set(
+        reminders
+          .map((reminder) => reminder.task_id)
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ];
+    const eventIds = [
+      ...new Set(
+        reminders
+          .map((reminder) => reminder.event_id)
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ];
+    const [taskResult, eventResult] = await Promise.all([
+      taskIds.length
+        ? db.from("tasks").select("id,title,emoji").in("id", taskIds)
+        : Promise.resolve({ data: [], error: null }),
+      eventIds.length
+        ? db.from("events").select("id,title,emoji").in("id", eventIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+    const taskCopy = new Map(
+      (taskResult.data ?? []).map((task) => [task.id, task]),
+    );
+    const eventCopy = new Map(
+      (eventResult.data ?? []).map((event) => [event.id, event]),
+    );
     const preferences = loadNotificationPreferences();
     for (const reminder of reminders) {
       if (!preferences[reminderType(reminder)]) continue;
@@ -69,18 +110,10 @@ export function ReminderScheduler({ locale }: { locale: string }) {
         title = locale === "es" ? "Alarma de Planora" : "Planora alarm";
         body = reminder.title ?? body;
       } else if (reminder.task_id) {
-        const { data: task } = await db
-          .from("tasks")
-          .select("title,emoji")
-          .eq("id", reminder.task_id)
-          .maybeSingle();
+        const task = taskCopy.get(reminder.task_id);
         if (task) body = ((task.emoji ?? "") + " " + task.title).trim();
       } else if (reminder.event_id) {
-        const { data: event } = await db
-          .from("events")
-          .select("title,emoji")
-          .eq("id", reminder.event_id)
-          .maybeSingle();
+        const event = eventCopy.get(reminder.event_id);
         if (event) body = ((event.emoji ?? "") + " " + event.title).trim();
       } else {
         title = locale === "es" ? "Tu resumen diario" : "Your daily summary";

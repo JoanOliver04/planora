@@ -1,4 +1,4 @@
-const VERSION = "planora-shell-v1";
+const VERSION = "planora-shell-v2";
 const SHELL = [
   "/",
   "/es",
@@ -8,10 +8,21 @@ const SHELL = [
   "/assets/logo_modo_claro.png",
   "/assets/logo_modo_oscuro.png",
 ];
+const PUBLIC_NAVIGATION = new Set([
+  "/",
+  "/es",
+  "/en",
+  "/es/privacy",
+  "/en/privacy",
+  "/es/terms",
+  "/en/terms",
+]);
+
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(SHELL)));
   self.skipWaiting();
 });
+
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
@@ -26,6 +37,7 @@ self.addEventListener("activate", (event) => {
   );
   self.clients.claim();
 });
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
@@ -36,14 +48,19 @@ self.addEventListener("fetch", (event) => {
     url.pathname.includes("/login")
   )
     return;
+
   if (request.mode === "navigate") {
+    if (!PUBLIC_NAVIGATION.has(url.pathname)) return;
     event.respondWith(
       fetch(request)
         .then((response) => {
-          if (response.ok)
-            caches
-              .open(VERSION)
-              .then((cache) => cache.put(request, response.clone()));
+          const cacheControl = response.headers.get("cache-control") ?? "";
+          if (response.ok && !/private|no-store/i.test(cacheControl))
+            event.waitUntil(
+              caches
+                .open(VERSION)
+                .then((cache) => cache.put(request, response.clone())),
+            );
           return response;
         })
         .catch(
@@ -56,6 +73,7 @@ self.addEventListener("fetch", (event) => {
     );
     return;
   }
+
   if (
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/assets/")
@@ -66,18 +84,25 @@ self.addEventListener("fetch", (event) => {
           cached ||
           fetch(request).then((response) => {
             if (response.ok)
-              caches
-                .open(VERSION)
-                .then((cache) => cache.put(request, response.clone()));
+              event.waitUntil(
+                caches
+                  .open(VERSION)
+                  .then((cache) => cache.put(request, response.clone())),
+              );
             return response;
           }),
       ),
     );
   }
 });
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const target = event.notification.data?.url || "/es/today";
+  const requested = event.notification.data?.url;
+  const target =
+    typeof requested === "string" && /^\/(?:es|en)\/reminders$/.test(requested)
+      ? requested
+      : "/es/reminders";
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })

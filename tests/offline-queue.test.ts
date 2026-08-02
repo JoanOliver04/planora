@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   cacheWorkspace,
+  clearPrivateOfflineData,
   enqueueCompletion,
   flushCompletionQueue,
   getQueuedCompletions,
@@ -64,6 +65,35 @@ describe("offline queue", () => {
     expect(getQueuedCompletions("user")).toHaveLength(0);
   });
 
+  it("removes private offline data for the signed-out user only", async () => {
+    enqueueCompletion({
+      userId: "user",
+      taskId: "private-task",
+      occurrenceDate: "2026-08-01",
+      completed: true,
+      snapshot: { title: "Private" },
+    });
+    enqueueCompletion({
+      userId: "other",
+      taskId: "other-task",
+      occurrenceDate: "2026-08-01",
+      completed: true,
+      snapshot: {},
+    });
+    localStorage.setItem("planora-workspace-cache-v1:user:today", "private");
+    localStorage.setItem("planora-workspace-cache-v1:other:today", "other");
+
+    await clearPrivateOfflineData("user");
+
+    expect(getQueuedCompletions("user")).toHaveLength(0);
+    expect(getQueuedCompletions("other")).toHaveLength(1);
+    expect(
+      localStorage.getItem("planora-workspace-cache-v1:user:today"),
+    ).toBeNull();
+    expect(localStorage.getItem("planora-workspace-cache-v1:other:today")).toBe(
+      "other",
+    );
+  });
   it("scopes cached read data by user and view without storing email", () => {
     const data = {
       user: { id: "user", email: "private@example.com" },
