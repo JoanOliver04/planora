@@ -77,3 +77,23 @@ test("demo disables real account actions", async ({ page }) => {
     page.getByRole("button", { name: /eliminar cuenta/i }),
   ).toHaveCount(0);
 });
+
+test("mobile navigation stays pinned above scrollable content", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/es/demo/today");
+  const navigation = page.locator(".mobile-nav");
+  await expect(navigation).toBeVisible();
+  const box = await navigation.boundingBox();
+  expect(box).not.toBeNull();
+  expect(
+    Math.abs((box?.y ?? 0) + (box?.height ?? 0) - 844),
+  ).toBeLessThanOrEqual(1);
+  const bottomPadding = await page
+    .locator("main")
+    .evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).paddingBottom),
+    );
+  expect(bottomPadding).toBeGreaterThanOrEqual(box?.height ?? 0);
+});

@@ -161,12 +161,13 @@ textarea:focus-visible {
 .app-shell {
   display: grid;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 .sidebar {
   display: none;
 }
 .main {
-  padding: 1.25rem 1rem 7rem;
+  padding: 1.25rem 1rem calc(7rem + env(safe-area-inset-bottom));
   max-width: 1000px;
   width: 100%;
   margin: auto;
