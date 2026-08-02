@@ -5,7 +5,7 @@ import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { OfflineStatus } from "@/components/offline-status";
 import { ReminderScheduler } from "@/components/reminder-scheduler";
-import { PrivacyAnalytics } from "@/components/privacy-analytics";
+
 export function Providers({
   children,
   locale,
@@ -31,7 +31,7 @@ export function Providers({
         <Toaster richColors position="top-center" />
         <OfflineStatus locale={locale} />
         <ReminderScheduler locale={locale} />
-        <PrivacyAnalytics locale={locale} />
+
         {children}
       </ThemeProvider>
     </NextIntlClientProvider>

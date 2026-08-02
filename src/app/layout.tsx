@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/config/site";
+import { Analytics } from "@vercel/analytics/next";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const mono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -41,7 +42,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${geist.variable} ${mono.variable}`}>{children}</body>
+      <body className={`${geist.variable} ${mono.variable}`}>
+        {children}
+        {process.env.VERCEL_ENV ? <Analytics debug={false} /> : null}
+      </body>
     </html>
   );
 }

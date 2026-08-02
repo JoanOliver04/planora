@@ -24,20 +24,6 @@
   --shadow: 0 14px 38px rgba(36, 49, 31, 0.075);
 }
 
-.consent-banner {
-  position: fixed;
-  z-index: 100;
-  inset: auto 1rem 1rem;
-  max-width: 34rem;
-  padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  background: var(--surface);
-  box-shadow: 0 12px 40px rgb(0 0 0 / 0.18);
-}
-.consent-banner p {
-  margin: 0 0 0.75rem;
-}
 .legal-page {
   width: min(760px, calc(100% - 2rem));
   margin: 0 auto;

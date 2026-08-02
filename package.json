@@ -23,6 +23,7 @@
     "@radix-ui/react-dialog": "^1.1.23",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.8",
+    "@vercel/analytics": "^2.0.1",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
     "lucide-react": "^1.27.0",
