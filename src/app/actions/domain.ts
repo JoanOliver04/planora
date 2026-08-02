@@ -732,33 +732,17 @@ export async function duplicateSchedule(value: string, includeTasks: boolean) {
 }
 export async function deleteEmptySchedule(value: string) {
   const scheduleId = id.parse(value),
-    { db, user } = await auth(),
-    { data: profile } = await db
-      .from("profiles")
-      .select("active_schedule_id")
-      .eq("id", user.id)
-      .single();
-  if (profile?.active_schedule_id === scheduleId)
-    throw new Error("Switch schedules first");
-  const [{ count: tasks }, { count: events }] = await Promise.all([
-    db
-      .from("tasks")
-      .select("id", { count: "exact", head: true })
-      .eq("schedule_id", scheduleId)
-      .eq("user_id", user.id),
-    db
-      .from("events")
-      .select("id", { count: "exact", head: true })
-      .eq("schedule_id", scheduleId)
-      .eq("user_id", user.id),
-  ]);
-  if (tasks || events) throw new Error("Only empty schedules can be deleted");
-  const { error } = await db
-    .from("schedules")
-    .delete()
-    .eq("id", scheduleId)
-    .eq("user_id", user.id);
-  if (error) throw new Error("Unable to delete schedule");
+    { db } = await auth();
+  const { error } = await db.rpc("delete_schedule", {
+    target_schedule_id: scheduleId,
+  });
+  if (error) {
+    if (error.message.includes("not empty"))
+      throw new Error("Only empty schedules can be deleted");
+    if (error.message.includes("not found"))
+      throw new Error("Schedule not found");
+    throw new Error("Unable to delete schedule");
+  }
   refresh();
 }
 

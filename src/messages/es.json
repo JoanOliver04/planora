@@ -159,6 +159,17 @@
     }
   },
   "Workspace": {
+    "close": "Cerrar",
+    "searchTask": "Buscar una tarea…",
+    "searchEvent": "Buscar un evento…",
+    "noTasksFound": "No se han encontrado tareas.",
+    "noEventsFound": "No se han encontrado eventos.",
+    "clearSelection": "Limpiar selección",
+    "customDuration": "Personalizada",
+    "hours": "Horas",
+    "minutes": "Minutos",
+    "customDurationSummary": "Te avisaremos {duration} antes.",
+    "customDurationInvalid": "La duración debe estar entre 1 minuto y 7 días.",
     "endTime": "Hora final",
     "days": "días",
     "schedule": "Horario",

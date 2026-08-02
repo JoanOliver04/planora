@@ -193,6 +193,10 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      delete_schedule: {
+        Args: { target_schedule_id: string };
+        Returns: string | null;
+      };
       delete_archived_task: {
         Args: { target_task_id: string };
         Returns: boolean;

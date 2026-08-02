@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   AlarmClock,
@@ -7,6 +8,8 @@ import {
   BellOff,
   Clock3,
   MonitorSmartphone,
+  Search,
+  X,
   Trash2,
   Volume2,
 } from "lucide-react";
@@ -42,6 +45,157 @@ type Target = {
   time: string | null;
   type: "task" | "event";
 };
+
+function normalizeSearch(value: string) {
+  return value
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase();
+}
+
+function formatDuration(
+  days: number,
+  hours: number,
+  minutes: number,
+  es: boolean,
+) {
+  const parts = [
+    days
+      ? `${days} ${days === 1 ? (es ? "día" : "day") : es ? "días" : "days"}`
+      : "",
+    hours
+      ? `${hours} ${hours === 1 ? (es ? "hora" : "hour") : es ? "horas" : "hours"}`
+      : "",
+    minutes
+      ? `${minutes} ${minutes === 1 ? (es ? "minuto" : "minute") : es ? "minutos" : "minutes"}`
+      : "",
+  ].filter(Boolean);
+  return parts.join(es ? " y " : " and ") || (es ? "0 minutos" : "0 minutes");
+}
+
+function TargetCombobox({
+  targets,
+  value,
+  onChange,
+  emptyLabel,
+  placeholder,
+  clearLabel,
+}: {
+  targets: Target[];
+  value: string;
+  onChange: (value: string) => void;
+  emptyLabel: string;
+  placeholder: string;
+  clearLabel: string;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const selected = targets.find((item) => item.type + ":" + item.id === value);
+  const results = useMemo(() => {
+    const needle = normalizeSearch(query);
+    return targets
+      .filter((item) => !needle || normalizeSearch(item.title).includes(needle))
+      .slice(0, 50);
+  }, [query, targets]);
+  function choose(item: Target) {
+    onChange(item.type + ":" + item.id);
+    setQuery("");
+    setOpen(false);
+  }
+  return (
+    <div className="target-combobox">
+      <div className="target-combobox-control">
+        <Search size={17} aria-hidden="true" />
+        <input
+          ref={inputRef}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls="reminder-target-options"
+          aria-activedescendant={
+            open && results[active]
+              ? `target-${results[active].type}-${results[active].id}`
+              : undefined
+          }
+          placeholder={placeholder}
+          value={open ? query : (selected?.title ?? "")}
+          onFocus={() => setOpen(true)}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setActive(0);
+            setOpen(true);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              setOpen(true);
+              setActive((current) => Math.min(current + 1, results.length - 1));
+            } else if (event.key === "ArrowUp") {
+              event.preventDefault();
+              setActive((current) => Math.max(current - 1, 0));
+            } else if (event.key === "Enter" && open && results[active]) {
+              event.preventDefault();
+              choose(results[active]);
+            } else if (event.key === "Escape") {
+              setOpen(false);
+              inputRef.current?.blur();
+            }
+          }}
+        />
+        {value && (
+          <button
+            type="button"
+            className="target-clear"
+            aria-label={clearLabel}
+            onClick={() => {
+              onChange("");
+              setQuery("");
+              inputRef.current?.focus();
+            }}
+          >
+            <X size={17} />
+          </button>
+        )}
+      </div>
+      {open && (
+        <div
+          className="target-combobox-options"
+          id="reminder-target-options"
+          role="listbox"
+        >
+          {results.length ? (
+            results.map((item, index) => (
+              <button
+                type="button"
+                role="option"
+                id={`target-${item.type}-${item.id}`}
+                aria-selected={item.type + ":" + item.id === value}
+                data-active={index === active}
+                key={item.type + item.id}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => choose(item)}
+              >
+                <span>{item.emoji || "•"}</span>
+                <span>
+                  <strong>{item.title}</strong>
+                  <small>
+                    {item.date}
+                    {item.time ? ` · ${item.time.slice(0, 5)}` : ""}
+                  </small>
+                </span>
+              </button>
+            ))
+          ) : (
+            <p className="target-combobox-empty">{emptyLabel}</p>
+          )}
+        </div>
+      )}
+      {!selected && value && <p className="target-unavailable">{emptyLabel}</p>}
+    </div>
+  );
+}
 
 function Switch({
   checked,
@@ -95,6 +249,7 @@ export function ReminderCenter({
   }>;
 }) {
   const es = locale === "es";
+  const t = useTranslations("Workspace");
   const router = useRouter();
   const [permission, setPermission] = useState<
     NotificationPermission | "unsupported"
@@ -108,7 +263,15 @@ export function ReminderCenter({
   const [targetValue, setTargetValue] = useState(
     tasks[0] ? "task:" + tasks[0].id : events[0] ? "event:" + events[0].id : "",
   );
+  const [targetKind, setTargetKind] = useState<"task" | "event">(
+    tasks[0] ? "task" : "event",
+  );
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [minutes, setMinutes] = useState(30);
+  const [timingMode, setTimingMode] = useState<"preset" | "custom">("preset");
+  const [customDays, setCustomDays] = useState(0);
+  const [customHours, setCustomHours] = useState(0);
+  const [customMinutes, setCustomMinutes] = useState(30);
   const [recurrence, setRecurrence] = useState<"once" | "daily" | "weekly">(
     "once",
   );
@@ -145,6 +308,11 @@ export function ReminderCenter({
       type: "event" as const,
     })),
   ];
+  const targetOptions = targets.filter((item) => item.type === targetKind);
+  const effectiveMinutes =
+    timingMode === "custom"
+      ? customDays * 1440 + customHours * 60 + customMinutes
+      : minutes;
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -187,7 +355,26 @@ export function ReminderCenter({
     const [type, id] = targetValue.split(":") as ["task" | "event", string];
     const target = targets.find((item) => item.id === id && item.type === type);
     if (!target) return;
-    let trigger = relativeTrigger(target.date, target.time, timezone, minutes);
+    if (
+      timingMode === "custom" &&
+      (customDays < 0 ||
+        customDays > 7 ||
+        customHours < 0 ||
+        customHours > 23 ||
+        customMinutes < 0 ||
+        customMinutes > 59 ||
+        effectiveMinutes < 1 ||
+        effectiveMinutes > 10080)
+    ) {
+      toast.error(t("customDurationInvalid"));
+      return;
+    }
+    let trigger = relativeTrigger(
+      target.date,
+      target.time,
+      timezone,
+      effectiveMinutes,
+    );
     while (trigger <= new Date() && recurrence !== "once") {
       trigger = advanceTrigger(trigger, recurrence, timezone) ?? trigger;
     }
@@ -205,7 +392,8 @@ export function ReminderCenter({
           targetType: type,
           targetId: id,
           title: null,
-          minutesBefore: minutes,
+          id: editingId ?? undefined,
+          minutesBefore: effectiveMinutes,
           recurrence,
           timeOfDay: null,
           timezone,
@@ -213,11 +401,27 @@ export function ReminderCenter({
           enabled: !optedOut,
         });
         toast.success(es ? "Recordatorio guardado" : "Reminder saved");
+        setEditingId(null);
         router.refresh();
       } catch {
         toast.error(es ? "No se pudo guardar" : "Could not save");
       }
     });
+  }
+
+  function editRelative(reminder: Reminder) {
+    const targetId = reminder.task_id ?? reminder.event_id;
+    const type = reminder.task_id ? "task" : "event";
+    setEditingId(reminder.id);
+    setTargetKind(type);
+    setTargetValue(targetId ? type + ":" + targetId : "");
+    setMinutes(reminder.minutes_before ?? 30);
+    setTimingMode("preset");
+    const total = reminder.minutes_before ?? 30;
+    setCustomDays(Math.floor(total / 1440));
+    setCustomHours(Math.floor((total % 1440) / 60));
+    setCustomMinutes(total % 60);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function createAlarm() {
@@ -566,24 +770,41 @@ export function ReminderCenter({
           <label>
             {es ? "Elemento" : "Item"}
             <select
-              value={targetValue}
-              onChange={(event) => setTargetValue(event.target.value)}
+              value={targetKind}
+              onChange={(event) => {
+                const next = event.target.value as "task" | "event";
+                setTargetKind(next);
+                const first = targets.find((item) => item.type === next);
+                setTargetValue(first ? next + ":" + first.id : "");
+              }}
             >
-              {targets.map((item) => (
-                <option
-                  key={item.type + item.id}
-                  value={item.type + ":" + item.id}
-                >
-                  {item.emoji} {item.title}
-                </option>
-              ))}
+              <option value="task">{es ? "Tarea" : "Task"}</option>
+              <option value="event">{es ? "Evento" : "Event"}</option>
             </select>
+            <TargetCombobox
+              targets={targetOptions}
+              value={targetValue}
+              onChange={setTargetValue}
+              placeholder={
+                targetKind === "task" ? t("searchTask") : t("searchEvent")
+              }
+              emptyLabel={
+                targetKind === "task" ? t("noTasksFound") : t("noEventsFound")
+              }
+              clearLabel={t("clearSelection")}
+            />
           </label>
           <label>
             {es ? "Avisar antes" : "Notify before"}
             <select
-              value={minutes}
-              onChange={(event) => setMinutes(Number(event.target.value))}
+              value={timingMode === "custom" ? "custom" : minutes}
+              onChange={(event) => {
+                if (event.target.value === "custom") setTimingMode("custom");
+                else {
+                  setTimingMode("preset");
+                  setMinutes(Number(event.target.value));
+                }
+              }}
             >
               <option value={0}>{es ? "A la hora" : "At time"}</option>
               <option value={5}>5 min</option>
@@ -591,9 +812,63 @@ export function ReminderCenter({
               <option value={30}>30 min</option>
               <option value={60}>1 h</option>
               <option value={120}>2 h</option>
+              <option value="custom">{t("customDuration")}</option>
               <option value={1440}>{es ? "1 día" : "1 day"}</option>
             </select>
           </label>
+          {timingMode === "custom" && (
+            <div className="custom-duration" aria-live="polite">
+              <label>
+                {t("days")}
+                <input
+                  type="number"
+                  min="0"
+                  max="7"
+                  inputMode="numeric"
+                  value={customDays}
+                  onChange={(event) =>
+                    setCustomDays(Number(event.target.value))
+                  }
+                />
+              </label>
+              <label>
+                {t("hours")}
+                <input
+                  type="number"
+                  min="0"
+                  max="23"
+                  inputMode="numeric"
+                  value={customHours}
+                  onChange={(event) =>
+                    setCustomHours(Number(event.target.value))
+                  }
+                />
+              </label>
+              <label>
+                {t("minutes")}
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  inputMode="numeric"
+                  value={customMinutes}
+                  onChange={(event) =>
+                    setCustomMinutes(Number(event.target.value))
+                  }
+                />
+              </label>
+              <p>
+                {t("customDurationSummary", {
+                  duration: formatDuration(
+                    customDays,
+                    customHours,
+                    customMinutes,
+                    es,
+                  ),
+                })}
+              </p>
+            </div>
+          )}
           <label>
             {es ? "Repetición" : "Repeat"}
             <select
@@ -686,6 +961,15 @@ export function ReminderCenter({
                   </p>
                 </div>
                 <div className="row-actions">
+                  {reminder.kind === "relative" && (
+                    <button
+                      className="pill"
+                      type="button"
+                      onClick={() => editRelative(reminder)}
+                    >
+                      {t("edit")}
+                    </button>
+                  )}
                   <Switch
                     checked={reminder.enabled}
                     label={

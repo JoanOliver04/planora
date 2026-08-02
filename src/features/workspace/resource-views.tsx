@@ -373,7 +373,7 @@ export function SchedulesView({
               <button
                 className="icon-button"
                 aria-label={t("delete")}
-                disabled={data.profile.active_schedule_id === s.id}
+                disabled={false}
                 onClick={() => setConfirming({ action: "delete", schedule: s })}
               >
                 <Trash2 size={16} />

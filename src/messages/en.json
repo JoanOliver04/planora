@@ -159,6 +159,17 @@
     }
   },
   "Workspace": {
+    "close": "Close",
+    "searchTask": "Search for a task…",
+    "searchEvent": "Search for an event…",
+    "noTasksFound": "No tasks found.",
+    "noEventsFound": "No events found.",
+    "clearSelection": "Clear selection",
+    "customDuration": "Custom",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "customDurationSummary": "You will be notified {duration} before.",
+    "customDurationInvalid": "Duration must be between 1 minute and 7 days.",
     "endTime": "End time",
     "days": "days",
     "schedule": "Schedule",
