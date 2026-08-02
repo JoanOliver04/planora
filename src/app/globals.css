@@ -1732,22 +1732,6 @@ textarea:focus-visible {
   }
 }
 
-.settings-shortcuts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
-  margin: 1rem 0;
-}
-.shortcut-card {
-  color: inherit;
-  font-weight: 700;
-  padding: 1rem;
-  text-decoration: none;
-}
-.shortcut-card:hover {
-  border-color: var(--primary);
-}
-
 button,
 a,
 select,
@@ -1767,8 +1751,7 @@ select:disabled,
   .google,
   .task-check,
   .nav-link,
-  .add-orb,
-  .shortcut-card {
+  .add-orb {
     transition:
       transform 160ms ease,
       color 160ms ease,
@@ -1788,8 +1771,7 @@ select:disabled,
   }
   .pill:not(:disabled):hover,
   .icon-button:not(:disabled):hover,
-  .google:not(:disabled):hover,
-  .shortcut-card:hover {
+  .google:not(:disabled):hover {
     background: var(--primary-2);
     border-color: color-mix(in srgb, var(--primary) 65%, var(--border));
     color: var(--primary);
@@ -2583,7 +2565,6 @@ select:disabled,
     overflow-x: clip;
   }
 
-  .settings-shortcuts,
   .main > .surface,
   .settings-block,
   .personalization,
@@ -3245,5 +3226,108 @@ select:disabled,
 @media (max-width: 520px) {
   .restore-confirm-summary {
     grid-template-columns: 1fr;
+  }
+}
+
+.more-page {
+  width: min(100%, 720px);
+  margin-inline: auto;
+}
+.more-header {
+  margin-bottom: 1.25rem;
+}
+.more-header .title {
+  margin: 0.2rem 0 0.35rem;
+}
+.more-header > p:last-child {
+  max-width: 36rem;
+  margin: 0;
+  color: color-mix(in srgb, var(--foreground) 64%, transparent);
+  line-height: 1.55;
+}
+.more-groups {
+  display: grid;
+  gap: 1rem;
+}
+.more-group {
+  overflow: hidden;
+}
+.more-group h2 {
+  margin: 0;
+  padding: 0.9rem 1rem 0.65rem;
+  color: color-mix(in srgb, var(--foreground) 62%, transparent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.more-links {
+  display: grid;
+}
+.more-link {
+  display: grid;
+  min-height: 68px;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  color: inherit;
+  text-decoration: none;
+  border-top: 1px solid var(--border);
+  -webkit-tap-highlight-color: transparent;
+}
+.more-link-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: calc(var(--radius) * 0.72);
+  background: var(--primary-2);
+  color: var(--primary);
+}
+.more-link-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+.more-link-copy strong {
+  font-size: 0.94rem;
+}
+.more-link-copy small {
+  color: color-mix(in srgb, var(--foreground) 58%, transparent);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+.more-link-chevron {
+  color: color-mix(in srgb, var(--foreground) 42%, transparent);
+}
+.more-link:active {
+  background: var(--primary-2);
+}
+@media (hover: hover) and (pointer: fine) {
+  .more-link:hover {
+    background: color-mix(in srgb, var(--primary-2) 55%, transparent);
+  }
+  .more-link:hover .more-link-chevron {
+    color: var(--primary);
+    transform: translateX(2px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .more-link,
+  .more-link-chevron {
+    transition:
+      background 0.16s ease,
+      color 0.16s ease,
+      transform 0.16s ease;
+  }
+}
+@media (max-width: 374px) {
+  .more-link {
+    gap: 0.6rem;
+    padding-inline: 0.7rem;
+  }
+  .more-link-copy small {
+    font-size: 0.74rem;
   }
 }

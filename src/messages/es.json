@@ -33,7 +33,27 @@
     "statistics": "Estadísticas",
     "reminders": "Recordatorios",
     "alarms": "Alarmas",
-    "data": "Tus datos"
+    "data": "Tus datos",
+    "more": "Más"
+  },
+  "More": {
+    "description": "Accede al resto de herramientas y opciones de Planora.",
+    "navigationLabel": "Más secciones de Planora",
+    "groups": {
+      "activity": "Actividad",
+      "organization": "Organización",
+      "account": "Cuenta y aplicación"
+    },
+    "items": {
+      "history": "Consulta las tareas completadas y la actividad anterior.",
+      "statistics": "Comprende tu progreso y tus patrones de planificación.",
+      "reminders": "Gestiona notificaciones, recordatorios y alarmas.",
+      "schedules": "Organiza los horarios que estructuran tus rutinas.",
+      "categories": "Gestiona las categorías utilizadas en tus planes.",
+      "templates": "Reutiliza estructuras y configuraciones guardadas.",
+      "settings": "Ajusta la apariencia, el idioma y tus preferencias.",
+      "data": "Exporta o restaura de forma segura tu información."
+    }
   },
   "Today": {
     "greeting": "Buenos días",

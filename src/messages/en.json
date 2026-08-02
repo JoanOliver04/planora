@@ -33,7 +33,27 @@
     "statistics": "Statistics",
     "reminders": "Reminders",
     "alarms": "Alarms",
-    "data": "Your data"
+    "data": "Your data",
+    "more": "More"
+  },
+  "More": {
+    "description": "Access the rest of Planora's tools and options.",
+    "navigationLabel": "More Planora sections",
+    "groups": {
+      "activity": "Activity",
+      "organization": "Organization",
+      "account": "Account and app"
+    },
+    "items": {
+      "history": "Review completed tasks and past activity.",
+      "statistics": "Understand your progress and planning patterns.",
+      "reminders": "Manage notifications, reminders and alarms.",
+      "schedules": "Organize the schedules that shape your routines.",
+      "categories": "Manage the categories used across your plans.",
+      "templates": "Reuse saved structures and planning setups.",
+      "settings": "Adjust appearance, language and preferences.",
+      "data": "Export or safely restore your Planora information."
+    }
   },
   "Today": {
     "greeting": "Good morning",

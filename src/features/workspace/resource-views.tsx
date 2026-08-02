@@ -4,7 +4,7 @@ import * as Alert from "@radix-ui/react-alert-dialog";
 import { useEffect, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "@/components/theme-provider";
-import { Link, useRouter } from "@/i18n/routing";
+import { useRouter } from "@/i18n/routing";
 import { Archive, Copy, Edit3, Plus, RotateCcw, Trash2 } from "lucide-react";
 import {
   deleteCategory,
@@ -841,19 +841,6 @@ export function SettingsView({
   return (
     <>
       <h1 className="title">{t("settings")}</h1>
-      <nav className="settings-shortcuts" aria-label={t("settings")}>
-        {(["events", "history", "schedules", "categories"] as const).map(
-          (item) => (
-            <Link
-              className="surface shortcut-card"
-              href={`/${item}`}
-              key={item}
-            >
-              {t(item)}
-            </Link>
-          ),
-        )}
-      </nav>{" "}
       <section className="surface">
         <div className="settings-row">
           <span>{t("theme")}</span>

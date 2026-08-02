@@ -1,79 +1,53 @@
 "use client";
-import {
-  CalendarDays,
-  Clock3,
-  FolderKanban,
-  History,
-  LayoutList,
-  Plus,
-  Settings,
-  Tags,
-  LibraryBig,
-  ChartNoAxesCombined,
-  BellRing,
-  DatabaseBackup,
-} from "lucide-react";
+
+import { Plus } from "lucide-react";
 import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-const allItems = [
-  ["today", Clock3],
-  ["week", CalendarDays],
-  ["tasks", LayoutList],
-  ["events", CalendarDays],
-  ["history", History],
-  ["statistics", ChartNoAxesCombined],
-  ["reminders", BellRing],
-  ["schedules", FolderKanban],
-  ["categories", Tags],
-  ["templates", LibraryBig],
-  ["settings", Settings],
-  ["data", DatabaseBackup],
-] as const;
-const mobileKeys = new Set(["today", "week", "tasks", "events", "settings"]);
+import {
+  desktopNavigationItems,
+  isNavigationItemActive,
+  mobileNavigationItems,
+} from "@/config/navigation";
+
 export function AppNavigation({
   variant = "mobile",
 }: {
   variant?: "mobile" | "desktop";
 }) {
-  const t = useTranslations("Nav"),
-    path = usePathname(),
-    items =
-      variant === "desktop"
-        ? allItems
-        : allItems.filter(([key]) => mobileKeys.has(key));
+  const t = useTranslations("Nav");
+  const path = usePathname();
+  const items =
+    variant === "desktop" ? desktopNavigationItems : mobileNavigationItems;
+
   return (
     <>
-      {items.map(([key, Icon]) =>
-        variant === "mobile" && key === "tasks" ? (
+      {items.map((item) => {
+        const active = isNavigationItemActive(item.id, path);
+        const Icon = item.icon;
+        return (
           <Link
             className="nav-link"
-            data-active={path.includes("/tasks")}
-            aria-current={path.includes("/tasks") ? "page" : undefined}
-            href="/tasks"
-            key={key}
+            data-active={active}
+            aria-current={active ? "page" : undefined}
+            href={item.href}
+            key={item.id}
           >
-            <span className="add-orb">
-              <Plus />
-            </span>
-            <span>{t(key)}</span>
+            {variant === "mobile" && item.id === "tasks" ? (
+              <span className="add-orb" aria-hidden="true">
+                <Plus />
+              </span>
+            ) : (
+              <Icon size={20} aria-hidden="true" />
+            )}
+            <span>{t(item.id)}</span>
           </Link>
-        ) : (
-          <Link
-            className="nav-link"
-            data-active={path.includes(`/${key}`)}
-            aria-current={path.includes(`/${key}`) ? "page" : undefined}
-            href={`/${key}`}
-            key={key}
-          >
-            <Icon size={20} />
-            <span>{t(key)}</span>
-          </Link>
-        ),
-      )}
+        );
+      })}
     </>
   );
 }
+
 export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
   if (variant === "login") {
     return (

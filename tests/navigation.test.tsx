@@ -3,17 +3,28 @@ import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import messages from "@/messages/es.json";
 import { AppNavigation } from "@/components/navigation";
+import {
+  desktopNavigationItems,
+  isNavigationItemActive,
+  mobileNavigationItems,
+  moreNavigationItems,
+} from "@/config/navigation";
 
-afterEach(cleanup);
+const routing = vi.hoisted(() => ({ pathname: "/today" }));
 
 vi.mock("@/i18n/routing", () => ({
-  usePathname: () => "/today",
+  usePathname: () => routing.pathname,
   Link: ({ href, children, ...props }: React.ComponentProps<"a">) => (
     <a href={String(href)} {...props}>
       {children}
     </a>
   ),
 }));
+
+afterEach(() => {
+  cleanup();
+  routing.pathname = "/today";
+});
 
 function renderNavigation(variant: "mobile" | "desktop") {
   return render(
@@ -26,22 +37,60 @@ function renderNavigation(variant: "mobile" | "desktop") {
 }
 
 describe("main navigation", () => {
-  it("keeps five reachable mobile destinations", () => {
+  it("uses exactly five mobile destinations and replaces Settings with More", () => {
     renderNavigation("mobile");
     expect(screen.getAllByRole("link")).toHaveLength(5);
-    expect(screen.getByRole("link", { name: /Tareas/i })).toHaveAttribute(
-      "href",
-      "/tasks",
-    );
+    expect(
+      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
+    ).toEqual(["/today", "/week", "/tasks", "/events", "/more"]);
+    expect(screen.getByRole("link", { name: "Más" })).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Ajustes" })).toBeNull();
   });
 
-  it("exposes all management areas on desktop", () => {
+  it("keeps all twelve direct destinations in the desktop sidebar", () => {
     renderNavigation("desktop");
     expect(screen.getAllByRole("link")).toHaveLength(12);
     expect(screen.getByRole("link", { name: "Categorías" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Plantillas" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Tus datos" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "Estadísticas" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "Recordatorios" })).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Más" })).toBeNull();
+  });
+
+  it("gives every desktop route a mobile entry point", () => {
+    const reachable = new Set([
+      ...mobileNavigationItems.map((item) => item.id),
+      ...moreNavigationItems.map((item) => item.id),
+    ]);
+    expect(desktopNavigationItems.every((item) => reachable.has(item.id))).toBe(
+      true,
+    );
+    expect(moreNavigationItems.map((item) => item.id)).toEqual([
+      "history",
+      "schedules",
+      "settings",
+      "statistics",
+      "categories",
+      "data",
+      "reminders",
+      "templates",
+    ]);
+  });
+
+  it.each(["/statistics", "/reminders", "/data", "/es/settings/profile"])(
+    "keeps More active on %s",
+    (pathname) => {
+      routing.pathname = pathname;
+      renderNavigation("mobile");
+      expect(screen.getByRole("link", { name: "Más" })).toHaveAttribute(
+        "aria-current",
+        "page",
+      );
+    },
+  );
+
+  it("matches nested routes without partial-route collisions", () => {
+    expect(isNavigationItemActive("tasks", "/en/tasks/new")).toBe(true);
+    expect(isNavigationItemActive("events", "/en/eventual")).toBe(false);
+    expect(isNavigationItemActive("more", "/en/more")).toBe(true);
   });
 });
