@@ -64,7 +64,8 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          schedule_id: string;
+          schedule_id: string | null;
+          scope: "schedule" | "global";
           category_id: string | null;
           title: string;
           description: string | null;
@@ -154,7 +155,8 @@ export type Database = {
           request_id: string;
           user_id: string;
           template_key: string;
-          schedule_id: string;
+          schedule_id: string | null;
+          scope: "schedule" | "global";
           created_at: string;
         };
         Insert: Record<string, unknown>;

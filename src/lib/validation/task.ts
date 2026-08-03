@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 export const recurrenceConfigSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("once") }),
   z.object({ type: z.literal("daily") }),
@@ -21,7 +21,8 @@ export const taskSchema = z
     title: z.string().trim().min(1).max(140),
     description: z.string().max(2000).optional().nullable(),
     emoji: z.string().max(16).optional().nullable(),
-    scheduleId: z.string().uuid(),
+    scope: z.enum(["schedule", "global"]).default("schedule"),
+    scheduleId: z.string().uuid().optional().nullable(),
     categoryId: z.string().uuid().optional().nullable(),
     recurrence: recurrenceConfigSchema,
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -48,6 +49,8 @@ export const taskSchema = z
     ]),
   })
   .superRefine((v, c) => {
+    if (v.scope === "schedule" && !v.scheduleId) c.addIssue({ code: "custom", path: ["scheduleId"], message: "Schedule is required" });
+    if (v.scope === "global" && v.scheduleId) c.addIssue({ code: "custom", path: ["scheduleId"], message: "Global task cannot have schedule" });
     if (v.endDate && v.endDate < v.startDate)
       c.addIssue({
         code: "custom",

@@ -33,6 +33,7 @@ export function TaskForm({
       : null,
     [recurrence, setRecurrence] = useState(existing?.type ?? "once"),
     [timing, setTiming] = useState(task?.time_mode ?? "anytime"),
+    [scope, setScope] = useState<"schedule" | "global">(task?.scope ?? "schedule"),
     [scheduleId, setScheduleId] = useState(
       task?.schedule_id ??
         schedules.find((item) => !item.is_archived)?.id ??
@@ -73,7 +74,8 @@ export function TaskForm({
       title: String(fd.get("title")),
       description: String(fd.get("description") || "") || null,
       emoji: String(fd.get("emoji") || "") || null,
-      scheduleId: String(fd.get("scheduleId")),
+      scope,
+      scheduleId: scope === "global" ? null : String(fd.get("scheduleId")),
       categoryId: String(fd.get("categoryId") || "") || null,
       recurrence: recurrenceValue,
       startDate: String(fd.get("startDate") || "") || localDate(timezone),
@@ -110,6 +112,11 @@ export function TaskForm({
                 defaultValue={task?.title}
               />
             </label>
+            <fieldset className="availability-fieldset">
+              <legend>{t("categoryScope")}</legend>
+              <label className="scope-option"><input type="radio" name="scope" value="schedule" checked={scope === "schedule"} onChange={() => setScope("schedule")} /> <span><b>{t("scheduleOnly")}</b><small>{t("scheduleOnlyHint")}</small></span></label>
+              <label className="scope-option"><input type="radio" name="scope" value="global" checked={scope === "global"} onChange={() => setScope("global")} /> <span><b>{t("global")}</b><small>{t("globalHint")}</small></span></label>
+            </fieldset>
             <div className="form-row">
               <label>
                 {t("emoji")}
@@ -123,7 +130,9 @@ export function TaskForm({
                 {t("schedule")}
                 <select
                   name="scheduleId"
-                  value={scheduleId}
+                  disabled={scope === "global"}
+                  required={scope === "schedule"}
+                  value={scope === "global" ? "" : scheduleId}
                   onChange={(event) => setScheduleId(event.target.value)}
                 >
                   {schedules
@@ -140,7 +149,7 @@ export function TaskForm({
               {t("category")}
               <select name="categoryId" defaultValue={task?.category_id ?? ""}>
                 <option value="">—</option>
-                {categoriesForSchedule(categories, scheduleId).map((c) => (
+                {categoriesForSchedule(categories, scope === "global" ? null : scheduleId).map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.emoji} {c.name}
                   </option>
@@ -203,8 +212,7 @@ export function TaskForm({
                 />
               </label>
             )}
-            {recurrence === "interval" && (
-              <div className="form-row">
+            {recurrence === "interval" && (<div className="form-row">
                 <label>
                   {t("every")}
                   <input
@@ -279,8 +287,7 @@ export function TaskForm({
                   defaultValue={task?.end_time?.slice(0, 5) ?? "10:00"}
                 />
               </label>
-            )}
-            <div className="form-row">
+            )}<div className="form-row">
               <label>
                 {t("startDate")}
                 <input

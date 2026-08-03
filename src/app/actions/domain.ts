@@ -541,10 +541,13 @@ export async function saveTask(input: unknown, taskId?: string) {
     { db, user } = await auth(),
     r = v.recurrence,
     t = v.timing;
-  await assertCategoryScope(db, user.id, v.categoryId, v.scheduleId);
+  if (v.scope === "schedule" && !v.scheduleId) throw new Error("Schedule is required");
+  if (v.scope === "global" && v.scheduleId) throw new Error("Global task cannot have schedule");
+  await assertCategoryScope(db, user.id, v.categoryId, v.scope === "global" ? null : v.scheduleId);
   const payload = {
     user_id: user.id,
-    schedule_id: v.scheduleId,
+    schedule_id: v.scope === "global" ? null : v.scheduleId,
+    scope: v.scope,
     category_id: v.categoryId ?? null,
     title: v.title,
     description: v.description ?? null,

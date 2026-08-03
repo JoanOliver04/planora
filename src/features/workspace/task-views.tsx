@@ -245,7 +245,7 @@ export function TodayView({
     tasks = data.tasks
       .filter(
         (task) =>
-          task.schedule_id === active &&
+          (task.scope === "global" || task.schedule_id === active) &&
           !task.archived_at &&
           task.is_active &&
           isTaskExpectedOnDate(adapter(task), day),
@@ -283,7 +283,7 @@ export function TodayView({
     );
   const weeklyTasks = data.tasks.filter(
       (task) =>
-        task.schedule_id === active && !task.archived_at && task.is_active,
+        (task.scope === "global" || task.schedule_id === active) && !task.archived_at && task.is_active,
     ),
     recurring = weeklyTasks.map(adapter),
     completionMap = new Map(
@@ -558,7 +558,7 @@ export function WeekView({ data }: { data: WorkspaceData }) {
   const dayContent = (day: string) => {
     const tasks = data.tasks.filter(
         (task) =>
-          task.schedule_id === active &&
+          (task.scope === "global" || task.schedule_id === active) &&
           !task.archived_at &&
           isTaskExpectedOnDate(adapter(task), day),
       ),
@@ -733,7 +733,7 @@ export function TasksView({
   const tasks = useMemo(() => {
     const filtered = filterTasks(data.tasks, data.completions, status).filter(
       (task) =>
-        task.schedule_id === data.profile.active_schedule_id &&
+        (task.scope === "global" || task.schedule_id === data.profile.active_schedule_id) &&
         (category === "all" || task.category_id === category) &&
         task.title.toLowerCase().includes(search.toLowerCase()),
     );
@@ -847,7 +847,7 @@ export function TasksView({
           const merged = data.tasks
             .filter(
               (item) =>
-                item.schedule_id === data.profile.active_schedule_id &&
+                (item.scope === "global" || item.schedule_id === data.profile.active_schedule_id) &&
                 !item.archived_at,
             )
             .map((item) =>
