@@ -43,6 +43,7 @@ export function calculateStatistics(
 ): Statistics {
   const today = localDate(data.profile.timezone, now);
   const todayDate = parseISO(today);
+  const completions = [...new Map(data.completions.map((item) => [`${item.task_id}:${item.occurrence_date}`, item])).values()];
   const weekday = (todayDate.getDay() + 6) % 7;
   const weekStart = subDays(todayDate, weekday);
   const previousWeekStart = subDays(weekStart, 7);
@@ -50,7 +51,7 @@ export function calculateStatistics(
   const previousMonthEnd = subDays(monthStart, 1);
   const previousMonthStart = startOfMonth(previousMonthEnd);
   const between = (from: Date, to: Date) =>
-    data.completions.filter(
+    completions.filter(
       (item) =>
         item.occurrence_date >= iso(from) && item.occurrence_date <= iso(to),
     ).length;
@@ -59,7 +60,7 @@ export function calculateStatistics(
   const monthCurrent = between(monthStart, todayDate);
   const monthPrevious = between(previousMonthStart, previousMonthEnd);
   const counts = new Map<string, number>();
-  data.completions.forEach((item) =>
+  completions.forEach((item) =>
     counts.set(
       item.occurrence_date,
       (counts.get(item.occurrence_date) ?? 0) + 1,
@@ -93,7 +94,7 @@ export function calculateStatistics(
       streak += 1;
   }
   const categoryCounts = new Map<string, number>();
-  data.completions.forEach((item) => {
+  completions.forEach((item) => {
     const snapshot = item.task_snapshot as Record<string, unknown>;
     const name = String(snapshot.category_name ?? "");
     if (name) categoryCounts.set(name, (categoryCounts.get(name) ?? 0) + 1);
@@ -123,7 +124,7 @@ export function calculateStatistics(
     .filter((item) => item.completed > 0 || item.rate > 0)
     .sort((a, b) => b.completed - a.completed);
   const dayPartCounts = { morning: 0, afternoon: 0, night: 0 };
-  data.completions.forEach((item) => {
+  completions.forEach((item) => {
     const hour = Number(
       formatInTimeZone(new Date(item.completed_at), data.profile.timezone, "H"),
     );
@@ -135,7 +136,7 @@ export function calculateStatistics(
           : "night"
     ] += 1;
   });
-  const total = data.completions.length || 1;
+  const total = completions.length || 1;
   const dayParts = (["morning", "afternoon", "night"] as const).map((key) => ({
     key,
     count: dayPartCounts[key],

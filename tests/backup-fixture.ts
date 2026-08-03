@@ -47,6 +47,7 @@ export function backupFixture(): BackupData {
       {
         id: backupIds.task,
         schedule_id: backupIds.schedule,
+        scope: "schedule",
         category_id: backupIds.category,
         title: "Focus deeply",
         description: null,

@@ -17,7 +17,7 @@ export default async function RemindersPage({
     db.from("reminders").select("*").order("next_trigger_at"),
     db
       .from("tasks")
-      .select("id,title,emoji,start_date,start_time")
+      .select("id,title,emoji,start_date,start_time,scope")
       .is("archived_at", null)
       .eq("is_active", true)
       .order("sort_order"),

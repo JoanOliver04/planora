@@ -113,6 +113,18 @@ describe("portable backups", () => {
     expect(second.events).toHaveLength(1);
   });
 
+  it("round-trips global tasks without schedule references", () => {
+    const backup = createBackup(backupFixture());
+    backup.data.tasks[0] = { ...backup.data.tasks[0], scope: "global", schedule_id: null };
+    const parsed = parseBackup(backup);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      const payload = prepareRestorePayload(parsed.data);
+      expect(payload.tasks[0].scope).toBe("global");
+      expect(payload.tasks[0].schedule_id).toBeNull();
+    }
+  });
+
   it("supports an empty backup", () => {
     const empty = backupFixture();
     empty.profile!.active_schedule_id = null;

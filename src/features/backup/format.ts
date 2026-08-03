@@ -42,7 +42,8 @@ const categorySchema = z.object({
 
 const taskSchema = z.object({
   id: uuid,
-  schedule_id: uuid,
+  scope: z.enum(["schedule", "global"]).default("schedule"),
+  schedule_id: nullableUuid.default(null),
   category_id: nullableUuid,
   title: z.string().min(1).max(140),
   description: z.string().max(2000).nullable(),
@@ -172,8 +173,10 @@ const backupDataSchema = z
       if (item.schedule_id && !schedules.has(item.schedule_id))
         invalid("Category references an unknown schedule");
     for (const item of data.tasks) {
-      if (!schedules.has(item.schedule_id))
-        invalid("Task references an unknown schedule");
+      if (item.scope === "schedule" && (!item.schedule_id || !schedules.has(item.schedule_id)))
+        invalid("Schedule task references an unknown schedule");
+      if (item.scope === "global" && item.schedule_id !== null)
+        invalid("Global task must not reference a schedule");
       if (item.category_id && !categories.has(item.category_id))
         invalid("Task references an unknown category");
       if (item.end_date && item.end_date < item.start_date)
@@ -396,7 +399,8 @@ export function prepareRestorePayload(backup: PlanoraBackup) {
     tasks: backup.data.tasks.map((item) => ({
       ...item,
       id: taskIds.get(item.id)!,
-      schedule_id: scheduleIds.get(item.schedule_id)!,
+      scope: item.scope,
+      schedule_id: item.scope === "global" ? null : item.schedule_id ? scheduleIds.get(item.schedule_id)! : null,
       category_id: mapped(categoryIds, item.category_id),
     })),
     events: backup.data.events.map((item) => ({

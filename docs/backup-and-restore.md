@@ -1,6 +1,6 @@
 # Backup and restore
 
-Planora exports UTF-8 JSON backups with explicit metadata (`format`, `schemaVersion`, `backupId`, `createdAt`, `exportedBy`, locale and timezone), separate CSV tables, and an RFC 5545-compatible ICS calendar. Version 2 is the current JSON contract. Genuine version 1 exports are migrated in memory, validated against the current model, and never modified on disk.
+Planora exports UTF-8 JSON backups with explicit metadata (`format`, `schemaVersion`, `backupId`, `createdAt`, `exportedBy`, locale and timezone), separate CSV tables, and an RFC 5545-compatible ICS calendar. Version 2 is the current JSON contract. Each task record includes `scope` (`schedule` or `global`). Global tasks use `schedule_id: null`; schedule tasks require a valid `schedule_id`. Backups without `scope` are treated as schedule-scoped for backward compatibility. Genuine version 1 exports are migrated in memory, validated against the current model, and never modified on disk.
 
 ## Restore semantics
 

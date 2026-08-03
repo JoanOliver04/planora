@@ -84,6 +84,7 @@ export function TaskCard({
         locale,
       ),
       progress,
+      task.scope === "global" ? t("global") : null,
     ]);
   return (
     <article
@@ -875,6 +876,7 @@ export function TasksView({
                 locale,
               ),
               timing,
+              task.scope === "global" ? t("global") : null,
             ]);
           return (
             <article

@@ -55,6 +55,14 @@ describe("statistics analytics", () => {
     expect(result.dayParts.find((part) => part.key === "night")?.count).toBe(1);
   });
 
+  it("deduplicates malformed duplicate task occurrences", () => {
+    const data = fixture();
+    data.completions.push({ ...data.completions[0], id: "duplicate" });
+    const result = calculateStatistics(data, new Date("2026-08-01T12:00:00Z"));
+    expect(result.week.current).toBe(3);
+    expect(result.categories[0].completed).toBe(3);
+  });
+
   it("builds a labelled 91-day heatmap including empty days", () => {
     const result = calculateStatistics(
       fixture(),

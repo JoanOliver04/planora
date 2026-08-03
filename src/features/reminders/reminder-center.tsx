@@ -44,6 +44,7 @@ type Target = {
   date: string;
   time: string | null;
   type: "task" | "event";
+  scope?: "schedule" | "global";
 };
 
 function normalizeSearch(value: string) {
@@ -181,7 +182,7 @@ function TargetCombobox({
                 <span>
                   <strong>{item.title}</strong>
                   <small>
-                    {item.date}
+                    {item.scope === "global" ? "Global · " : ""}{item.date}
                     {item.time ? ` · ${item.time.slice(0, 5)}` : ""}
                   </small>
                 </span>
@@ -239,6 +240,7 @@ export function ReminderCenter({
     emoji: string | null;
     start_date: string;
     start_time: string | null;
+    scope: "schedule" | "global";
   }>;
   events: Array<{
     id: string;
@@ -298,6 +300,7 @@ export function ReminderCenter({
       date: item.start_date,
       time: item.start_time,
       type: "task" as const,
+      scope: item.scope,
     })),
     ...events.map((item) => ({
       id: item.id,
