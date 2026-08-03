@@ -39,6 +39,7 @@ export function TaskForm({
         schedules.find((item) => !item.is_archived)?.id ??
         "",
     ),
+    [categoryId, setCategoryId] = useState(task?.category_id ?? ""),
     [pending, startTransition] = useTransition();
 
   const weekdays = existing?.type === "weekdays" ? existing.weekdays : [];
@@ -84,7 +85,11 @@ export function TaskForm({
     };
     startTransition(async () => {
       try {
-        await saveTask(input, task?.id);
+        const result = await saveTask(input, task?.id);
+        if (!result.ok) {
+          toast.error(result.error.message);
+          return;
+        }
         await onSaved();
         toast.success(t("success"));
         onOpenChange(false);
@@ -115,7 +120,7 @@ export function TaskForm({
             <fieldset className="availability-fieldset">
               <legend>{t("categoryScope")}</legend>
               <label className="scope-option"><input type="radio" name="scope" value="schedule" checked={scope === "schedule"} onChange={() => setScope("schedule")} /> <span><b>{t("scheduleOnly")}</b><small>{t("scheduleOnlyHint")}</small></span></label>
-              <label className="scope-option"><input type="radio" name="scope" value="global" checked={scope === "global"} onChange={() => setScope("global")} /> <span><b>{t("global")}</b><small>{t("globalHint")}</small></span></label>
+              <label className="scope-option"><input type="radio" name="scope" value="global" checked={scope === "global"} onChange={() => { setScope("global"); setCategoryId(""); }} /> <span><b>{t("global")}</b><small>{t("globalHint")}</small></span></label>
             </fieldset>
             <div className="form-row">
               <label>
@@ -147,7 +152,7 @@ export function TaskForm({
             </div>
             <label>
               {t("category")}
-              <select name="categoryId" defaultValue={task?.category_id ?? ""}>
+              <select name="categoryId" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
                 <option value="">—</option>
                 {categoriesForSchedule(categories, scope === "global" ? null : scheduleId).map((c) => (
                   <option key={c.id} value={c.id}>

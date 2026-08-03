@@ -25,12 +25,13 @@ export const taskSchema = z
     scheduleId: z.string().uuid().optional().nullable(),
     categoryId: z.string().uuid().optional().nullable(),
     recurrence: recurrenceConfigSchema,
+    // HTML date inputs submit local calendar dates. Keep them as strings so
+    // they are never shifted through UTC Date serialization.
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    endDate: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/)
-      .optional()
-      .nullable(),
+    endDate: z.preprocess(
+      (value) => (value === "" ? null : value),
+      z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+    ),
     timing: z.discriminatedUnion("mode", [
       z.object({ mode: z.literal("anytime") }),
       z.object({

@@ -119,6 +119,17 @@ async function assertCategoryScope(
     throw new Error("Category is not available in this schedule");
 }
 const refresh = () => revalidatePath("/", "layout");
+export type SaveTaskResult =
+  | { ok: true; taskId: string }
+  | {
+      ok: false;
+      error: {
+        code: "VALIDATION_ERROR" | "UNAUTHORIZED" | "NOT_FOUND" | "FORBIDDEN" | "DATABASE_ERROR";
+        message: string;
+        fieldErrors?: Record<string, string[]>;
+        supabaseCode?: string;
+      };
+    };
 export async function completeGuidedOnboarding(input: unknown) {
   const value = guidedOnboardingSchema.parse(input);
   const { db } = await auth();
@@ -545,45 +556,29 @@ export async function deleteCategory(value: string, reassignTo: string | null) {
   if (error) throw new Error("Unable to delete category");
   refresh();
 }
-export async function saveTask(input: unknown, taskId?: string) {
-  const v = taskSchema.parse(input),
-    { db, user } = await auth(),
-    r = v.recurrence,
-    t = v.timing;
-  if (v.scope === "schedule" && !v.scheduleId) throw new Error("Schedule is required");
-  if (v.scope === "global" && v.scheduleId) throw new Error("Global task cannot have schedule");
-  await assertCategoryScope(db, user.id, v.categoryId, v.scope === "global" ? null : v.scheduleId);
-  const payload = {
-    user_id: user.id,
-    schedule_id: v.scope === "global" ? null : v.scheduleId,
-    scope: v.scope,
-    category_id: v.categoryId ?? null,
-    title: v.title,
-    description: v.description ?? null,
-    emoji: v.emoji ?? null,
-    task_kind: r.type === "once" ? ("one_time" as const) : ("habit" as const),
-    recurrence_type: r.type,
-    recurrence_config: r,
-    time_mode: t.mode,
-    day_part: t.mode === "day_part" ? t.dayPart : null,
-    start_time:
-      t.mode === "specific_time" || t.mode === "time_range"
-        ? t.startTime
-        : null,
-    end_time: t.mode === "time_range" ? t.endTime : null,
-    start_date: v.startDate,
-    end_date: v.endDate ?? null,
-    is_active: true,
-  };
-  const { error } = taskId
-    ? await db
-        .from("tasks")
-        .update(payload)
-        .eq("id", id.parse(taskId))
-        .eq("user_id", user.id)
-    : await db.from("tasks").insert(payload);
-  if (error) throw new Error("Unable to save task");
+﻿export async function saveTask(input: unknown, taskId?: string): Promise<SaveTaskResult> {
+  const parsed = taskSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid task data', fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> } };
+  const v = parsed.data;
+  const { db, user } = await auth();
+  const taskIdValue = taskId ? id.safeParse(taskId) : null;
+  if (taskId && !taskIdValue?.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid task id' } };
+  const scheduleId = v.scope === 'global' ? null : v.scheduleId ?? null;
+  if (scheduleId) {
+    const { data: schedule, error: scheduleError } = await db.from('schedules').select('id').eq('id', scheduleId).eq('user_id', user.id).maybeSingle();
+    if (scheduleError) return { ok: false, error: { code: 'DATABASE_ERROR', message: 'Unable to verify schedule', supabaseCode: scheduleError.code } };
+    if (!schedule) return { ok: false, error: { code: 'FORBIDDEN', message: 'Schedule is not available' } };
+  }
+  try { await assertCategoryScope(db, user.id, v.categoryId, scheduleId); }
+  catch (error) { return { ok: false, error: { code: error instanceof Error && error.message === 'Category not found' ? 'NOT_FOUND' : 'FORBIDDEN', message: error instanceof Error ? error.message : 'Category is not available' } }; }
+  const r = v.recurrence, t = v.timing;
+  const payload = { schedule_id: scheduleId, scope: v.scope, category_id: v.categoryId ?? null, title: v.title, description: v.description ?? null, emoji: v.emoji ?? null, task_kind: r.type === 'once' ? ('one_time' as const) : ('habit' as const), recurrence_type: r.type, recurrence_config: r, time_mode: t.mode, day_part: t.mode === 'day_part' ? t.dayPart : null, start_time: t.mode === 'specific_time' || t.mode === 'time_range' ? t.startTime : null, end_time: t.mode === 'time_range' ? t.endTime : null, start_date: v.startDate, end_date: v.endDate ?? null };
+  const query = taskIdValue?.success ? db.from('tasks').update(payload).eq('id', taskIdValue.data).eq('user_id', user.id).select('id').maybeSingle() : db.from('tasks').insert({ ...payload, user_id: user.id, is_active: true }).select('id').single();
+  const { data, error } = await query;
+  if (error) { console.error('saveTask Supabase error', { code: error.code, message: error.message, details: error.details, hint: error.hint }); return { ok: false, error: { code: 'DATABASE_ERROR', message: 'Unable to save task', supabaseCode: error.code } }; }
+  if (!data) return { ok: false, error: { code: 'NOT_FOUND', message: 'Task not found' } };
   refresh();
+  return { ok: true, taskId: data.id };
 }
 export async function setTaskArchived(value: string, archived: boolean) {
   const taskId = id.parse(value),
