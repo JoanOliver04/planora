@@ -256,6 +256,15 @@ export async function saveReminder(input: unknown) {
   if (value.targetType === "alarm" && !value.title)
     throw new Error("Alarm title is required");
   const { db, user } = await auth();
+  if (value.targetType === "task" && value.targetId) {
+    const { data: task, error: taskError } = await db.from("tasks").select("id,scope,schedule_id,archived_at,is_active").eq("id", value.targetId).eq("user_id", user.id).maybeSingle();
+    if (taskError) throw new Error("Unable to validate reminder task");
+    if (!task || task.archived_at || !task.is_active) throw new Error("Task is unavailable");
+    const { data: profile, error: profileError } = await db.from("profiles").select("active_schedule_id").eq("id", user.id).single();
+    if (profileError) throw new Error("Unable to validate reminder task");
+    const allowed = task.scope === "global" ? task.schedule_id === null : Boolean(profile.active_schedule_id) && task.schedule_id === profile.active_schedule_id;
+    if (!allowed) throw new Error("Task is not available in the active schedule");
+  }
   const payload = {
     user_id: user.id,
     task_id: value.targetType === "task" ? value.targetId : null,

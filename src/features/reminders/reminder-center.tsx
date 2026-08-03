@@ -35,6 +35,7 @@ import {
   type NotificationPreferences,
 } from "./preferences";
 import type { Database } from "@/types/database";
+import { normalizeTaskSearch } from "@/lib/workspace/task-search";
 
 type Reminder = Database["public"]["Tables"]["reminders"]["Row"];
 type Target = {
@@ -46,14 +47,6 @@ type Target = {
   type: "task" | "event";
   scope?: "schedule" | "global";
 };
-
-function normalizeSearch(value: string) {
-  return value
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLocaleLowerCase();
-}
 
 function formatDuration(
   days: number,
@@ -82,6 +75,11 @@ function TargetCombobox({
   emptyLabel,
   placeholder,
   clearLabel,
+  noMatchLabel,
+  errorLabel,
+  hasError = false,
+  onRetry,
+  unavailableLabel,
 }: {
   targets: Target[];
   value: string;
@@ -89,6 +87,11 @@ function TargetCombobox({
   emptyLabel: string;
   placeholder: string;
   clearLabel: string;
+  noMatchLabel: string;
+  errorLabel: string;
+  hasError?: boolean;
+  onRetry?: () => void;
+  unavailableLabel: string;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -96,9 +99,9 @@ function TargetCombobox({
   const inputRef = useRef<HTMLInputElement>(null);
   const selected = targets.find((item) => item.type + ":" + item.id === value);
   const results = useMemo(() => {
-    const needle = normalizeSearch(query);
+    const needle = normalizeTaskSearch(query);
     return targets
-      .filter((item) => !needle || normalizeSearch(item.title).includes(needle))
+      .filter((item) => !needle || normalizeTaskSearch(item.title).includes(needle))
       .slice(0, 50);
   }, [query, targets]);
   function choose(item: Target) {
@@ -166,7 +169,9 @@ function TargetCombobox({
           id="reminder-target-options"
           role="listbox"
         >
-          {results.length ? (
+          {hasError ? (
+            <div className="target-combobox-empty"><p>{errorLabel}</p>{onRetry && <button type="button" className="pill" onClick={onRetry}>Retry</button>}</div>
+          ) : results.length ? (
             results.map((item, index) => (
               <button
                 type="button"
@@ -189,11 +194,11 @@ function TargetCombobox({
               </button>
             ))
           ) : (
-            <p className="target-combobox-empty">{emptyLabel}</p>
+            <p className="target-combobox-empty">{query.trim() ? noMatchLabel : emptyLabel}</p>
           )}
         </div>
       )}
-      {!selected && value && <p className="target-unavailable">{emptyLabel}</p>}
+      {!selected && value && <p className="target-unavailable">{unavailableLabel}</p>}
     </div>
   );
 }
@@ -230,6 +235,7 @@ export function ReminderCenter({
   reminders,
   tasks,
   events,
+  taskLoadError = false,
 }: {
   locale: "es" | "en";
   timezone: string;
@@ -242,6 +248,7 @@ export function ReminderCenter({
     start_time: string | null;
     scope: "schedule" | "global";
   }>;
+  taskLoadError?: boolean;
   events: Array<{
     id: string;
     title: string;
@@ -795,6 +802,11 @@ export function ReminderCenter({
                 targetKind === "task" ? t("noTasksFound") : t("noEventsFound")
               }
               clearLabel={t("clearSelection")}
+              noMatchLabel={targetKind === "task" ? t("noTasksMatch") : t("noEventsFound")}
+              errorLabel={t("tasksLoadError")}
+              hasError={targetKind === "task" && taskLoadError}
+              onRetry={() => router.refresh()}
+                          unavailableLabel={t("taskUnavailable")}
             />
           </label>
           <label>

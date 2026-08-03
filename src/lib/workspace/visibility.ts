@@ -1,4 +1,4 @@
-﻿import { fromZonedTime } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 import type { Completion, Event, Task } from "@/features/workspace/types";
 
 export type EventVisibility = "active" | "finished" | "all";
@@ -42,4 +42,9 @@ export function filterTasks(
       task.recurrence_type === "once" && completedTaskIds.has(task.id);
     return visibility === "completed" ? completed : !completed;
   });
+}
+
+export function isTaskAvailableInSchedule(task: Pick<Task, "scope" | "schedule_id" | "archived_at" | "is_active">, activeScheduleId: string | null) {
+  if (task.archived_at || !task.is_active) return false;
+  return task.scope === "global" ? task.schedule_id === null : task.schedule_id === activeScheduleId && activeScheduleId !== null;
 }

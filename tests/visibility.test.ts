@@ -1,8 +1,9 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   filterEvents,
   filterTasks,
   isEventFinished,
+  isTaskAvailableInSchedule,
 } from "@/lib/workspace/visibility";
 import type { Completion, Event, Task } from "@/features/workspace/types";
 
@@ -64,6 +65,13 @@ describe("task visibility", () => {
     expect(
       filterTasks(tasks, completions, "active").map((item) => item.id),
     ).toEqual(["open", "habit"]);
+  });
+
+  it("combines active schedule tasks and globals only", () => {
+    expect(isTaskAvailableInSchedule(task({ scope: "schedule", schedule_id: "summer", is_active: true }), "summer")).toBe(true);
+    expect(isTaskAvailableInSchedule(task({ scope: "schedule", schedule_id: "winter", is_active: true }), "summer")).toBe(false);
+    expect(isTaskAvailableInSchedule(task({ scope: "global", schedule_id: null, is_active: true }), null)).toBe(true);
+    expect(isTaskAvailableInSchedule(task({ scope: "global", schedule_id: "summer", is_active: true }), "summer")).toBe(false);
   });
 
   it("shows completed one-time and archived tasks in their filters", () => {
