@@ -3,10 +3,7 @@ import type { FocusPresetInput } from "./validation";
 
 /** Localized template keys. Labels live in next-intl (`Focus.templates.*`). */
 export type FocusPresetTemplateKey =
-  | "pomodoro"
-  | "focus50"
-  | "deep90"
-  | "stopwatch";
+  "pomodoro" | "focus50" | "deep90" | "stopwatch";
 
 export type FocusPresetTemplate = {
   key: FocusPresetTemplateKey;
@@ -108,7 +105,11 @@ export function templateToPresetInput(
 
 /** Favorites first, then personal sort order. Recent usage is display-only. */
 export function orderPresetsForHome<
-  T extends { isFavorite: boolean; sortOrder: number; archivedAt: string | null },
+  T extends {
+    isFavorite: boolean;
+    sortOrder: number;
+    archivedAt: string | null;
+  },
 >(presets: T[]): T[] {
   return [...presets]
     .filter((preset) => !preset.archivedAt)

@@ -64,11 +64,13 @@ describe("focus deep links", () => {
   });
 
   it("resolves quick and preset drafts and ignores deleted presets", () => {
-    expect(resolveDeepLinkDraft({
-      params: { start: "quick" },
-      today: "2026-08-07",
-      presets: [preset],
-    })).toMatchObject({
+    expect(
+      resolveDeepLinkDraft({
+        params: { start: "quick" },
+        today: "2026-08-07",
+        presets: [preset],
+      }),
+    ).toMatchObject({
       autoOpen: true,
       draft: { quickKey: "quick-25", focusDurationSec: 1500 },
     });

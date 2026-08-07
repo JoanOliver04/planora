@@ -43,7 +43,14 @@ export function calculateStatistics(
 ): Statistics {
   const today = localDate(data.profile.timezone, now);
   const todayDate = parseISO(today);
-  const completions = [...new Map(data.completions.map((item) => [`${item.task_id}:${item.occurrence_date}`, item])).values()];
+  const completions = [
+    ...new Map(
+      data.completions.map((item) => [
+        `${item.task_id}:${item.occurrence_date}`,
+        item,
+      ]),
+    ).values(),
+  ];
   const weekday = (todayDate.getDay() + 6) % 7;
   const weekStart = subDays(todayDate, weekday);
   const previousWeekStart = subDays(weekStart, 7);

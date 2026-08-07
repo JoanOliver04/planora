@@ -100,7 +100,9 @@ export function FocusTodayShortcuts({
         </span>
         <div>
           <p className="eyebrow">{t("shortcuts.eyebrow")}</p>
-          <h2 className="focus-today-shortcuts-title">{t("shortcuts.title")}</h2>
+          <h2 className="focus-today-shortcuts-title">
+            {t("shortcuts.title")}
+          </h2>
         </div>
       </div>
       <div className="focus-today-shortcut-list">

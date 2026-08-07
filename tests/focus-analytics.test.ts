@@ -46,10 +46,7 @@ function completeSession(
   ).session;
 }
 
-function cancelSession(
-  atStart: string,
-  focusSec: number,
-): FocusSession {
+function cancelSession(atStart: string, focusSec: number): FocusSession {
   const createId = idFactory("c");
   const start = Date.parse(atStart);
   const started = createStartedSession(
@@ -122,8 +119,9 @@ describe("calculateFocusStatistics", () => {
   });
 
   it("keeps insufficient insights below the minimum sample", () => {
-    const sessions = Array.from({ length: FOCUS_INSIGHT_MIN_SAMPLE - 1 }, (_, i) =>
-      completeSession(`2026-08-0${i + 1}T09:00:00Z`, 600 + i * 60),
+    const sessions = Array.from(
+      { length: FOCUS_INSIGHT_MIN_SAMPLE - 1 },
+      (_, i) => completeSession(`2026-08-0${i + 1}T09:00:00Z`, 600 + i * 60),
     );
     const stats = calculateFocusStatistics({
       sessions,
@@ -139,9 +137,13 @@ describe("calculateFocusStatistics", () => {
 
   it("emits optional insights with enough completed sessions", () => {
     const sessions = Array.from({ length: 6 }, (_, i) =>
-      completeSession(`2026-08-0${Math.min(i + 1, 7)}T09:30:00Z`, 900 + i * 30, {
-        linkSnapshot: { categoryName: i < 4 ? "Study" : "Work" },
-      }),
+      completeSession(
+        `2026-08-0${Math.min(i + 1, 7)}T09:30:00Z`,
+        900 + i * 30,
+        {
+          linkSnapshot: { categoryName: i < 4 ? "Study" : "Work" },
+        },
+      ),
     );
     const stats = calculateFocusStatistics({
       sessions,

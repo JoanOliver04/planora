@@ -64,10 +64,7 @@ export function FocusPresetManager({
   const [showArchived, setShowArchived] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<FocusPreset | null>(null);
 
-  const activePresets = useMemo(
-    () => orderPresetsForHome(presets),
-    [presets],
-  );
+  const activePresets = useMemo(() => orderPresetsForHome(presets), [presets]);
   const archivedPresets = useMemo(
     () => presets.filter((preset) => Boolean(preset.archivedAt)),
     [presets],
@@ -98,7 +95,9 @@ export function FocusPresetManager({
     setEditorOpen(true);
   }
 
-  function createFromTemplate(key: (typeof FOCUS_PRESET_TEMPLATES)[number]["key"]) {
+  function createFromTemplate(
+    key: (typeof FOCUS_PRESET_TEMPLATES)[number]["key"],
+  ) {
     const template = FOCUS_PRESET_TEMPLATES.find((item) => item.key === key);
     if (!template || pending) return;
     startTransition(async () => {
@@ -176,7 +175,9 @@ export function FocusPresetManager({
                     {preset.focusDurationSec
                       ? ` · ${formatFocusDuration(preset.focusDurationSec, "compact")}`
                       : ""}
-                    {preset.isFavorite ? ` · ${t("presets.favoriteBadge")}` : ""}
+                    {preset.isFavorite
+                      ? ` · ${t("presets.favoriteBadge")}`
+                      : ""}
                     {recent ? ` · ${t("presets.recentBadge")}` : ""}
                   </small>
                 </button>
@@ -354,13 +355,13 @@ export function FocusPresetManager({
               </button>
               {showArchived
                 ? archivedPresets.map((preset) => (
-                    <div
-                      className="focus-preset-manage-row"
-                      key={preset.id}
-                    >
+                    <div className="focus-preset-manage-row" key={preset.id}>
                       <span>
                         <strong>{preset.name}</strong>
-                        <small className="muted"> {t("presets.archivedBadge")}</small>
+                        <small className="muted">
+                          {" "}
+                          {t("presets.archivedBadge")}
+                        </small>
                       </span>
                       <div className="focus-preset-card-actions">
                         <button

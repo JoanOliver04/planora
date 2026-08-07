@@ -57,7 +57,10 @@ export function isDesktopPointer(): boolean {
  * Returns null when the event should pass through.
  */
 export function resolveFocusShortcut(
-  event: Pick<KeyboardEvent, "key" | "code" | "shiftKey" | "ctrlKey" | "metaKey" | "altKey">,
+  event: Pick<
+    KeyboardEvent,
+    "key" | "code" | "shiftKey" | "ctrlKey" | "metaKey" | "altKey"
+  >,
   ctx: FocusShortcutContext,
 ): FocusShortcutAction | null {
   if (!ctx.enabled || !ctx.desktop) return null;

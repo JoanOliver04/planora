@@ -17,6 +17,8 @@ export function localWeek(
   return {
     start: format(start),
     end: format(new Date(start.getTime() + 6 * 86_400_000)),
-    days: Array.from({ length: 7 }, (_, i) => format(new Date(start.getTime() + i * 86_400_000))),
+    days: Array.from({ length: 7 }, (_, i) =>
+      format(new Date(start.getTime() + i * 86_400_000)),
+    ),
   };
 }

@@ -97,7 +97,9 @@ function median(values: number[]): number | null {
 
 function mean(values: number[]): number | null {
   if (values.length === 0) return null;
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  return Math.round(
+    values.reduce((sum, value) => sum + value, 0) / values.length,
+  );
 }
 
 function dayPartFromHour(hour: number): "morning" | "afternoon" | "night" {
@@ -177,7 +179,10 @@ function countCompletedBlocks(session: FocusSession): number {
 }
 
 function toBuckets(
-  map: Map<string, { label: string; colour?: string; focusSec: number; sessions: number }>,
+  map: Map<
+    string,
+    { label: string; colour?: string; focusSec: number; sessions: number }
+  >,
   totalFocus: number,
 ): FocusNamedBucket[] {
   return [...map.entries()]
@@ -275,9 +280,7 @@ export function calculateFocusStatistics(input: {
       ? input.categoryNames?.get(session.categoryId)
       : undefined;
     const categoryLabel =
-      session.linkSnapshot.categoryName ??
-      categoryMeta?.name ??
-      "—";
+      session.linkSnapshot.categoryName ?? categoryMeta?.name ?? "—";
     const category = categoryMap.get(categoryKey) ?? {
       label: categoryLabel,
       colour:
@@ -292,7 +295,8 @@ export function calculateFocusStatistics(input: {
     categoryMap.set(categoryKey, category);
 
     if (session.taskId || session.linkSnapshot.taskTitle) {
-      const taskKey = session.taskId ?? session.linkSnapshot.taskTitle ?? "task";
+      const taskKey =
+        session.taskId ?? session.linkSnapshot.taskTitle ?? "task";
       const task = taskMap.get(taskKey) ?? {
         label: session.linkSnapshot.taskTitle ?? "—",
         focusSec: 0,
@@ -337,8 +341,7 @@ export function calculateFocusStatistics(input: {
     totalPausedSec,
     completedSessions: completed.length,
     cancelledSessions: cancelled.length,
-    completionRate:
-      terminal === 0 ? null : completed.length / terminal,
+    completionRate: terminal === 0 ? null : completed.length / terminal,
     meanDurationSec: mean(durations),
     medianDurationSec: median(durations),
     completedBlocks,

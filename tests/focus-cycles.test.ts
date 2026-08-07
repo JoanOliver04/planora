@@ -6,7 +6,10 @@ import {
   planNextPhase,
   summarizeEndedSession,
 } from "@/features/focus/cycles";
-import { evaluateFocusEngine, shouldAutoStartNextPhase } from "@/features/focus/engine";
+import {
+  evaluateFocusEngine,
+  shouldAutoStartNextPhase,
+} from "@/features/focus/engine";
 import {
   applyFocusAction,
   createStartedSession,
@@ -49,11 +52,15 @@ describe("focus cycles and breaks", () => {
   it("supports a single-cycle session that completes after one focus", () => {
     const t0 = Date.parse("2026-08-07T10:00:00.000Z");
     let session = startCycles({ targetCycles: 1, shortBreakSec: 30 }, t0);
-    session = applyFocusAction(session, { type: "finish_phase" }, {
-      now: t0 + 60_000,
-      expectedRevision: session.revision,
-      createId: idFactory("one"),
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now: t0 + 60_000,
+        expectedRevision: session.revision,
+        createId: idFactory("one"),
+      },
+    ).session;
     expect(session.status).toBe("completed");
     expect(countCompletedFocusBlocks(session)).toBe(1);
     const summary = summarizeEndedSession(session);
@@ -77,29 +84,41 @@ describe("focus cycles and breaks", () => {
 
     // focus 1 → short break
     now += 60_000;
-    session = applyFocusAction(session, { type: "finish_phase" }, {
-      now,
-      expectedRevision: session.revision,
-      createId,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now,
+        expectedRevision: session.revision,
+        createId,
+      },
+    ).session;
     expect(session.currentPhaseKind).toBe("short_break");
 
     // break → focus 2
     now += 30_000;
-    session = applyFocusAction(session, { type: "finish_phase" }, {
-      now,
-      expectedRevision: session.revision,
-      createId,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now,
+        expectedRevision: session.revision,
+        createId,
+      },
+    ).session;
     expect(session.status).toBe("running");
 
     // focus 2 → long break
     now += 60_000;
-    session = applyFocusAction(session, { type: "finish_phase" }, {
-      now,
-      expectedRevision: session.revision,
-      createId,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now,
+        expectedRevision: session.revision,
+        createId,
+      },
+    ).session;
     expect(session.currentPhaseKind).toBe("long_break");
     expect(session.intervals.at(-1)?.plannedDurationSec).toBe(90);
   });
@@ -108,11 +127,15 @@ describe("focus cycles and breaks", () => {
     const t0 = Date.parse("2026-08-07T10:00:00.000Z");
     let session = startCycles({ targetCycles: null }, t0);
     const createId = idFactory("sk");
-    session = applyFocusAction(session, { type: "finish_phase" }, {
-      now: t0 + 60_000,
-      expectedRevision: session.revision,
-      createId,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now: t0 + 60_000,
+        expectedRevision: session.revision,
+        createId,
+      },
+    ).session;
     expect(session.status).toBe("on_break");
 
     session = applyFocusAction(
@@ -126,11 +149,15 @@ describe("focus cycles and breaks", () => {
     ).session;
     expect(session.intervals.at(-1)?.plannedDurationSec).toBe(150);
 
-    session = applyFocusAction(session, { type: "skip_break" }, {
-      now: t0 + 80_000,
-      expectedRevision: session.revision,
-      createId,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "skip_break" },
+      {
+        now: t0 + 80_000,
+        expectedRevision: session.revision,
+        createId,
+      },
+    ).session;
     expect(session.status).toBe("running");
     expect(session.currentPhaseKind).toBe("focus");
   });
@@ -141,11 +168,15 @@ describe("focus cycles and breaks", () => {
       { shortBreakSec: 0, longBreakSec: 0, targetCycles: 3 },
       t0,
     );
-    session = applyFocusAction(session, { type: "finish_phase" }, {
-      now: t0 + 60_000,
-      expectedRevision: session.revision,
-      createId: idFactory("z"),
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now: t0 + 60_000,
+        expectedRevision: session.revision,
+        createId: idFactory("z"),
+      },
+    ).session;
     expect(session.status).toBe("running");
     expect(session.currentPhaseKind).toBe("focus");
     expect(countCompletedFocusBlocks(session)).toBe(1);
@@ -170,11 +201,15 @@ describe("focus cycles and breaks", () => {
       t0,
     );
     const createId = idFactory("af");
-    session = applyFocusAction(session, { type: "finish_phase" }, {
-      now: t0 + 60_000,
-      expectedRevision: session.revision,
-      createId,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now: t0 + 60_000,
+        expectedRevision: session.revision,
+        createId,
+      },
+    ).session;
     expect(session.status).toBe("on_break");
     expect(shouldAutoStartNextPhase(session)).toBe(false);
     const atEnd = evaluateFocusEngine(session, t0 + 90_000);
@@ -210,11 +245,15 @@ describe("focus cycles and breaks", () => {
     expect(progress.indefinite).toBe(true);
     expect(progress.remainingFocusBlocks).toBeNull();
 
-    session = applyFocusAction(session, { type: "complete" }, {
-      now: t0 + 45_000,
-      expectedRevision: session.revision,
-      createId: idFactory("ind"),
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "complete" },
+      {
+        now: t0 + 45_000,
+        expectedRevision: session.revision,
+        createId: idFactory("ind"),
+      },
+    ).session;
     const extra = buildExtraBlockStartInput(session);
     expect(extra.mode).toBe("cycles");
     expect(extra.targetCycles).toBe(1);
@@ -240,17 +279,25 @@ describe("focus cycles and breaks", () => {
     const t0 = Date.parse("2026-08-07T10:00:00.000Z");
     let session = startCycles({ completeTaskOnEnd: false }, t0);
     const createId = idFactory("cb");
-    session = applyFocusAction(session, { type: "finish_phase" }, {
-      now: t0 + 60_000,
-      expectedRevision: session.revision,
-      createId,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now: t0 + 60_000,
+        expectedRevision: session.revision,
+        createId,
+      },
+    ).session;
     expect(session.status).toBe("on_break");
-    session = applyFocusAction(session, { type: "complete" }, {
-      now: t0 + 70_000,
-      expectedRevision: session.revision,
-      createId,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "complete" },
+      {
+        now: t0 + 70_000,
+        expectedRevision: session.revision,
+        createId,
+      },
+    ).session;
     expect(session.status).toBe("completed");
     expect(session.completeTaskOnEnd).toBe(false);
     expect(session.taskCompletionApplied).toBe(false);

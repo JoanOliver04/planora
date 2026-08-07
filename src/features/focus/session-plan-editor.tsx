@@ -1,13 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, Plus, Trash2 } from "lucide-react";
 import type { FocusSegment } from "./types";
 import {
   duplicateSegmentAt,
@@ -65,11 +59,7 @@ export function SessionPlanEditor({
           </button>
         ))}
         {segments.length > 0 ? (
-          <button
-            type="button"
-            className="pill"
-            onClick={() => onChange([])}
-          >
+          <button type="button" className="pill" onClick={() => onChange([])}>
             {t("plan.clear")}
           </button>
         ) : null}
@@ -80,7 +70,10 @@ export function SessionPlanEditor({
       ) : (
         <ol className="focus-plan-list">
           {segments.map((segment, index) => (
-            <li key={`${segment.name}-${index}`} className="focus-plan-item surface">
+            <li
+              key={`${segment.name}-${index}`}
+              className="focus-plan-item surface"
+            >
               <div className="focus-plan-item-head">
                 <strong>
                   {index + 1}. {segment.emoji ? `${segment.emoji} ` : ""}
@@ -92,7 +85,9 @@ export function SessionPlanEditor({
                     className="icon-button"
                     aria-label={t("plan.moveUp")}
                     disabled={index === 0}
-                    onClick={() => onChange(moveSegment(segments, index, index - 1))}
+                    onClick={() =>
+                      onChange(moveSegment(segments, index, index - 1))
+                    }
                   >
                     <ChevronUp size={16} />
                   </button>
@@ -101,7 +96,9 @@ export function SessionPlanEditor({
                     className="icon-button"
                     aria-label={t("plan.moveDown")}
                     disabled={index === segments.length - 1}
-                    onClick={() => onChange(moveSegment(segments, index, index + 1))}
+                    onClick={() =>
+                      onChange(moveSegment(segments, index, index + 1))
+                    }
                   >
                     <ChevronDown size={16} />
                   </button>
@@ -110,7 +107,9 @@ export function SessionPlanEditor({
                     className="icon-button"
                     aria-label={t("plan.duplicate")}
                     disabled={segments.length >= FOCUS_MAX_SEGMENTS}
-                    onClick={() => onChange(duplicateSegmentAt(segments, index))}
+                    onClick={() =>
+                      onChange(duplicateSegmentAt(segments, index))
+                    }
                   >
                     <Copy size={15} />
                   </button>

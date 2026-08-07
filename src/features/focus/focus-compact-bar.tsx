@@ -29,12 +29,7 @@ export function FocusCompactBar() {
   );
 
   if (!ctx) return null;
-  const {
-    engine,
-    immersive,
-    controlMode,
-    setTakeoverDialogOpen,
-  } = ctx;
+  const { engine, immersive, controlMode, setTakeoverDialogOpen } = ctx;
   const session = engine.session;
   const clock = engine.snapshot?.clock;
   const readOnly = controlMode === "follower";
@@ -52,9 +47,7 @@ export function FocusCompactBar() {
   if (!device.showCompactBar) return null;
 
   const title =
-    session.title ||
-    session.linkSnapshot.taskTitle ||
-    t("active.untitled");
+    session.title || session.linkSnapshot.taskTitle || t("active.untitled");
   const time =
     clock.remainingSec != null
       ? formatFocusDuration(clock.remainingSec)
@@ -74,7 +67,9 @@ export function FocusCompactBar() {
           {time}
         </span>
         {readOnly ? (
-          <span className="focus-compact-follower muted">{t("sync.followerShort")}</span>
+          <span className="focus-compact-follower muted">
+            {t("sync.followerShort")}
+          </span>
         ) : null}
       </div>
       <div className="focus-compact-actions">

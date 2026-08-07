@@ -186,12 +186,7 @@ export function calculateWeeklyGoalProgress(
     week.end,
     includeLive,
   );
-  const completedValue = metricValue(
-    goal.metric,
-    matched,
-    goal.timezone,
-    now,
-  );
+  const completedValue = metricValue(goal.metric, matched, goal.timezone, now);
   const targetValue = Math.max(1, goal.targetValue);
   const remainingValue = Math.max(0, targetValue - completedValue);
   const remainingDays = remainingConsideredDaysInWeek(
@@ -203,9 +198,7 @@ export function calculateWeeklyGoalProgress(
   const progress = Math.min(1, completedValue / targetValue);
   const completed = completedValue >= targetValue;
   const suggestedPerRemainingDay =
-    completed || remainingDays <= 0
-      ? null
-      : remainingValue / remainingDays;
+    completed || remainingDays <= 0 ? null : remainingValue / remainingDays;
 
   return {
     goalId: goal.id,
@@ -261,7 +254,10 @@ export function pickPrimaryGoal(goals: FocusGoal[]): FocusGoal | null {
   if (active.length === 0) return null;
   return (
     active.find((goal) => goal.isPrimary) ??
-    [...active].sort((a, b) => a.sortOrder - b.sortOrder || a.createdAt.localeCompare(b.createdAt))[0] ??
+    [...active].sort(
+      (a, b) =>
+        a.sortOrder - b.sortOrder || a.createdAt.localeCompare(b.createdAt),
+    )[0] ??
     null
   );
 }

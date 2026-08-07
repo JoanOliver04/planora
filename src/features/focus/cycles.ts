@@ -1,8 +1,4 @@
-import type {
-  FocusPhaseKind,
-  FocusSession,
-  FocusSessionConfig,
-} from "./types";
+import type { FocusPhaseKind, FocusSession, FocusSessionConfig } from "./types";
 import { hasStructuredPlan, segmentPhaseKind } from "./session-plan";
 
 export type NextPhasePlan = {

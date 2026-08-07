@@ -10,7 +10,12 @@ import {
   startFocusSessionAction,
   transitionFocusSessionAction,
 } from "./actions";
-import type { FocusMode, FocusPreset, FocusSegment, FocusSession } from "./types";
+import type {
+  FocusMode,
+  FocusPreset,
+  FocusSegment,
+  FocusSession,
+} from "./types";
 import type { QuickFocusPreset } from "./defaults";
 import { recordFocusStart } from "./focus-recents";
 import {
@@ -168,9 +173,7 @@ function draftToForm(
       "15",
     ),
     cyclesBeforeLongBreak: String(
-      draft.cyclesBeforeLongBreak ??
-        preset?.cyclesBeforeLongBreak ??
-        4,
+      draft.cyclesBeforeLongBreak ?? preset?.cyclesBeforeLongBreak ?? 4,
     ),
     targetCycles: (() => {
       const resolved =
@@ -190,8 +193,7 @@ function draftToForm(
     presetId: draft.presetId ?? "",
     taskId: draft.taskId ?? "",
     occurrenceDate: draft.occurrenceDate ?? "",
-    autoStartBreaks:
-      draft.autoStartBreaks ?? preset?.autoStartBreaks ?? true,
+    autoStartBreaks: draft.autoStartBreaks ?? preset?.autoStartBreaks ?? true,
     autoStartFocus: draft.autoStartFocus ?? preset?.autoStartFocus ?? false,
     soundEnabled: draft.soundEnabled ?? preset?.soundEnabled ?? true,
     vibrationEnabled:
@@ -200,8 +202,7 @@ function draftToForm(
       draft.notifyOnPhaseEnd ?? preset?.notifyOnPhaseEnd ?? true,
     completeTaskOnEnd:
       draft.completeTaskOnEnd ?? preset?.completeTaskOnSessionEnd ?? false,
-    keepScreenAwake:
-      draft.keepScreenAwake ?? preset?.keepScreenAwake ?? false,
+    keepScreenAwake: draft.keepScreenAwake ?? preset?.keepScreenAwake ?? false,
     preferFullscreen:
       draft.preferFullscreen ?? preset?.preferFullscreen ?? false,
     segments: draft.segments ?? preset?.segments ?? [],
@@ -287,7 +288,9 @@ export function SessionStartDialog({
     if (draft) return draftToForm(draft, presets);
     const base = preferenceDefaults(account, device);
     if (account.defaultPresetId) {
-      const preset = presets.find((item) => item.id === account.defaultPresetId);
+      const preset = presets.find(
+        (item) => item.id === account.defaultPresetId,
+      );
       if (preset) return applyPresetToForm(preset);
     }
     return base;
@@ -317,7 +320,10 @@ export function SessionStartDialog({
     if (form.taskId && !form.occurrenceDate.trim()) {
       return t("config.errors.occurrenceRequired");
     }
-    if (form.completeTaskOnEnd && (!form.taskId || !form.occurrenceDate.trim())) {
+    if (
+      form.completeTaskOnEnd &&
+      (!form.taskId || !form.occurrenceDate.trim())
+    ) {
       return t("config.errors.completeNeedsTask");
     }
     if (
@@ -343,11 +349,18 @@ export function SessionStartDialog({
     }
     if (form.mode === "cycles") {
       const shortSec = secFromMinutes(form.shortBreakMinutes);
-      if (shortSec == null || shortSec < 0 || shortSec > FOCUS_MAX_SHORT_BREAK_SEC) {
+      if (
+        shortSec == null ||
+        shortSec < 0 ||
+        shortSec > FOCUS_MAX_SHORT_BREAK_SEC
+      ) {
         return t("config.errors.shortBreakInvalid");
       }
       const longSec = secFromMinutes(form.longBreakMinutes);
-      if (longSec != null && (longSec < 0 || longSec > FOCUS_MAX_LONG_BREAK_SEC)) {
+      if (
+        longSec != null &&
+        (longSec < 0 || longSec > FOCUS_MAX_LONG_BREAK_SEC)
+      ) {
         return t("config.errors.longBreakInvalid");
       }
       if (!form.indefiniteCycles) {
@@ -454,8 +467,8 @@ export function SessionStartDialog({
         if (result.error.code === "VALIDATION_ERROR") {
           setFieldError(
             result.error.fieldErrors
-              ? Object.values(result.error.fieldErrors).flat()[0] ??
-                  t("config.errors.generic")
+              ? (Object.values(result.error.fieldErrors).flat()[0] ??
+                  t("config.errors.generic"))
               : t("config.errors.generic"),
           );
           return;
@@ -633,7 +646,9 @@ export function SessionStartDialog({
                             update("shortBreakMinutes", event.target.value)
                           }
                         />
-                        <small className="muted">{t("config.zeroBreakHint")}</small>
+                        <small className="muted">
+                          {t("config.zeroBreakHint")}
+                        </small>
                       </label>
                       <label>
                         {t("config.targetCycles")}

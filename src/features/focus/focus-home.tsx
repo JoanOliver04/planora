@@ -4,12 +4,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ListPlus, Play, Timer } from "lucide-react";
-import type {
-  FocusGoal,
-  FocusMode,
-  FocusPreset,
-  FocusSession,
-} from "./types";
+import type { FocusGoal, FocusMode, FocusPreset, FocusSession } from "./types";
 import { FocusGoalsPanel } from "./focus-goals-panel";
 import { FocusStatisticsPanel } from "./focus-statistics";
 import { deriveSessionClock, sessionSummary } from "./time";
@@ -20,9 +15,7 @@ import {
   type SessionStartDraft,
 } from "./session-start-dialog";
 import { useFocusSession } from "./use-focus-session";
-import {
-  useOptionalFocusSessionContext,
-} from "./focus-session-context";
+import { useOptionalFocusSessionContext } from "./focus-session-context";
 import { ActiveSessionView } from "./active-session-view";
 import type { UseFocusSessionResult } from "./use-focus-session";
 import { SessionCompleteCard } from "./session-complete-card";
@@ -373,11 +366,7 @@ export function FocusHome({
 }
 
 /** Minimal fallback for tests without FocusSessionProvider. */
-function ActiveSessionFallback({
-  engine,
-}: {
-  engine: UseFocusSessionResult;
-}) {
+function ActiveSessionFallback({ engine }: { engine: UseFocusSessionResult }) {
   const t = useTranslations("Focus");
   const session = engine.session;
   const clock = engine.snapshot?.clock;
@@ -403,7 +392,9 @@ function ActiveSessionFallback({
           className="primary"
           disabled={engine.pending}
           onClick={() =>
-            void (session.status === "paused" ? engine.resume() : engine.pause())
+            void (session.status === "paused"
+              ? engine.resume()
+              : engine.pause())
           }
         >
           {session.status === "paused" ? t("engine.resume") : t("engine.pause")}

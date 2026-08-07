@@ -105,8 +105,7 @@ export function OfflineStatus({ locale }: { locale: string }) {
               ? es
                 ? conflicts +
                   " conflicto(s) de sincronización (se usó el estado del servidor)"
-                : conflicts +
-                  " sync conflict(s) (server state was kept)"
+                : conflicts + " sync conflict(s) (server state was kept)"
               : es
                 ? pending + " cambio(s) pendientes de sincronizar"
                 : pending + " pending change(s) to sync"}

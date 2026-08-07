@@ -95,8 +95,16 @@ describe("decideRemoteSession", () => {
   });
 
   it("applies a different active session id (DB one-active winner)", () => {
-    const local = sessionAt(1, "running", "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
-    const remote = sessionAt(1, "running", "cccccccc-cccc-4ccc-8ccc-cccccccccccc");
+    const local = sessionAt(
+      1,
+      "running",
+      "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    );
+    const remote = sessionAt(
+      1,
+      "running",
+      "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    );
     expect(decideRemoteSession(local, remote)).toBe("apply");
   });
 

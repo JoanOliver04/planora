@@ -133,9 +133,8 @@ export async function clearPrivateOfflineData(userId: string) {
   }
 
   try {
-    const { clearFocusOfflineData } = await import(
-      "@/features/focus/focus-offline"
-    );
+    const { clearFocusOfflineData } =
+      await import("@/features/focus/focus-offline");
     clearFocusOfflineData(userId);
   } catch {
     // Focus module optional during early boot

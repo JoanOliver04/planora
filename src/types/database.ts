@@ -242,11 +242,7 @@ export type Database = {
           paused_sec: number;
           break_sec: number;
           current_phase_kind:
-            | "focus"
-            | "short_break"
-            | "long_break"
-            | "pause"
-            | null;
+            "focus" | "short_break" | "long_break" | "pause" | null;
           current_cycle: number;
           config: Json;
           link_snapshot: Json;

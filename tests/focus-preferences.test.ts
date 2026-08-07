@@ -107,9 +107,9 @@ describe("focus device preferences", () => {
   });
 
   it("keeps keyboard shortcuts enabled by default", () => {
-    expect(
-      normalizeFocusDevicePreferences({}).keyboardShortcutsEnabled,
-    ).toBe(true);
+    expect(normalizeFocusDevicePreferences({}).keyboardShortcutsEnabled).toBe(
+      true,
+    );
     expect(
       normalizeFocusDevicePreferences({
         keyboardShortcutsEnabled: false,

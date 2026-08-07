@@ -9,18 +9,18 @@ Entrega de **Prompt 00** (sin UI final, sin migraciones, sin dependencias nuevas
 
 ### 1.1 Stack y arquitectura
 
-| Capa | Realidad actual |
-| --- | --- |
-| Framework | Next.js 16 App Router, React 19, TypeScript estricto |
-| UI | Tailwind 4 + CSS tokens en `globals.css`, Lucide, Radix Dialog/AlertDialog, Sonner |
-| i18n | `next-intl` con locales `es` / `en`, prefix always (`/es/...`, `/en/...`) |
-| Auth | Google OAuth vía Supabase SSR (`createClient` server/client) |
-| Datos | PostgreSQL + RLS en Supabase; Server Actions en `src/app/actions/domain.ts` |
-| Validación | Zod en límites de confianza (`lib/validation/*`, backup, domain actions) |
-| Estado | Server Components por defecto; client islands (`useWorkspace`, forms, timers futuros) |
-| Offline | Cola local solo para completions (`lib/offline/queue.ts`) + caché de workspace |
-| PWA | Manifest + `public/sw.js` (shell público; nunca cachea rutas privadas) |
-| Tests | Vitest (unit/component/SQL-as-text) + Playwright (E2E) |
+| Capa       | Realidad actual                                                                       |
+| ---------- | ------------------------------------------------------------------------------------- |
+| Framework  | Next.js 16 App Router, React 19, TypeScript estricto                                  |
+| UI         | Tailwind 4 + CSS tokens en `globals.css`, Lucide, Radix Dialog/AlertDialog, Sonner    |
+| i18n       | `next-intl` con locales `es` / `en`, prefix always (`/es/...`, `/en/...`)             |
+| Auth       | Google OAuth vía Supabase SSR (`createClient` server/client)                          |
+| Datos      | PostgreSQL + RLS en Supabase; Server Actions en `src/app/actions/domain.ts`           |
+| Validación | Zod en límites de confianza (`lib/validation/*`, backup, domain actions)              |
+| Estado     | Server Components por defecto; client islands (`useWorkspace`, forms, timers futuros) |
+| Offline    | Cola local solo para completions (`lib/offline/queue.ts`) + caché de workspace        |
+| PWA        | Manifest + `public/sw.js` (shell público; nunca cachea rutas privadas)                |
+| Tests      | Vitest (unit/component/SQL-as-text) + Playwright (E2E)                                |
 
 Principio dominante: **PostgreSQL es la autoridad**. La UI deriva estado; no hay “source of truth” en memoria de contadores.
 
@@ -47,11 +47,11 @@ src/app/
 
 Config central: `src/config/navigation.ts`.
 
-| Superficie | Contenido |
-| --- | --- |
-| Desktop sidebar | 12 destinos ordenados (`desktopOrder` 1–12) |
-| Mobile bottom bar | **Exactamente 5**: Today, Week, Tasks, Events, More |
-| Más | History, Statistics, Reminders · Schedules, Categories, Templates · Settings, Data |
+| Superficie        | Contenido                                                                          |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| Desktop sidebar   | 12 destinos ordenados (`desktopOrder` 1–12)                                        |
+| Mobile bottom bar | **Exactamente 5**: Today, Week, Tasks, Events, More                                |
+| Más               | History, Statistics, Reminders · Schedules, Categories, Templates · Settings, Data |
 
 `isNavigationItemActive("more", …)` marca activo “Más” si la ruta pertenece a `moreNavigationItems`.  
 Tests de arquitectura: `tests/navigation-architecture.test.ts`.
@@ -76,14 +76,14 @@ Tests de arquitectura: `tests/navigation-architecture.test.ts`.
 
 ### 1.6 Server Actions, API routes y Supabase
 
-| Mecanismo | Uso |
-| --- | --- |
-| `src/app/actions/domain.ts` | CRUD schedules/categories/tasks/events, onboarding, templates, reminders, backup restore |
-| `api/account` | borrado de cuenta (rate-limited, same-origin) |
-| `api/health` | healthcheck |
-| `api/telemetry` | errores sanitizados, sin contenido de usuario |
-| `auth/callback` | OAuth |
-| RPCs SQL | `restore_planora_backup`, `delete_schedule`, `delete_archived_task`, onboarding, templates, reorder |
+| Mecanismo                   | Uso                                                                                                 |
+| --------------------------- | --------------------------------------------------------------------------------------------------- |
+| `src/app/actions/domain.ts` | CRUD schedules/categories/tasks/events, onboarding, templates, reminders, backup restore            |
+| `api/account`               | borrado de cuenta (rate-limited, same-origin)                                                       |
+| `api/health`                | healthcheck                                                                                         |
+| `api/telemetry`             | errores sanitizados, sin contenido de usuario                                                       |
+| `auth/callback`             | OAuth                                                                                               |
+| RPCs SQL                    | `restore_planora_backup`, `delete_schedule`, `delete_archived_task`, onboarding, templates, reorder |
 
 Patrón de seguridad de mutaciones: `auth()` → Zod parse → ownership vía RLS/FKs compuestas → refresh.
 
@@ -151,33 +151,33 @@ Patrones de integridad:
 
 ### 1.15 Convenciones
 
-| Área | Convención |
-| --- | --- |
-| Carpetas features | `src/features/<area>/` |
-| Validación | Zod en `lib/validation` o colocalizada |
-| Rutas app | `src/app/[locale]/(app)/<route>/page.tsx` |
-| Migraciones | `supabase/migrations/YYYYMMDDHHMMSS_name.sql` |
-| Tipos | `src/types/database.ts` (generados / mantenidos en sync) |
-| Naming SQL | snake_case; FKs compuestas; policies por operación |
-| Naming TS | camelCase en dominio; snake_case al mapear filas |
+| Área              | Convención                                               |
+| ----------------- | -------------------------------------------------------- |
+| Carpetas features | `src/features/<area>/`                                   |
+| Validación        | Zod en `lib/validation` o colocalizada                   |
+| Rutas app         | `src/app/[locale]/(app)/<route>/page.tsx`                |
+| Migraciones       | `supabase/migrations/YYYYMMDDHHMMSS_name.sql`            |
+| Tipos             | `src/types/database.ts` (generados / mantenidos en sync) |
+| Naming SQL        | snake_case; FKs compuestas; policies por operación       |
+| Naming TS         | camelCase en dominio; snake_case al mapear filas         |
 
 ---
 
 ## 2. Riesgos y dependencias
 
-| Riesgo | Impacto | Mitigación |
-| --- | --- | --- |
-| Deriva del timer (setInterval como verdad) | Tiempos incorrectos tras throttle/suspensión | Solo timestamps + intervalos; ticker UI cosmético |
-| Doble sesión activa multi-pestaña/dispositivo | Datos corruptos / UX confusa | Índice parcial único + flujo takeover explícito + `revision` |
-| Escritura cada segundo a Supabase | Coste, race conditions, batería | Persistir solo transiciones |
-| Romper barra móvil (6 tabs) | Regresión UX y tests de nav | Enfoque en desktop sidebar + Más en móvil |
-| Cross-user links tarea/sesión | Fuga de datos | FK compuestas `(task_id, user_id)` etc. |
-| Borrar tarea y perder historial de focus | Historial ilegible | Snapshots + `ON DELETE SET NULL` en FKs de vínculo |
-| Backup/restore incompleto | Pérdida de datos al restaurar | Fase dedicada ampliando `BACKUP_SCHEMA_VERSION` y RPC |
-| Offline de transiciones complejas | Estados divergentes | MVP online-first para mutaciones de sesión; cola acotada más tarde |
-| Notificaciones de fin de fase en background | Expectativa falsa | Progressive enhancement; documentar límites del navegador |
-| Ampliar `privateSegments` / nav / i18n a medias | Rutas 404 o no protegidas | Checklist por fase (routes, nav, messages, tests) |
-| Enums PG rígidos para estados futuros | Migraciones dolorosas | Preferir `text` + CHECK (como `tasks.scope`) para mode/status/kind |
+| Riesgo                                          | Impacto                                      | Mitigación                                                         |
+| ----------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------ |
+| Deriva del timer (setInterval como verdad)      | Tiempos incorrectos tras throttle/suspensión | Solo timestamps + intervalos; ticker UI cosmético                  |
+| Doble sesión activa multi-pestaña/dispositivo   | Datos corruptos / UX confusa                 | Índice parcial único + flujo takeover explícito + `revision`       |
+| Escritura cada segundo a Supabase               | Coste, race conditions, batería              | Persistir solo transiciones                                        |
+| Romper barra móvil (6 tabs)                     | Regresión UX y tests de nav                  | Enfoque en desktop sidebar + Más en móvil                          |
+| Cross-user links tarea/sesión                   | Fuga de datos                                | FK compuestas `(task_id, user_id)` etc.                            |
+| Borrar tarea y perder historial de focus        | Historial ilegible                           | Snapshots + `ON DELETE SET NULL` en FKs de vínculo                 |
+| Backup/restore incompleto                       | Pérdida de datos al restaurar                | Fase dedicada ampliando `BACKUP_SCHEMA_VERSION` y RPC              |
+| Offline de transiciones complejas               | Estados divergentes                          | MVP online-first para mutaciones de sesión; cola acotada más tarde |
+| Notificaciones de fin de fase en background     | Expectativa falsa                            | Progressive enhancement; documentar límites del navegador          |
+| Ampliar `privateSegments` / nav / i18n a medias | Rutas 404 o no protegidas                    | Checklist por fase (routes, nav, messages, tests)                  |
+| Enums PG rígidos para estados futuros           | Migraciones dolorosas                        | Preferir `text` + CHECK (como `tasks.scope`) para mode/status/kind |
 
 **Dependencias de producto (ya decididas en `prompts.md`):** tres modos, pausas opcionales, vínculo opcional, no auto-completar tarea por defecto, una sesión activa, sin gamificación, privacidad estricta.
 
@@ -200,11 +200,11 @@ Patrones de integridad:
 
 ## 4. Rutas propuestas
 
-| Ruta | Propósito | Notas |
-| --- | --- | --- |
-| `/[locale]/focus` | Home de Enfoque | Shell principal |
-| `/[locale]/focus/session/[sessionId]` | Sesión activa / resumen | Opcional en v1; puede ser query `?session=` o panel en la misma página |
-| Deep links internos | `?taskId=` / `?presetId=` | Arranque preconfigurado sin rutas nuevas |
+| Ruta                                  | Propósito                 | Notas                                                                  |
+| ------------------------------------- | ------------------------- | ---------------------------------------------------------------------- |
+| `/[locale]/focus`                     | Home de Enfoque           | Shell principal                                                        |
+| `/[locale]/focus/session/[sessionId]` | Sesión activa / resumen   | Opcional en v1; puede ser query `?session=` o panel en la misma página |
+| Deep links internos                   | `?taskId=` / `?presetId=` | Arranque preconfigurado sin rutas nuevas                               |
 
 **No se renombran ni se rompen** URLs existentes.  
 Añadir `focus` a `privateSegments` en `lib/security/routes.ts`.
@@ -219,7 +219,7 @@ Recomendación v1: **una sola página** `/focus` con estados (empty / active / h
 
 - Nuevo item `id: "focus"`, `href: "/focus"`, icono Lucide (p. ej. `Timer` o `Focus`).
 - `desktopOrder` entre **Tasks (3) y Events (4)** → Focus = 4, y desplazar el resto (+1), **o** insertar como order 3.5 efectivo reordenando a:
-  - today 1, week 2, tasks 3, **focus 4**, events 5, …  
+  - today 1, week 2, tasks 3, **focus 4**, events 5, …
 - Coherente con “actividad diaria”.
 
 ### Móvil
@@ -242,14 +242,14 @@ Recomendación v1: **una sola página** `/focus` con estados (empty / active / h
 
 ### Estados (mínimos, no redundantes)
 
-| Estado | Significado |
-| --- | --- |
-| `draft` | Configurando; **no** cuenta como activa; puede no persistirse o persistirse efímero |
-| `running` | Fase de focus (o stopwatch/countdown) en marcha |
-| `paused` | Tiempo de focus detenido; intervalo de pausa abierto |
-| `on_break` | Descanso corto/largo en marcha |
-| `completed` | Cerrada con éxito; historial |
-| `cancelled` | Abortada por el usuario; historial |
+| Estado      | Significado                                                                         |
+| ----------- | ----------------------------------------------------------------------------------- |
+| `draft`     | Configurando; **no** cuenta como activa; puede no persistirse o persistirse efímero |
+| `running`   | Fase de focus (o stopwatch/countdown) en marcha                                     |
+| `paused`    | Tiempo de focus detenido; intervalo de pausa abierto                                |
+| `on_break`  | Descanso corto/largo en marcha                                                      |
+| `completed` | Cerrada con éxito; historial                                                        |
+| `cancelled` | Abortada por el usuario; historial                                                  |
 
 **No se incluye `interrupted` / `recovery_pending` en el modelo persistido v1.**  
 La recuperación es un **proceso de lectura** (`recover(session, now)`): si al cargar hay fase vencida, se aplican transiciones deterministas hasta el estado coherente y se persisten. Un estado extra solo añade complejidad sin valor si la recuperación es síncrona al abrir la app.
@@ -278,19 +278,19 @@ La recuperación es un **proceso de lectura** (`recover(session, now)`): si al c
 
 ### Transiciones permitidas
 
-| Acción | Desde | Hacia | Persistencia |
-| --- | --- | --- | --- |
-| `start` | (ninguna activa) | `running` | insert session + interval focus |
-| `pause` | `running` | `paused` | cierra interval focus; abre pause |
-| `resume` | `paused` | `running` | cierra pause; reabre focus |
-| `begin_break` | `running` (fin de fase o manual) | `on_break` | cierra focus; abre break |
-| `skip_break` | `on_break` | `running` | cierra break; abre focus |
-| `extend_break` | `on_break` | `on_break` | actualiza `planned_end_at` / duración |
-| `finish_phase` | `running` / `on_break` | siguiente | cierra interval; abre siguiente o complete |
-| `complete` | `running` \| `paused` \| `on_break` | `completed` | cierra abiertos; totales |
-| `cancel` | `running` \| `paused` \| `on_break` | `cancelled` | cierra abiertos |
-| `recover` | cualquiera activa | recalculado | 0..n transiciones idempotentes |
-| `takeover` | conflicto otra pestaña | activa en este cliente | bump `revision` + metadata de ownership de UI |
+| Acción         | Desde                               | Hacia                  | Persistencia                                  |
+| -------------- | ----------------------------------- | ---------------------- | --------------------------------------------- |
+| `start`        | (ninguna activa)                    | `running`              | insert session + interval focus               |
+| `pause`        | `running`                           | `paused`               | cierra interval focus; abre pause             |
+| `resume`       | `paused`                            | `running`              | cierra pause; reabre focus                    |
+| `begin_break`  | `running` (fin de fase o manual)    | `on_break`             | cierra focus; abre break                      |
+| `skip_break`   | `on_break`                          | `running`              | cierra break; abre focus                      |
+| `extend_break` | `on_break`                          | `on_break`             | actualiza `planned_end_at` / duración         |
+| `finish_phase` | `running` / `on_break`              | siguiente              | cierra interval; abre siguiente o complete    |
+| `complete`     | `running` \| `paused` \| `on_break` | `completed`            | cierra abiertos; totales                      |
+| `cancel`       | `running` \| `paused` \| `on_break` | `cancelled`            | cierra abiertos                               |
+| `recover`      | cualquiera activa                   | recalculado            | 0..n transiciones idempotentes                |
+| `takeover`     | conflicto otra pestaña              | activa en este cliente | bump `revision` + metadata de ownership de UI |
 
 Inválidas → error de dominio controlado, sin writes parciales (transacción o single RPC).
 
@@ -313,65 +313,65 @@ Inválidas → error de dominio controlado, sin writes parciales (transacción o
 
 Presets reutilizables del usuario (incl. “rápidos” 25/50/90/cronómetro como filas seed o defaults de app no necesariamente en DB).
 
-| Columna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | uuid PK | |
-| `user_id` | uuid → profiles | cascade |
-| `name` | text 1..80 | |
-| `mode` | text check | `countdown` \| `stopwatch` \| `cycles` |
-| `focus_duration_sec` | int null | obligatorio en countdown/cycles |
-| `short_break_sec` | int null | |
-| `long_break_sec` | int null | |
-| `cycles_before_long_break` | int null | |
-| `target_cycles` | int null | null = indefinido |
-| `auto_start_breaks` | bool | |
-| `auto_start_focus` | bool | |
-| `sound_enabled` | bool | |
-| `vibration_enabled` | bool | |
-| `notify_on_phase_end` | bool | |
-| `complete_task_on_session_end` | bool default false | |
-| `keep_screen_awake` | bool | |
-| `prefer_fullscreen` | bool | |
-| `segments` | jsonb default `[]` | plan estructurado opcional validado en app |
-| `is_favorite` | bool | |
-| `sort_order` | int | |
-| `created_at` / `updated_at` | timestamptz | |
+| Columna                        | Tipo               | Notas                                      |
+| ------------------------------ | ------------------ | ------------------------------------------ |
+| `id`                           | uuid PK            |                                            |
+| `user_id`                      | uuid → profiles    | cascade                                    |
+| `name`                         | text 1..80         |                                            |
+| `mode`                         | text check         | `countdown` \| `stopwatch` \| `cycles`     |
+| `focus_duration_sec`           | int null           | obligatorio en countdown/cycles            |
+| `short_break_sec`              | int null           |                                            |
+| `long_break_sec`               | int null           |                                            |
+| `cycles_before_long_break`     | int null           |                                            |
+| `target_cycles`                | int null           | null = indefinido                          |
+| `auto_start_breaks`            | bool               |                                            |
+| `auto_start_focus`             | bool               |                                            |
+| `sound_enabled`                | bool               |                                            |
+| `vibration_enabled`            | bool               |                                            |
+| `notify_on_phase_end`          | bool               |                                            |
+| `complete_task_on_session_end` | bool default false |                                            |
+| `keep_screen_awake`            | bool               |                                            |
+| `prefer_fullscreen`            | bool               |                                            |
+| `segments`                     | jsonb default `[]` | plan estructurado opcional validado en app |
+| `is_favorite`                  | bool               |                                            |
+| `sort_order`                   | int                |                                            |
+| `created_at` / `updated_at`    | timestamptz        |                                            |
 
 `unique(id, user_id)`.
 
 #### `focus_sessions`
 
-| Columna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | uuid PK | |
-| `user_id` | uuid | |
-| `status` | text check | `running` \| `paused` \| `on_break` \| `completed` \| `cancelled` |
-| `mode` | text check | `countdown` \| `stopwatch` \| `cycles` |
-| `title` | text null | intención |
-| `preset_id` | uuid null | SET NULL on delete |
-| `task_id` | uuid null | SET NULL; FK compuesta |
-| `category_id` | uuid null | SET NULL; FK compuesta |
-| `schedule_id` | uuid null | SET NULL; FK compuesta |
-| `occurrence_date` | date null | para hábitos |
-| `planned_focus_sec` | int null | |
-| `focus_sec` | int not null default 0 | acumulado cerrado (+ se recalcula en app) |
-| `paused_sec` | int not null default 0 | |
-| `break_sec` | int not null default 0 | |
-| `current_phase_kind` | text null | `focus` \| `short_break` \| `long_break` \| `pause` |
-| `current_cycle` | int not null default 1 | |
-| `config` | jsonb | snapshot de reglas de la sesión (duraciones, flags) |
-| `link_snapshot` | jsonb | título tarea, emoji, categoría, etc. |
-| `started_at` | timestamptz | |
-| `ended_at` | timestamptz null | |
-| `notes` | text null | max length check |
-| `distractions` | jsonb default `[]` | notas aparcadas privadas |
-| `subjective_focus` | smallint null | 1..5 opcional |
-| `subjective_energy` | smallint null | 1..5 opcional |
-| `complete_task_on_end` | bool default false | |
-| `task_completion_applied` | bool default false | |
-| `revision` | int not null default 1 | optimistic concurrency |
-| `created_at` / `updated_at` | timestamptz | |
-| `unique(id, user_id)` | | |
+| Columna                     | Tipo                   | Notas                                                             |
+| --------------------------- | ---------------------- | ----------------------------------------------------------------- |
+| `id`                        | uuid PK                |                                                                   |
+| `user_id`                   | uuid                   |                                                                   |
+| `status`                    | text check             | `running` \| `paused` \| `on_break` \| `completed` \| `cancelled` |
+| `mode`                      | text check             | `countdown` \| `stopwatch` \| `cycles`                            |
+| `title`                     | text null              | intención                                                         |
+| `preset_id`                 | uuid null              | SET NULL on delete                                                |
+| `task_id`                   | uuid null              | SET NULL; FK compuesta                                            |
+| `category_id`               | uuid null              | SET NULL; FK compuesta                                            |
+| `schedule_id`               | uuid null              | SET NULL; FK compuesta                                            |
+| `occurrence_date`           | date null              | para hábitos                                                      |
+| `planned_focus_sec`         | int null               |                                                                   |
+| `focus_sec`                 | int not null default 0 | acumulado cerrado (+ se recalcula en app)                         |
+| `paused_sec`                | int not null default 0 |                                                                   |
+| `break_sec`                 | int not null default 0 |                                                                   |
+| `current_phase_kind`        | text null              | `focus` \| `short_break` \| `long_break` \| `pause`               |
+| `current_cycle`             | int not null default 1 |                                                                   |
+| `config`                    | jsonb                  | snapshot de reglas de la sesión (duraciones, flags)               |
+| `link_snapshot`             | jsonb                  | título tarea, emoji, categoría, etc.                              |
+| `started_at`                | timestamptz            |                                                                   |
+| `ended_at`                  | timestamptz null       |                                                                   |
+| `notes`                     | text null              | max length check                                                  |
+| `distractions`              | jsonb default `[]`     | notas aparcadas privadas                                          |
+| `subjective_focus`          | smallint null          | 1..5 opcional                                                     |
+| `subjective_energy`         | smallint null          | 1..5 opcional                                                     |
+| `complete_task_on_end`      | bool default false     |                                                                   |
+| `task_completion_applied`   | bool default false     |                                                                   |
+| `revision`                  | int not null default 1 | optimistic concurrency                                            |
+| `created_at` / `updated_at` | timestamptz            |                                                                   |
+| `unique(id, user_id)`       |                        |                                                                   |
 
 **Una sesión activa:**
 
@@ -385,18 +385,18 @@ create unique index focus_sessions_one_active_per_user
 
 Transiciones reales, no ticks.
 
-| Columna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | uuid PK | |
-| `user_id` | uuid | |
-| `session_id` | uuid | FK compuesta cascade |
-| `kind` | text check | `focus` \| `short_break` \| `long_break` \| `pause` |
-| `sequence` | int | orden 0..n |
-| `cycle_index` | int null | |
-| `started_at` | timestamptz | |
-| `ended_at` | timestamptz null | abierto = en curso |
-| `planned_duration_sec` | int null | |
-| `unique(session_id, sequence)` | | |
+| Columna                        | Tipo             | Notas                                               |
+| ------------------------------ | ---------------- | --------------------------------------------------- |
+| `id`                           | uuid PK          |                                                     |
+| `user_id`                      | uuid             |                                                     |
+| `session_id`                   | uuid             | FK compuesta cascade                                |
+| `kind`                         | text check       | `focus` \| `short_break` \| `long_break` \| `pause` |
+| `sequence`                     | int              | orden 0..n                                          |
+| `cycle_index`                  | int null         |                                                     |
+| `started_at`                   | timestamptz      |                                                     |
+| `ended_at`                     | timestamptz null | abierto = en curso                                  |
+| `planned_duration_sec`         | int null         |                                                     |
+| `unique(session_id, sequence)` |                  |                                                     |
 
 Constraint: `ended_at is null or ended_at >= started_at`.  
 Índice parcial: un abierto por sesión:
@@ -411,16 +411,16 @@ Duración derivada: `extract(epoch from (coalesce(ended_at, now()) - started_at)
 
 #### `focus_goals`
 
-| Columna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | uuid PK | |
-| `user_id` | uuid | |
-| `period` | text check | v1: `weekly` |
-| `target_focus_sec` | int check > 0 | |
-| `timezone` | text | ancla de cálculo (o heredar profile al leer) |
-| `week_starts_on` | smallint 0..6 | snapshot de preferencia |
-| `active` | bool | |
-| `created_at` / `updated_at` | | |
+| Columna                     | Tipo          | Notas                                        |
+| --------------------------- | ------------- | -------------------------------------------- |
+| `id`                        | uuid PK       |                                              |
+| `user_id`                   | uuid          |                                              |
+| `period`                    | text check    | v1: `weekly`                                 |
+| `target_focus_sec`          | int check > 0 |                                              |
+| `timezone`                  | text          | ancla de cálculo (o heredar profile al leer) |
+| `week_starts_on`            | smallint 0..6 | snapshot de preferencia                      |
+| `active`                    | bool          |                                              |
+| `created_at` / `updated_at` |               |                                              |
 
 Índice: un goal weekly activo por usuario (parcial unique) si se desea un solo objetivo simultáneo.
 
@@ -437,13 +437,13 @@ Justificación:
 
 ### 7.3 Borrado y retención
 
-| Entidad borrada | Comportamiento |
-| --- | --- |
-| Task | `task_id` SET NULL; `link_snapshot` permanece |
-| Category / Schedule | SET NULL en FKs; snapshot preserva nombres |
-| Preset | SET NULL en `preset_id`; sesión conserva `config` |
-| Session | CASCADE intervals |
-| User | CASCADE todo |
+| Entidad borrada     | Comportamiento                                    |
+| ------------------- | ------------------------------------------------- |
+| Task                | `task_id` SET NULL; `link_snapshot` permanece     |
+| Category / Schedule | SET NULL en FKs; snapshot preserva nombres        |
+| Preset              | SET NULL en `preset_id`; sesión conserva `config` |
+| Session             | CASCADE intervals                                 |
+| User                | CASCADE todo                                      |
 
 No borrar sesiones al archivar tareas.
 
@@ -481,12 +481,12 @@ ticker = setInterval(() => setNow(Date.now()), 1000)  // solo re-render
 
 ## 9. Una sola sesión activa
 
-| Capa | Mecanismo |
-| --- | --- |
-| DB | unique partial index por user en estados activos |
-| App start | si existe activa → card “Continuar” / conflicto; no insert silencioso |
+| Capa         | Mecanismo                                                                                    |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| DB           | unique partial index por user en estados activos                                             |
+| App start    | si existe activa → card “Continuar” / conflicto; no insert silencioso                        |
 | Multi-device | segundo dispositivo ve la activa al fetch; `takeover` es UX + bump revision, no segunda fila |
-| Multi-tab | misma fila; revision evita lost updates |
+| Multi-tab    | misma fila; revision evita lost updates                                                      |
 
 ---
 
@@ -542,14 +542,14 @@ Fase dedicada posterior a datos + dominio:
 
 ## 14. Plan de pruebas
 
-| Capa | Qué |
-| --- | --- |
+| Capa               | Qué                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ |
 | SQL contract tests | RLS auth.uid pattern, partial unique active session, checks de status/duración, ON DELETE SET NULL, revision |
-| Domain unit | anti-deriva, pause/resume, cycles, skip/extend break, recover, DST/timezone, concurrency conflict |
-| Component | shell focus, empty state, active card, configurador |
-| Nav architecture | desktop item, more item, 5 mobile tabs, private route |
-| E2E | ruta ES/EN, iniciar sesión, recarga, mobile more |
-| Manual | throttle tab, PWA background, theme light/dark, 320px |
+| Domain unit        | anti-deriva, pause/resume, cycles, skip/extend break, recover, DST/timezone, concurrency conflict            |
+| Component          | shell focus, empty state, active card, configurador                                                          |
+| Nav architecture   | desktop item, more item, 5 mobile tabs, private route                                                        |
+| E2E                | ruta ES/EN, iniciar sesión, recarga, mobile more                                                             |
+| Manual             | throttle tab, PWA background, theme light/dark, 320px                                                        |
 
 ---
 
@@ -557,18 +557,18 @@ Fase dedicada posterior a datos + dominio:
 
 Alineado con `prompts.md`:
 
-| # | Hito | Prompt |
-| --- | --- | --- |
-| 0 | Auditoría + este plan | 00 ✓ |
-| 1 | Migraciones + RLS + tipos | 01 |
-| 2 | Dominio TS, Zod, cálculos, actions | 02 |
-| 3 | Ruta, nav, pantalla principal shell | 03 |
-| 4 | Configurador e inicio rápido | 04 |
-| 5 | Motor timer + recovery | 05 |
-| 6 | UI sesión activa + compacta + fullscreen | 06 |
-| 7 | Descansos y ciclos flexibles | 07 |
-| 8 | Vínculo tareas/hábitos | 08+ |
-| 9 | Historial, goals, stats, notificaciones, backup | prompts posteriores |
+| #   | Hito                                            | Prompt              |
+| --- | ----------------------------------------------- | ------------------- |
+| 0   | Auditoría + este plan                           | 00 ✓                |
+| 1   | Migraciones + RLS + tipos                       | 01                  |
+| 2   | Dominio TS, Zod, cálculos, actions              | 02                  |
+| 3   | Ruta, nav, pantalla principal shell             | 03                  |
+| 4   | Configurador e inicio rápido                    | 04                  |
+| 5   | Motor timer + recovery                          | 05                  |
+| 6   | UI sesión activa + compacta + fullscreen        | 06                  |
+| 7   | Descansos y ciclos flexibles                    | 07                  |
+| 8   | Vínculo tareas/hábitos                          | 08+                 |
+| 9   | Historial, goals, stats, notificaciones, backup | prompts posteriores |
 
 ---
 
@@ -668,13 +668,13 @@ Producto: flexible (no solo Pomodoro), integrado, privado, una sesión activa.
 
 ## 20. Riesgos críticos (top)
 
-1. Implementar el reloj con contador mutable.  
-2. Confiar solo en la UI para unicidad de sesión activa.  
-3. Romper mobile nav o rutas privadas.  
-4. Olvidar backup/restore y provocar pérdida en “restaurar”.  
-5. Auto-completar tareas al terminar focus.  
+1. Implementar el reloj con contador mutable.
+2. Confiar solo en la UI para unicidad de sesión activa.
+3. Romper mobile nav o rutas privadas.
+4. Olvidar backup/restore y provocar pérdida en “restaurar”.
+5. Auto-completar tareas al terminar focus.
 6. Loguear títulos/notas de sesión.
 
 ---
 
-*Fin del plan Prompt 00. Siguiente hito ejecutable: Prompt 01 — esquema, migraciones y RLS.*
+_Fin del plan Prompt 00. Siguiente hito ejecutable: Prompt 01 — esquema, migraciones y RLS._

@@ -232,9 +232,7 @@ export function SessionCompleteCard({
   }
 
   const intention =
-    summary.taskTitle ||
-    summary.intention ||
-    t("active.untitled");
+    summary.taskTitle || summary.intention || t("active.untitled");
 
   return (
     <section
@@ -242,7 +240,9 @@ export function SessionCompleteCard({
       aria-labelledby="focus-complete-title"
     >
       <p className="eyebrow">
-        {isCancelled ? t("review.cancelledEyebrow") : t("cycles.completeEyebrow")}
+        {isCancelled
+          ? t("review.cancelledEyebrow")
+          : t("cycles.completeEyebrow")}
       </p>
       <h2 id="focus-complete-title">
         {isCancelled ? t("review.cancelledTitle") : t("cycles.completeTitle")}
@@ -274,9 +274,7 @@ export function SessionCompleteCard({
             <span>{t("cycles.statBlocks")}</span>
             <strong>
               {summary.completedFocusBlocks}
-              {summary.targetCycles != null
-                ? ` / ${summary.targetCycles}`
-                : ""}
+              {summary.targetCycles != null ? ` / ${summary.targetCycles}` : ""}
             </strong>
           </li>
         ) : null}
@@ -433,9 +431,7 @@ export function SessionCompleteCard({
                 onClick={() =>
                   updateReview(
                     "outcome",
-                    review.outcome === value
-                      ? null
-                      : (value as FocusOutcome),
+                    review.outcome === value ? null : (value as FocusOutcome),
                   )
                 }
               >

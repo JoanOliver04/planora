@@ -145,10 +145,7 @@ describe("focus offline queue", () => {
   });
 
   it("survives corrupt queue data", () => {
-    window.localStorage.setItem(
-      "planora-focus-offline-queue-v1",
-      "{not-json",
-    );
+    window.localStorage.setItem("planora-focus-offline-queue-v1", "{not-json");
     expect(getQueuedFocusTransitions()).toEqual([]);
     window.localStorage.setItem(
       "planora-focus-offline-queue-v1",

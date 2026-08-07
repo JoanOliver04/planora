@@ -44,7 +44,12 @@ export function filterTasks(
   });
 }
 
-export function isTaskAvailableInSchedule(task: Pick<Task, "scope" | "schedule_id" | "archived_at" | "is_active">, activeScheduleId: string | null) {
+export function isTaskAvailableInSchedule(
+  task: Pick<Task, "scope" | "schedule_id" | "archived_at" | "is_active">,
+  activeScheduleId: string | null,
+) {
   if (task.archived_at || !task.is_active) return false;
-  return task.scope === "global" ? task.schedule_id === null : task.schedule_id === activeScheduleId && activeScheduleId !== null;
+  return task.scope === "global"
+    ? task.schedule_id === null
+    : task.schedule_id === activeScheduleId && activeScheduleId !== null;
 }

@@ -10,11 +10,19 @@ import { ReminderCenter } from "@/features/reminders/reminder-center";
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, string>) => {
     const messages: Record<string, string> = {
-      close: "Cerrar", searchTask: "Buscar una tarea…", searchEvent: "Buscar un evento…",
-      noTasksFound: "No se han encontrado tareas.", noEventsFound: "No se han encontrado eventos.",
-      clearSelection: "Limpiar selección", customDuration: "Personalizada", days: "Días",
-      hours: "Horas", minutes: "Minutos", customDurationSummary: `Te avisaremos ${values?.duration ?? ""} antes.`,
-      customDurationInvalid: "Duración no válida", save: "Guardar",
+      close: "Cerrar",
+      searchTask: "Buscar una tarea…",
+      searchEvent: "Buscar un evento…",
+      noTasksFound: "No se han encontrado tareas.",
+      noEventsFound: "No se han encontrado eventos.",
+      clearSelection: "Limpiar selección",
+      customDuration: "Personalizada",
+      days: "Días",
+      hours: "Horas",
+      minutes: "Minutos",
+      customDurationSummary: `Te avisaremos ${values?.duration ?? ""} antes.`,
+      customDurationInvalid: "Duración no válida",
+      save: "Guardar",
     };
     return messages[key] ?? key;
   },
@@ -119,5 +127,4 @@ describe("reminder scheduling", () => {
     expect(requestPermission).toHaveBeenCalledOnce();
     expect(enable).toHaveBeenCalledWith(true);
   });
-
 });

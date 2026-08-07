@@ -15,9 +15,9 @@ type WakeLockSentinelLike = {
 let sentinel: WakeLockSentinelLike | null = null;
 let desired = false;
 
-function wakeLockApi():
-  | { request: (type: "screen") => Promise<WakeLockSentinelLike> }
-  | null {
+function wakeLockApi(): {
+  request: (type: "screen") => Promise<WakeLockSentinelLike>;
+} | null {
   if (typeof navigator === "undefined") return null;
   const api = (
     navigator as Navigator & {
@@ -54,8 +54,7 @@ export async function syncFocusWakeLock(
     isActiveStatus(session.status) &&
     session.status !== "paused" &&
     (session.config.keepScreenAwake || device.wakeLockPreferred) &&
-    (typeof document === "undefined" ||
-      document.visibilityState === "visible");
+    (typeof document === "undefined" || document.visibilityState === "visible");
 
   desired = shouldHold;
 

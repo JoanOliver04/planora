@@ -16,7 +16,9 @@ describe("Focus release readiness contracts", () => {
     ]) {
       expect(schema).toContain(`create table public.${table}`);
       expect(schema).toMatch(
-        new RegExp(`enable row level security[\\s\\S]*${table}|${table}[\\s\\S]*enable row level security`),
+        new RegExp(
+          `enable row level security[\\s\\S]*${table}|${table}[\\s\\S]*enable row level security`,
+        ),
       );
     }
     expect(schema).toContain("focus_sessions_one_active_per_user");
@@ -72,4 +74,3 @@ describe("Focus release readiness contracts", () => {
     expect(hecho.length).toBeGreaterThanOrEqual(23);
   });
 });
-

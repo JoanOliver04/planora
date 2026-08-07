@@ -10,7 +10,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useFocusSession, type UseFocusSessionResult } from "./use-focus-session";
+import {
+  useFocusSession,
+  type UseFocusSessionResult,
+} from "./use-focus-session";
 import type { FocusSession } from "./types";
 import { toast } from "sonner";
 import { useLocale, useTranslations } from "next-intl";
@@ -70,9 +73,7 @@ export function FocusSessionProvider({
   const [seedKey, setSeedKey] = useState(() => sessionKey(initialSession));
   const [initialLoaded, setInitialLoaded] = useState(Boolean(initialSession));
   const [immersive, setImmersive] = useState(false);
-  const [lastCompleted, setLastCompleted] = useState<FocusSession | null>(
-    null,
-  );
+  const [lastCompleted, setLastCompleted] = useState<FocusSession | null>(null);
   const [controlMode, setControlMode] =
     useState<FocusControlMode>("controller");
   const [takeoverDialogOpen, setTakeoverDialogOpen] = useState(false);
@@ -94,7 +95,10 @@ export function FocusSessionProvider({
   }
 
   const applyRemoteSession = useCallback(
-    (remote: FocusSession | null, source: "broadcast" | "poll" | "conflict") => {
+    (
+      remote: FocusSession | null,
+      source: "broadcast" | "poll" | "conflict",
+    ) => {
       const decision = decideRemoteSession(seedRef.current, remote);
       if (decision === "ignore") return;
 
@@ -350,7 +354,10 @@ export function FocusSessionProvider({
     };
 
     void reconcile();
-    const timer = window.setInterval(() => void reconcile(), FOCUS_SYNC_POLL_MS);
+    const timer = window.setInterval(
+      () => void reconcile(),
+      FOCUS_SYNC_POLL_MS,
+    );
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("online", onVisible);
     window.addEventListener("focus", onVisible);

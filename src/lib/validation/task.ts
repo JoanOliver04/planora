@@ -30,7 +30,11 @@ export const taskSchema = z
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     endDate: z.preprocess(
       (value) => (value === "" ? null : value),
-      z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+      z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional()
+        .nullable(),
     ),
     timing: z.discriminatedUnion("mode", [
       z.object({ mode: z.literal("anytime") }),
@@ -50,8 +54,18 @@ export const taskSchema = z
     ]),
   })
   .superRefine((v, c) => {
-    if (v.scope === "schedule" && !v.scheduleId) c.addIssue({ code: "custom", path: ["scheduleId"], message: "Schedule is required" });
-    if (v.scope === "global" && v.scheduleId) c.addIssue({ code: "custom", path: ["scheduleId"], message: "Global task cannot have schedule" });
+    if (v.scope === "schedule" && !v.scheduleId)
+      c.addIssue({
+        code: "custom",
+        path: ["scheduleId"],
+        message: "Schedule is required",
+      });
+    if (v.scope === "global" && v.scheduleId)
+      c.addIssue({
+        code: "custom",
+        path: ["scheduleId"],
+        message: "Global task cannot have schedule",
+      });
     if (v.endDate && v.endDate < v.startDate)
       c.addIssue({
         code: "custom",

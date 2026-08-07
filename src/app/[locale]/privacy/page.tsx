@@ -23,7 +23,9 @@ export default async function Privacy({
           ? "Google proporciona nombre, correo y foto para identificar la cuenta. Planora almacena la planificación que creas y las preferencias necesarias para prestar el servicio."
           : "Google provides name, email and photo to identify your account. Planora stores the planning data you create and the preferences required to provide the service."}
       </p>
-      <h2>{es ? "Enfoque (sesiones y notas)" : "Focus (sessions and notes)"}</h2>
+      <h2>
+        {es ? "Enfoque (sesiones y notas)" : "Focus (sessions and notes)"}
+      </h2>
       <p>
         {es
           ? "Las sesiones de Enfoque, intervalos, presets, objetivos semanales, notas privadas y distracciones aparcadas se guardan en tu cuenta. Forman parte de la exportación JSON completa («Tus datos»). El CSV de análisis omite notas y distracciones por defecto y, si existen, las ofrece en un archivo aparte claramente marcado como privado. No enviamos títulos, notas ni contenido de sesión a la analítica de producto."

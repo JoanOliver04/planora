@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useTranslations } from "next-intl";
 import {
   Maximize2,
@@ -42,18 +49,13 @@ import {
   loadFocusDevicePreferences,
   subscribeFocusDevicePreferences,
 } from "./focus-preferences";
-import {
-  currentSegment,
-  hasStructuredPlan,
-  nextSegment,
-} from "./session-plan";
+import { currentSegment, hasStructuredPlan, nextSegment } from "./session-plan";
 import {
   FOCUS_SHORTCUT_LIST,
   isDesktopPointer,
   isTypingTarget,
   resolveFocusShortcut,
 } from "./focus-keyboard";
-
 
 function phaseLabel(
   kind: FocusPhaseKind | null,
@@ -75,13 +77,17 @@ function modeLabel(
   return t("modes.cycles");
 }
 
-function nextPhaseHint(session: FocusSession, t: ReturnType<typeof useTranslations<"Focus">>) {
+function nextPhaseHint(
+  session: FocusSession,
+  t: ReturnType<typeof useTranslations<"Focus">>,
+) {
   if (session.mode === "stopwatch") return t("activeView.nextStopwatch");
   if (session.mode === "countdown") return t("activeView.nextEnd");
   const completed = countCompletedFocusBlocks(session);
   const plan = planNextPhase(session, completed);
   if (plan.completesSession) return t("activeView.nextEnd");
-  if (plan.kind === "focus") return t("activeView.nextFocus", { n: plan.cycleIndex });
+  if (plan.kind === "focus")
+    return t("activeView.nextFocus", { n: plan.cycleIndex });
   if (plan.kind === "long_break") return t("activeView.nextLongBreak");
   return t("activeView.nextShortBreak");
 }
@@ -168,7 +174,8 @@ export function ActiveSessionView({
       const previous = statusTrackKey;
       setStatusTrackKey(key);
       if (previous != null) {
-        if (session.status === "paused") setStatusAnnouncement(t("a11y.paused"));
+        if (session.status === "paused")
+          setStatusAnnouncement(t("a11y.paused"));
         else if (session.status === "running")
           setStatusAnnouncement(t("a11y.resumed"));
         else if (session.status === "on_break")
@@ -244,7 +251,10 @@ export function ActiveSessionView({
 
       if (action === "pauseResume") {
         if (session?.status === "paused") void engine.resume();
-        else if (session?.status === "running" || session?.status === "on_break")
+        else if (
+          session?.status === "running" ||
+          session?.status === "on_break"
+        )
           void engine.pause();
         return;
       }
@@ -325,16 +335,16 @@ export function ActiveSessionView({
   const planNext = planActive ? nextSegment(session) : null;
   const onBreak = session.status === "on_break";
   const title =
-    session.title ||
-    session.linkSnapshot.taskTitle ||
-    t("active.untitled");
+    session.title || session.linkSnapshot.taskTitle || t("active.untitled");
   const category = session.linkSnapshot.categoryName;
   const timerDisplay =
     typeof window === "undefined"
       ? defaultFocusAccountPreferences.timerDisplay
       : (() => {
           try {
-            const raw = window.localStorage.getItem("planora-focus-timer-display");
+            const raw = window.localStorage.getItem(
+              "planora-focus-timer-display",
+            );
             // Prefer account prefs passed via data attribute set by FocusHome when available.
             const fromDom = document.documentElement.dataset.focusTimerDisplay;
             if (fromDom === "compact" || fromDom === "large") return fromDom;
@@ -616,7 +626,9 @@ export function ActiveSessionView({
       </p>
 
       <div className="focus-active-stage">
-        <p className="focus-active-phase">{phaseLabel(session.currentPhaseKind, t)}</p>
+        <p className="focus-active-phase">
+          {phaseLabel(session.currentPhaseKind, t)}
+        </p>
         <p
           className="focus-active-time"
           data-size={timerDisplay}
@@ -701,7 +713,11 @@ export function ActiveSessionView({
       </div>
 
       {onBreak ? (
-        <div className="focus-break-panel" role="region" aria-label={t("cycles.breakPanel")}>
+        <div
+          className="focus-break-panel"
+          role="region"
+          aria-label={t("cycles.breakPanel")}
+        >
           <p>
             <strong>{phaseLabel(session.currentPhaseKind, t)}</strong>
             {" · "}
@@ -1029,7 +1045,6 @@ export function ActiveSessionView({
           </div>
         </div>
       ) : null}
-
     </section>
   );
 }

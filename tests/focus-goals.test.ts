@@ -6,7 +6,10 @@ import {
   pickPrimaryGoal,
 } from "@/features/focus/goals";
 import type { FocusGoal, FocusSession } from "@/features/focus/types";
-import { createStartedSession, applyFocusAction } from "@/features/focus/state-machine";
+import {
+  createStartedSession,
+  applyFocusAction,
+} from "@/features/focus/state-machine";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -171,4 +174,3 @@ describe("flexible weekly focus goals", () => {
     expect(first.weekStart <= first.weekEnd).toBe(true);
   });
 });
-

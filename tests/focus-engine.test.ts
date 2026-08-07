@@ -132,11 +132,15 @@ describe("focus engine (timer runtime)", () => {
     expect(snap.phaseComplete).toBe(true);
     expect(snap.shouldAutoAdvance).toBe(true);
 
-    const paused = runFocusEngineAction(session, { type: "pause" }, {
-      now: atEnd,
-      expectedRevision: 1,
-      createId: idFactory("p"),
-    });
+    const paused = runFocusEngineAction(
+      session,
+      { type: "pause" },
+      {
+        now: atEnd,
+        expectedRevision: 1,
+        createId: idFactory("p"),
+      },
+    );
     expect(paused.session.status).toBe("paused");
     const after = evaluateFocusEngine(paused.session, atEnd + 5000);
     expect(after.displayRemainingSec).toBeNull();
@@ -260,11 +264,15 @@ describe("focus engine (timer runtime)", () => {
     );
     // After 90s: focus done + break done → should be into next focus or break chain
     const later = t0 + 90_000;
-    const result = runFocusEngineAction(session, { type: "pause" }, {
-      now: later,
-      createId: idFactory("rf"),
-      recoverFirst: true,
-    });
+    const result = runFocusEngineAction(
+      session,
+      { type: "pause" },
+      {
+        now: later,
+        createId: idFactory("rf"),
+        recoverFirst: true,
+      },
+    );
     // Either paused after recovery, or terminal if target completed.
     expect(["paused", "completed", "running", "on_break"]).toContain(
       result.session.status,
@@ -277,17 +285,25 @@ describe("focus engine (timer runtime)", () => {
   it("rejects a second pause as an invalid transition at domain level", () => {
     const t0 = Date.parse("2026-08-07T10:00:00.000Z");
     let session = countdown(600, t0);
-    session = applyFocusAction(session, { type: "pause" }, {
-      now: t0 + 10_000,
-      expectedRevision: 1,
-      createId: idFactory("d1"),
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "pause" },
+      {
+        now: t0 + 10_000,
+        expectedRevision: 1,
+        createId: idFactory("d1"),
+      },
+    ).session;
     expect(() =>
-      applyFocusAction(session, { type: "pause" }, {
-        now: t0 + 15_000,
-        expectedRevision: session.revision,
-        createId: idFactory("d2"),
-      }),
+      applyFocusAction(
+        session,
+        { type: "pause" },
+        {
+          now: t0 + 15_000,
+          expectedRevision: session.revision,
+          createId: idFactory("d2"),
+        },
+      ),
     ).toThrow(/paused/i);
   });
 });

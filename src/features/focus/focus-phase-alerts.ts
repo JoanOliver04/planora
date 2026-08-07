@@ -212,9 +212,7 @@ export async function deliverFocusPhaseAlert(
 
   // Session complete / soft goal already surface dedicated toasts from the runtime.
   const allowInApp =
-    !options.silentInApp &&
-    kind !== "session_complete" &&
-    kind !== "soft_goal";
+    !options.silentInApp && kind !== "session_complete" && kind !== "soft_goal";
 
   if (allowInApp) {
     try {
@@ -228,7 +226,11 @@ export async function deliverFocusPhaseAlert(
     }
   }
 
-  const cues = await playPhaseCue(session, kind, { locale, title: copy.title, body: copy.body });
+  const cues = await playPhaseCue(session, kind, {
+    locale,
+    title: copy.title,
+    body: copy.body,
+  });
 
   // Optional PWA badge while the tab is in the background.
   try {

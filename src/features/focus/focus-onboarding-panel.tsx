@@ -25,7 +25,9 @@ import {
   type FocusFirstPath,
 } from "./focus-onboarding";
 
-export function draftFromFirstPath(path: FocusFirstPath): SessionStartDraft | null {
+export function draftFromFirstPath(
+  path: FocusFirstPath,
+): SessionStartDraft | null {
   if (path === "createPreset") return null;
   if (path === "quick25") {
     return {
@@ -92,7 +94,11 @@ export function FocusOnboardingPanel({
   const [showPaths, setShowPaths] = useState(false);
 
   const showIntro = useMemo(
-    () => shouldShowFocusIntro({ hasHistory, introDismissed: state.introDismissed }),
+    () =>
+      shouldShowFocusIntro({
+        hasHistory,
+        introDismissed: state.introDismissed,
+      }),
     [hasHistory, state.introDismissed],
   );
 

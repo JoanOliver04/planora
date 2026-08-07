@@ -5,12 +5,7 @@ import {
 } from "./validation";
 import { summarizeEndedSession } from "./cycles";
 
-export const FOCUS_OUTCOMES = [
-  "done",
-  "progress",
-  "blocked",
-  "other",
-] as const;
+export const FOCUS_OUTCOMES = ["done", "progress", "blocked", "other"] as const;
 export type FocusOutcome = (typeof FOCUS_OUTCOMES)[number];
 
 export type FocusReviewInput = {
@@ -49,8 +44,7 @@ export function buildSessionReviewSummary(
     completedFocusBlocks: base.completedFocusBlocks,
     targetCycles: base.targetCycles,
     plannedFocusSec: planned,
-    plannedVsActualSec:
-      planned != null ? base.focusSec - planned : null,
+    plannedVsActualSec: planned != null ? base.focusSec - planned : null,
     intention: session.title,
     taskTitle: session.linkSnapshot.taskTitle ?? null,
     mode: session.mode,
@@ -68,7 +62,9 @@ export function normalizeDistractionText(value: string): string | null {
 export function addDistraction(
   current: string[],
   text: string,
-): { ok: true; distractions: string[] } | { ok: false; reason: "empty" | "limit" } {
+):
+  | { ok: true; distractions: string[] }
+  | { ok: false; reason: "empty" | "limit" } {
   const normalized = normalizeDistractionText(text);
   if (!normalized) return { ok: false, reason: "empty" };
   if (current.length >= FOCUS_MAX_DISTRACTIONS) {
@@ -85,9 +81,7 @@ export function removeDistractionAt(
   return current.filter((_, i) => i !== index);
 }
 
-export function parseFocusOutcome(
-  value: unknown,
-): FocusOutcome | null {
+export function parseFocusOutcome(value: unknown): FocusOutcome | null {
   if (
     value === "done" ||
     value === "progress" ||

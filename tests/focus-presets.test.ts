@@ -20,7 +20,8 @@ const migration = readFileSync(
 );
 
 function preset(
-  overrides: Partial<FocusPreset> & Pick<FocusPreset, "id" | "name" | "sortOrder">,
+  overrides: Partial<FocusPreset> &
+    Pick<FocusPreset, "id" | "name" | "sortOrder">,
 ): FocusPreset {
   return {
     userId: "user",

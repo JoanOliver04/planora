@@ -31,67 +31,66 @@ export const focusPhaseKindSchema = z.enum([
 ]);
 
 /** Accepts legacy segment shapes and normalizes to the structured-plan model. */
-export const focusSegmentSchema = z.preprocess((raw) => {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
-  const item = raw as Record<string, unknown>;
-  const legacyKind = item.kind;
-  const kind =
-    legacyKind === "focus"
-      ? "focus"
-      : legacyKind === "break" ||
-          legacyKind === "short_break" ||
-          legacyKind === "long_break"
-        ? "break"
-        : legacyKind;
-  const durationRaw =
-    typeof item.durationSec === "number"
-      ? item.durationSec
-      : typeof item.duration_sec === "number"
-        ? item.duration_sec
-        : null;
-  const durationSec =
-    durationRaw == null
-      ? null
-      : durationRaw <= 0
-        ? null
-        : durationRaw;
-  const name =
-    typeof item.name === "string" && item.name.trim()
-      ? item.name
-      : typeof item.label === "string" && item.label.trim()
-        ? item.label
-        : "Block";
-  const autoAdvance =
-    typeof item.autoAdvance === "boolean"
-      ? item.autoAdvance
-      : durationSec != null;
-  return {
-    name,
-    emoji:
-      typeof item.emoji === "string" || item.emoji === null
-        ? item.emoji
-        : null,
-    kind,
-    durationSec,
-    description:
-      typeof item.description === "string" || item.description === null
-        ? item.description
-        : null,
-    autoAdvance,
-  };
-}, z.object({
-  name: z.string().trim().min(1).max(80),
-  emoji: z.string().trim().min(1).max(16).nullable().optional(),
-  kind: z.enum(["focus", "break"]),
-  durationSec: z
-    .number()
-    .int()
-    .min(FOCUS_MIN_DURATION_SEC)
-    .max(FOCUS_MAX_DURATION_SEC)
-    .nullable(),
-  description: z.string().trim().max(280).nullable().optional(),
-  autoAdvance: z.boolean(),
-}));
+export const focusSegmentSchema = z.preprocess(
+  (raw) => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+    const item = raw as Record<string, unknown>;
+    const legacyKind = item.kind;
+    const kind =
+      legacyKind === "focus"
+        ? "focus"
+        : legacyKind === "break" ||
+            legacyKind === "short_break" ||
+            legacyKind === "long_break"
+          ? "break"
+          : legacyKind;
+    const durationRaw =
+      typeof item.durationSec === "number"
+        ? item.durationSec
+        : typeof item.duration_sec === "number"
+          ? item.duration_sec
+          : null;
+    const durationSec =
+      durationRaw == null ? null : durationRaw <= 0 ? null : durationRaw;
+    const name =
+      typeof item.name === "string" && item.name.trim()
+        ? item.name
+        : typeof item.label === "string" && item.label.trim()
+          ? item.label
+          : "Block";
+    const autoAdvance =
+      typeof item.autoAdvance === "boolean"
+        ? item.autoAdvance
+        : durationSec != null;
+    return {
+      name,
+      emoji:
+        typeof item.emoji === "string" || item.emoji === null
+          ? item.emoji
+          : null,
+      kind,
+      durationSec,
+      description:
+        typeof item.description === "string" || item.description === null
+          ? item.description
+          : null,
+      autoAdvance,
+    };
+  },
+  z.object({
+    name: z.string().trim().min(1).max(80),
+    emoji: z.string().trim().min(1).max(16).nullable().optional(),
+    kind: z.enum(["focus", "break"]),
+    durationSec: z
+      .number()
+      .int()
+      .min(FOCUS_MIN_DURATION_SEC)
+      .max(FOCUS_MAX_DURATION_SEC)
+      .nullable(),
+    description: z.string().trim().max(280).nullable().optional(),
+    autoAdvance: z.boolean(),
+  }),
+);
 
 const durationSec = z
   .number()
@@ -139,12 +138,7 @@ export const focusSessionConfigSchema = z.object({
     .min(1)
     .max(FOCUS_MAX_CYCLES_BEFORE_LONG)
     .nullable(),
-  targetCycles: z
-    .number()
-    .int()
-    .min(1)
-    .max(FOCUS_MAX_CYCLES)
-    .nullable(),
+  targetCycles: z.number().int().min(1).max(FOCUS_MAX_CYCLES).nullable(),
   autoStartBreaks: z.boolean(),
   autoStartFocus: z.boolean(),
   soundEnabled: z.boolean(),
@@ -208,10 +202,7 @@ export const startFocusSessionSchema = z
   })
   .superRefine((value, ctx) => {
     const hasPlan = (value.segments?.length ?? 0) > 0;
-    if (
-      !hasPlan &&
-      (value.mode === "countdown" || value.mode === "cycles")
-    ) {
+    if (!hasPlan && (value.mode === "countdown" || value.mode === "cycles")) {
       if (value.focusDurationSec == null) {
         ctx.addIssue({
           code: "custom",
@@ -265,11 +256,7 @@ export const focusTransitionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("extend_break"),
     ...focusTransitionBase,
-    extraSec: z
-      .number()
-      .int()
-      .min(1)
-      .max(FOCUS_MAX_EXTEND_BREAK_SEC),
+    extraSec: z.number().int().min(1).max(FOCUS_MAX_EXTEND_BREAK_SEC),
   }),
   z.object({
     type: z.literal("finish_phase"),
@@ -336,7 +323,11 @@ export const focusGoalInputSchema = z
     id: uuid.optional(),
     metric: focusGoalMetricSchema.default("focus_seconds"),
     /** Seconds for focus_seconds, or counts for sessions/active_days. */
-    targetValue: z.number().int().min(1).max(FOCUS_MAX_DURATION_SEC * 14),
+    targetValue: z
+      .number()
+      .int()
+      .min(1)
+      .max(FOCUS_MAX_DURATION_SEC * 14),
     /** Legacy alias accepted for focus_seconds. */
     targetFocusSec: z
       .number()
@@ -474,7 +465,9 @@ export const completeLinkedTaskSchema = z.object({
 
 export type StartFocusSessionInput = z.infer<typeof startFocusSessionSchema>;
 export type FocusTransitionInput = z.infer<typeof focusTransitionSchema>;
-export type UpdateFocusMetadataInput = z.infer<typeof updateFocusMetadataSchema>;
+export type UpdateFocusMetadataInput = z.infer<
+  typeof updateFocusMetadataSchema
+>;
 export type FocusGoalInput = z.infer<typeof focusGoalInputSchema>;
 export type FocusPresetInput = z.infer<typeof focusPresetInputSchema>;
 export type CompleteLinkedTaskInput = z.infer<typeof completeLinkedTaskSchema>;

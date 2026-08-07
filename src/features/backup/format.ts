@@ -122,9 +122,24 @@ const focusPresetSchema = z.object({
   emoji: z.string().min(1).max(16).nullable().optional().default(null),
   intention: z.string().min(1).max(140).nullable().optional().default(null),
   mode: z.enum(["countdown", "stopwatch", "cycles"]),
-  focus_duration_sec: z.number().int().min(60).max(8 * 60 * 60).nullable(),
-  short_break_sec: z.number().int().min(0).max(60 * 60).nullable(),
-  long_break_sec: z.number().int().min(0).max(3 * 60 * 60).nullable(),
+  focus_duration_sec: z
+    .number()
+    .int()
+    .min(60)
+    .max(8 * 60 * 60)
+    .nullable(),
+  short_break_sec: z
+    .number()
+    .int()
+    .min(0)
+    .max(60 * 60)
+    .nullable(),
+  long_break_sec: z
+    .number()
+    .int()
+    .min(0)
+    .max(3 * 60 * 60)
+    .nullable(),
   cycles_before_long_break: z.number().int().min(1).max(20).nullable(),
   target_cycles: z.number().int().min(1).max(50).nullable(),
   auto_start_breaks: z.boolean(),
@@ -152,7 +167,12 @@ const focusSessionSchema = z.object({
   category_id: nullableUuid,
   schedule_id: nullableUuid,
   occurrence_date: date.nullable(),
-  planned_focus_sec: z.number().int().min(60).max(8 * 60 * 60).nullable(),
+  planned_focus_sec: z
+    .number()
+    .int()
+    .min(60)
+    .max(8 * 60 * 60)
+    .nullable(),
   focus_sec: z.number().int().min(0),
   paused_sec: z.number().int().min(0),
   break_sec: z.number().int().min(0),
@@ -187,7 +207,11 @@ const focusIntervalSchema = z.object({
 const focusGoalSchema = z.object({
   id: uuid,
   period: z.literal("weekly"),
-  target_focus_sec: z.number().int().min(1).max(8 * 60 * 60 * 14),
+  target_focus_sec: z
+    .number()
+    .int()
+    .min(1)
+    .max(8 * 60 * 60 * 14),
   metric: z
     .enum(["focus_seconds", "sessions", "active_days"])
     .optional()
@@ -301,7 +325,10 @@ const backupDataSchema = z
       if (item.schedule_id && !schedules.has(item.schedule_id))
         invalid("Category references an unknown schedule");
     for (const item of data.tasks) {
-      if (item.scope === "schedule" && (!item.schedule_id || !schedules.has(item.schedule_id)))
+      if (
+        item.scope === "schedule" &&
+        (!item.schedule_id || !schedules.has(item.schedule_id))
+      )
         invalid("Schedule task references an unknown schedule");
       if (item.scope === "global" && item.schedule_id !== null)
         invalid("Global task must not reference a schedule");
@@ -455,9 +482,11 @@ const backupDataSchema = z
       "focus interval sequence",
       data.focus_intervals.map((item) => `${item.session_id}:${item.sequence}`),
     );
-    if (data.focus_goals.length > 10)
-      invalid("Too many focus goals");
-    if (data.focus_goals.filter((item) => item.active && item.is_primary).length > 1)
+    if (data.focus_goals.length > 10) invalid("Too many focus goals");
+    if (
+      data.focus_goals.filter((item) => item.active && item.is_primary).length >
+      1
+    )
       invalid("Only one primary active focus goal is supported");
   });
 
@@ -629,9 +658,10 @@ export function sanitizeFocusReferences<T extends Record<string, unknown>>(
     ? data.focus_goals.map((item) => {
         if (!item || typeof item !== "object") return item;
         const row = item as Record<string, unknown>;
-        const scope = row.scope === "category" || row.scope === "preset"
-          ? row.scope
-          : "global";
+        const scope =
+          row.scope === "category" || row.scope === "preset"
+            ? row.scope
+            : "global";
         let category_id =
           typeof row.category_id === "string" && categories.has(row.category_id)
             ? row.category_id
@@ -678,7 +708,8 @@ export function parseBackup(value: unknown) {
     value &&
     typeof value === "object" &&
     typeof (value as { schemaVersion?: unknown }).schemaVersion === "number" &&
-    ((value as { schemaVersion: number }).schemaVersion > BACKUP_SCHEMA_VERSION ||
+    ((value as { schemaVersion: number }).schemaVersion >
+      BACKUP_SCHEMA_VERSION ||
       (value as { schemaVersion: number }).schemaVersion < 1)
   ) {
     return backupSchema.safeParse(value);
@@ -787,7 +818,12 @@ export function prepareRestorePayload(backup: PlanoraBackup) {
       ...item,
       id: taskIds.get(item.id)!,
       scope: item.scope,
-      schedule_id: item.scope === "global" ? null : item.schedule_id ? scheduleIds.get(item.schedule_id)! : null,
+      schedule_id:
+        item.scope === "global"
+          ? null
+          : item.schedule_id
+            ? scheduleIds.get(item.schedule_id)!
+            : null,
       category_id: mapped(categoryIds, item.category_id),
     })),
     events: backup.data.events.map((item) => ({
@@ -814,7 +850,10 @@ export function prepareRestorePayload(backup: PlanoraBackup) {
     focus_presets: backup.data.focus_presets.map((item) => ({
       ...item,
       id: focusPresetIds.get(item.id)!,
-      default_category_id: mapped(categoryIds, item.default_category_id ?? null),
+      default_category_id: mapped(
+        categoryIds,
+        item.default_category_id ?? null,
+      ),
     })),
     focus_sessions: backup.data.focus_sessions.map((item) => {
       const wasLive =
@@ -988,7 +1027,8 @@ export function focusSessionNotesCsvRows(
     .filter(
       (session) =>
         Boolean(session.notes?.trim()) ||
-        (Array.isArray(session.distractions) && session.distractions.length > 0),
+        (Array.isArray(session.distractions) &&
+          session.distractions.length > 0),
     )
     .map((session) => ({
       session_id: session.id,

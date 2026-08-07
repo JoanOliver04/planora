@@ -8,14 +8,14 @@ Countdown, stopwatch, cycles, structured plans, pause/resume, reload recovery, b
 
 ## Commands run
 
-| Command | Result |
-|---------|--------|
-| `npm run lint` | Pass |
-| `npm run typecheck` | Pass |
-| `npx vitest run` | Pass — 56 files, **323** tests |
-| `npm audit --omit=dev` | **0** vulnerabilities |
+| Command                     | Result                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------- |
+| `npm run lint`              | Pass                                                                                  |
+| `npm run typecheck`         | Pass                                                                                  |
+| `npx vitest run`            | Pass — 56 files, **323** tests                                                        |
+| `npm audit --omit=dev`      | **0** vulnerabilities                                                                 |
 | `e2e/focus-session.spec.ts` | Auth lifecycle + restore when Supabase service credentials present; login-gate always |
-| `npm run build` | Pass (Next.js 16.2.12 / Turbopack) |
+| `npm run build`             | Pass (Next.js 16.2.12 / Turbopack)                                                    |
 
 `npm run test:coverage` is optional; thresholds are not enforced in CI today.
 
@@ -47,12 +47,12 @@ Countdown, stopwatch, cycles, structured plans, pause/resume, reload recovery, b
 
 ## E2E matrix
 
-| Journey | Coverage |
-|---------|----------|
-| Create preset → start with task → pause → reload → resume → distract → complete → task from distraction → stats query → export/restore ×2 | `e2e/focus-session.spec.ts` (Supabase credentials) |
-| Focus route unauthenticated | Redirect to login (desktop + mobile projects) |
-| Backup restore no duplicates | Existing `e2e/backup-restore.spec.ts` + Focus restore policy unit tests |
-| Unit/integration domain flows | Vitest focus-* suite |
+| Journey                                                                                                                                   | Coverage                                                                |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Create preset → start with task → pause → reload → resume → distract → complete → task from distraction → stats query → export/restore ×2 | `e2e/focus-session.spec.ts` (Supabase credentials)                      |
+| Focus route unauthenticated                                                                                                               | Redirect to login (desktop + mobile projects)                           |
+| Backup restore no duplicates                                                                                                              | Existing `e2e/backup-restore.spec.ts` + Focus restore policy unit tests |
+| Unit/integration domain flows                                                                                                             | Vitest focus-* suite                                                    |
 
 ## Residual risks (accepted)
 

@@ -39,8 +39,7 @@ export function readFocusRecents(): FocusRecents {
         typeof parsed.lastTaskTitle === "string" ? parsed.lastTaskTitle : null,
       lastQuickKey:
         typeof parsed.lastQuickKey === "string" ? parsed.lastQuickKey : null,
-      updatedAt:
-        typeof parsed.updatedAt === "string" ? parsed.updatedAt : null,
+      updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null,
     };
   } catch {
     return emptyFocusRecents();

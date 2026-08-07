@@ -23,10 +23,9 @@ describe("SortableResourceList", () => {
         onError={vi.fn()}
       />,
     );
-    expect(screen.getByRole("button", { name: "Reordenar Primera" })).toHaveAttribute(
-      "aria-roledescription",
-      "sortable",
-    );
+    expect(
+      screen.getByRole("button", { name: "Reordenar Primera" }),
+    ).toHaveAttribute("aria-roledescription", "sortable");
     expect(screen.getAllByRole("button")).toHaveLength(2);
   });
 

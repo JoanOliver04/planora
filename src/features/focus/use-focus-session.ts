@@ -27,10 +27,7 @@ import {
   reacquireFocusWakeLockIfNeeded,
   syncFocusWakeLock,
 } from "./focus-wake-lock";
-import {
-  cacheFocusSession,
-  enqueueFocusTransition,
-} from "./focus-offline";
+import { cacheFocusSession, enqueueFocusTransition } from "./focus-offline";
 import type { FocusTransitionInput } from "./validation";
 
 export type UseFocusSessionOptions = {
@@ -356,7 +353,10 @@ export function useFocusSession(
   useEffect(() => {
     if (!session || !isActiveStatus(session.status)) return;
     const id = window.setInterval(() => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "hidden"
+      ) {
         return;
       }
       setNow(Date.now());
@@ -494,7 +494,12 @@ export function useFocusSession(
       return;
     }
     void syncFocusWakeLock(session);
-  }, [session, session?.status, session?.revision, session?.config.keepScreenAwake]);
+  }, [
+    session,
+    session?.status,
+    session?.revision,
+    session?.config.keepScreenAwake,
+  ]);
 
   // Visibility: re-acquire wake lock, clear badge, re-evaluate schedule.
   // Uses sessionRef so the listener always sees the latest session without rebinding every tick.
@@ -505,7 +510,11 @@ export function useFocusSession(
       void clearFocusAppBadge();
       void reacquireFocusWakeLockIfNeeded(sessionRef.current);
       const current = sessionRef.current;
-      if (current && isActiveStatus(current.status) && current.status !== "paused") {
+      if (
+        current &&
+        isActiveStatus(current.status) &&
+        current.status !== "paused"
+      ) {
         scheduleFocusPhaseAlert(current, {
           locale: optionsRef.current.locale,
         });

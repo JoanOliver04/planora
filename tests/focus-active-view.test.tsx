@@ -108,7 +108,9 @@ describe("Focus active session UI", () => {
     const user = userEvent.setup();
     renderWithSession(<ActiveSessionView />);
     await user.click(screen.getByRole("button", { name: /Más acciones/i }));
-    expect(screen.getByRole("menuitem", { name: /Nota rápida/i })).toBeVisible();
+    expect(
+      screen.getByRole("menuitem", { name: /Nota rápida/i }),
+    ).toBeVisible();
     expect(
       screen.getByRole("menuitem", { name: /Cancelar sesión/i }),
     ).toBeVisible();
@@ -118,17 +120,18 @@ describe("Focus active session UI", () => {
     routing.pathname = "/today";
     renderWithSession(<FocusCompactBar />);
     expect(screen.getByText("Sesión activa")).toBeVisible();
-    expect(screen.getByRole("link", { name: /Volver a Enfoque/i })).toHaveAttribute(
-      "href",
-      "/focus",
-    );
+    expect(
+      screen.getByRole("link", { name: /Volver a Enfoque/i }),
+    ).toHaveAttribute("href", "/focus");
     expect(screen.getByRole("button", { name: /Pausar/i })).toBeVisible();
   });
 
   it("hides the compact bar on the Focus route", () => {
     routing.pathname = "/focus";
     renderWithSession(<FocusCompactBar />);
-    expect(screen.queryByRole("link", { name: /Volver a Enfoque/i })).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: /Volver a Enfoque/i }),
+    ).toBeNull();
   });
 
   it("hides compact bar when there is no active session", () => {

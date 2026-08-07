@@ -69,16 +69,11 @@ export function FocusGoalsPanel({
   const now = useMemo(() => new Date(), []);
   const primaryProgress = useMemo(
     () =>
-      primary
-        ? calculateWeeklyGoalProgress(primary, sessions, now)
-        : null,
+      primary ? calculateWeeklyGoalProgress(primary, sessions, now) : null,
     [primary, sessions, now],
   );
   const history = useMemo(
-    () =>
-      primary
-        ? calculateGoalWeekHistory(primary, sessions, now, 4)
-        : [],
+    () => (primary ? calculateGoalWeekHistory(primary, sessions, now, 4) : []),
     [primary, sessions, now],
   );
 
@@ -141,7 +136,9 @@ export function FocusGoalsPanel({
       {primary && primaryProgress ? (
         <div className="focus-goal-primary">
           <p className="focus-goal-primary-label">
-            {primary.isPrimary ? t("goals.primaryBadge") : t("goals.activeBadge")}
+            {primary.isPrimary
+              ? t("goals.primaryBadge")
+              : t("goals.activeBadge")}
             {" · "}
             {t(`goals.metrics.${primary.metric}`)}
             {primary.scope !== "global"
@@ -150,7 +147,9 @@ export function FocusGoalsPanel({
           </p>
           <div className="focus-goal-meter" aria-hidden="true">
             <span
-              style={{ width: `${Math.round(primaryProgress.progress * 100)}%` }}
+              style={{
+                width: `${Math.round(primaryProgress.progress * 100)}%`,
+              }}
             />
           </div>
           <p>
@@ -246,7 +245,11 @@ export function FocusGoalsPanel({
                       </strong>
                       <small className="muted">
                         {" "}
-                        {formatGoalValue(goal.metric, progress.completedValue, t)}
+                        {formatGoalValue(
+                          goal.metric,
+                          progress.completedValue,
+                          t,
+                        )}
                         {" / "}
                         {formatGoalValue(goal.metric, goal.targetValue, t)}
                         {goal.active ? "" : ` · ${t("goals.inactive")}`}
@@ -361,7 +364,9 @@ function GoalEditor({
     }
     return String(goal.targetValue);
   });
-  const [scope, setScope] = useState<FocusGoal["scope"]>(goal?.scope ?? "global");
+  const [scope, setScope] = useState<FocusGoal["scope"]>(
+    goal?.scope ?? "global",
+  );
   const [categoryId, setCategoryId] = useState(goal?.categoryId ?? "");
   const [presetId, setPresetId] = useState(goal?.presetId ?? "");
   const [active, setActive] = useState(goal?.active ?? true);
@@ -433,7 +438,9 @@ function GoalEditor({
             setTargetInput(next === "focus_seconds" ? "300" : "3");
           }}
         >
-          <option value="focus_seconds">{t("goals.metrics.focus_seconds")}</option>
+          <option value="focus_seconds">
+            {t("goals.metrics.focus_seconds")}
+          </option>
           <option value="sessions">{t("goals.metrics.sessions")}</option>
           <option value="active_days">{t("goals.metrics.active_days")}</option>
         </select>

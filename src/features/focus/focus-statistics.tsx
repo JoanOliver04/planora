@@ -15,7 +15,12 @@ import {
 import { formatFocusDuration } from "./defaults";
 
 type FocusIntervalRow = Database["public"]["Tables"]["focus_intervals"]["Row"];
-type CategoryOption = { id: string; name: string; colour: string; emoji: string | null };
+type CategoryOption = {
+  id: string;
+  name: string;
+  colour: string;
+  emoji: string | null;
+};
 type PresetOption = { id: string; name: string; emoji: string | null };
 
 export function FocusStatisticsPanel({
@@ -178,7 +183,11 @@ export function FocusStatisticsPanel({
         </div>
       </div>
 
-      <div className="focus-stats-filters" role="group" aria-label={t("stats.filters")}>
+      <div
+        className="focus-stats-filters"
+        role="group"
+        aria-label={t("stats.filters")}
+      >
         <label>
           {t("stats.range")}
           <select
@@ -390,9 +399,7 @@ function FocusStatisticsBody({
                 }}
                 title={`${day.date}: ${formatFocusDuration(day.focusSec, "compact")}`}
               />
-              <span className="focus-stats-bar-label">
-                {day.date.slice(8)}
-              </span>
+              <span className="focus-stats-bar-label">{day.date.slice(8)}</span>
             </div>
           ))}
         </div>
@@ -489,7 +496,10 @@ function FocusStatisticsBody({
         </section>
       ) : null}
 
-      <section className="surface statistics-panel" aria-labelledby="focus-insights-title">
+      <section
+        className="surface statistics-panel"
+        aria-labelledby="focus-insights-title"
+      >
         <h3 id="focus-insights-title">{t("stats.insightsTitle")}</h3>
         <ul className="focus-stats-insights">
           {stats.insights.map((insight, index) => (
@@ -505,10 +515,7 @@ function FocusStatisticsBody({
                     })
                   : insight.kind === "typicalDuration"
                     ? t("stats.insights.typicalDuration", {
-                        time: formatFocusDuration(
-                          insight.medianSec,
-                          "compact",
-                        ),
+                        time: formatFocusDuration(insight.medianSec, "compact"),
                       })
                     : insight.kind === "category"
                       ? t("stats.insights.category", {

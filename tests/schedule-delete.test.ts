@@ -24,4 +24,3 @@ describe("atomic schedule deletion", () => {
     expect(sql).toContain("current_user_id uuid := auth.uid()");
   });
 });
-

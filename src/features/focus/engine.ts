@@ -43,8 +43,7 @@ export function evaluateFocusEngine(
 ): FocusEngineSnapshot {
   const clock = deriveSessionClock(session, now);
   const remaining = remainingPhaseSec(session, now);
-  const displayRemainingSec =
-    remaining == null ? null : Math.max(0, remaining);
+  const displayRemainingSec = remaining == null ? null : Math.max(0, remaining);
   const phaseComplete = isPhaseComplete(session, now);
   const isTerminal =
     session.status === "completed" || session.status === "cancelled";

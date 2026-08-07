@@ -68,10 +68,30 @@ describe("task visibility", () => {
   });
 
   it("combines active schedule tasks and globals only", () => {
-    expect(isTaskAvailableInSchedule(task({ scope: "schedule", schedule_id: "summer", is_active: true }), "summer")).toBe(true);
-    expect(isTaskAvailableInSchedule(task({ scope: "schedule", schedule_id: "winter", is_active: true }), "summer")).toBe(false);
-    expect(isTaskAvailableInSchedule(task({ scope: "global", schedule_id: null, is_active: true }), null)).toBe(true);
-    expect(isTaskAvailableInSchedule(task({ scope: "global", schedule_id: "summer", is_active: true }), "summer")).toBe(false);
+    expect(
+      isTaskAvailableInSchedule(
+        task({ scope: "schedule", schedule_id: "summer", is_active: true }),
+        "summer",
+      ),
+    ).toBe(true);
+    expect(
+      isTaskAvailableInSchedule(
+        task({ scope: "schedule", schedule_id: "winter", is_active: true }),
+        "summer",
+      ),
+    ).toBe(false);
+    expect(
+      isTaskAvailableInSchedule(
+        task({ scope: "global", schedule_id: null, is_active: true }),
+        null,
+      ),
+    ).toBe(true);
+    expect(
+      isTaskAvailableInSchedule(
+        task({ scope: "global", schedule_id: "summer", is_active: true }),
+        "summer",
+      ),
+    ).toBe(false);
   });
 
   it("shows completed one-time and archived tasks in their filters", () => {

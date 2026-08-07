@@ -95,12 +95,13 @@ export function aggregateTaskFocusStats(
   if (own.length === 0) {
     return { sessionCount: 0, totalFocusSec: 0, lastStartedAt: null };
   }
-  const sorted = [...own].sort((a, b) =>
-    a.startedAt < b.startedAt ? 1 : -1,
-  );
+  const sorted = [...own].sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
   return {
     sessionCount: own.length,
-    totalFocusSec: own.reduce((sum, item) => sum + Math.max(0, item.focusSec), 0),
+    totalFocusSec: own.reduce(
+      (sum, item) => sum + Math.max(0, item.focusSec),
+      0,
+    ),
     lastStartedAt: sorted[0]?.startedAt ?? null,
   };
 }

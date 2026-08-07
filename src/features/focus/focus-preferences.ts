@@ -92,8 +92,7 @@ export function normalizeFocusAccountPreferences(
       typeof input.completeTaskOnEndDefault === "boolean"
         ? input.completeTaskOnEndDefault
         : false,
-    timerDisplay:
-      input.timerDisplay === "compact" ? "compact" : "large",
+    timerDisplay: input.timerDisplay === "compact" ? "compact" : "large",
     homeLanding:
       input.homeLanding === "presets" || input.homeLanding === "history"
         ? input.homeLanding
@@ -117,8 +116,7 @@ export function normalizeFocusDevicePreferences(
       ? (value as Record<string, unknown>)
       : {};
   const volume =
-    typeof input.soundVolume === "number" &&
-    Number.isFinite(input.soundVolume)
+    typeof input.soundVolume === "number" && Number.isFinite(input.soundVolume)
       ? Math.min(1, Math.max(0, input.soundVolume))
       : defaultFocusDevicePreferences.soundVolume;
   return {
@@ -160,7 +158,9 @@ export function readFocusAccountFromProfilePreferences(
   preferences: Json | undefined,
 ): FocusAccountPreferences {
   const root =
-    preferences && typeof preferences === "object" && !Array.isArray(preferences)
+    preferences &&
+    typeof preferences === "object" &&
+    !Array.isArray(preferences)
       ? (preferences as Record<string, unknown>)
       : {};
   return normalizeFocusAccountPreferences(root.focus);
@@ -217,8 +217,7 @@ export async function requestFocusNotificationPermission(): Promise<
 }
 
 export function focusNotificationPermission():
-  | NotificationPermission
-  | "unsupported" {
+  NotificationPermission | "unsupported" {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return "unsupported";
   }

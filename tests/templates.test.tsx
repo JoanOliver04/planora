@@ -21,7 +21,9 @@ describe("schedule templates", () => {
       "wellbeing",
       "holidays",
     ]);
-    expect(templateCatalog.every((item) => item.categories.length > 0)).toBe(true);
+    expect(templateCatalog.every((item) => item.categories.length > 0)).toBe(
+      true,
+    );
     expect(templateCatalog.every((item) => item.tasks.length > 0)).toBe(true);
   });
 

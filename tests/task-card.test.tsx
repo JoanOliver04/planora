@@ -78,11 +78,7 @@ describe("TaskCard completion", () => {
     const onStartFocus = vi.fn();
     render(
       <NextIntlClientProvider locale="en" messages={messages}>
-        <TaskCard
-          task={task}
-          categories={[]}
-          onStartFocus={onStartFocus}
-        />
+        <TaskCard task={task} categories={[]} onStartFocus={onStartFocus} />
       </NextIntlClientProvider>,
     );
     await user.click(

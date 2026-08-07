@@ -5,6 +5,8 @@ describe("task search normalization", () => {
   it("matches case, accents and surrounding whitespace", () => {
     const needle = normalizeTaskSearch("  ingles ");
     expect(normalizeTaskSearch("Estudiar inglés").includes(needle)).toBe(true);
-    expect(normalizeTaskSearch("Gym").includes(normalizeTaskSearch("gym"))).toBe(true);
+    expect(
+      normalizeTaskSearch("Gym").includes(normalizeTaskSearch("gym")),
+    ).toBe(true);
   });
 });

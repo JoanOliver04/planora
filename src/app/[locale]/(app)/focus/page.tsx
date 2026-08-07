@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { FocusHome } from "@/features/focus/focus-home";
-import { mapGoalRow, mapPresetRow, mapSessionRow } from "@/features/focus/mappers";
+import {
+  mapGoalRow,
+  mapPresetRow,
+  mapSessionRow,
+} from "@/features/focus/mappers";
 import { localWeek, localDate } from "@/lib/dates/timezone";
 import type { FocusSession } from "@/features/focus/types";
 import { resolveDeepLinkDraft } from "@/features/focus/focus-deep-link";

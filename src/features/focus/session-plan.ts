@@ -7,7 +7,8 @@ export const SESSION_PLAN_TEMPLATE_KEYS = [
   "english",
   "piano",
 ] as const;
-export type SessionPlanTemplateKey = (typeof SESSION_PLAN_TEMPLATE_KEYS)[number];
+export type SessionPlanTemplateKey =
+  (typeof SESSION_PLAN_TEMPLATE_KEYS)[number];
 
 export type SessionPlanTemplate = {
   key: SessionPlanTemplateKey;
@@ -142,7 +143,8 @@ export const SESSION_PLAN_TEMPLATES: readonly SessionPlanTemplate[] = [
 ] as const;
 
 export function hasStructuredPlan(
-  session: Pick<FocusSession, "config"> | { config: { segments: FocusSegment[] } },
+  session:
+    Pick<FocusSession, "config"> | { config: { segments: FocusSegment[] } },
 ): boolean {
   return session.config.segments.length > 0;
 }
@@ -153,15 +155,15 @@ export function segmentPhaseKind(
   return segment.kind === "focus" ? "focus" : "short_break";
 }
 
-export function segmentStatus(
-  segment: FocusSegment,
-): "running" | "on_break" {
+export function segmentStatus(segment: FocusSegment): "running" | "on_break" {
   return segment.kind === "focus" ? "running" : "on_break";
 }
 
 /** 0-based index of the currently open segment (by finished count). */
 export function currentSegmentIndex(session: FocusSession): number {
-  const finished = session.intervals.filter((item) => item.endedAt != null).length;
+  const finished = session.intervals.filter(
+    (item) => item.endedAt != null,
+  ).length;
   if (session.intervals.some((item) => item.endedAt == null)) {
     return Math.min(finished, Math.max(0, session.config.segments.length - 1));
   }
@@ -275,15 +277,16 @@ export function duplicateSegmentAt(
 ): FocusSegment[] {
   if (index < 0 || index >= segments.length) return segments;
   if (segments.length >= FOCUS_MAX_SEGMENTS) return segments;
-  const copy = { ...segments[index], name: `${segments[index].name}`.slice(0, 70) };
+  const copy = {
+    ...segments[index],
+    name: `${segments[index].name}`.slice(0, 70),
+  };
   const next = [...segments];
   next.splice(index + 1, 0, copy);
   return next;
 }
 
-export function validatePlanSegments(
-  segments: FocusSegment[],
-): string | null {
+export function validatePlanSegments(segments: FocusSegment[]): string | null {
   if (segments.length > FOCUS_MAX_SEGMENTS) {
     return "too_many";
   }

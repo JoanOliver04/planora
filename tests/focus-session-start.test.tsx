@@ -175,9 +175,7 @@ describe("Focus session configurator", () => {
     await user.click(screen.getByRole("button", { name: "Empezar" }));
 
     expect(startFocusSessionAction).not.toHaveBeenCalled();
-    expect(
-      screen.getByRole("alert"),
-    ).toHaveTextContent(/al menos 1 minuto/i);
+    expect(screen.getByRole("alert")).toHaveTextContent(/al menos 1 minuto/i);
   });
 
   it("ignores double submit while a start is pending", async () => {
@@ -203,10 +201,10 @@ describe("Focus session configurator", () => {
   it("blocks starting when an active session already exists", async () => {
     renderDialog({ activeSession: activeSession() });
 
+    expect(screen.getByText(/Ya tienes una sesión activa/i)).toBeVisible();
     expect(
-      screen.getByText(/Ya tienes una sesión activa/i),
+      screen.getByRole("button", { name: /Continuar sesión/i }),
     ).toBeVisible();
-    expect(screen.getByRole("button", { name: /Continuar sesión/i })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Empezar" })).toBeNull();
   });
 

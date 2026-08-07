@@ -250,7 +250,9 @@ function advancePlanSegment(
   }
 
   const closed = closeOpenInterval(session, at);
-  const finished = closed.intervals.filter((item) => item.endedAt != null).length;
+  const finished = closed.intervals.filter(
+    (item) => item.endedAt != null,
+  ).length;
   const events: FocusEventName[] = skipped
     ? ["segment_skipped", "phase_finished"]
     : ["phase_finished"];
@@ -333,8 +335,7 @@ function advanceFromFocus(
   }
 
   const kind: "short_break" | "long_break" =
-    breakKind ??
-    (plan.kind === "long_break" ? "long_break" : "short_break");
+    breakKind ?? (plan.kind === "long_break" ? "long_break" : "short_break");
 
   const planned =
     kind === "long_break"
@@ -606,7 +607,10 @@ export function applyFocusAction(
       const result = advanceFromBreak(current, at, createId);
       return {
         session: result.session,
-        events: ["break_skipped", ...result.events.filter((e) => e !== "phase_finished")],
+        events: [
+          "break_skipped",
+          ...result.events.filter((e) => e !== "phase_finished"),
+        ],
         recovered: false,
       };
     }

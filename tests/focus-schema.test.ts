@@ -27,7 +27,9 @@ describe("focus schema migration contracts", () => {
       "focus_goals",
     ]) {
       expect(sql).toContain(`unique (id, user_id)`);
-      expect(sql).toContain(`alter table public.${table} enable row level security`);
+      expect(sql).toContain(
+        `alter table public.${table} enable row level security`,
+      );
     }
   });
 
@@ -40,7 +42,9 @@ describe("focus schema migration contracts", () => {
     ] as const;
     for (const table of tables) {
       for (const op of ["select", "insert", "update", "delete"] as const) {
-        expect(sql).toContain(`create policy ${table}_${op} on public.${table}`);
+        expect(sql).toContain(
+          `create policy ${table}_${op} on public.${table}`,
+        );
       }
     }
     expect(executableSql.match(/to authenticated/g)).toHaveLength(16);
@@ -71,11 +75,11 @@ describe("focus schema migration contracts", () => {
   });
 
   it("enforces a single active session per user at the database level", () => {
-    expect(sql).toContain("create unique index focus_sessions_one_active_per_user");
-    expect(sql).toContain("on public.focus_sessions (user_id)");
     expect(sql).toContain(
-      "where status in ('running', 'paused', 'on_break')",
+      "create unique index focus_sessions_one_active_per_user",
     );
+    expect(sql).toContain("on public.focus_sessions (user_id)");
+    expect(sql).toContain("where status in ('running', 'paused', 'on_break')");
   });
 
   it("allows multiple completed sessions while rejecting invalid statuses", () => {
@@ -101,10 +105,18 @@ describe("focus schema migration contracts", () => {
   });
 
   it("rejects invalid states, negative durations and non-positive goals", () => {
-    expect(sql).toContain("focus_sec integer not null default 0 check (focus_sec >= 0)");
-    expect(sql).toContain("paused_sec integer not null default 0 check (paused_sec >= 0)");
-    expect(sql).toContain("break_sec integer not null default 0 check (break_sec >= 0)");
-    expect(sql).toContain("target_focus_sec integer not null check (target_focus_sec > 0)");
+    expect(sql).toContain(
+      "focus_sec integer not null default 0 check (focus_sec >= 0)",
+    );
+    expect(sql).toContain(
+      "paused_sec integer not null default 0 check (paused_sec >= 0)",
+    );
+    expect(sql).toContain(
+      "break_sec integer not null default 0 check (break_sec >= 0)",
+    );
+    expect(sql).toContain(
+      "target_focus_sec integer not null check (target_focus_sec > 0)",
+    );
     expect(sql).toContain(
       "kind in ('focus', 'short_break', 'long_break', 'pause')",
     );
@@ -117,7 +129,9 @@ describe("focus schema migration contracts", () => {
       "revision integer not null default 1 check (revision >= 1)",
     );
     expect(sql).toContain("Optimistic concurrency token");
-    expect(sql).toContain("create unique index focus_intervals_one_open_per_session");
+    expect(sql).toContain(
+      "create unique index focus_intervals_one_open_per_session",
+    );
     expect(sql).toContain("where ended_at is null");
     expect(sql).toContain("unique (session_id, sequence)");
   });

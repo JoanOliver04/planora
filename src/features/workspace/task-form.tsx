@@ -36,7 +36,9 @@ export function TaskForm({
       : null,
     [recurrence, setRecurrence] = useState(existing?.type ?? "once"),
     [timing, setTiming] = useState(task?.time_mode ?? "anytime"),
-    [scope, setScope] = useState<"schedule" | "global">(task?.scope ?? "schedule"),
+    [scope, setScope] = useState<"schedule" | "global">(
+      task?.scope ?? "schedule",
+    ),
     [scheduleId, setScheduleId] = useState(
       task?.schedule_id ??
         schedules.find((item) => !item.is_archived)?.id ??
@@ -134,8 +136,35 @@ export function TaskForm({
             </label>
             <fieldset className="availability-fieldset">
               <legend>{t("categoryScope")}</legend>
-              <label className="scope-option"><input type="radio" name="scope" value="schedule" checked={scope === "schedule"} onChange={() => setScope("schedule")} /> <span><b>{t("scheduleOnly")}</b><small>{t("scheduleOnlyHint")}</small></span></label>
-              <label className="scope-option"><input type="radio" name="scope" value="global" checked={scope === "global"} onChange={() => { setScope("global"); setCategoryId(""); }} /> <span><b>{t("global")}</b><small>{t("globalHint")}</small></span></label>
+              <label className="scope-option">
+                <input
+                  type="radio"
+                  name="scope"
+                  value="schedule"
+                  checked={scope === "schedule"}
+                  onChange={() => setScope("schedule")}
+                />{" "}
+                <span>
+                  <b>{t("scheduleOnly")}</b>
+                  <small>{t("scheduleOnlyHint")}</small>
+                </span>
+              </label>
+              <label className="scope-option">
+                <input
+                  type="radio"
+                  name="scope"
+                  value="global"
+                  checked={scope === "global"}
+                  onChange={() => {
+                    setScope("global");
+                    setCategoryId("");
+                  }}
+                />{" "}
+                <span>
+                  <b>{t("global")}</b>
+                  <small>{t("globalHint")}</small>
+                </span>
+              </label>
             </fieldset>
             <div className="form-row">
               <label>
@@ -167,9 +196,16 @@ export function TaskForm({
             </div>
             <label>
               {t("category")}
-              <select name="categoryId" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
+              <select
+                name="categoryId"
+                value={categoryId}
+                onChange={(event) => setCategoryId(event.target.value)}
+              >
                 <option value="">—</option>
-                {categoriesForSchedule(categories, scope === "global" ? null : scheduleId).map((c) => (
+                {categoriesForSchedule(
+                  categories,
+                  scope === "global" ? null : scheduleId,
+                ).map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.emoji} {c.name}
                   </option>
@@ -232,7 +268,8 @@ export function TaskForm({
                 />
               </label>
             )}
-            {recurrence === "interval" && (<div className="form-row">
+            {recurrence === "interval" && (
+              <div className="form-row">
                 <label>
                   {t("every")}
                   <input
@@ -307,7 +344,8 @@ export function TaskForm({
                   defaultValue={task?.end_time?.slice(0, 5) ?? "10:00"}
                 />
               </label>
-            )}<div className="form-row">
+            )}
+            <div className="form-row">
               <label>
                 {t("startDate")}
                 <input

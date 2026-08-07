@@ -109,21 +109,29 @@ describe("focus domain layer", () => {
     const createId = idFactory("p");
 
     // work 5 min
-    let result = applyFocusAction(session, { type: "pause" }, {
-      now: t0 + 5 * 60 * 1000,
-      createId,
-      expectedRevision: session.revision,
-    });
+    let result = applyFocusAction(
+      session,
+      { type: "pause" },
+      {
+        now: t0 + 5 * 60 * 1000,
+        createId,
+        expectedRevision: session.revision,
+      },
+    );
     session = result.session;
     expect(session.status).toBe("paused");
     expect(elapsedFocusSec(session, t0 + 5 * 60 * 1000)).toBe(5 * 60);
 
     // pause 2 min
-    result = applyFocusAction(session, { type: "resume" }, {
-      now: t0 + 7 * 60 * 1000,
-      createId,
-      expectedRevision: session.revision,
-    });
+    result = applyFocusAction(
+      session,
+      { type: "resume" },
+      {
+        now: t0 + 7 * 60 * 1000,
+        createId,
+        expectedRevision: session.revision,
+      },
+    );
     session = result.session;
     expect(session.status).toBe("running");
     expect(elapsedPausedSec(session, t0 + 7 * 60 * 1000)).toBe(2 * 60);
@@ -131,17 +139,25 @@ describe("focus domain layer", () => {
     expect(session.intervals.at(-1)?.plannedDurationSec).toBe(20 * 60);
 
     // work 3 min more, pause again
-    result = applyFocusAction(session, { type: "pause" }, {
-      now: t0 + 10 * 60 * 1000,
-      createId,
-      expectedRevision: session.revision,
-    });
+    result = applyFocusAction(
+      session,
+      { type: "pause" },
+      {
+        now: t0 + 10 * 60 * 1000,
+        createId,
+        expectedRevision: session.revision,
+      },
+    );
     session = result.session;
-    result = applyFocusAction(session, { type: "resume" }, {
-      now: t0 + 11 * 60 * 1000,
-      createId,
-      expectedRevision: session.revision,
-    });
+    result = applyFocusAction(
+      session,
+      { type: "resume" },
+      {
+        now: t0 + 11 * 60 * 1000,
+        createId,
+        expectedRevision: session.revision,
+      },
+    );
     session = result.session;
     const now = t0 + 11 * 60 * 1000;
     expect(elapsedFocusSec(session, now)).toBe(8 * 60);
@@ -178,31 +194,43 @@ describe("focus domain layer", () => {
     const createId = idFactory("cyc");
 
     // finish first focus → short break
-    let result = applyFocusAction(session, { type: "finish_phase" }, {
-      now: t0 + 60_000,
-      createId,
-      expectedRevision: session.revision,
-    });
+    let result = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now: t0 + 60_000,
+        createId,
+        expectedRevision: session.revision,
+      },
+    );
     session = result.session;
     expect(session.status).toBe("on_break");
     expect(session.currentPhaseKind).toBe("short_break");
 
     // finish short break → focus 2
-    result = applyFocusAction(session, { type: "finish_phase" }, {
-      now: t0 + 90_000,
-      createId,
-      expectedRevision: session.revision,
-    });
+    result = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now: t0 + 90_000,
+        createId,
+        expectedRevision: session.revision,
+      },
+    );
     session = result.session;
     expect(session.status).toBe("running");
     expect(session.currentCycle).toBe(2);
 
     // finish focus 2 → long break (every 2)
-    result = applyFocusAction(session, { type: "finish_phase" }, {
-      now: t0 + 150_000,
-      createId,
-      expectedRevision: session.revision,
-    });
+    result = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now: t0 + 150_000,
+        createId,
+        expectedRevision: session.revision,
+      },
+    );
     session = result.session;
     expect(session.status).toBe("on_break");
     expect(session.currentPhaseKind).toBe("long_break");
@@ -216,18 +244,26 @@ describe("focus domain layer", () => {
       t0,
     );
     const createId = idFactory("sk");
-    session = applyFocusAction(session, { type: "finish_phase" }, {
-      now: t0 + 60_000,
-      createId,
-      expectedRevision: session.revision,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now: t0 + 60_000,
+        createId,
+        expectedRevision: session.revision,
+      },
+    ).session;
     expect(session.status).toBe("on_break");
 
-    session = applyFocusAction(session, { type: "skip_break" }, {
-      now: t0 + 70_000,
-      createId,
-      expectedRevision: session.revision,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "skip_break" },
+      {
+        now: t0 + 70_000,
+        createId,
+        expectedRevision: session.revision,
+      },
+    ).session;
     expect(session.status).toBe("running");
     expect(session.currentPhaseKind).toBe("focus");
     expect(elapsedFocusSec(session, t0 + 70_000)).toBe(60);
@@ -240,11 +276,15 @@ describe("focus domain layer", () => {
       t0,
     );
     const createId = idFactory("ex");
-    session = applyFocusAction(session, { type: "finish_phase" }, {
-      now: t0 + 60_000,
-      createId,
-      expectedRevision: session.revision,
-    }).session;
+    session = applyFocusAction(
+      session,
+      { type: "finish_phase" },
+      {
+        now: t0 + 60_000,
+        createId,
+        expectedRevision: session.revision,
+      },
+    ).session;
     expect(session.intervals.at(-1)?.plannedDurationSec).toBe(120);
 
     session = applyFocusAction(
@@ -419,14 +459,22 @@ describe("focus domain layer", () => {
   it("12. rejects invalid transitions without mutating state", () => {
     const session = startCountdown();
     expect(() =>
-      applyFocusAction(session, { type: "resume" }, {
-        expectedRevision: session.revision,
-      }),
+      applyFocusAction(
+        session,
+        { type: "resume" },
+        {
+          expectedRevision: session.revision,
+        },
+      ),
     ).toThrow(FocusError);
     try {
-      applyFocusAction(session, { type: "skip_break" }, {
-        expectedRevision: session.revision,
-      });
+      applyFocusAction(
+        session,
+        { type: "skip_break" },
+        {
+          expectedRevision: session.revision,
+        },
+      );
       expect.unreachable("should throw");
     } catch (error) {
       expect(isFocusError(error)).toBe(true);
@@ -482,35 +530,51 @@ describe("focus domain layer", () => {
   it("15. rejects stale concurrency revisions", () => {
     const session = startCountdown();
     expect(() =>
-      applyFocusAction(session, { type: "pause" }, {
-        expectedRevision: session.revision + 5,
-        now: Date.now(),
-        createId: idFactory("rev"),
-      }),
+      applyFocusAction(
+        session,
+        { type: "pause" },
+        {
+          expectedRevision: session.revision + 5,
+          now: Date.now(),
+          createId: idFactory("rev"),
+        },
+      ),
     ).toThrowError(/updated elsewhere/i);
 
     try {
-      applyFocusAction(session, { type: "pause" }, {
-        expectedRevision: 99,
-        createId: idFactory("rev2"),
-      });
+      applyFocusAction(
+        session,
+        { type: "pause" },
+        {
+          expectedRevision: 99,
+          createId: idFactory("rev2"),
+        },
+      );
     } catch (error) {
       expect(isFocusError(error)).toBe(true);
       if (isFocusError(error)) expect(error.code).toBe("REVISION_CONFLICT");
     }
 
-    const paused = applyFocusAction(session, { type: "pause" }, {
-      expectedRevision: 1,
-      createId: idFactory("rev3"),
-      now: Date.parse("2026-08-07T10:01:00.000Z"),
-    }).session;
+    const paused = applyFocusAction(
+      session,
+      { type: "pause" },
+      {
+        expectedRevision: 1,
+        createId: idFactory("rev3"),
+        now: Date.parse("2026-08-07T10:01:00.000Z"),
+      },
+    ).session;
     expect(paused.revision).toBe(2);
 
     expect(() =>
-      applyFocusAction(paused, { type: "resume" }, {
-        expectedRevision: 1,
-        createId: idFactory("rev4"),
-      }),
+      applyFocusAction(
+        paused,
+        { type: "resume" },
+        {
+          expectedRevision: 1,
+          createId: idFactory("rev4"),
+        },
+      ),
     ).toThrow(FocusError);
   });
 

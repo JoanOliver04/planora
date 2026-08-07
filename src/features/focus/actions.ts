@@ -3,15 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { ZodError, z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import {
-  FocusError,
-  isFocusError,
-  type FocusActionResult,
-} from "./errors";
-import {
-  applyFocusAction,
-  type FocusDomainAction,
-} from "./state-machine";
+import { FocusError, isFocusError, type FocusActionResult } from "./errors";
+import { applyFocusAction, type FocusDomainAction } from "./state-machine";
 import {
   fetchActiveFocusSession,
   fetchFocusSessionById,
@@ -39,10 +32,7 @@ import {
   mapPresetRow,
   presetToRowPayload,
 } from "./mappers";
-import {
-  aggregateTaskFocusStats,
-  isTaskOccurrenceAllowed,
-} from "./task-link";
+import { aggregateTaskFocusStats, isTaskOccurrenceAllowed } from "./task-link";
 import { FOCUS_MAX_GOALS } from "./goals";
 import { localDate } from "@/lib/dates/timezone";
 
@@ -97,7 +87,9 @@ export async function startFocusSessionAction(
   input: unknown,
 ): Promise<FocusActionResult<FocusSession>> {
   try {
-    const value = startFocusSessionSchema.parse(input) as StartFocusSessionInput;
+    const value = startFocusSessionSchema.parse(
+      input,
+    ) as StartFocusSessionInput;
     if (value.taskId && !value.occurrenceDate) {
       throw new FocusError(
         "VALIDATION_ERROR",
@@ -180,7 +172,10 @@ async function assertOwnedLinks(
       .eq("user_id", userId)
       .maybeSingle();
     if (error || !data) {
-      throw new FocusError("VALIDATION_ERROR", "Linked preset is not available");
+      throw new FocusError(
+        "VALIDATION_ERROR",
+        "Linked preset is not available",
+      );
     }
   }
 }
@@ -302,9 +297,7 @@ export async function completeLinkedTaskFromFocusAction(
 
 export async function getTaskFocusStatsAction(input: unknown) {
   try {
-    const value = z
-      .object({ taskId: z.string().uuid() })
-      .parse(input);
+    const value = z.object({ taskId: z.string().uuid() }).parse(input);
     const { db, user } = await auth();
     const { data, error } = await db
       .from("focus_sessions")
@@ -340,7 +333,10 @@ async function applyLinkedTaskCompletion(
   options: { force: boolean },
 ) {
   if (!session.taskId || !session.occurrenceDate) {
-    throw new FocusError("VALIDATION_ERROR", "Session has no linked occurrence");
+    throw new FocusError(
+      "VALIDATION_ERROR",
+      "Session has no linked occurrence",
+    );
   }
 
   const { data: task, error: taskError } = await db
@@ -362,7 +358,10 @@ async function applyLinkedTaskCompletion(
     );
   }
 
-  if (!options.force && !isTaskOccurrenceAllowed(task, session.occurrenceDate)) {
+  if (
+    !options.force &&
+    !isTaskOccurrenceAllowed(task, session.occurrenceDate)
+  ) {
     throw new FocusError(
       "VALIDATION_ERROR",
       "This habit is not expected on that date",
@@ -861,8 +860,7 @@ export async function saveFocusGoalAction(
       value.metric === "focus_seconds"
         ? (value.targetValue ?? value.targetFocusSec ?? 1)
         : value.targetValue;
-    const startDate =
-      value.startDate ?? localDate(value.timezone, new Date());
+    const startDate = value.startDate ?? localDate(value.timezone, new Date());
 
     let sortOrder = value.sortOrder;
     if (sortOrder == null) {
@@ -894,8 +892,9 @@ export async function saveFocusGoalAction(
       targetFocusSec:
         value.metric === "focus_seconds" ? targetValue : targetValue,
       scope: value.scope,
-      categoryId: value.scope === "category" ? value.categoryId ?? null : null,
-      presetId: value.scope === "preset" ? value.presetId ?? null : null,
+      categoryId:
+        value.scope === "category" ? (value.categoryId ?? null) : null,
+      presetId: value.scope === "preset" ? (value.presetId ?? null) : null,
       startDate,
       consideredDays: value.consideredDays,
       isPrimary: value.isPrimary && value.active,

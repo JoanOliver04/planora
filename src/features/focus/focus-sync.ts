@@ -60,12 +60,17 @@ export function isFocusSyncEvent(value: unknown): value is FocusSyncEvent {
     "takeover",
     "request_sync",
   ];
-  if (typeof event.type !== "string" || !types.includes(event.type as FocusSyncEventType)) {
+  if (
+    typeof event.type !== "string" ||
+    !types.includes(event.type as FocusSyncEventType)
+  ) {
     return false;
   }
   if (typeof event.clientId !== "string" || !event.clientId) return false;
-  if (event.sessionId != null && typeof event.sessionId !== "string") return false;
-  if (event.revision != null && typeof event.revision !== "number") return false;
+  if (event.sessionId != null && typeof event.sessionId !== "string")
+    return false;
+  if (event.revision != null && typeof event.revision !== "number")
+    return false;
   if (typeof event.at !== "number") return false;
   return true;
 }
@@ -185,7 +190,10 @@ export function createFocusSyncBus(
     onEvent(event);
   };
 
-  if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+  if (
+    typeof window !== "undefined" &&
+    typeof BroadcastChannel !== "undefined"
+  ) {
     try {
       channel = new BroadcastChannel(FOCUS_SYNC_CHANNEL);
       channel.onmessage = (message) => {

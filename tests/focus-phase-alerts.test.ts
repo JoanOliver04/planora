@@ -80,7 +80,10 @@ afterEach(() => {
 describe("focusPhaseEndsAtMs", () => {
   it("returns the planned end for a running timed phase", () => {
     const session = startCountdown(120);
-    const ends = focusPhaseEndsAtMs(session, Date.parse("2026-08-07T10:00:00.000Z"));
+    const ends = focusPhaseEndsAtMs(
+      session,
+      Date.parse("2026-08-07T10:00:00.000Z"),
+    );
     expect(ends).toBe(Date.parse("2026-08-07T10:02:00.000Z"));
   });
 
@@ -278,9 +281,7 @@ describe("deliverFocusPhaseAlert", () => {
 
 describe("focus wake lock", () => {
   it("reports unsupported when the API is missing", async () => {
-    const original = (
-      navigator as Navigator & { wakeLock?: unknown }
-    ).wakeLock;
+    const original = (navigator as Navigator & { wakeLock?: unknown }).wakeLock;
     Object.defineProperty(navigator, "wakeLock", {
       configurable: true,
       value: undefined,

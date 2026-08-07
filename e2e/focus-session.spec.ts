@@ -6,7 +6,10 @@ import {
   prepareRestorePayload,
   type BackupData,
 } from "../src/features/backup/format";
-import { applyFocusAction, createStartedSession } from "../src/features/focus/state-machine";
+import {
+  applyFocusAction,
+  createStartedSession,
+} from "../src/features/focus/state-machine";
 import {
   fetchActiveFocusSession,
   persistFocusSession,

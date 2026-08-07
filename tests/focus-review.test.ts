@@ -6,7 +6,10 @@ import {
   parseFocusOutcome,
   removeDistractionAt,
 } from "@/features/focus/focus-review";
-import { createStartedSession, applyFocusAction } from "@/features/focus/state-machine";
+import {
+  createStartedSession,
+  applyFocusAction,
+} from "@/features/focus/state-machine";
 import {
   FOCUS_MAX_DISTRACTIONS,
   FOCUS_MAX_DISTRACTION_LENGTH,
@@ -17,9 +20,7 @@ function idFactory(prefix = "id") {
   return () => `${prefix}-${++n}`;
 }
 
-function startSession(
-  now = Date.parse("2026-08-07T10:00:00.000Z"),
-) {
+function startSession(now = Date.parse("2026-08-07T10:00:00.000Z")) {
   return createStartedSession(
     {
       mode: "countdown",
@@ -76,8 +77,9 @@ describe("focus session review", () => {
   });
 
   it("enforces distraction limits and trims length", () => {
-    const filled = Array.from({ length: FOCUS_MAX_DISTRACTIONS }, (_, i) =>
-      `item ${i}`,
+    const filled = Array.from(
+      { length: FOCUS_MAX_DISTRACTIONS },
+      (_, i) => `item ${i}`,
     );
     expect(addDistraction(filled, "one more")).toEqual({
       ok: false,

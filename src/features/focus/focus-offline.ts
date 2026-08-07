@@ -80,7 +80,10 @@ function parseProcessed(): string[] {
 function markProcessed(actionId: string) {
   if (typeof window === "undefined") return;
   try {
-    const next = [...parseProcessed().filter((id) => id !== actionId), actionId];
+    const next = [
+      ...parseProcessed().filter((id) => id !== actionId),
+      actionId,
+    ];
     window.localStorage.setItem(
       PROCESSED_KEY,
       JSON.stringify(next.slice(-MAX_PROCESSED)),
@@ -111,7 +114,9 @@ export function isQueuedFocusTransition(
   );
 }
 
-export function getQueuedFocusTransitions(userId?: string): QueuedFocusTransition[] {
+export function getQueuedFocusTransitions(
+  userId?: string,
+): QueuedFocusTransition[] {
   const queue = parseQueue();
   return userId ? queue.filter((item) => item.userId === userId) : queue;
 }
@@ -169,12 +174,17 @@ export function enqueueFocusTransition(input: {
 function toIso(value: string | number | Date): string {
   if (typeof value === "string") {
     const ms = Date.parse(value);
-    return Number.isFinite(ms) ? new Date(ms).toISOString() : new Date().toISOString();
+    return Number.isFinite(ms)
+      ? new Date(ms).toISOString()
+      : new Date().toISOString();
   }
   return new Date(value).toISOString();
 }
 
-export function cacheFocusSession(userId: string, session: FocusSession | null) {
+export function cacheFocusSession(
+  userId: string,
+  session: FocusSession | null,
+) {
   if (typeof window === "undefined") return;
   const key = SESSION_KEY_PREFIX + userId;
   try {

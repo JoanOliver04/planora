@@ -30,7 +30,9 @@ function asStringArray(value: Json | null | undefined): string[] {
   return value.filter((item): item is string => typeof item === "string");
 }
 
-export function parseFocusSegments(value: Json | null | undefined): FocusSegment[] {
+export function parseFocusSegments(
+  value: Json | null | undefined,
+): FocusSegment[] {
   if (!Array.isArray(value)) return [];
   const segments: FocusSegment[] = [];
   for (const item of value) {
@@ -374,7 +376,9 @@ export function goalToRowPayload(
   },
 ) {
   const targetFocusSec =
-    goal.metric === "focus_seconds" ? goal.targetValue : goal.targetFocusSec || goal.targetValue;
+    goal.metric === "focus_seconds"
+      ? goal.targetValue
+      : goal.targetFocusSec || goal.targetValue;
   return {
     ...(goal.id ? { id: goal.id } : {}),
     user_id: userId,

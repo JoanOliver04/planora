@@ -155,7 +155,9 @@ describe("portable backups", () => {
     expect(payload.reminders[0].task_id).toBe(payload.tasks[0].id);
     expect(payload.focus_presets[0].id).not.toBe(backupIds.focusPreset);
     expect(payload.focus_sessions[0].id).not.toBe(backupIds.focusSession);
-    expect(payload.focus_sessions[0].preset_id).toBe(payload.focus_presets[0].id);
+    expect(payload.focus_sessions[0].preset_id).toBe(
+      payload.focus_presets[0].id,
+    );
     expect(payload.focus_sessions[0].task_id).toBe(payload.tasks[0].id);
     expect(payload.focus_intervals[0].session_id).toBe(
       payload.focus_sessions[0].id,
@@ -271,7 +273,11 @@ describe("portable backups", () => {
 
   it("round-trips global tasks without schedule references", () => {
     const backup = createBackup(backupFixture());
-    backup.data.tasks[0] = { ...backup.data.tasks[0], scope: "global", schedule_id: null };
+    backup.data.tasks[0] = {
+      ...backup.data.tasks[0],
+      scope: "global",
+      schedule_id: null,
+    };
     const parsed = parseBackup(backup);
     expect(parsed.success).toBe(true);
     if (parsed.success) {

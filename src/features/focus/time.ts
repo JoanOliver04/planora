@@ -80,11 +80,7 @@ export function elapsedBreakSec(
   session: FocusSession,
   now: Date | number,
 ): number {
-  return elapsedOfKinds(
-    session.intervals,
-    ["short_break", "long_break"],
-    now,
-  );
+  return elapsedOfKinds(session.intervals, ["short_break", "long_break"], now);
 }
 
 export function recomputeClosedTotals(session: FocusSession): {
@@ -110,11 +106,7 @@ export function plannedPhaseSec(
     return open.plannedDurationSec;
   }
   if (kind === "focus") {
-    return (
-      session.config.focusDurationSec ??
-      session.plannedFocusSec ??
-      null
-    );
+    return session.config.focusDurationSec ?? session.plannedFocusSec ?? null;
   }
   if (kind === "short_break") return session.config.shortBreakSec;
   if (kind === "long_break") return session.config.longBreakSec;
@@ -281,10 +273,7 @@ export function normalizeSession(session: FocusSession): FocusSession {
     pausedSec: totals.pausedSec,
     breakSec: totals.breakSec,
     currentPhaseKind: liveOpen?.kind ?? normalized.currentPhaseKind,
-    currentCycle:
-      liveOpen?.cycleIndex ??
-      normalized.currentCycle ??
-      1,
+    currentCycle: liveOpen?.cycleIndex ?? normalized.currentCycle ?? 1,
   };
 }
 

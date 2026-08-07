@@ -164,7 +164,10 @@ export function PresetEditorDialog({
         return t("presets.errors.shortBreak");
       }
       const longSec = secFromMinutes(form.longBreakMinutes);
-      if (longSec != null && (longSec < 0 || longSec > FOCUS_MAX_LONG_BREAK_SEC)) {
+      if (
+        longSec != null &&
+        (longSec < 0 || longSec > FOCUS_MAX_LONG_BREAK_SEC)
+      ) {
         return t("presets.errors.longBreak");
       }
       if (!form.indefiniteCycles) {
@@ -190,7 +193,8 @@ export function PresetEditorDialog({
     const planError = validatePlanSegments(form.segments);
     if (planError === "too_many") return t("plan.errors.tooMany");
     if (planError === "name_required") return t("plan.errors.nameRequired");
-    if (planError === "duration_invalid") return t("plan.errors.durationInvalid");
+    if (planError === "duration_invalid")
+      return t("plan.errors.durationInvalid");
     return null;
   }
 
@@ -254,8 +258,8 @@ export function PresetEditorDialog({
       if (!result.ok) {
         setFieldError(
           result.error.fieldErrors
-            ? Object.values(result.error.fieldErrors).flat()[0] ??
-                t("presets.errors.generic")
+            ? (Object.values(result.error.fieldErrors).flat()[0] ??
+                t("presets.errors.generic"))
             : result.error.message || t("presets.errors.generic"),
         );
         return;
@@ -341,7 +345,9 @@ export function PresetEditorDialog({
                 <input
                   inputMode="numeric"
                   value={form.focusMinutes}
-                  onChange={(event) => update("focusMinutes", event.target.value)}
+                  onChange={(event) =>
+                    update("focusMinutes", event.target.value)
+                  }
                 />
               </label>
             ) : (
@@ -351,7 +357,9 @@ export function PresetEditorDialog({
                   inputMode="numeric"
                   value={form.focusMinutes}
                   placeholder={t("config.optionalPlaceholder")}
-                  onChange={(event) => update("focusMinutes", event.target.value)}
+                  onChange={(event) =>
+                    update("focusMinutes", event.target.value)
+                  }
                 />
               </label>
             )}

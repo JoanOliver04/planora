@@ -10,9 +10,7 @@ export type FocusDeepLinkParams = {
   start?: string;
 };
 
-export type FocusShortcutHref =
-  | "/focus"
-  | `/focus?${string}`;
+export type FocusShortcutHref = "/focus" | `/focus?${string}`;
 
 /** Build a Focus route that continues or starts with context. */
 export function buildFocusHref(input: {
@@ -132,11 +130,7 @@ export function pickNextFocusTask<
 }
 
 export type FocusShortcutKind =
-  | "continue"
-  | "quick"
-  | "nextTask"
-  | "lastPreset"
-  | "openFocus";
+  "continue" | "quick" | "nextTask" | "lastPreset" | "openFocus";
 
 export type FocusShortcutItem = {
   kind: FocusShortcutKind;
@@ -158,7 +152,9 @@ export function buildFocusShortcuts(input: {
   lastPresetStillExists?: boolean;
 }): FocusShortcutItem[] {
   if (input.hasActiveSession) {
-    return [{ kind: "continue", href: buildFocusHref({ continueSession: true }) }];
+    return [
+      { kind: "continue", href: buildFocusHref({ continueSession: true }) },
+    ];
   }
 
   const items: FocusShortcutItem[] = [
@@ -176,10 +172,7 @@ export function buildFocusShortcuts(input: {
     });
   }
 
-  if (
-    input.lastPresetId &&
-    input.lastPresetStillExists !== false
-  ) {
+  if (input.lastPresetId && input.lastPresetStillExists !== false) {
     items.push({
       kind: "lastPreset",
       href: buildFocusHref({ presetId: input.lastPresetId }),

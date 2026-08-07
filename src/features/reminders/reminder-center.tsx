@@ -101,7 +101,9 @@ function TargetCombobox({
   const results = useMemo(() => {
     const needle = normalizeTaskSearch(query);
     return targets
-      .filter((item) => !needle || normalizeTaskSearch(item.title).includes(needle))
+      .filter(
+        (item) => !needle || normalizeTaskSearch(item.title).includes(needle),
+      )
       .slice(0, 50);
   }, [query, targets]);
   function choose(item: Target) {
@@ -170,7 +172,14 @@ function TargetCombobox({
           role="listbox"
         >
           {hasError ? (
-            <div className="target-combobox-empty"><p>{errorLabel}</p>{onRetry && <button type="button" className="pill" onClick={onRetry}>Retry</button>}</div>
+            <div className="target-combobox-empty">
+              <p>{errorLabel}</p>
+              {onRetry && (
+                <button type="button" className="pill" onClick={onRetry}>
+                  Retry
+                </button>
+              )}
+            </div>
           ) : results.length ? (
             results.map((item, index) => (
               <button
@@ -187,18 +196,23 @@ function TargetCombobox({
                 <span>
                   <strong>{item.title}</strong>
                   <small>
-                    {item.scope === "global" ? "Global · " : ""}{item.date}
+                    {item.scope === "global" ? "Global · " : ""}
+                    {item.date}
                     {item.time ? ` · ${item.time.slice(0, 5)}` : ""}
                   </small>
                 </span>
               </button>
             ))
           ) : (
-            <p className="target-combobox-empty">{query.trim() ? noMatchLabel : emptyLabel}</p>
+            <p className="target-combobox-empty">
+              {query.trim() ? noMatchLabel : emptyLabel}
+            </p>
           )}
         </div>
       )}
-      {!selected && value && <p className="target-unavailable">{unavailableLabel}</p>}
+      {!selected && value && (
+        <p className="target-unavailable">{unavailableLabel}</p>
+      )}
     </div>
   );
 }
@@ -802,11 +816,13 @@ export function ReminderCenter({
                 targetKind === "task" ? t("noTasksFound") : t("noEventsFound")
               }
               clearLabel={t("clearSelection")}
-              noMatchLabel={targetKind === "task" ? t("noTasksMatch") : t("noEventsFound")}
+              noMatchLabel={
+                targetKind === "task" ? t("noTasksMatch") : t("noEventsFound")
+              }
               errorLabel={t("tasksLoadError")}
               hasError={targetKind === "task" && taskLoadError}
               onRetry={() => router.refresh()}
-                          unavailableLabel={t("taskUnavailable")}
+              unavailableLabel={t("taskUnavailable")}
             />
           </label>
           <label>

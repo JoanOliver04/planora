@@ -243,8 +243,12 @@ export default async function LandingPage({
       <footer className="landing-footer">
         <span>© {new Date().getFullYear()} Planora</span>
         <span>{text.trust}</span>
-        <Link href="/privacy" locale={language}>{language === "es" ? "Privacidad" : "Privacy"}</Link>
-        <Link href="/terms" locale={language}>{language === "es" ? "Condiciones" : "Terms"}</Link>
+        <Link href="/privacy" locale={language}>
+          {language === "es" ? "Privacidad" : "Privacy"}
+        </Link>
+        <Link href="/terms" locale={language}>
+          {language === "es" ? "Condiciones" : "Terms"}
+        </Link>
       </footer>
     </main>
   );

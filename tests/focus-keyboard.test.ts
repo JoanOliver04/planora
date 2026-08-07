@@ -52,9 +52,9 @@ describe("resolveFocusShortcut", () => {
 
   it("only finishes via Shift+X confirmation path", () => {
     expect(resolveFocusShortcut(key({ key: "x" }), base)).toBeNull();
-    expect(
-      resolveFocusShortcut(key({ key: "x", shiftKey: true }), base),
-    ).toBe("confirmComplete");
+    expect(resolveFocusShortcut(key({ key: "x", shiftKey: true }), base)).toBe(
+      "confirmComplete",
+    );
   });
 
   it("uses Escape to close overlays or immersive, never as cancel", () => {
