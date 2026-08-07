@@ -31,7 +31,8 @@ export function calculateWeeklyGoalProgress(
   sessions: FocusSession[],
   now: Date = new Date(),
 ): FocusWeeklyGoalProgress {
-  const weekStartsOn = goal.weekStartsOn === 0 ? 0 : 1;
+  // localWeek only supports Sun/Mon anchors today; clamp safely to that contract.
+  const weekStartsOn: 0 | 1 = goal.weekStartsOn === 0 ? 0 : 1;
   const week = localWeek(goal.timezone, now, weekStartsOn);
   const completedFocusSec = sessions.reduce((total, session) => {
     const startDay = sessionStartedLocalDay(session.startedAt, goal.timezone);

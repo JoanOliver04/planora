@@ -64,7 +64,8 @@ export function ActiveSessionView({
 } = {}) {
   const t = useTranslations("Focus");
   const common = useTranslations("Common");
-  const { engine, immersive, setImmersive } = useFocusSessionContext();
+  const { engine, immersive, setImmersive, hydrateSession } =
+    useFocusSessionContext();
   const session = engine.session;
   const clock = engine.snapshot?.clock;
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -163,6 +164,13 @@ export function ActiveSessionView({
       toast.error(t("engine.persistError"));
       return;
     }
+    // Keep the live engine revision in sync so later pause/complete do not conflict.
+    hydrateSession({
+      ...session,
+      notes: note.trim() || null,
+      revision: result.data.revision,
+      updatedAt: result.data.updatedAt,
+    });
     toast.success(t("activeView.noteSaved"));
     setNoteOpen(false);
   }

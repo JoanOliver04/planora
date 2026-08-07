@@ -237,7 +237,9 @@
         "shortBreakInvalid": "El descanso corto no es válido.",
         "longBreakInvalid": "El descanso largo no es válido.",
         "targetCyclesInvalid": "El número de ciclos no es válido.",
-        "cyclesBeforeLongInvalid": "Indica cuántos ciclos van antes del descanso largo."
+        "cyclesBeforeLongInvalid": "Indica cuántos ciclos van antes del descanso largo.",
+        "occurrenceRequired": "Indica la fecha de ocurrencia de la tarea vinculada.",
+        "completeNeedsTask": "Para completar la tarea al terminar, elige una tarea y su fecha."
       },
       "conflict": {
         "description": "Ya tienes una sesión activa. Resuélvela antes de empezar otra.",

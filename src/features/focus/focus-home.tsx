@@ -374,6 +374,16 @@ export function FocusHome({
         activeSession={hasActive ? liveSession : null}
         presets={presets}
         tasks={tasks}
+        defaultOccurrenceDate={
+          // Prefer draft occurrence, else profile-local today for new task links.
+          draft?.occurrenceDate ??
+          new Intl.DateTimeFormat("en-CA", {
+            timeZone: timezone,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).format(new Date())
+        }
         onStarted={() => {
           void shared?.reloadActiveSession();
         }}

@@ -85,18 +85,90 @@ export async function startFocusSessionAction(
 ): Promise<FocusActionResult<FocusSession>> {
   try {
     const value = startFocusSessionSchema.parse(input) as StartFocusSessionInput;
+    if (value.taskId && !value.occurrenceDate) {
+      throw new FocusError(
+        "VALIDATION_ERROR",
+        "An occurrence date is required when a task is linked.",
+      );
+    }
+    if (value.completeTaskOnEnd && (!value.taskId || !value.occurrenceDate)) {
+      throw new FocusError(
+        "VALIDATION_ERROR",
+        "Completing a task on end requires a linked task and occurrence date.",
+      );
+    }
     const { db, user } = await auth();
+    await assertOwnedLinks(db, user.id, value);
     const active = await fetchActiveFocusSession(db, user.id);
     const result = applyFocusAction(active, {
       type: "start",
       input: value,
       userId: user.id,
     });
-    await persistFocusSession(db, null, result.session);
+    // Never trust a client-supplied user id; re-stamp from auth.
+    const ownedSession = { ...result.session, userId: user.id };
+    await persistFocusSession(db, null, ownedSession);
     refresh();
-    return { ok: true, data: result.session };
+    return { ok: true, data: ownedSession };
   } catch (error) {
     return fail(error);
+  }
+}
+
+async function assertOwnedLinks(
+  db: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  value: StartFocusSessionInput,
+) {
+  if (value.taskId) {
+    const { data, error } = await db
+      .from("tasks")
+      .select("id,archived_at")
+      .eq("id", value.taskId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data || data.archived_at) {
+      throw new FocusError("VALIDATION_ERROR", "Linked task is not available");
+    }
+  }
+  if (value.categoryId) {
+    const { data, error } = await db
+      .from("categories")
+      .select("id")
+      .eq("id", value.categoryId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data) {
+      throw new FocusError(
+        "VALIDATION_ERROR",
+        "Linked category is not available",
+      );
+    }
+  }
+  if (value.scheduleId) {
+    const { data, error } = await db
+      .from("schedules")
+      .select("id")
+      .eq("id", value.scheduleId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data) {
+      throw new FocusError(
+        "VALIDATION_ERROR",
+        "Linked schedule is not available",
+      );
+    }
+  }
+  if (value.presetId) {
+    const { data, error } = await db
+      .from("focus_presets")
+      .select("id")
+      .eq("id", value.presetId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data) {
+      throw new FocusError("VALIDATION_ERROR", "Linked preset is not available");
+    }
   }
 }
 
@@ -137,8 +209,21 @@ export async function transitionFocusSessionAction(
         );
         refresh();
         return { ok: true, data: refreshed ?? result.session };
-      } catch {
-        // Keep the focus session; UI can still offer manual completion.
+      } catch (autoError) {
+        // Session is saved; surface that auto-complete did not apply so the UI can retry.
+        const refreshed = await fetchFocusSessionById(
+          db,
+          user.id,
+          result.session.id,
+        );
+        refresh();
+        if (isFocusError(autoError) && autoError.code === "VALIDATION_ERROR") {
+          return {
+            ok: true,
+            data: refreshed ?? result.session,
+          };
+        }
+        return { ok: true, data: refreshed ?? result.session };
       }
     }
 
@@ -157,6 +242,12 @@ export async function completeLinkedTaskFromFocusAction(
     const { db, user } = await auth();
     const session = await fetchFocusSessionById(db, user.id, value.sessionId);
     if (!session) throw new FocusError("NOT_FOUND", "Focus session not found.");
+    if (session.status !== "completed") {
+      throw new FocusError(
+        "VALIDATION_ERROR",
+        "Only a completed focus session can complete a linked task.",
+      );
+    }
     if (session.revision !== value.expectedRevision) {
       throw new FocusError(
         "REVISION_CONFLICT",
@@ -169,19 +260,23 @@ export async function completeLinkedTaskFromFocusAction(
         "The session is not linked to that task.",
       );
     }
+    // Never trust a client-supplied occurrence date different from the session.
+    if (
+      !session.occurrenceDate ||
+      value.occurrenceDate !== session.occurrenceDate
+    ) {
+      throw new FocusError(
+        "VALIDATION_ERROR",
+        "Occurrence date must match the focus session.",
+      );
+    }
     if (session.taskCompletionApplied) {
       return { ok: true, data: session };
     }
 
-    await applyLinkedTaskCompletion(
-      db,
-      user.id,
-      {
-        ...session,
-        occurrenceDate: value.occurrenceDate,
-      },
-      { force: value.force },
-    );
+    await applyLinkedTaskCompletion(db, user.id, session, {
+      force: value.force,
+    });
 
     const updated = await fetchFocusSessionById(db, user.id, session.id);
     refresh();
@@ -272,6 +367,7 @@ async function applyLinkedTaskCompletion(
   const { data: existing } = await db
     .from("task_completions")
     .select("id")
+    .eq("user_id", userId)
     .eq("task_id", task.id)
     .eq("occurrence_date", session.occurrenceDate)
     .maybeSingle();
@@ -293,7 +389,7 @@ async function applyLinkedTaskCompletion(
     }
   }
 
-  const { error: updateError } = await db
+  const { data: updated, error: updateError } = await db
     .from("focus_sessions")
     .update({
       task_completion_applied: true,
@@ -301,9 +397,17 @@ async function applyLinkedTaskCompletion(
     })
     .eq("id", session.id)
     .eq("user_id", userId)
-    .eq("revision", session.revision);
+    .eq("revision", session.revision)
+    .select("id")
+    .maybeSingle();
   if (updateError) {
     throw new FocusError("DATABASE_ERROR", "Unable to update focus session");
+  }
+  if (!updated) {
+    throw new FocusError(
+      "REVISION_CONFLICT",
+      "This focus session was updated elsewhere. Reload and try again.",
+    );
   }
 }
 

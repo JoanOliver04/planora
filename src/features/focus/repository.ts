@@ -74,7 +74,11 @@ export async function persistFocusSession(
   previous: FocusSession | null,
   next: FocusSession,
 ): Promise<void> {
+  // Persist only the domain snapshot; user_id must already match auth.uid() (RLS).
   const payload = sessionToRowPayload(next);
+  if (previous && previous.userId !== next.userId) {
+    throw new FocusError("DATABASE_ERROR", "Unable to update focus session");
+  }
 
   if (!previous) {
     const { error } = await db.from("focus_sessions").insert(payload);

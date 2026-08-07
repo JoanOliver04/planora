@@ -230,6 +230,7 @@ export function SessionStartDialog({
   presets,
   tasks = [],
   onStarted,
+  defaultOccurrenceDate = null,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -238,6 +239,8 @@ export function SessionStartDialog({
   presets: FocusPreset[];
   tasks?: FocusTaskOption[];
   onStarted?: (session: FocusSession) => void;
+  /** Profile-local YYYY-MM-DD used when linking a task without a date. */
+  defaultOccurrenceDate?: string | null;
 }) {
   const t = useTranslations("Focus");
   const common = useTranslations("Common");
@@ -266,6 +269,12 @@ export function SessionStartDialog({
   }
 
   function validate(): string | null {
+    if (form.taskId && !form.occurrenceDate.trim()) {
+      return t("config.errors.occurrenceRequired");
+    }
+    if (form.completeTaskOnEnd && (!form.taskId || !form.occurrenceDate.trim())) {
+      return t("config.errors.completeNeedsTask");
+    }
     if (form.mode === "countdown" || form.mode === "cycles") {
       const focusSec = secFromMinutes(form.focusMinutes);
       if (focusSec == null || focusSec < FOCUS_MIN_DURATION_SEC) {
@@ -607,8 +616,15 @@ export function SessionStartDialog({
                     <select
                       value={form.taskId}
                       onChange={(event) => {
-                        update("taskId", event.target.value);
-                        if (!event.target.value) update("occurrenceDate", "");
+                        const nextId = event.target.value;
+                        update("taskId", nextId);
+                        if (!nextId) {
+                          update("occurrenceDate", "");
+                          return;
+                        }
+                        if (!form.occurrenceDate && defaultOccurrenceDate) {
+                          update("occurrenceDate", defaultOccurrenceDate);
+                        }
                       }}
                     >
                       <option value="">{t("config.noTask")}</option>

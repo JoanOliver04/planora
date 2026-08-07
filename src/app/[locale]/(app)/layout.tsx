@@ -25,21 +25,33 @@ export default async function PrivateLayout({
     .eq("id", user.id)
     .single();
 
+  // Runtime shell needs phase/timer fields only — keep private notes off every page payload.
   let initialFocusSession: FocusSession | null = null;
   const { data: activeRow } = await supabase
     .from("focus_sessions")
-    .select("*")
+    .select(
+      "id,user_id,status,mode,title,preset_id,task_id,category_id,schedule_id,occurrence_date,planned_focus_sec,focus_sec,paused_sec,break_sec,current_phase_kind,current_cycle,config,link_snapshot,started_at,ended_at,subjective_focus,subjective_energy,complete_task_on_end,task_completion_applied,revision,created_at,updated_at",
+    )
     .eq("user_id", user.id)
     .in("status", ["running", "paused", "on_break"])
     .maybeSingle();
   if (activeRow) {
     const { data: intervals } = await supabase
       .from("focus_intervals")
-      .select("*")
+      .select(
+        "id,user_id,session_id,kind,sequence,cycle_index,started_at,ended_at,planned_duration_sec,created_at",
+      )
       .eq("user_id", user.id)
       .eq("session_id", activeRow.id)
       .order("sequence", { ascending: true });
-    initialFocusSession = mapSessionRow(activeRow, intervals ?? []);
+    initialFocusSession = mapSessionRow(
+      {
+        ...activeRow,
+        notes: null,
+        distractions: [],
+      },
+      intervals ?? [],
+    );
   }
 
   return (

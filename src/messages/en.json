@@ -237,7 +237,9 @@
         "shortBreakInvalid": "Short break duration is not valid.",
         "longBreakInvalid": "Long break duration is not valid.",
         "targetCyclesInvalid": "Target cycles value is not valid.",
-        "cyclesBeforeLongInvalid": "Enter how many cycles come before the long break."
+        "cyclesBeforeLongInvalid": "Enter how many cycles come before the long break.",
+        "occurrenceRequired": "Set an occurrence date for the linked task.",
+        "completeNeedsTask": "To complete a task on end, choose a task and its date."
       },
       "conflict": {
         "description": "You already have an active session. Resolve it before starting another.",

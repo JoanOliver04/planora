@@ -28,6 +28,11 @@ export default async function FocusPage({
   const weekStartsOn = profile?.week_starts_on === 0 ? 0 : 1;
   const week = localWeek(timezone, new Date(), weekStartsOn);
   const today = localDate(timezone);
+  // Local week strings are not UTC midnights — pad the query window by one day.
+  const weekQueryStart = new Date(`${week.start}T00:00:00.000Z`);
+  weekQueryStart.setUTCDate(weekQueryStart.getUTCDate() - 1);
+  const weekQueryEnd = new Date(`${week.end}T23:59:59.999Z`);
+  weekQueryEnd.setUTCDate(weekQueryEnd.getUTCDate() + 1);
 
   const [
     { data: activeRow },
@@ -54,8 +59,8 @@ export default async function FocusPage({
       .from("focus_sessions")
       .select("*")
       .eq("user_id", user.id)
-      .gte("started_at", `${week.start}T00:00:00.000Z`)
-      .lte("started_at", `${week.end}T23:59:59.999Z`)
+      .gte("started_at", weekQueryStart.toISOString())
+      .lte("started_at", weekQueryEnd.toISOString())
       .order("started_at", { ascending: false }),
     db
       .from("focus_presets")
