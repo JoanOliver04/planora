@@ -73,6 +73,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Park distractions mid-session without pausing; convert one into a Planora task or dismiss it after the session.
 - Clear endings: finish and save, cancel and keep partial time, or discard the session permanently with confirmation.
 - Focus data is included in portable JSON backup schema v4 (export and atomic restore): presets, sessions, intervals, flexible goals, notes; live sessions restore as cancelled; analysis CSV omits notes (optional PRIVATE notes file).
+- Release readiness notes: `docs/focus-release-readiness-2026-08-07.md` (security, performance, e2e matrix, residual risks).
 
 ### Progress and history
 

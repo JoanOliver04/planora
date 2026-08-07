@@ -2055,6 +2055,8 @@ Resume el flujo de activación y tiempo estimado hasta primera sesión.
 
 ## Prompt 22 — Auditoría final, seguridad, rendimiento y release readiness
 
+> **HECHO** — Suite unitaria completa en verde; lint/typecheck/audit OK; e2e `focus-session.spec.ts` (ciclo de vida + restore sin duplicados con credenciales Supabase; gate de login siempre); contratos `tests/focus-release-audit.test.ts`; reporte `docs/focus-release-readiness-2026-08-07.md`. Documentación de producto/testing/seguridad/backup actualizada. Residual: UI e2e con OAuth real y capturas Focus opcionales.
+
 ```text
 Realiza una auditoría final de Planora Enfoque como si fuera una función lista para producción y portfolio.
 
