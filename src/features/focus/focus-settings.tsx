@@ -32,25 +32,32 @@ export function FocusSettingsPanel({
   const t = useTranslations("Focus");
   const common = useTranslations("Common");
   const base = normalizePreferences(profilePreferences);
-  const [account, setAccount] = useState<FocusAccountPreferences>(base.focus);
-  const [device, setDevice] = useState<FocusDevicePreferences>(() =>
-    loadFocusDevicePreferences(),
+  const serverFocus = base.focus;
+  const serverFocusKey = JSON.stringify(serverFocus);
+
+  const [account, setAccount] = useState<FocusAccountPreferences>(serverFocus);
+  const [accountKey, setAccountKey] = useState(serverFocusKey);
+  // Keep local draft aligned when the profile is reloaded after save.
+  if (serverFocusKey !== accountKey) {
+    setAccountKey(serverFocusKey);
+    setAccount(normalizeFocusAccountPreferences(serverFocus));
+  }
+
+  const device = useSyncExternalStore(
+    subscribeFocusDevicePreferences,
+    loadFocusDevicePreferences,
+    () => defaultFocusDevicePreferences,
   );
   const [presets, setPresets] = useState<FocusPreset[]>([]);
   const [saving, setSaving] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [permission, setPermission] = useState<
     NotificationPermission | "unsupported"
-  >("default");
-
-  // Re-sync account prefs when the profile payload changes after reload.
-  const accountKey = JSON.stringify(base.focus);
-  useEffect(() => {
-    setAccount(normalizeFocusAccountPreferences(base.focus));
-  }, [accountKey, base.focus]);
+  >(() =>
+    typeof window === "undefined" ? "default" : focusNotificationPermission(),
+  );
 
   useEffect(() => {
-    setPermission(focusNotificationPermission());
     let cancelled = false;
     const db = createClient();
     void db
@@ -67,15 +74,6 @@ export function FocusSettingsPanel({
     };
   }, []);
 
-  const liveDevice = useSyncExternalStore(
-    subscribeFocusDevicePreferences,
-    loadFocusDevicePreferences,
-    () => defaultFocusDevicePreferences,
-  );
-  useEffect(() => {
-    setDevice(liveDevice);
-  }, [liveDevice]);
-
   function updateAccount<K extends keyof FocusAccountPreferences>(
     key: K,
     value: FocusAccountPreferences[K],
@@ -87,11 +85,8 @@ export function FocusSettingsPanel({
     key: K,
     value: FocusDevicePreferences[K],
   ) {
-    setDevice((current) => {
-      const next = { ...current, [key]: value };
-      saveFocusDevicePreferences(next);
-      return next;
-    });
+    const next = { ...device, [key]: value };
+    saveFocusDevicePreferences(next);
   }
 
   async function saveAccount() {
@@ -101,7 +96,6 @@ export function FocusSettingsPanel({
         ...base,
         focus: {
           ...account,
-          // Never force auto-complete as a hidden default.
           completeTaskOnEndDefault: account.completeTaskOnEndDefault === true,
         },
       };
@@ -136,9 +130,7 @@ export function FocusSettingsPanel({
 
   function resetAll() {
     setAccount(defaultFocusAccountPreferences);
-    const deviceDefaults = defaultFocusDevicePreferences;
-    setDevice(deviceDefaults);
-    saveFocusDevicePreferences(deviceDefaults);
+    saveFocusDevicePreferences(defaultFocusDevicePreferences);
     void onSaveAccount({
       ...base,
       focus: defaultFocusAccountPreferences,
@@ -392,7 +384,8 @@ export function FocusSettingsPanel({
             onChange={(event) =>
               updateDevice(
                 "lockScreenBehavior",
-                event.target.value as FocusDevicePreferences["lockScreenBehavior"],
+                event.target
+                  .value as FocusDevicePreferences["lockScreenBehavior"],
               )
             }
           >
@@ -405,7 +398,11 @@ export function FocusSettingsPanel({
       </div>
 
       <div className="row-actions">
-        <button type="button" className="pill" onClick={() => setResetOpen(true)}>
+        <button
+          type="button"
+          className="pill"
+          onClick={() => setResetOpen(true)}
+        >
           {t("settings.reset")}
         </button>
       </div>
