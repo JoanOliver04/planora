@@ -50,9 +50,17 @@ export function TaskForm({
     locale === "es"
       ? ["L", "M", "X", "J", "V", "S", "D"]
       : ["M", "T", "W", "T", "F", "S", "S"];
+  const timingLabelKey =
+    timing === "day_part"
+      ? "dayPart"
+      : timing === "specific_time"
+        ? "specificTime"
+        : timing === "time_range"
+          ? "timeRange"
+          : "anytime";
   const summary = useMemo(
-    () => `${t(recurrence)} · ${t(timing)}`,
-    [recurrence, timing, t],
+    () => `${t(recurrence)} · ${t(timingLabelKey)}`,
+    [recurrence, timingLabelKey, t],
   );
   function submit(fd: FormData) {
     const type = String(fd.get("recurrence"));

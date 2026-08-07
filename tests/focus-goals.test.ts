@@ -165,6 +165,10 @@ describe("flexible weekly focus goals", () => {
       3,
     );
     expect(history).toHaveLength(3);
-    expect(history[0]?.weekStart <= history[0]?.weekEnd!).toBe(true);
+    const first = history[0];
+    expect(first).toBeDefined();
+    if (!first) return;
+    expect(first.weekStart <= first.weekEnd).toBe(true);
   });
 });
+
