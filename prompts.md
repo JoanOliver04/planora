@@ -1726,6 +1726,8 @@ Explica autoridad, sincronización, takeover y conflictos.
 
 ## Prompt 18 — Modo offline y reconciliación segura
 
+> **HECHO** — Cola Focus offline idempotente (`focus-offline.ts`), continuar sesión conocida sin conexión (timer + transiciones), sin inicio offline, `clientAt` clamp en servidor, flush ordenado al reconectar, conflicto = autoridad remota. UI offline/pending. Tests `tests/focus-offline.test.ts`.
+
 ```text
 Integra Enfoque con la cola offline de Planora.
 

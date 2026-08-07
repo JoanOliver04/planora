@@ -26,7 +26,12 @@ import {
   fetchActiveFocusSessionFull,
   reconcileFocusSessionFromServer,
 } from "./focus-sync-poll";
+import {
+  clearFocusOfflineQueue,
+  loadCachedFocusSession,
+} from "./focus-offline";
 import { isActiveStatus } from "./time";
+import { createClient } from "@/lib/supabase/client";
 
 type FocusSessionContextValue = {
   engine: UseFocusSessionResult;
@@ -222,6 +227,56 @@ export function FocusSessionProvider({
     await engine.takeover();
     setTakeoverDialogOpen(false);
   }, [engine]);
+
+  // Offline: restore last known active session so the timer can continue.
+  useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    if (navigator.onLine) return;
+    if (seedRef.current) return;
+    void (async () => {
+      try {
+        const db = createClient();
+        const {
+          data: { user },
+        } = await db.auth.getUser();
+        if (!user) return;
+        const cached = loadCachedFocusSession(user.id);
+        if (cached && isActiveStatus(cached.status)) {
+          setSeed(cached);
+          setSeedKey(sessionKey(cached));
+          setInitialLoaded(true);
+          toast.message(t("offline.restoredLocal"));
+        }
+      } catch {
+        // ignore
+      }
+    })();
+  }, [t]);
+
+  // Offline sync conflict: drop local queue tail and re-fetch server authority.
+  useEffect(() => {
+    const onConflict = () => {
+      toast.error(t("offline.conflict"));
+      setControlMode("follower");
+      void (async () => {
+        try {
+          const db = createClient();
+          const {
+            data: { user },
+          } = await db.auth.getUser();
+          if (user) clearFocusOfflineQueue(user.id);
+          const remote = await fetchActiveFocusSessionFull();
+          applyRemoteSession(remote, "conflict");
+        } catch {
+          // ignore
+        }
+      })();
+    };
+    window.addEventListener("planora-focus-offline-conflict", onConflict);
+    return () => {
+      window.removeEventListener("planora-focus-offline-conflict", onConflict);
+    };
+  }, [applyRemoteSession, t]);
 
   // Cross-tab bus
   useEffect(() => {

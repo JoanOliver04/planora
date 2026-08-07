@@ -351,6 +351,15 @@
       "updatedElsewhere": "Focus session updated elsewhere — controls are view-only until you continue here.",
       "endedElsewhere": "The Focus session ended in another tab or device."
     },
+    "offline": {
+      "startBlocked": "Starting a Focus session needs a connection. You can keep an already running session offline.",
+      "savedLocally": "Saved on this device — will sync when you are back online.",
+      "storageFull": "Could not store the change offline (storage full or blocked).",
+      "restoredLocal": "Restored your Focus session from this device while offline.",
+      "conflict": "Offline changes conflicted with the server. Server state was kept — review the session.",
+      "pending": "Pending sync",
+      "synced": "Focus changes synced"
+    },
     "plan": {
       "title": "Session plan",
       "hint": "Optional ordered blocks with a purpose — not only a single timer.",

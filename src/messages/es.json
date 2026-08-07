@@ -351,6 +351,15 @@
       "updatedElsewhere": "La sesión de Enfoque se actualizó en otro sitio — controles en solo lectura hasta que continúes aquí.",
       "endedElsewhere": "La sesión de Enfoque terminó en otra pestaña o dispositivo."
     },
+    "offline": {
+      "startBlocked": "Iniciar una sesión de Enfoque requiere conexión. Puedes seguir una sesión ya en marcha sin conexión.",
+      "savedLocally": "Guardado en este dispositivo — se sincronizará al volver la conexión.",
+      "storageFull": "No se pudo guardar el cambio sin conexión (almacenamiento lleno o bloqueado).",
+      "restoredLocal": "Se restauró tu sesión de Enfoque de este dispositivo sin conexión.",
+      "conflict": "Los cambios sin conexión chocaron con el servidor. Se mantuvo el estado del servidor — revisa la sesión.",
+      "pending": "Pendiente de sincronizar",
+      "synced": "Cambios de Enfoque sincronizados"
+    },
     "plan": {
       "title": "Plan de sesión",
       "hint": "Bloques ordenados con un propósito — no solo un temporizador único.",

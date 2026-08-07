@@ -62,6 +62,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Focus statistics on Focus home (compact) and in Statistics: daily bars, finish rate, category/task breakdown, goal progress and optional insights only after a minimum sample — pure client aggregates, no heavy chart libraries, no titles/notes sent to product analytics.
 - Focus phase alerts via the existing notification stack (in-app toast, system notification through the service worker, soft chime, vibration), scheduled on phase start and cleared on pause/end; optional Screen Wake Lock; permission only on explicit action; honest PWA delivery limits.
 - Multi-tab/device Focus continuity: BroadcastChannel (+ localStorage fallback), light server poll, optimistic revision as write authority, view-only follower mode and explicit “Continue here” takeover without creating a second session.
+- Offline Focus: continue a known session with local transitions (idempotent queue, no per-second rows); sync in order on reconnect; starting a new session still requires network; remote revision wins on conflict.
 - Focus preferences split by scope: account-synced options (default mode/preset, review, goal visibility) and device-local options (sound volume, vibration, notifications, Wake Lock, compact bar).
 - Optional link to a task or habit; finishing a session never auto-completes work unless the user chose that explicitly.
 - Quick starts from Today (continue / quick session / next task / last preset) and a secondary timer action in Week and Tasks.

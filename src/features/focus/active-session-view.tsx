@@ -333,6 +333,11 @@ export function ActiveSessionView({
               {t("activeView.offline")}
             </span>
           ) : null}
+          {!online ? (
+            <span className="focus-status-chip" role="status">
+              {t("offline.pending")}
+            </span>
+          ) : null}
           {engine.pending ? (
             <span className="focus-status-chip" role="status">
               {t("activeView.syncing")}

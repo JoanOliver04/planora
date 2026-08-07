@@ -428,6 +428,13 @@ export function SessionStartDialog({
       setFieldError(t("config.conflict.blocked"));
       return;
     }
+    // Policy: starting Focus requires the network (one-active DB constraint).
+    // Continuing an already-known session offline is supported elsewhere.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setFieldError(t("offline.startBlocked"));
+      toast.error(t("offline.startBlocked"));
+      return;
+    }
     const error = validate();
     if (error) {
       setFieldError(error);

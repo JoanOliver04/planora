@@ -231,32 +231,40 @@ export const startFocusSessionSchema = z
     }
   });
 
+/** Shared fields for every Focus transition (online + offline replay). */
+const focusTransitionBase = {
+  sessionId: uuid,
+  expectedRevision: z.number().int().min(1),
+  /**
+   * Optional client wall-clock ISO time for offline replay.
+   * Server clamps to a safe window — never trusts unbounded client clocks.
+   */
+  clientAt: z.string().min(10).max(40).optional(),
+  /** Idempotent client action id (dedupe on flush / retries). */
+  actionId: z.string().uuid().optional(),
+};
+
 export const focusTransitionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("pause"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
   }),
   z.object({
     type: z.literal("resume"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
   }),
   z.object({
     type: z.literal("begin_break"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
     breakKind: z.enum(["short_break", "long_break"]).optional(),
   }),
   z.object({
     type: z.literal("skip_break"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
   }),
   z.object({
     type: z.literal("extend_break"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
     extraSec: z
       .number()
       .int()
@@ -265,36 +273,30 @@ export const focusTransitionSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("finish_phase"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
   }),
   z.object({
     type: z.literal("skip_segment"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
   }),
   z.object({
     type: z.literal("complete"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
     notes: z.string().max(FOCUS_MAX_NOTES_LENGTH).optional().nullable(),
     subjectiveFocus: z.number().int().min(1).max(5).optional().nullable(),
     subjectiveEnergy: z.number().int().min(1).max(5).optional().nullable(),
   }),
   z.object({
     type: z.literal("cancel"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
   }),
   z.object({
     type: z.literal("recover"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
   }),
   z.object({
     type: z.literal("takeover"),
-    sessionId: uuid,
-    expectedRevision: z.number().int().min(1),
+    ...focusTransitionBase,
   }),
 ]);
 

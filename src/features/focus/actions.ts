@@ -199,6 +199,7 @@ export async function transitionFocusSessionAction(
     const domainAction = toDomainAction(value);
     const result = applyFocusAction(current, domainAction, {
       expectedRevision: value.expectedRevision,
+      now: resolveClientActionNow(current, value.clientAt),
     });
     await persistFocusSession(db, current, result.session);
 
@@ -1012,6 +1013,24 @@ export async function setFocusGoalPrimaryAction(
   } catch (error) {
     return fail(error);
   }
+}
+
+/**
+ * Clamp optional offline client timestamps so we never invent impossible times.
+ * Window: [session.startedAt, wall + 2 minutes].
+ */
+function resolveClientActionNow(
+  session: FocusSession,
+  clientAt: string | undefined,
+): number {
+  const wall = Date.now();
+  if (!clientAt) return wall;
+  const parsed = Date.parse(clientAt);
+  if (!Number.isFinite(parsed)) return wall;
+  const started = Date.parse(session.startedAt);
+  const lower = Number.isFinite(started) ? started : wall - 24 * 60 * 60 * 1000;
+  const upper = wall + 2 * 60 * 1000;
+  return Math.min(Math.max(parsed, lower), upper);
 }
 
 function toDomainAction(value: FocusTransitionInput): FocusDomainAction {

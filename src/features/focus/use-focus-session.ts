@@ -27,6 +27,11 @@ import {
   reacquireFocusWakeLockIfNeeded,
   syncFocusWakeLock,
 } from "./focus-wake-lock";
+import {
+  cacheFocusSession,
+  enqueueFocusTransition,
+} from "./focus-offline";
+import type { FocusTransitionInput } from "./validation";
 
 export type UseFocusSessionOptions = {
   onRecovered?: (session: FocusSession) => void;
@@ -137,19 +142,64 @@ export function useFocusSession(
 
       setPending(true);
       try {
+        const wall = Date.now();
         // Reject clearly invalid transitions client-side (idempotent double-clicks).
+        let nextLocal: FocusSession;
         try {
-          applyFocusAction(current, action, {
+          nextLocal = applyFocusAction(current, action, {
             expectedRevision: current.revision,
-            now: Date.now(),
-          });
+            now: wall,
+          }).session;
         } catch {
-          router.refresh();
+          if (typeof navigator !== "undefined" && navigator.onLine) {
+            router.refresh();
+          }
           return;
         }
 
-        const payload = toTransitionPayload(action, current);
+        const actionId =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `offline-${wall}-${Math.random().toString(36).slice(2, 10)}`;
+        const clientAt = new Date(wall).toISOString();
+        const payload = toTransitionPayload(action, current, {
+          actionId,
+          clientAt,
+        });
         if (!payload) return;
+
+        const offline =
+          typeof navigator !== "undefined" && navigator.onLine === false;
+
+        if (offline) {
+          // Policy: continue known sessions offline; never invent remote rows per tick.
+          const queued = enqueueFocusTransition({
+            userId: current.userId,
+            actionId,
+            session: nextLocal,
+            expectedRevision: current.revision,
+            clientTimestamp: clientAt,
+            transition: payload,
+          });
+          if (!queued.ok && queued.reason === "storage") {
+            toast.error(t("offline.storageFull"));
+          } else {
+            toast.message(t("offline.savedLocally"));
+          }
+          setSession(nextLocal);
+          sessionRef.current = nextLocal;
+          setNow(wall);
+          cacheFocusSession(current.userId, nextLocal);
+          optionsRef.current.onSessionCommitted?.(nextLocal, action.type);
+          if (
+            nextLocal.status === "completed" ||
+            nextLocal.status === "cancelled"
+          ) {
+            cacheFocusSession(current.userId, null);
+            optionsRef.current.onTerminal?.(nextLocal);
+          }
+          return;
+        }
 
         const result = await transitionFocusSessionAction(payload);
         if (!result?.ok) {
@@ -164,6 +214,32 @@ export function useFocusSession(
             router.refresh();
             return;
           }
+          // Network-ish failure while browser still thinks it is online:
+          // queue for later instead of losing the transition.
+          if (code === "DATABASE_ERROR" || code === "UNAUTHORIZED") {
+            enqueueFocusTransition({
+              userId: current.userId,
+              actionId,
+              session: nextLocal,
+              expectedRevision: current.revision,
+              clientTimestamp: clientAt,
+              transition: payload,
+            });
+            setSession(nextLocal);
+            sessionRef.current = nextLocal;
+            setNow(wall);
+            cacheFocusSession(current.userId, nextLocal);
+            optionsRef.current.onSessionCommitted?.(nextLocal, action.type);
+            toast.message(t("offline.savedLocally"));
+            if (
+              nextLocal.status === "completed" ||
+              nextLocal.status === "cancelled"
+            ) {
+              cacheFocusSession(current.userId, null);
+              optionsRef.current.onTerminal?.(nextLocal);
+            }
+            return;
+          }
           toast.error(t("engine.persistError"));
           return;
         }
@@ -172,11 +248,13 @@ export function useFocusSession(
         setSession(nextSession);
         sessionRef.current = nextSession;
         setNow(Date.now());
+        cacheFocusSession(nextSession.userId, nextSession);
         optionsRef.current.onSessionCommitted?.(nextSession, action.type);
         if (
           nextSession.status === "completed" ||
           nextSession.status === "cancelled"
         ) {
+          cacheFocusSession(nextSession.userId, null);
           optionsRef.current.onTerminal?.(nextSession);
         }
         router.refresh();
@@ -201,10 +279,45 @@ export function useFocusSession(
 
     let cancelled = false;
     void (async () => {
+      const offline =
+        typeof navigator !== "undefined" && navigator.onLine === false;
+      if (offline) {
+        // Continue known session offline: project recovery locally and queue.
+        const actionId =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `recover-${wall}`;
+        const clientAt = new Date(wall).toISOString();
+        enqueueFocusTransition({
+          userId: current.userId,
+          actionId,
+          session: prep.session,
+          expectedRevision: current.revision,
+          clientTimestamp: clientAt,
+          transition: {
+            type: "recover",
+            sessionId: current.id,
+            expectedRevision: current.revision,
+            clientAt,
+            actionId,
+          },
+        });
+        if (cancelled) return;
+        setSession(prep.session);
+        sessionRef.current = prep.session;
+        setRecoveredNotice(true);
+        optionsRef.current.onRecovered?.(prep.session);
+        optionsRef.current.onSessionCommitted?.(prep.session, "recover");
+        cacheFocusSession(current.userId, prep.session);
+        setNow(Date.now());
+        return;
+      }
+
       const result = await transitionFocusSessionAction({
         type: "recover",
         sessionId: current.id,
         expectedRevision: current.revision,
+        clientAt: new Date(wall).toISOString(),
       });
       if (cancelled) return;
       if (!result?.ok) {
@@ -222,11 +335,13 @@ export function useFocusSession(
       setRecoveredNotice(true);
       optionsRef.current.onRecovered?.(nextSession);
       optionsRef.current.onSessionCommitted?.(nextSession, "recover");
+      cacheFocusSession(nextSession.userId, nextSession);
       setNow(Date.now());
       if (
         nextSession.status === "completed" ||
         nextSession.status === "cancelled"
       ) {
+        cacheFocusSession(nextSession.userId, null);
         optionsRef.current.onTerminal?.(nextSession);
       }
       router.refresh();
@@ -490,32 +605,13 @@ export function useFocusSession(
 function toTransitionPayload(
   action: FocusDomainAction,
   session: FocusSession,
-):
-  | {
-      type:
-        | "pause"
-        | "resume"
-        | "begin_break"
-        | "skip_break"
-        | "extend_break"
-        | "finish_phase"
-        | "skip_segment"
-        | "complete"
-        | "cancel"
-        | "recover"
-        | "takeover";
-      sessionId: string;
-      expectedRevision: number;
-      breakKind?: "short_break" | "long_break";
-      extraSec?: number;
-      notes?: string | null;
-      subjectiveFocus?: number | null;
-      subjectiveEnergy?: number | null;
-    }
-  | null {
+  meta?: { actionId?: string; clientAt?: string },
+): FocusTransitionInput | null {
   const base = {
     sessionId: session.id,
     expectedRevision: session.revision,
+    actionId: meta?.actionId,
+    clientAt: meta?.clientAt,
   };
   switch (action.type) {
     case "pause":

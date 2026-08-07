@@ -132,6 +132,15 @@ export async function clearPrivateOfflineData(userId: string) {
     if (key?.startsWith(workspacePrefix)) localStorage.removeItem(key);
   }
 
+  try {
+    const { clearFocusOfflineData } = await import(
+      "@/features/focus/focus-offline"
+    );
+    clearFocusOfflineData(userId);
+  } catch {
+    // Focus module optional during early boot
+  }
+
   if ("caches" in globalThis) {
     const keys = await caches.keys();
     await Promise.all(
