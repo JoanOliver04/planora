@@ -700,17 +700,17 @@
       "error": "No se pudo preparar la exportación. Inténtalo de nuevo.",
       "json": {
         "title": "Copia completa",
-        "description": "Guarda todos los datos compatibles con la restauración de Planora.",
+        "description": "Guarda todos los datos compatibles con la restauración de Planora, incluidas sesiones de Enfoque, notas y objetivos (esquema v4).",
         "action": "Descargar JSON"
       },
       "csv": {
         "title": "Tablas de datos",
-        "description": "Exporta tus datos en tablas compatibles con hojas de cálculo.",
+        "description": "Tablas para analizar en hojas de cálculo. Las notas y distracciones de Enfoque no van en el CSV principal de sesiones; si existen, salen en un archivo PRIVATE aparte. Enfoque no se añade al ICS del calendario.",
         "action": "Descargar CSV"
       },
       "ics": {
         "title": "Calendario",
-        "description": "Exporta tus eventos y tareas para utilizarlos en otras aplicaciones de calendario.",
+        "description": "Exporta tus eventos y tareas para utilizarlos en otras aplicaciones de calendario. Las sesiones de Enfoque no se incluyen.",
         "action": "Descargar ICS"
       }
     },
@@ -718,7 +718,7 @@
       "title": "Restaurar una copia",
       "description": "Selecciona una copia JSON creada por Planora para sustituir tu espacio de trabajo actual.",
       "selectTitle": "Selecciona una copia de Planora",
-      "fileType": "Archivo JSON · Formatos de copia v1, v2 y v3",
+      "fileType": "Archivo JSON · Formatos de copia v1–v4",
       "selectAction": "Seleccionar archivo",
       "removeFile": "Quitar {name}",
       "validating": "Comprobando la copia…",

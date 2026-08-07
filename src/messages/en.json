@@ -700,17 +700,17 @@
       "error": "The export could not be prepared. Please try again.",
       "json": {
         "title": "Full backup",
-        "description": "Save all data supported by Planora restore.",
+        "description": "Save all data supported by Planora restore, including Focus sessions, notes and goals (schema v4).",
         "action": "Download JSON"
       },
       "csv": {
         "title": "Data tables",
-        "description": "Export your data as tables compatible with spreadsheet applications.",
+        "description": "Spreadsheet tables for analysis. Focus notes and distractions are omitted from the main session CSV and only appear in a separate PRIVATE notes file when present. Focus is not added to calendar ICS.",
         "action": "Download CSV"
       },
       "ics": {
         "title": "Calendar",
-        "description": "Export your events and tasks for use in other calendar applications.",
+        "description": "Export your events and tasks for use in other calendar applications. Focus sessions are not included.",
         "action": "Download ICS"
       }
     },
@@ -718,7 +718,7 @@
       "title": "Restore a backup",
       "description": "Select a JSON backup created by Planora to replace your current workspace.",
       "selectTitle": "Select a Planora backup",
-      "fileType": "JSON file · Backup formats v1, v2 and v3",
+      "fileType": "JSON file · Backup formats v1–v4",
       "selectAction": "Select file",
       "removeFile": "Remove {name}",
       "validating": "Checking backup…",

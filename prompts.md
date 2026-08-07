@@ -1884,6 +1884,10 @@ Entrega una lista de incidencias encontradas, corregidas y pendientes.
 
 ## Prompt 20 — Exportación, restauración y privacidad de datos de Enfoque
 
+> **HECHO** — Backup schema **v4**: Focus completo en JSON (presets/sesiones/intervalos/goals/notas/planes en config + preferencias de perfil). CSV de análisis sin notas; archivo `focus_session_notes_PRIVATE.csv` opcional. Restauración atómica: sesiones vivas → `cancelled`, intervalos abiertos cerrados, FKs huérfanas nulificadas, goals flexibles en SQL. Privacidad actualizada. Tests en `tests/backup.test.ts`.
+>
+> **Política sesiones activas:** al restaurar, `running|paused|on_break` se convierten en `cancelled` con `ended_at` y fase nula; no se reactivan timers ni notificaciones del sistema.
+
 ```text
 Integra todos los datos de Enfoque con “Tus datos”.
 

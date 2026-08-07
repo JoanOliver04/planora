@@ -1,8 +1,14 @@
 import { z } from "zod";
 
 export const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
-/** v3 adds Focus entities (presets, sessions, intervals, goals). */
-export const BACKUP_SCHEMA_VERSION = 3;
+/**
+ * Backup schema versions:
+ * - v1 legacy flat export
+ * - v2 portable JSON without Focus
+ * - v3 Focus entities (presets, sessions, intervals, goals)
+ * - v4 flexible goals + orphan Focus FK sanitization + privacy-oriented CSV helpers
+ */
+export const BACKUP_SCHEMA_VERSION = 4;
 
 const uuid = z.string().uuid();
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -496,7 +502,7 @@ export function createBackup(data: BackupData): PlanoraBackup {
     exportedBy: "planora",
     locale,
     timezone,
-    data,
+    data: sanitizeFocusReferences(data),
   });
 }
 
@@ -526,17 +532,182 @@ function withFocusDefaults(data: Record<string, unknown>) {
   };
 }
 
-export function parseBackup(value: unknown) {
-  const current = backupSchema.safeParse(value);
-  if (current.success) return current;
+/**
+ * Null orphan Focus FKs (deleted task/preset/category) so history snapshots still restore.
+ * Scope on goals is downgraded to global when refs disappear.
+ */
+export function sanitizeFocusReferences<T extends Record<string, unknown>>(
+  data: T,
+): T {
+  const schedules = new Set(
+    Array.isArray(data.schedules)
+      ? data.schedules
+          .map((item) =>
+            item && typeof item === "object" && "id" in item
+              ? String((item as { id: unknown }).id)
+              : null,
+          )
+          .filter((id): id is string => Boolean(id))
+      : [],
+  );
+  const categories = new Set(
+    Array.isArray(data.categories)
+      ? data.categories
+          .map((item) =>
+            item && typeof item === "object" && "id" in item
+              ? String((item as { id: unknown }).id)
+              : null,
+          )
+          .filter((id): id is string => Boolean(id))
+      : [],
+  );
+  const tasks = new Set(
+    Array.isArray(data.tasks)
+      ? data.tasks
+          .map((item) =>
+            item && typeof item === "object" && "id" in item
+              ? String((item as { id: unknown }).id)
+              : null,
+          )
+          .filter((id): id is string => Boolean(id))
+      : [],
+  );
+  const presets = new Set(
+    Array.isArray(data.focus_presets)
+      ? data.focus_presets
+          .map((item) =>
+            item && typeof item === "object" && "id" in item
+              ? String((item as { id: unknown }).id)
+              : null,
+          )
+          .filter((id): id is string => Boolean(id))
+      : [],
+  );
 
-  // Upgrade v2 backups (pre-Focus) to v3 with empty focus collections.
+  const focus_presets = Array.isArray(data.focus_presets)
+    ? data.focus_presets.map((item) => {
+        if (!item || typeof item !== "object") return item;
+        const row = item as Record<string, unknown>;
+        const defaultCategoryId =
+          typeof row.default_category_id === "string" &&
+          categories.has(row.default_category_id)
+            ? row.default_category_id
+            : null;
+        return { ...row, default_category_id: defaultCategoryId };
+      })
+    : data.focus_presets;
+
+  const focus_sessions = Array.isArray(data.focus_sessions)
+    ? data.focus_sessions.map((item) => {
+        if (!item || typeof item !== "object") return item;
+        const row = item as Record<string, unknown>;
+        return {
+          ...row,
+          preset_id:
+            typeof row.preset_id === "string" && presets.has(row.preset_id)
+              ? row.preset_id
+              : null,
+          task_id:
+            typeof row.task_id === "string" && tasks.has(row.task_id)
+              ? row.task_id
+              : null,
+          category_id:
+            typeof row.category_id === "string" &&
+            categories.has(row.category_id)
+              ? row.category_id
+              : null,
+          schedule_id:
+            typeof row.schedule_id === "string" &&
+            schedules.has(row.schedule_id)
+              ? row.schedule_id
+              : null,
+        };
+      })
+    : data.focus_sessions;
+
+  const focus_goals = Array.isArray(data.focus_goals)
+    ? data.focus_goals.map((item) => {
+        if (!item || typeof item !== "object") return item;
+        const row = item as Record<string, unknown>;
+        const scope = row.scope === "category" || row.scope === "preset"
+          ? row.scope
+          : "global";
+        let category_id =
+          typeof row.category_id === "string" && categories.has(row.category_id)
+            ? row.category_id
+            : null;
+        let preset_id =
+          typeof row.preset_id === "string" && presets.has(row.preset_id)
+            ? row.preset_id
+            : null;
+        let nextScope = scope;
+        if (scope === "category" && !category_id) {
+          nextScope = "global";
+          category_id = null;
+          preset_id = null;
+        }
+        if (scope === "preset" && !preset_id) {
+          nextScope = "global";
+          category_id = null;
+          preset_id = null;
+        }
+        if (nextScope === "global") {
+          category_id = null;
+          preset_id = null;
+        }
+        return {
+          ...row,
+          scope: nextScope,
+          category_id,
+          preset_id,
+        };
+      })
+    : data.focus_goals;
+
+  return {
+    ...data,
+    focus_presets,
+    focus_sessions,
+    focus_goals,
+  };
+}
+
+export function parseBackup(value: unknown) {
+  // Reject unknown future formats before any upgrade path rewrites the version.
   if (
     value &&
     typeof value === "object" &&
-    (value as { schemaVersion?: number }).schemaVersion === 2
+    typeof (value as { schemaVersion?: unknown }).schemaVersion === "number" &&
+    ((value as { schemaVersion: number }).schemaVersion > BACKUP_SCHEMA_VERSION ||
+      (value as { schemaVersion: number }).schemaVersion < 1)
   ) {
-    const v2 = value as {
+    return backupSchema.safeParse(value);
+  }
+
+  const normalize = (candidate: unknown) => {
+    if (!candidate || typeof candidate !== "object") return candidate;
+    const root = candidate as Record<string, unknown>;
+    if (!root.data || typeof root.data !== "object") return candidate;
+    return {
+      ...root,
+      schemaVersion: BACKUP_SCHEMA_VERSION,
+      data: sanitizeFocusReferences(
+        withFocusDefaults(root.data as Record<string, unknown>),
+      ),
+    };
+  };
+
+  const current = backupSchema.safeParse(normalize(value));
+  if (current.success) return current;
+
+  // Upgrade v2 / v3 portable backups to the current schema.
+  if (
+    value &&
+    typeof value === "object" &&
+    ((value as { schemaVersion?: number }).schemaVersion === 2 ||
+      (value as { schemaVersion?: number }).schemaVersion === 3)
+  ) {
+    const prior = value as {
       format: string;
       schemaVersion: number;
       backupId: string;
@@ -546,30 +717,28 @@ export function parseBackup(value: unknown) {
       timezone: string;
       data: Record<string, unknown>;
     };
-    const upgraded = backupSchema.safeParse({
-      ...v2,
-      schemaVersion: BACKUP_SCHEMA_VERSION,
-      data: withFocusDefaults(v2.data),
-    });
+    const upgraded = backupSchema.safeParse(normalize(prior));
     if (upgraded.success) return upgraded;
   }
 
   const legacy = legacyBackupSchema.safeParse(value);
   if (!legacy.success) return current;
   const profile = legacy.data.data.profile;
-  return backupSchema.safeParse({
-    format: "planora-backup",
-    schemaVersion: BACKUP_SCHEMA_VERSION,
-    backupId: legacyBackupId(legacy.data.exportedAt),
-    createdAt: legacy.data.exportedAt,
-    exportedBy: "planora",
-    locale: profile?.locale === "en" ? "en" : "es",
-    timezone:
-      typeof profile?.timezone === "string"
-        ? profile.timezone
-        : "Europe/Madrid",
-    data: withFocusDefaults(legacy.data.data as Record<string, unknown>),
-  });
+  return backupSchema.safeParse(
+    normalize({
+      format: "planora-backup",
+      schemaVersion: BACKUP_SCHEMA_VERSION,
+      backupId: legacyBackupId(legacy.data.exportedAt),
+      createdAt: legacy.data.exportedAt,
+      exportedBy: "planora",
+      locale: profile?.locale === "en" ? "en" : "es",
+      timezone:
+        typeof profile?.timezone === "string"
+          ? profile.timezone
+          : "Europe/Madrid",
+      data: legacy.data.data,
+    }),
+  );
 }
 
 export function prepareRestorePayload(backup: PlanoraBackup) {
@@ -645,37 +814,32 @@ export function prepareRestorePayload(backup: PlanoraBackup) {
     focus_presets: backup.data.focus_presets.map((item) => ({
       ...item,
       id: focusPresetIds.get(item.id)!,
+      default_category_id: mapped(categoryIds, item.default_category_id ?? null),
     })),
-    focus_sessions: backup.data.focus_sessions.map((item) => ({
-      ...item,
-      id: focusSessionIds.get(item.id)!,
-      preset_id: mapped(focusPresetIds, item.preset_id),
-      task_id: mapped(taskIds, item.task_id),
-      category_id: mapped(categoryIds, item.category_id),
-      schedule_id: mapped(scheduleIds, item.schedule_id),
-      // Never restore mid-flight sessions as active; force terminal state.
-      status:
+    focus_sessions: backup.data.focus_sessions.map((item) => {
+      const wasLive =
         item.status === "running" ||
         item.status === "paused" ||
-        item.status === "on_break"
-          ? "cancelled"
-          : item.status,
-      ended_at:
-        item.ended_at ??
-        (item.status === "running" ||
-        item.status === "paused" ||
-        item.status === "on_break"
-          ? item.started_at
-          : null),
-      current_phase_kind:
-        item.status === "running" ||
-        item.status === "paused" ||
-        item.status === "on_break"
-          ? null
-          : item.current_phase_kind,
-      revision: 1,
-      task_completion_applied: item.task_completion_applied,
-    })),
+        item.status === "on_break";
+      return {
+        ...item,
+        id: focusSessionIds.get(item.id)!,
+        preset_id: mapped(focusPresetIds, item.preset_id),
+        task_id: mapped(taskIds, item.task_id),
+        category_id: mapped(categoryIds, item.category_id),
+        schedule_id: mapped(scheduleIds, item.schedule_id),
+        /**
+         * Safe active-session policy:
+         * never rehydrate a live timer after restore (one-active constraint +
+         * multi-device safety). Live sessions become cancelled with closed ends.
+         */
+        status: wasLive ? "cancelled" : item.status,
+        ended_at: item.ended_at ?? (wasLive ? item.started_at : null),
+        current_phase_kind: wasLive ? null : item.current_phase_kind,
+        revision: 1,
+        task_completion_applied: item.task_completion_applied,
+      };
+    }),
     focus_intervals: backup.data.focus_intervals.map((item) => ({
       ...item,
       id: crypto.randomUUID(),
@@ -683,10 +847,25 @@ export function prepareRestorePayload(backup: PlanoraBackup) {
       // Close any open interval so restore never rehydrates a live timer.
       ended_at: item.ended_at ?? item.started_at,
     })),
-    focus_goals: backup.data.focus_goals.map((item) => ({
-      ...item,
-      id: crypto.randomUUID(),
-    })),
+    focus_goals: backup.data.focus_goals.map((item) => {
+      const category_id = mapped(categoryIds, item.category_id ?? null);
+      const preset_id = mapped(focusPresetIds, item.preset_id ?? null);
+      let scope = item.scope ?? "global";
+      if (scope === "category" && !category_id) scope = "global";
+      if (scope === "preset" && !preset_id) scope = "global";
+      return {
+        ...item,
+        id: crypto.randomUUID(),
+        scope,
+        category_id: scope === "category" ? category_id : null,
+        preset_id: scope === "preset" ? preset_id : null,
+        metric: item.metric ?? "focus_seconds",
+        target_value: item.target_value ?? item.target_focus_sec,
+        considered_days: item.considered_days ?? [0, 1, 2, 3, 4, 5, 6],
+        is_primary: item.is_primary ?? false,
+        sort_order: item.sort_order ?? 0,
+      };
+    }),
   };
 }
 export function summarizeBackup(backup: PlanoraBackup) {
@@ -729,6 +908,140 @@ export function toCsv(rows: Record<string, unknown>[]) {
       .map((values) => values.map(csvCell).join(","))
       .join("\r\n")
   );
+}
+
+type FocusSessionRow = BackupData["focus_sessions"][number];
+type FocusIntervalRow = BackupData["focus_intervals"][number];
+type FocusGoalRow = BackupData["focus_goals"][number];
+
+/**
+ * Analysis-friendly Focus session CSV rows.
+ * Excludes notes/distractions by default (private; see focusSessionNotesCsvRows).
+ */
+export function focusSessionsCsvRows(
+  sessions: FocusSessionRow[],
+): Record<string, unknown>[] {
+  return sessions.map((session) => {
+    const snapshot = session.link_snapshot as Record<string, unknown>;
+    return {
+      id: session.id,
+      started_at: session.started_at,
+      ended_at: session.ended_at,
+      status: session.status,
+      mode: session.mode,
+      title: session.title,
+      planned_focus_sec: session.planned_focus_sec,
+      focus_sec: session.focus_sec,
+      break_sec: session.break_sec,
+      paused_sec: session.paused_sec,
+      category_name: snapshot.categoryName ?? snapshot.category_name ?? null,
+      task_title: snapshot.taskTitle ?? snapshot.task_title ?? null,
+      task_kind: snapshot.taskKind ?? snapshot.task_kind ?? null,
+      subjective_focus: session.subjective_focus,
+      subjective_energy: session.subjective_energy,
+      current_cycle: session.current_cycle,
+    };
+  });
+}
+
+export function focusIntervalsCsvRows(
+  intervals: FocusIntervalRow[],
+): Record<string, unknown>[] {
+  return intervals.map((interval) => ({
+    id: interval.id,
+    session_id: interval.session_id,
+    kind: interval.kind,
+    sequence: interval.sequence,
+    cycle_index: interval.cycle_index,
+    started_at: interval.started_at,
+    ended_at: interval.ended_at,
+    planned_duration_sec: interval.planned_duration_sec,
+  }));
+}
+
+export function focusGoalsCsvRows(
+  goals: FocusGoalRow[],
+): Record<string, unknown>[] {
+  return goals.map((goal) => ({
+    id: goal.id,
+    period: goal.period,
+    metric: goal.metric ?? "focus_seconds",
+    target_value: goal.target_value ?? goal.target_focus_sec,
+    target_focus_sec: goal.target_focus_sec,
+    scope: goal.scope ?? "global",
+    category_id: goal.category_id ?? null,
+    preset_id: goal.preset_id ?? null,
+    start_date: goal.start_date ?? null,
+    considered_days: (goal.considered_days ?? []).join("|"),
+    is_primary: goal.is_primary ?? false,
+    active: goal.active,
+    timezone: goal.timezone,
+    week_starts_on: goal.week_starts_on,
+  }));
+}
+
+/** Separate private notes export — only sessions that have notes or distractions. */
+export function focusSessionNotesCsvRows(
+  sessions: FocusSessionRow[],
+): Record<string, unknown>[] {
+  return sessions
+    .filter(
+      (session) =>
+        Boolean(session.notes?.trim()) ||
+        (Array.isArray(session.distractions) && session.distractions.length > 0),
+    )
+    .map((session) => ({
+      session_id: session.id,
+      started_at: session.started_at,
+      notes: session.notes,
+      distractions: session.distractions.join(" | "),
+    }));
+}
+
+/**
+ * Build CSV files for export. Focus notes go to a clearly named separate file.
+ * ICS never includes Focus sessions (calendar is for events only).
+ */
+export function buildCsvExportFiles(
+  data: BackupData,
+): Array<{ name: string; content: string }> {
+  const files: Array<{ name: string; content: string }> = [];
+  for (const [name, rows] of Object.entries(data)) {
+    if (!Array.isArray(rows)) continue;
+    if (name === "focus_sessions") {
+      files.push({
+        name: "planora-focus_sessions.csv",
+        content: toCsv(focusSessionsCsvRows(rows as FocusSessionRow[])),
+      });
+      const notes = focusSessionNotesCsvRows(rows as FocusSessionRow[]);
+      if (notes.length) {
+        files.push({
+          name: "planora-focus_session_notes_PRIVATE.csv",
+          content: toCsv(notes),
+        });
+      }
+      continue;
+    }
+    if (name === "focus_intervals") {
+      files.push({
+        name: "planora-focus_intervals.csv",
+        content: toCsv(focusIntervalsCsvRows(rows as FocusIntervalRow[])),
+      });
+      continue;
+    }
+    if (name === "focus_goals") {
+      files.push({
+        name: "planora-focus_goals.csv",
+        content: toCsv(focusGoalsCsvRows(rows as FocusGoalRow[])),
+      });
+      continue;
+    }
+    files.push({
+      name: `planora-${name}.csv`,
+      content: toCsv(rows as Record<string, unknown>[]),
+    });
+  }
+  return files;
 }
 
 const icsEscape = (value: unknown) =>

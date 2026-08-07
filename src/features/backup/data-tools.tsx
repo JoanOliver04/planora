@@ -21,11 +21,11 @@ import {
 import { restoreBackup } from "@/app/actions/domain";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
+  buildCsvExportFiles,
   createBackup,
   MAX_BACKUP_BYTES,
   parseBackup,
   summarizeBackup,
-  toCsv,
   toIcs,
   type BackupData,
   type PlanoraBackup,
@@ -130,19 +130,14 @@ export function DataTools({
     try {
       if (kind === "json") {
         download(
-          "planora-backup-v3.json",
+          "planora-backup-v4.json",
           JSON.stringify(createBackup(data), null, 2),
           "application/json",
         );
       } else if (kind === "csv") {
-        for (const [name, rows] of Object.entries(data)) {
-          if (Array.isArray(rows)) {
-            download(
-              `planora-${name}.csv`,
-              toCsv(rows),
-              "text/csv;charset=utf-8",
-            );
-          }
+        // Focus notes are exported only as a clearly named PRIVATE file.
+        for (const file of buildCsvExportFiles(data)) {
+          download(file.name, file.content, "text/csv;charset=utf-8");
         }
       } else {
         download(

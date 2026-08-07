@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   BACKUP_SCHEMA_VERSION,
+  buildCsvExportFiles,
   createBackup,
+  focusSessionNotesCsvRows,
+  focusSessionsCsvRows,
   parseBackup,
   prepareRestorePayload,
+  sanitizeFocusReferences,
   summarizeBackup,
   toCsv,
   toIcs,
@@ -21,7 +25,7 @@ describe("portable backups", () => {
       timezone: "Europe/Madrid",
     });
     expect(backup.backupId).toMatch(/^[0-9a-f-]{36}$/i);
-    expect(BACKUP_SCHEMA_VERSION).toBe(3);
+    expect(BACKUP_SCHEMA_VERSION).toBe(4);
     expect(parseBackup(backup).success).toBe(true);
     expect(summarizeBackup(backup)).toMatchObject({
       tasks: 1,
@@ -58,11 +62,11 @@ describe("portable backups", () => {
     if (first.success && second.success) {
       expect(first.data.backupId).toBe(second.data.backupId);
       expect(first.data.data.focus_presets).toEqual([]);
-      expect(first.data.schemaVersion).toBe(3);
+      expect(first.data.schemaVersion).toBe(4);
     }
   });
 
-  it("upgrades version two backups with empty focus collections", () => {
+  it("upgrades version two and three backups to v4", () => {
     const current = createBackup(backupFixture());
     const v2 = {
       ...current,
@@ -78,12 +82,20 @@ describe("portable backups", () => {
         reminders: current.data.reminders,
       },
     };
-    const parsed = parseBackup(v2);
-    expect(parsed.success).toBe(true);
-    if (parsed.success) {
-      expect(parsed.data.schemaVersion).toBe(3);
-      expect(parsed.data.data.focus_sessions).toEqual([]);
-      expect(parsed.data.data.focus_goals).toEqual([]);
+    const parsedV2 = parseBackup(v2);
+    expect(parsedV2.success).toBe(true);
+    if (parsedV2.success) {
+      expect(parsedV2.data.schemaVersion).toBe(4);
+      expect(parsedV2.data.data.focus_sessions).toEqual([]);
+      expect(parsedV2.data.data.focus_goals).toEqual([]);
+    }
+
+    const v3 = { ...current, schemaVersion: 3 };
+    const parsedV3 = parseBackup(v3);
+    expect(parsedV3.success).toBe(true);
+    if (parsedV3.success) {
+      expect(parsedV3.data.schemaVersion).toBe(4);
+      expect(parsedV3.data.data.focus_sessions).toHaveLength(1);
     }
   });
 
@@ -179,6 +191,71 @@ describe("portable backups", () => {
     );
   });
 
+  it("nulls orphaned focus task/preset refs instead of rejecting the backup", () => {
+    const backup = createBackup(backupFixture());
+    backup.data.focus_sessions[0] = {
+      ...backup.data.focus_sessions[0],
+      task_id: "99999999-9999-4999-8999-999999999999",
+      preset_id: "88888888-8888-4888-8888-888888888888",
+      notes: "Private reflection",
+      distractions: ["Check email"],
+    };
+    const parsed = parseBackup(backup);
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.data.focus_sessions[0].task_id).toBeNull();
+    expect(parsed.data.data.focus_sessions[0].preset_id).toBeNull();
+    expect(parsed.data.data.focus_sessions[0].notes).toBe("Private reflection");
+  });
+
+  it("exports focus CSV without notes and puts notes in a PRIVATE file", () => {
+    const data = backupFixture();
+    data.focus_sessions[0] = {
+      ...data.focus_sessions[0],
+      notes: "Keep private",
+      distractions: ["Slack"],
+      link_snapshot: {
+        taskTitle: "Deep work",
+        categoryName: "Study",
+      },
+    };
+    const files = buildCsvExportFiles(data);
+    const sessions = files.find((file) => file.name.includes("focus_sessions"));
+    const notes = files.find((file) =>
+      file.name.includes("focus_session_notes_PRIVATE"),
+    );
+    const intervals = files.find((file) =>
+      file.name.includes("focus_intervals"),
+    );
+    const goals = files.find((file) => file.name.includes("focus_goals"));
+    expect(sessions?.content).toContain("Deep work");
+    expect(sessions?.content).not.toContain("Keep private");
+    expect(sessions?.content).not.toContain("Slack");
+    expect(notes?.content).toContain("Keep private");
+    expect(notes?.content).toContain("Slack");
+    expect(intervals?.content).toContain("focus");
+    expect(goals?.content).toContain("focus_seconds");
+    expect(focusSessionsCsvRows(data.focus_sessions)[0]).not.toHaveProperty(
+      "notes",
+    );
+    expect(focusSessionNotesCsvRows(data.focus_sessions)).toHaveLength(1);
+  });
+
+  it("sanitizes goal scope when category/preset is missing", () => {
+    const data = sanitizeFocusReferences({
+      ...backupFixture(),
+      focus_goals: [
+        {
+          ...backupFixture().focus_goals[0],
+          scope: "category",
+          category_id: "99999999-9999-4999-8999-999999999999",
+        },
+      ],
+    });
+    expect(data.focus_goals[0].scope).toBe("global");
+    expect(data.focus_goals[0].category_id).toBeNull();
+  });
+
   it("produces one replacement payload when restored repeatedly", () => {
     const backup = createBackup(backupFixture());
     const first = prepareRestorePayload(backup);
@@ -188,6 +265,8 @@ describe("portable backups", () => {
     expect(second.tasks).toHaveLength(1);
     expect(first.events).toHaveLength(1);
     expect(second.events).toHaveLength(1);
+    expect(first.focus_sessions).toHaveLength(1);
+    expect(second.focus_sessions).toHaveLength(1);
   });
 
   it("round-trips global tasks without schedule references", () => {

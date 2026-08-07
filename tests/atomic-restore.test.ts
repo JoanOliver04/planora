@@ -18,6 +18,13 @@ const focusSql = readFileSync(
   ),
   "utf8",
 );
+const focusGoalsSql = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260807200000_focus_backup_restore_goals.sql",
+  ),
+  "utf8",
+);
 
 describe("atomic backup restore migration", () => {
   it("binds ownership exclusively to the authenticated user", () => {
@@ -90,8 +97,18 @@ describe("atomic backup restore migration", () => {
       expect(messages.Data.restore["safety-copy"].length).toBeGreaterThan(10);
       expect(messages.Data.summary.alarms.length).toBeGreaterThan(3);
       expect(messages.Data.summary.focus_sessions.length).toBeGreaterThan(3);
-      expect(messages.Data.restore.fileType).toMatch(/v3/i);
+      expect(messages.Data.restore.fileType).toMatch(/v4/i);
     }
+  });
+
+  it("restores flexible focus goals and preset management columns", () => {
+    expect(focusGoalsSql).toContain("metric");
+    expect(focusGoalsSql).toContain("target_value");
+    expect(focusGoalsSql).toContain("considered_days");
+    expect(focusGoalsSql).toContain("default_category_id");
+    expect(focusGoalsSql).toContain("archived_at");
+    expect(focusGoalsSql).toContain("emoji");
+    expect(focusGoalsSql).toContain("intention");
   });
 
   it("uses a single PostgreSQL function so any delete or insert error rolls back", () => {
