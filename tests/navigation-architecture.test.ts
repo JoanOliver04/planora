@@ -8,10 +8,11 @@ import {
 } from "@/config/navigation";
 
 describe("responsive navigation architecture", () => {
-  it("puts the required eight secondary sections in More", () => {
+  it("puts the required secondary sections in More, including Focus", () => {
     expect(new Set(moreNavigationItems.map((item) => item.id))).toEqual(
       new Set([
         "history",
+        "focus",
         "statistics",
         "reminders",
         "schedules",
@@ -23,13 +24,15 @@ describe("responsive navigation architecture", () => {
     );
     expect(
       moreNavigationItems.filter((item) => item.group === "activity"),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     expect(
       moreNavigationItems.filter((item) => item.group === "organization"),
     ).toHaveLength(3);
     expect(
       moreNavigationItems.filter((item) => item.group === "account"),
     ).toHaveLength(2);
+    expect(mobileNavigationItems).toHaveLength(5);
+    expect(mobileNavigationItems.map((item) => item.id)).not.toContain("focus");
   });
 
   it("resolves every configured destination to a real App Router page", () => {

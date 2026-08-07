@@ -2,6 +2,7 @@ const privateSegments = new Set([
   "today",
   "week",
   "tasks",
+  "focus",
   "events",
   "history",
   "statistics",

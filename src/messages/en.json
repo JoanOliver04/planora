@@ -33,6 +33,7 @@
     "statistics": "Statistics",
     "reminders": "Reminders",
     "alarms": "Alarms",
+    "focus": "Focus",
     "data": "Your data",
     "more": "More"
   },
@@ -46,6 +47,7 @@
     },
     "items": {
       "history": "Review completed tasks and past activity.",
+      "focus": "Flexible concentration sessions for study or work.",
       "statistics": "Understand your progress and planning patterns.",
       "reminders": "Manage notifications, reminders and alarms.",
       "schedules": "Organize the schedules that shape your routines.",
@@ -53,6 +55,73 @@
       "templates": "Reuse saved structures and planning setups.",
       "settings": "Adjust appearance, language and preferences.",
       "data": "Export or safely restore your Planora information."
+    }
+  },
+  "Focus": {
+    "eyebrow": "Concentration",
+    "title": "Focus",
+    "subtitle": "Flexible sessions for studying, practising or working with calm.",
+    "actions": {
+      "startSession": "Start session",
+      "continueSession": "Continue session",
+      "quickStart": "Quick start",
+      "createPreset": "Create preset"
+    },
+    "modes": {
+      "countdown": "Countdown",
+      "stopwatch": "Stopwatch",
+      "cycles": "Cycles"
+    },
+    "phases": {
+      "focus": "Focus",
+      "shortBreak": "Short break",
+      "longBreak": "Long break",
+      "pause": "Pause",
+      "unknown": "Session"
+    },
+    "active": {
+      "badge": "Active session",
+      "untitled": "Untitled session",
+      "cycle": "Cycle {n}",
+      "remaining": "remaining",
+      "elapsed": "elapsed",
+      "conflictHint": "Finish or continue the active session before starting another."
+    },
+    "empty": {
+      "title": "Start your first Focus session",
+      "body": "Focus helps you concentrate at your own pace: a countdown, a free stopwatch, or work-and-break cycles. No pressure and no opaque scores."
+    },
+    "presets": {
+      "title": "Presets and quick starts",
+      "subtitle": "Pick a starting point. You can tailor it in the next step."
+    },
+    "quickPresets": {
+      "quick-25": "25 minutes",
+      "quick-50": "50 minutes",
+      "quick-90": "90 minutes",
+      "quick-stopwatch": "Free stopwatch"
+    },
+    "goal": {
+      "title": "Weekly goal",
+      "range": "{start} — {end}",
+      "progress": "{done} of {target}"
+    },
+    "weekSummary": {
+      "title": "This week",
+      "body": "{time} of focus across {sessions, plural, one {# session} other {# sessions}}."
+    },
+    "recent": {
+      "title": "Recent sessions"
+    },
+    "status": {
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "placeholders": {
+      "comingSoon": "The session configurator arrives in the next delivery.",
+      "continueSession": "The active session screen arrives in the next delivery.",
+      "createPreset": "Preset management arrives in a later delivery.",
+      "startPreset": "Starting from a preset arrives in the next delivery."
     }
   },
   "Today": {

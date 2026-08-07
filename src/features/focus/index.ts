@@ -6,6 +6,8 @@ export * from "./cycles";
 export * from "./state-machine";
 export * from "./goals";
 export * from "./mappers";
+export * from "./defaults";
+export { FocusHome } from "./focus-home";
 export {
   fetchActiveFocusSession,
   fetchFocusSessionById,

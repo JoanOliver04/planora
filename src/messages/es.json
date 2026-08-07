@@ -33,6 +33,7 @@
     "statistics": "Estadísticas",
     "reminders": "Recordatorios",
     "alarms": "Alarmas",
+    "focus": "Enfoque",
     "data": "Tus datos",
     "more": "Más"
   },
@@ -46,6 +47,7 @@
     },
     "items": {
       "history": "Consulta las tareas completadas y la actividad anterior.",
+      "focus": "Sesiones de concentración flexibles para estudiar o trabajar.",
       "statistics": "Comprende tu progreso y tus patrones de planificación.",
       "reminders": "Gestiona notificaciones, recordatorios y alarmas.",
       "schedules": "Organiza los horarios que estructuran tus rutinas.",
@@ -53,6 +55,73 @@
       "templates": "Reutiliza estructuras y configuraciones guardadas.",
       "settings": "Ajusta la apariencia, el idioma y tus preferencias.",
       "data": "Exporta o restaura de forma segura tu información."
+    }
+  },
+  "Focus": {
+    "eyebrow": "Concentración",
+    "title": "Enfoque",
+    "subtitle": "Sesiones flexibles para estudiar, practicar o trabajar con calma.",
+    "actions": {
+      "startSession": "Iniciar sesión",
+      "continueSession": "Continuar sesión",
+      "quickStart": "Sesión rápida",
+      "createPreset": "Crear preset"
+    },
+    "modes": {
+      "countdown": "Cuenta atrás",
+      "stopwatch": "Cronómetro",
+      "cycles": "Ciclos"
+    },
+    "phases": {
+      "focus": "Enfoque",
+      "shortBreak": "Descanso corto",
+      "longBreak": "Descanso largo",
+      "pause": "Pausa",
+      "unknown": "Sesión"
+    },
+    "active": {
+      "badge": "Sesión activa",
+      "untitled": "Sesión sin título",
+      "cycle": "Ciclo {n}",
+      "remaining": "restante",
+      "elapsed": "transcurrido",
+      "conflictHint": "Finaliza o continúa la sesión activa antes de empezar otra."
+    },
+    "empty": {
+      "title": "Empieza tu primera sesión de Enfoque",
+      "body": "Enfoque te ayuda a concentrarte a tu ritmo: una cuenta atrás, un cronómetro libre o ciclos de trabajo y descanso. Sin presión y sin puntuaciones opacas."
+    },
+    "presets": {
+      "title": "Presets y accesos rápidos",
+      "subtitle": "Elige un punto de partida. Podrás personalizarlo en el siguiente paso."
+    },
+    "quickPresets": {
+      "quick-25": "25 minutos",
+      "quick-50": "50 minutos",
+      "quick-90": "90 minutos",
+      "quick-stopwatch": "Cronómetro libre"
+    },
+    "goal": {
+      "title": "Objetivo semanal",
+      "range": "{start} — {end}",
+      "progress": "{done} de {target}"
+    },
+    "weekSummary": {
+      "title": "Esta semana",
+      "body": "{time} de enfoque en {sessions, plural, one {# sesión} other {# sesiones}}."
+    },
+    "recent": {
+      "title": "Últimas sesiones"
+    },
+    "status": {
+      "completed": "Completada",
+      "cancelled": "Cancelada"
+    },
+    "placeholders": {
+      "comingSoon": "El configurador de sesión llegará en la siguiente entrega.",
+      "continueSession": "La pantalla de sesión activa llegará en la siguiente entrega.",
+      "createPreset": "La gestión de presets llegará en una próxima entrega.",
+      "startPreset": "El arranque desde preset llegará en la siguiente entrega."
     }
   },
   "Today": {

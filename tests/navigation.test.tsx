@@ -47,13 +47,20 @@ describe("main navigation", () => {
     expect(screen.queryByRole("link", { name: "Ajustes" })).toBeNull();
   });
 
-  it("keeps all twelve direct destinations in the desktop sidebar", () => {
+  it("keeps all thirteen direct destinations in the desktop sidebar", () => {
     renderNavigation("desktop");
-    expect(screen.getAllByRole("link")).toHaveLength(12);
+    expect(screen.getAllByRole("link")).toHaveLength(13);
+    expect(screen.getByRole("link", { name: "Enfoque" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Categorías" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Plantillas" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Tus datos" })).toBeVisible();
     expect(screen.queryByRole("link", { name: "Más" })).toBeNull();
+  });
+
+  it("places Focus after Tasks in the desktop sidebar order", () => {
+    const ids = desktopNavigationItems.map((item) => item.id);
+    expect(ids.indexOf("tasks")).toBeLessThan(ids.indexOf("focus"));
+    expect(ids.indexOf("focus")).toBeLessThan(ids.indexOf("events"));
   });
 
   it("gives every desktop route a mobile entry point", () => {
@@ -68,25 +75,29 @@ describe("main navigation", () => {
       "history",
       "schedules",
       "settings",
-      "statistics",
+      "focus",
       "categories",
       "data",
-      "reminders",
+      "statistics",
       "templates",
+      "reminders",
     ]);
   });
 
-  it.each(["/statistics", "/reminders", "/data", "/es/settings/profile"])(
-    "keeps More active on %s",
-    (pathname) => {
-      routing.pathname = pathname;
-      renderNavigation("mobile");
-      expect(screen.getByRole("link", { name: "Más" })).toHaveAttribute(
-        "aria-current",
-        "page",
-      );
-    },
-  );
+  it.each([
+    "/statistics",
+    "/reminders",
+    "/data",
+    "/focus",
+    "/es/settings/profile",
+  ])("keeps More active on %s", (pathname) => {
+    routing.pathname = pathname;
+    renderNavigation("mobile");
+    expect(screen.getByRole("link", { name: "Más" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
 
   it("matches nested routes without partial-route collisions", () => {
     expect(isNavigationItemActive("tasks", "/en/tasks/new")).toBe(true);

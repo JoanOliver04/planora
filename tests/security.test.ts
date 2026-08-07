@@ -49,6 +49,8 @@ describe("security boundaries", () => {
     expect(isPrivateAppPath("/es/today")).toBe(true);
     expect(isPrivateAppPath("/en/data")).toBe(true);
     expect(isPrivateAppPath("/es/tasks/new")).toBe(true);
+    expect(isPrivateAppPath("/es/focus")).toBe(true);
+    expect(isPrivateAppPath("/en/focus")).toBe(true);
     expect(isPrivateAppPath("/es/privacy")).toBe(false);
     expect(isPrivateAppPath("/en/demo/today")).toBe(false);
   });

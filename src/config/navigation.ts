@@ -11,6 +11,7 @@ import {
   LibraryBig,
   Settings,
   Tags,
+  Timer,
   type LucideIcon,
 } from "lucide-react";
 
@@ -19,6 +20,7 @@ export type NavigationId =
   | "today"
   | "week"
   | "tasks"
+  | "focus"
   | "events"
   | "history"
   | "statistics"
@@ -63,17 +65,25 @@ export const navigationItems: readonly NavigationItem[] = [
     mobileOrder: 3,
   },
   {
+    id: "focus",
+    href: "/focus",
+    icon: Timer,
+    desktopOrder: 4,
+    moreOrder: 2,
+    group: "activity",
+  },
+  {
     id: "events",
     href: "/events",
     icon: CalendarDays,
-    desktopOrder: 4,
+    desktopOrder: 5,
     mobileOrder: 4,
   },
   {
     id: "history",
     href: "/history",
     icon: History,
-    desktopOrder: 5,
+    desktopOrder: 6,
     moreOrder: 1,
     group: "activity",
   },
@@ -81,23 +91,23 @@ export const navigationItems: readonly NavigationItem[] = [
     id: "statistics",
     href: "/statistics",
     icon: ChartNoAxesCombined,
-    desktopOrder: 6,
-    moreOrder: 2,
+    desktopOrder: 7,
+    moreOrder: 3,
     group: "activity",
   },
   {
     id: "reminders",
     href: "/reminders",
     icon: BellRing,
-    desktopOrder: 7,
-    moreOrder: 3,
+    desktopOrder: 8,
+    moreOrder: 4,
     group: "activity",
   },
   {
     id: "schedules",
     href: "/schedules",
     icon: FolderKanban,
-    desktopOrder: 8,
+    desktopOrder: 9,
     moreOrder: 1,
     group: "organization",
   },
@@ -105,7 +115,7 @@ export const navigationItems: readonly NavigationItem[] = [
     id: "categories",
     href: "/categories",
     icon: Tags,
-    desktopOrder: 9,
+    desktopOrder: 10,
     moreOrder: 2,
     group: "organization",
   },
@@ -113,7 +123,7 @@ export const navigationItems: readonly NavigationItem[] = [
     id: "templates",
     href: "/templates",
     icon: LibraryBig,
-    desktopOrder: 10,
+    desktopOrder: 11,
     moreOrder: 3,
     group: "organization",
   },
@@ -121,7 +131,7 @@ export const navigationItems: readonly NavigationItem[] = [
     id: "settings",
     href: "/settings",
     icon: Settings,
-    desktopOrder: 11,
+    desktopOrder: 12,
     moreOrder: 1,
     group: "account",
   },
@@ -129,7 +139,7 @@ export const navigationItems: readonly NavigationItem[] = [
     id: "data",
     href: "/data",
     icon: DatabaseBackup,
-    desktopOrder: 12,
+    desktopOrder: 13,
     moreOrder: 2,
     group: "account",
   },

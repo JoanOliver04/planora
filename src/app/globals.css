@@ -3414,6 +3414,259 @@ select:disabled,
     font-size: 0.74rem;
   }
 }
+
+/* Focus home: calm concentration shell, mobile-first. */
+.focus-home {
+  width: min(100%, 820px);
+  margin-inline: auto;
+  display: grid;
+  gap: 1.15rem;
+  padding-bottom: 1rem;
+}
+.focus-home-header {
+  align-items: flex-start;
+  gap: 1rem;
+}
+.focus-home-header .title {
+  margin-bottom: 0.2rem;
+}
+.focus-primary-action,
+.focus-secondary-action,
+.focus-active-actions .primary,
+.focus-empty-actions .primary,
+.focus-empty-actions .focus-secondary-action {
+  min-height: 44px;
+  min-width: 44px;
+}
+.focus-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  border-radius: 0.85rem;
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+}
+.focus-active-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--primary-2) 70%, var(--surface)),
+      var(--surface)
+    );
+}
+.focus-active-copy h2 {
+  margin: 0.15rem 0 0.25rem;
+  font-size: clamp(1.2rem, 3.5vw, 1.45rem);
+}
+.focus-active-clock {
+  display: grid;
+  gap: 0.15rem;
+  justify-items: start;
+}
+.focus-active-clock strong {
+  font-size: clamp(2.1rem, 9vw, 2.75rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--primary-strong);
+}
+.focus-active-clock span {
+  color: color-mix(in srgb, var(--foreground) 58%, transparent);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+.focus-active-actions {
+  display: grid;
+  gap: 0.55rem;
+}
+.focus-active-hint {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+.focus-empty {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+  padding: 2.4rem 1.2rem;
+}
+.focus-empty h2 {
+  margin: 0;
+  max-width: 22rem;
+}
+.focus-empty p {
+  margin: 0;
+  max-width: 30rem;
+  color: color-mix(in srgb, var(--foreground) 64%, transparent);
+  line-height: 1.55;
+}
+.focus-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-top: 0.45rem;
+}
+.focus-section {
+  display: grid;
+  gap: 0.75rem;
+}
+.focus-section-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+}
+.focus-section-head p {
+  margin: 0;
+}
+.focus-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.focus-preset-card {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: start;
+  min-height: 96px;
+  padding: 0.9rem;
+  text-align: left;
+  border: 1px solid var(--border);
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.focus-preset-card:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.focus-preset-card strong {
+  font-size: 0.95rem;
+}
+.focus-preset-card small {
+  color: color-mix(in srgb, var(--foreground) 58%, transparent);
+  line-height: 1.35;
+}
+.focus-preset-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: calc(var(--radius) * 0.7);
+  background: var(--primary-2);
+  color: var(--primary);
+}
+.focus-goal-card,
+.focus-week-summary {
+  padding: 1rem 1.1rem;
+  display: grid;
+  gap: 0.7rem;
+}
+.focus-goal-card p,
+.focus-week-summary p {
+  margin: 0;
+  line-height: 1.5;
+}
+.focus-goal-meter {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+.focus-goal-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  max-width: 100%;
+}
+.focus-recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+.focus-recent-item {
+  padding: 0.85rem 1rem;
+}
+.focus-recent-item strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+.focus-recent-item small {
+  font-size: 0.82rem;
+}
+@media (min-width: 720px) {
+  .focus-home-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .focus-active-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "copy clock"
+      "actions actions";
+    align-items: center;
+  }
+  .focus-active-copy {
+    grid-area: copy;
+  }
+  .focus-active-clock {
+    grid-area: clock;
+    justify-items: end;
+    text-align: right;
+  }
+  .focus-active-actions {
+    grid-area: actions;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+  }
+  .focus-preset-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 359px) {
+  .focus-preset-grid {
+    grid-template-columns: 1fr;
+  }
+  .focus-empty-actions {
+    width: 100%;
+  }
+  .focus-empty-actions .primary,
+  .focus-empty-actions .focus-secondary-action {
+    width: 100%;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .focus-preset-card:not(:disabled):hover {
+    border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+    background: color-mix(in srgb, var(--primary-2) 45%, var(--surface));
+  }
+  .focus-secondary-action:hover {
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .focus-preset-card,
+  .focus-secondary-action {
+    transition:
+      background 0.16s ease,
+      border-color 0.16s ease;
+  }
+}
+
 /* Task cards: content/actions separated, mobile-first. */
 .task { min-width: 0; }
 .task-body { min-width: 0; overflow-wrap: normal; word-break: normal; }

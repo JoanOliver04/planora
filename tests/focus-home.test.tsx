@@ -1,0 +1,146 @@
+import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NextIntlClientProvider } from "next-intl";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import messagesEs from "@/messages/es.json";
+import messagesEn from "@/messages/en.json";
+import { FocusHome } from "@/features/focus/focus-home";
+import type { FocusSession } from "@/features/focus/types";
+import { createStartedSession } from "@/features/focus/state-machine";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
+const toastMessage = vi.fn();
+vi.mock("sonner", () => ({
+  toast: { message: (...args: unknown[]) => toastMessage(...args) },
+}));
+
+afterEach(() => {
+  cleanup();
+  toastMessage.mockReset();
+});
+
+function renderHome(
+  props: Partial<React.ComponentProps<typeof FocusHome>> = {},
+  locale: "es" | "en" = "es",
+) {
+  const messages = locale === "es" ? messagesEs : messagesEn;
+  return render(
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <FocusHome
+        activeSession={null}
+        recentSessions={[]}
+        presets={[]}
+        goal={null}
+        weekSessions={[]}
+        timezone="Europe/Madrid"
+        weekStartsOn={1}
+        {...props}
+      />
+    </NextIntlClientProvider>,
+  );
+}
+
+function sampleActiveSession(): FocusSession {
+  return createStartedSession(
+    {
+      mode: "countdown",
+      focusDurationSec: 25 * 60,
+      title: "Piano practice",
+    },
+    "user-1",
+    {
+      now: Date.parse("2026-08-07T10:00:00.000Z"),
+      sessionId: "sess-1",
+      intervalId: "int-1",
+      createId: () => "x",
+    },
+  );
+}
+
+describe("Focus home shell", () => {
+  it("renders the Spanish empty state with quick start actions", () => {
+    renderHome();
+    expect(
+      screen.getByRole("heading", { name: "Enfoque", level: 1 }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("heading", {
+        name: "Empieza tu primera sesión de Enfoque",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: /Sesión rápida/i }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: /Crear preset/i }),
+    ).toBeVisible();
+    expect(screen.getByText("25 minutos")).toBeVisible();
+    expect(screen.queryByText("Esta semana")).toBeNull();
+  });
+
+  it("renders the English title and empty copy", () => {
+    renderHome({}, "en");
+    expect(
+      screen.getByRole("heading", { name: "Focus", level: 1 }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("heading", {
+        name: "Start your first Focus session",
+      }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: /Start session/i })).toBeVisible();
+  });
+
+  it("prioritises the active session and blocks a second start", async () => {
+    const user = userEvent.setup();
+    const active = sampleActiveSession();
+    renderHome({ activeSession: active });
+
+    expect(screen.getByText("Sesión activa")).toBeVisible();
+    expect(screen.getByText("Piano practice")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: /Continuar sesión/i }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: /^Iniciar sesión$/i }),
+    ).toBeNull();
+
+    const preset = screen.getByRole("button", { name: /25 minutos/i });
+    expect(preset).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: /Continuar sesión/i }));
+    expect(toastMessage).toHaveBeenCalled();
+  });
+
+  it("shows recent sessions and weekly summary when history exists", () => {
+    const completed = {
+      ...sampleActiveSession(),
+      id: "done-1",
+      status: "completed" as const,
+      endedAt: "2026-08-07T10:20:00.000Z",
+      focusSec: 20 * 60,
+      currentPhaseKind: null,
+      intervals: [],
+    };
+    renderHome({
+      recentSessions: [completed],
+      weekSessions: [completed],
+    });
+    expect(screen.getByText("Últimas sesiones")).toBeVisible();
+    expect(screen.getByText("Esta semana")).toBeVisible();
+    expect(
+      screen.queryByRole("heading", {
+        name: "Empieza tu primera sesión de Enfoque",
+      }),
+    ).toBeNull();
+  });
+
+  it("exposes the localized App Router page for ES and EN", () => {
+    expect(
+      existsSync(
+        join(process.cwd(), "src/app/[locale]/(app)/focus/page.tsx"),
+      ),
+    ).toBe(true);
+  });
+});
