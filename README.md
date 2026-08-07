@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-120%20unit%20%2B%2022%20E2E-brightgreen?style=flat-square" alt="120 unit and 22 E2E tests" />
+  <img src="https://img.shields.io/badge/tests-323%20unit%20%2B%20Playwright%20E2E-brightgreen?style=flat-square" alt="323 unit tests and Playwright E2E" />
 </p>
 
 ---
