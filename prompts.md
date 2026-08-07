@@ -1577,6 +1577,8 @@ Explica métricas, umbrales, consultas y rendimiento.
 
 ## Prompt 16 — Notificaciones, sonidos, vibración y Wake Lock
 
+> **HECHO** — Alertas de fase programadas (`focus-phase-alerts`), cues SW + toast in-app (`phase-cues`), Screen Wake Lock real (`focus-wake-lock`), preview sonido/notificación en Ajustes, click de notificación a `/focus`, límites de PWA explicados. Tests `tests/focus-phase-alerts.test.ts`.
+
 ```text
 Integra Enfoque con el sistema de notificaciones y alarmas de Planora.
 

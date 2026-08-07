@@ -16,12 +16,25 @@ import { isActiveStatus } from "./time";
 import type { FocusSession } from "./types";
 import { applyFocusAction, type FocusDomainAction } from "./state-machine";
 import { loadFocusDevicePreferences } from "./focus-preferences";
+import {
+  cancelFocusPhaseAlert,
+  clearFocusAppBadge,
+  deliverFocusPhaseAlert,
+  scheduleFocusPhaseAlert,
+} from "./focus-phase-alerts";
+import {
+  releaseFocusWakeLock,
+  reacquireFocusWakeLockIfNeeded,
+  syncFocusWakeLock,
+} from "./focus-wake-lock";
 
 export type UseFocusSessionOptions = {
   onRecovered?: (session: FocusSession) => void;
   onTerminal?: (session: FocusSession) => void;
   onSoftGoal?: (session: FocusSession) => void;
   tickMs?: number;
+  /** Locale for scheduled Focus alerts (`es` | `en`). */
+  locale?: string;
 };
 
 export type UseFocusSessionResult = {
@@ -283,9 +296,10 @@ export function useFocusSession(
     if (softGoalNotifiedRef.current === key) return;
     softGoalNotifiedRef.current = key;
     optionsRef.current.onSoftGoal?.(session);
-    void import("./phase-cues").then(({ playPhaseCue }) =>
-      playPhaseCue(session, "soft_goal"),
-    );
+    void deliverFocusPhaseAlert(session, {
+      kind: "soft_goal",
+      locale: optionsRef.current.locale === "en" ? "en" : "es",
+    });
   }, [snapshot, session]);
 
   // Neutral phase-change cues (sound / vibration / notification when allowed).
@@ -301,10 +315,80 @@ export function useFocusSession(
     lastPhaseKeyRef.current = key;
     const kind =
       session.status === "completed" ? "session_complete" : "phase_change";
-    void import("./phase-cues").then(({ playPhaseCue }) =>
-      playPhaseCue(session, kind),
-    );
+    void deliverFocusPhaseAlert(session, {
+      kind,
+      locale: optionsRef.current.locale === "en" ? "en" : "es",
+    });
   }, [session]);
+
+  // Schedule / reschedule phase-end alert; clear on pause or terminal.
+  // Depends on revision/status/phase — not the display tick — so timers are not reset every second.
+  useEffect(() => {
+    if (!session || !isActiveStatus(session.status)) {
+      cancelFocusPhaseAlert();
+      return;
+    }
+    if (session.status === "paused") {
+      cancelFocusPhaseAlert();
+      return;
+    }
+    scheduleFocusPhaseAlert(session, {
+      locale: optionsRef.current.locale,
+    });
+  }, [
+    session,
+    session?.id,
+    session?.revision,
+    session?.status,
+    session?.currentPhaseKind,
+    session?.currentCycle,
+  ]);
+
+  // Screen Wake Lock only while an active non-paused session wants it.
+  useEffect(() => {
+    if (!session || !isActiveStatus(session.status)) {
+      void releaseFocusWakeLock();
+      return;
+    }
+    void syncFocusWakeLock(session);
+  }, [session, session?.status, session?.revision, session?.config.keepScreenAwake]);
+
+  // Visibility: re-acquire wake lock, clear badge, re-evaluate schedule.
+  // Uses sessionRef so the listener always sees the latest session without rebinding every tick.
+  const activeSessionId = session?.id ?? null;
+  useEffect(() => {
+    if (!activeSessionId) return;
+    const onVisible = () => {
+      void clearFocusAppBadge();
+      void reacquireFocusWakeLockIfNeeded(sessionRef.current);
+      const current = sessionRef.current;
+      if (current && isActiveStatus(current.status) && current.status !== "paused") {
+        scheduleFocusPhaseAlert(current, {
+          locale: optionsRef.current.locale,
+        });
+      }
+    };
+    const onHidden = () => {
+      // OS may release wake lock when hidden; keep desired flag via sync.
+      void syncFocusWakeLock(sessionRef.current);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") onVisible();
+      else onHidden();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [activeSessionId]);
+
+  // Cleanup timers / wake lock when the engine unmounts.
+  useEffect(() => {
+    return () => {
+      cancelFocusPhaseAlert();
+      void releaseFocusWakeLock();
+    };
+  }, []);
 
   const pause = useCallback(
     () => persistAction({ type: "pause" }, "pause"),

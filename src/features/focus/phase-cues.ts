@@ -3,6 +3,12 @@ import { loadFocusDevicePreferences } from "./focus-preferences";
 
 export type PhaseCueKind = "phase_change" | "session_complete" | "soft_goal";
 
+export type PhaseCueOptions = {
+  locale?: "es" | "en";
+  title?: string;
+  body?: string;
+};
+
 /**
  * Progressive enhancement cues for phase changes.
  * Never throws; never blocks the timer. Honours session flags, device prefs and browser limits.
@@ -10,6 +16,7 @@ export type PhaseCueKind = "phase_change" | "session_complete" | "soft_goal";
 export async function playPhaseCue(
   session: FocusSession,
   kind: PhaseCueKind = "phase_change",
+  options: PhaseCueOptions = {},
 ): Promise<{ sound: boolean; vibration: boolean; notification: boolean }> {
   const result = { sound: false, vibration: false, notification: false };
   if (typeof window === "undefined") return result;
@@ -39,13 +46,14 @@ export async function playPhaseCue(
     device.systemNotifyEnabled &&
     kind !== "soft_goal"
   ) {
-    result.notification = await tryNotifyPhase(session, kind);
+    result.notification = await tryNotifyPhase(session, kind, options);
   }
 
   return result;
 }
 
-function playSoftChime(volume = 0.5): boolean {
+/** Soft synthesised chime — no external audio assets. Safe under autoplay limits. */
+export function playSoftChime(volume = 0.5): boolean {
   try {
     const AudioCtx =
       window.AudioContext ||
@@ -81,6 +89,7 @@ function playSoftChime(volume = 0.5): boolean {
 async function tryNotifyPhase(
   session: FocusSession,
   kind: PhaseCueKind,
+  options: PhaseCueOptions,
 ): Promise<boolean> {
   try {
     if (!("Notification" in window)) return false;
@@ -91,22 +100,55 @@ async function tryNotifyPhase(
     }
     if (permission !== "granted") return false;
 
+    const locale = options.locale === "en" ? "en" : "es";
     const title =
-      kind === "session_complete"
-        ? "Planora · Enfoque"
-        : "Planora · Cambio de fase";
+      options.title ??
+      (kind === "session_complete"
+        ? locale === "en"
+          ? "Planora · Focus"
+          : "Planora · Enfoque"
+        : locale === "en"
+          ? "Planora · Phase change"
+          : "Planora · Cambio de fase");
     const body =
-      kind === "session_complete"
-        ? "La sesión ha terminado."
+      options.body ??
+      (kind === "session_complete"
+        ? locale === "en"
+          ? "Your Focus session has ended."
+          : "La sesión ha terminado."
         : session.currentPhaseKind === "focus"
-          ? "Toca para continuar cuando quieras."
-          : "El descanso ha terminado.";
+          ? locale === "en"
+            ? "Tap to continue when you are ready."
+            : "Toca para continuar cuando quieras."
+          : locale === "en"
+            ? "Break is over."
+            : "El descanso ha terminado.");
 
-    // Avoid private content (task titles / notes) in notifications.
+    // Prefer the existing service worker path (same as reminders).
+    // Never put task titles or private notes in the payload.
+    if ("serviceWorker" in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+          body,
+          icon: "/icon-192.png",
+          badge: "/icon-192.png",
+          tag: `planora-focus-${session.id}`,
+          // Sound is handled separately via Web Audio when the page is alive.
+          silent: true,
+          data: { url: `/${locale}/focus` },
+        });
+        return true;
+      } catch {
+        // Fall through to the page Notification constructor.
+      }
+    }
+
     new Notification(title, {
       body,
       silent: true,
       tag: `planora-focus-${session.id}`,
+      data: { url: `/${locale}/focus` },
     });
     return true;
   } catch {

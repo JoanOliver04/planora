@@ -31,8 +31,10 @@ describe("security and performance architecture", () => {
     expect(worker).not.toMatch(/cache\.put\(request[\s\S]*\/today/);
   });
 
-  it("restricts notification navigation to localized reminder routes", () => {
-    expect(worker).toContain("/^\\/(?:es|en)\\/reminders$/");
+  it("restricts notification navigation to localized reminders and Focus routes", () => {
+    expect(worker).toContain(
+      "/^\\/(?:es|en)\\/(?:reminders|focus)(?:\\?[^#]*)?$/",
+    );
     expect(worker).not.toContain("openWindow(requested)");
   });
 

@@ -16,11 +16,17 @@ import {
   type FocusAccountPreferences,
   type FocusDevicePreferences,
 } from "./focus-preferences";
+import {
+  previewFocusNotification,
+  previewFocusSound,
+} from "./focus-phase-alerts";
+import { isFocusWakeLockSupported } from "./focus-wake-lock";
 import { mapPresetRow } from "./mappers";
 import type { FocusPreset } from "./types";
 import { normalizePreferences, type UserPreferences } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/client";
 import type { Json } from "@/types/database";
+import { useLocale } from "next-intl";
 
 export function FocusSettingsPanel({
   profilePreferences,
@@ -31,6 +37,7 @@ export function FocusSettingsPanel({
 }) {
   const t = useTranslations("Focus");
   const common = useTranslations("Common");
+  const locale = useLocale();
   const base = normalizePreferences(profilePreferences);
   const serverFocus = base.focus;
   const serverFocusKey = JSON.stringify(serverFocus);
@@ -346,6 +353,60 @@ export function FocusSettingsPanel({
             {t("settings.permissionDeniedHint")}
           </p>
         ) : null}
+        {permission === "default" ? (
+          <p className="muted focus-settings-permission" role="status">
+            {t("settings.permissionDefaultHint")}
+          </p>
+        ) : null}
+        <div className="row-actions focus-settings-previews">
+          <button
+            type="button"
+            className="pill"
+            disabled={!device.soundEnabled}
+            onClick={() => {
+              const ok = previewFocusSound(device.soundVolume);
+              if (ok) toast.message(t("settings.previewSoundPlayed"));
+              else toast.message(t("settings.previewSoundBlocked"));
+            }}
+          >
+            {t("settings.previewSound")}
+          </button>
+          <button
+            type="button"
+            className="pill"
+            onClick={() => {
+              void (async () => {
+                let status = await previewFocusNotification(locale);
+                if (status === "default") {
+                  const granted = await requestFocusNotificationPermission();
+                  setPermission(
+                    granted === "unsupported" ? "unsupported" : granted,
+                  );
+                  if (granted === "granted") {
+                    status = await previewFocusNotification(locale);
+                  } else if (granted === "denied") {
+                    status = "denied";
+                  } else if (granted === "unsupported") {
+                    status = "unsupported";
+                  } else {
+                    status = "default";
+                  }
+                }
+                if (status === "shown") {
+                  toast.success(t("settings.previewNotifyShown"));
+                } else if (status === "denied") {
+                  toast.error(t("settings.permissionDenied"));
+                } else if (status === "unsupported") {
+                  toast.message(t("settings.permissionUnsupported"));
+                } else {
+                  toast.message(t("settings.previewNotifyNeedPermission"));
+                }
+              })();
+            }}
+          >
+            {t("settings.previewNotify")}
+          </button>
+        </div>
         <label className="settings-row check-row">
           <span>{t("settings.wakeLock")}</span>
           <input
@@ -356,6 +417,11 @@ export function FocusSettingsPanel({
             }
           />
         </label>
+        {!isFocusWakeLockSupported() ? (
+          <p className="muted focus-settings-permission" role="status">
+            {t("settings.wakeLockUnsupported")}
+          </p>
+        ) : null}
         <label className="settings-row check-row">
           <span>{t("settings.fullscreen")}</span>
           <input
@@ -394,6 +460,7 @@ export function FocusSettingsPanel({
           </select>
         </div>
         <p className="muted">{t("settings.lockScreenHint")}</p>
+        <p className="muted">{t("settings.deliveryLimits")}</p>
         <p className="muted">{t("settings.deviceSavedLocally")}</p>
       </div>
 

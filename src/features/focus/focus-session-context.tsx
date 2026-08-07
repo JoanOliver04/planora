@@ -13,7 +13,7 @@ import { mapSessionRow } from "./mappers";
 import { useFocusSession, type UseFocusSessionResult } from "./use-focus-session";
 import type { FocusSession } from "./types";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 type FocusSessionContextValue = {
   engine: UseFocusSessionResult;
@@ -65,6 +65,7 @@ export function FocusSessionProvider({
   initialSession?: FocusSession | null;
 }) {
   const t = useTranslations("Focus");
+  const locale = useLocale();
   const [seed, setSeed] = useState<FocusSession | null>(initialSession);
   const [seedKey, setSeedKey] = useState(() => sessionKey(initialSession));
   const [initialLoaded, setInitialLoaded] = useState(Boolean(initialSession));
@@ -99,6 +100,7 @@ export function FocusSessionProvider({
   }, []);
 
   const engine = useFocusSession(seed, {
+    locale,
     onRecovered: () => toast.message(t("engine.recovered")),
     onSoftGoal: () => toast.message(t("engine.softGoal")),
     onTerminal: (session) => {
