@@ -220,6 +220,54 @@
       "cancelDescription": "Se guardará el tiempo acumulado y la sesión quedará cancelada.",
       "dismiss": "Entendido"
     },
+    "plan": {
+      "title": "Plan de sesión",
+      "hint": "Bloques ordenados con un propósito — no solo un temporizador único.",
+      "suggestions": "Ideas de partida",
+      "empty": "Aún no hay plan. Añade bloques o aplica una sugerencia y edítala libremente.",
+      "clear": "Vaciar plan",
+      "add": "Añadir bloque",
+      "name": "Nombre del bloque",
+      "emoji": "Emoji",
+      "kind": "Tipo",
+      "kindFocus": "Enfoque",
+      "kindBreak": "Descanso",
+      "minutes": "Minutos (vacío = abierto)",
+      "openDuration": "Abierto",
+      "description": "Descripción breve",
+      "autoAdvance": "Avanzar solo cuando acabe el temporizador",
+      "moveUp": "Subir bloque",
+      "moveDown": "Bajar bloque",
+      "duplicate": "Duplicar bloque",
+      "remove": "Quitar bloque",
+      "defaultBlockName": "Bloque {n}",
+      "totalTimed": "{count} bloques · {time} planificados",
+      "totalOpen": "Incluye bloques abiertos sin total fijo",
+      "blockOf": "Bloque {current} de {total}",
+      "nextBlock": "Siguiente",
+      "lastBlock": "Último bloque del plan",
+      "advance": "Siguiente bloque",
+      "skip": "Saltar bloque",
+      "summaryTitle": "Desglose del plan",
+      "summaryHint": "Tiempo planificado y real por bloque. No se puede volver atrás para mantener el historial solo hacia delante.",
+      "skippedEarly": "salida anticipada",
+      "templates": {
+        "programming": {
+          "name": "Programación"
+        },
+        "english": {
+          "name": "Inglés"
+        },
+        "piano": {
+          "name": "Piano"
+        }
+      },
+      "errors": {
+        "tooMany": "Demasiados bloques en el plan.",
+        "nameRequired": "Cada bloque del plan necesita un nombre.",
+        "durationInvalid": "Los bloques con tiempo necesitan al menos 1 minuto."
+      }
+    },
     "settings": {
       "title": "Preferencias de Enfoque",
       "hint": "Las opciones de cuenta se sincronizan entre dispositivos. Las de dispositivo se quedan solo en este navegador.",

@@ -37,6 +37,7 @@ export type UseFocusSessionResult = {
   cancel: () => Promise<void>;
   finishPhase: () => Promise<void>;
   skipBreak: () => Promise<void>;
+  skipSegment: () => Promise<void>;
   extendBreak: (extraSec: number) => Promise<void>;
   recover: () => Promise<void>;
   refreshNow: () => void;
@@ -329,6 +330,10 @@ export function useFocusSession(
     () => persistAction({ type: "skip_break" }, "skip_break"),
     [persistAction],
   );
+  const skipSegment = useCallback(
+    () => persistAction({ type: "skip_segment" }, "skip_segment"),
+    [persistAction],
+  );
   const extendBreak = useCallback(
     (extraSec: number) =>
       persistAction({ type: "extend_break", extraSec }, `extend:${extraSec}`),
@@ -352,6 +357,7 @@ export function useFocusSession(
     cancel,
     finishPhase,
     skipBreak,
+    skipSegment,
     extendBreak,
     recover,
     refreshNow,
@@ -370,6 +376,7 @@ function toTransitionPayload(
         | "skip_break"
         | "extend_break"
         | "finish_phase"
+        | "skip_segment"
         | "complete"
         | "cancel"
         | "recover"
@@ -392,6 +399,7 @@ function toTransitionPayload(
     case "resume":
     case "skip_break":
     case "finish_phase":
+    case "skip_segment":
     case "cancel":
     case "recover":
     case "takeover":

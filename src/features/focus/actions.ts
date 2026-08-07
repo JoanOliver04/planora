@@ -823,6 +823,8 @@ function toDomainAction(value: FocusTransitionInput): FocusDomainAction {
       return { type: "extend_break", extraSec: value.extraSec };
     case "finish_phase":
       return { type: "finish_phase" };
+    case "skip_segment":
+      return { type: "skip_segment" };
     case "complete":
       return {
         type: "complete",

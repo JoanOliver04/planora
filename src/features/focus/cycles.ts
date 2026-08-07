@@ -3,6 +3,7 @@ import type {
   FocusSession,
   FocusSessionConfig,
 } from "./types";
+import { hasStructuredPlan, segmentPhaseKind } from "./session-plan";
 
 export type NextPhasePlan = {
   kind: "focus" | "short_break" | "long_break";
@@ -29,6 +30,28 @@ export function planNextPhase(
   completedFocusBlocks: number,
 ): NextPhasePlan {
   const { mode, config } = session;
+
+  // Structured plan overrides classic countdown/cycles progression.
+  if (hasStructuredPlan(session)) {
+    const finished = session.intervals.filter(
+      (interval) => interval.endedAt != null,
+    ).length;
+    if (finished >= config.segments.length) {
+      return {
+        kind: "focus",
+        cycleIndex: Math.max(1, config.segments.length),
+        plannedDurationSec: null,
+        completesSession: true,
+      };
+    }
+    const next = config.segments[finished]!;
+    return {
+      kind: segmentPhaseKind(next),
+      cycleIndex: finished + 1,
+      plannedDurationSec: next.durationSec,
+      completesSession: false,
+    };
+  }
 
   if (mode === "countdown" || mode === "stopwatch") {
     return {

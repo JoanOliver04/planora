@@ -35,6 +35,11 @@ import {
   FOCUS_MAX_DISTRACTIONS,
 } from "./validation";
 import { defaultFocusAccountPreferences } from "./focus-preferences";
+import {
+  currentSegment,
+  hasStructuredPlan,
+  nextSegment,
+} from "./session-plan";
 
 
 function phaseLabel(
@@ -146,7 +151,12 @@ export function ActiveSessionView({
 
   const progress = Math.round((clock.phase.progress || 0) * 100);
   const cycleProgress =
-    session.mode === "cycles" ? getCycleProgress(session) : null;
+    session.mode === "cycles" && !hasStructuredPlan(session)
+      ? getCycleProgress(session)
+      : null;
+  const planActive = hasStructuredPlan(session);
+  const planCurrent = planActive ? currentSegment(session) : null;
+  const planNext = planActive ? nextSegment(session) : null;
   const onBreak = session.status === "on_break";
   const title =
     session.title ||
@@ -413,7 +423,37 @@ export function ActiveSessionView({
         >
           <span style={{ width: `${progress}%` }} />
         </div>
-        <p className="muted focus-next-hint">{nextPhaseHint(session, t)}</p>
+        {planCurrent ? (
+          <div className="focus-plan-live" role="status">
+            <p className="focus-plan-live-current">
+              <strong>
+                {planCurrent.emoji ? `${planCurrent.emoji} ` : ""}
+                {planCurrent.name}
+              </strong>
+              <span className="muted">
+                {" · "}
+                {t("plan.blockOf", {
+                  current: session.currentCycle,
+                  total: session.config.segments.length,
+                })}
+              </span>
+            </p>
+            {planCurrent.description ? (
+              <p className="muted">{planCurrent.description}</p>
+            ) : null}
+            {planNext ? (
+              <p className="muted">
+                {t("plan.nextBlock")}:{" "}
+                {planNext.emoji ? `${planNext.emoji} ` : ""}
+                {planNext.name}
+              </p>
+            ) : (
+              <p className="muted">{t("plan.lastBlock")}</p>
+            )}
+          </div>
+        ) : (
+          <p className="muted focus-next-hint">{nextPhaseHint(session, t)}</p>
+        )}
         {cycleProgress ? (
           <p className="muted focus-cycle-progress">
             {cycleProgress.indefinite
@@ -492,6 +532,29 @@ export function ActiveSessionView({
           </button>
         ) : null}
 
+        {planActive ? (
+          <>
+            <button
+              type="button"
+              className="focus-secondary-action"
+              disabled={engine.pending}
+              onClick={() => void engine.finishPhase()}
+            >
+              <SkipForward size={16} aria-hidden="true" />
+              {t("plan.advance")}
+            </button>
+            <button
+              type="button"
+              className="focus-secondary-action"
+              disabled={engine.pending}
+              onClick={() => void engine.skipSegment()}
+            >
+              <SkipForward size={16} aria-hidden="true" />
+              {t("plan.skip")}
+            </button>
+          </>
+        ) : null}
+
         <button
           type="button"
           className="focus-secondary-action"
@@ -502,7 +565,7 @@ export function ActiveSessionView({
           {t("engine.complete")}
         </button>
 
-        {onBreak ? (
+        {onBreak && !planActive ? (
           <>
             <button
               type="button"

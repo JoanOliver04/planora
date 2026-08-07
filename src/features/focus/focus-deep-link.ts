@@ -59,6 +59,7 @@ export function draftFromPreset(preset: FocusPreset): SessionStartDraft {
     completeTaskOnEnd: preset.completeTaskOnSessionEnd,
     keepScreenAwake: preset.keepScreenAwake,
     preferFullscreen: preset.preferFullscreen,
+    segments: preset.segments,
   };
 }
 

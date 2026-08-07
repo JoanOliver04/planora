@@ -68,6 +68,18 @@ export {
 } from "./focus-preferences";
 export { FocusSettingsPanel } from "./focus-settings";
 export {
+  SESSION_PLAN_TEMPLATES,
+  hasStructuredPlan,
+  summarizePlanRuntime,
+  currentSegment,
+  nextSegment,
+  totalPlannedSec,
+  moveSegment,
+  duplicateSegmentAt,
+  emptySegment,
+} from "./session-plan";
+export { SessionPlanEditor } from "./session-plan-editor";
+export {
   getCycleProgress,
   summarizeEndedSession,
   buildExtraBlockStartInput,

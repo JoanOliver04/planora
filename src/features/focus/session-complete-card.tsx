@@ -38,6 +38,7 @@ import {
 import { TaskForm } from "@/features/workspace/task-form";
 import type { Category, Schedule } from "@/features/workspace/types";
 import { createClient } from "@/lib/supabase/client";
+import { hasStructuredPlan, summarizePlanRuntime } from "./session-plan";
 
 /**
  * Neutral end-of-session review: summary first, optional reflection, no forced fields.
@@ -78,6 +79,9 @@ export function SessionCompleteCard({
   const [loadingTaskForm, setLoadingTaskForm] = useState(false);
 
   const summary = buildSessionReviewSummary(localSession);
+  const planRows = hasStructuredPlan(localSession)
+    ? summarizePlanRuntime(localSession)
+    : [];
   const linked =
     Boolean(localSession.taskId) && Boolean(localSession.occurrenceDate);
   const applied = localSession.taskCompletionApplied;
@@ -291,6 +295,29 @@ export function SessionCompleteCard({
 
       {weeklyGoalLabel ? (
         <p className="muted focus-complete-task-note">{weeklyGoalLabel}</p>
+      ) : null}
+
+      {planRows.length > 0 ? (
+        <div className="focus-plan-summary">
+          <h3>{t("plan.summaryTitle")}</h3>
+          <p className="muted">{t("plan.summaryHint")}</p>
+          <ul>
+            {planRows.map((row) => (
+              <li key={row.index}>
+                <span>
+                  {row.segment.emoji ? `${row.segment.emoji} ` : ""}
+                  {row.segment.name}
+                  {row.skippedEarly ? ` · ${t("plan.skippedEarly")}` : ""}
+                </span>
+                <strong>
+                  {row.plannedSec == null
+                    ? formatFocusDuration(row.actualSec, "compact")
+                    : `${formatFocusDuration(row.plannedSec, "compact")} → ${formatFocusDuration(row.actualSec, "compact")}`}
+                </strong>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
 
       {review.distractions.length > 0 ? (

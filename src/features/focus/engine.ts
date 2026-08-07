@@ -214,6 +214,16 @@ export function assertNoDrift(
  * Neutral language: this is a preference, not a streak rule.
  */
 export function shouldAutoStartNextPhase(session: FocusSession): boolean {
+  if (session.config.segments.length > 0) {
+    const finished = session.intervals.filter(
+      (interval) => interval.endedAt != null,
+    ).length;
+    const current = session.config.segments[finished];
+    if (!current) return false;
+    // Open segments never auto-advance; timed ones honour autoAdvance.
+    if (current.durationSec == null) return false;
+    return current.autoAdvance;
+  }
   if (session.mode === "countdown") return true;
   if (session.mode === "stopwatch") return false;
   // cycles

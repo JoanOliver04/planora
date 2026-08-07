@@ -25,10 +25,18 @@ export const FOCUS_PHASE_KINDS = [
 ] as const;
 export type FocusPhaseKind = (typeof FOCUS_PHASE_KINDS)[number];
 
+/**
+ * Structured session plan block (snapshot-friendly).
+ * `durationSec: null` = open practice advanced only manually.
+ */
 export type FocusSegment = {
-  kind: "focus" | "short_break" | "long_break";
-  durationSec: number;
-  label?: string;
+  name: string;
+  emoji?: string | null;
+  kind: "focus" | "break";
+  durationSec: number | null;
+  description?: string | null;
+  /** When timed, finish automatically at zero. Open segments ignore this. */
+  autoAdvance: boolean;
 };
 
 export type FocusSessionConfig = {
@@ -193,6 +201,7 @@ export type FocusEventName =
   | "break_skipped"
   | "break_extended"
   | "phase_finished"
+  | "segment_skipped"
   | "completed"
   | "cancelled"
   | "recovered"

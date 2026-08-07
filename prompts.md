@@ -1322,6 +1322,8 @@ Explica qué se sincroniza y qué no.
 
 ## Prompt 13 — Planes estructurados para programación, inglés, piano y otras prácticas
 
+> **HECHO** — Planes de sesión con segmentos (nombre, emoji, focus/break, duración opcional/abierta, descripción, auto-avance), editor con plantillas Programación/Inglés/Piano, reordenar/duplicar, ejecución en sesión (actual/siguiente, avanzar/saltar), resumen planificado vs real. No se permite volver atrás (historial append-only). Snapshot en `config.segments` al iniciar.
+
 ```text
 Implementa “Planes de sesión” dentro de los presets de Enfoque.
 

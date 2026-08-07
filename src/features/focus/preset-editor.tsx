@@ -16,6 +16,8 @@ import {
   FOCUS_MAX_SHORT_BREAK_SEC,
   FOCUS_MIN_DURATION_SEC,
 } from "./validation";
+import { SessionPlanEditor } from "./session-plan-editor";
+import { validatePlanSegments } from "./session-plan";
 
 type CategoryOption = { id: string; name: string; emoji: string | null };
 
@@ -40,7 +42,7 @@ type FormState = {
   preferFullscreen: boolean;
   isFavorite: boolean;
   defaultCategoryId: string;
-  segments: Array<{ kind: FocusSegment["kind"]; minutes: string; label: string }>;
+  segments: FocusSegment[];
 };
 
 function minutesFromSec(sec: number | null | undefined, fallback = "") {
@@ -103,11 +105,7 @@ function fromPreset(preset: FocusPreset | null): FormState {
     preferFullscreen: preset.preferFullscreen,
     isFavorite: preset.isFavorite,
     defaultCategoryId: preset.defaultCategoryId ?? "",
-    segments: preset.segments.map((segment) => ({
-      kind: segment.kind,
-      minutes: minutesFromSec(segment.durationSec, "25"),
-      label: segment.label ?? "",
-    })),
+    segments: preset.segments.map((segment) => ({ ...segment })),
   };
 }
 
@@ -156,7 +154,7 @@ export function PresetEditorDialog({
         return t("presets.errors.focusDurationMax");
       }
     }
-    if (form.mode === "cycles") {
+    if (form.mode === "cycles" && form.segments.length === 0) {
       const shortSec = secFromMinutes(form.shortBreakMinutes);
       if (
         shortSec == null ||
@@ -189,6 +187,10 @@ export function PresetEditorDialog({
         return t("presets.errors.cyclesBeforeLong");
       }
     }
+    const planError = validatePlanSegments(form.segments);
+    if (planError === "too_many") return t("plan.errors.tooMany");
+    if (planError === "name_required") return t("plan.errors.nameRequired");
+    if (planError === "duration_invalid") return t("plan.errors.durationInvalid");
     return null;
   }
 
@@ -205,19 +207,12 @@ export function PresetEditorDialog({
         form.mode === "stopwatch" && !form.focusMinutes.trim()
           ? null
           : secFromMinutes(form.focusMinutes);
-      const segments: FocusSegment[] = form.segments
-        .map((segment) => {
-          const durationSec = secFromMinutes(segment.minutes);
-          if (durationSec == null) return null;
-          return {
-            kind: segment.kind,
-            durationSec,
-            ...(segment.label.trim()
-              ? { label: segment.label.trim() }
-              : {}),
-          };
-        })
-        .filter((item): item is FocusSegment => item != null);
+      const segments = form.segments.map((segment) => ({
+        ...segment,
+        name: segment.name.trim() || "Block",
+        emoji: segment.emoji?.trim() || null,
+        description: segment.description?.trim() || null,
+      }));
 
       const result = await saveFocusPresetAction({
         id: preset?.id,
@@ -227,15 +222,19 @@ export function PresetEditorDialog({
         mode: form.mode,
         focusDurationSec,
         shortBreakSec:
-          form.mode === "cycles" ? secFromMinutes(form.shortBreakMinutes) : null,
+          form.mode === "cycles" && segments.length === 0
+            ? secFromMinutes(form.shortBreakMinutes)
+            : null,
         longBreakSec:
-          form.mode === "cycles" ? secFromMinutes(form.longBreakMinutes) : null,
+          form.mode === "cycles" && segments.length === 0
+            ? secFromMinutes(form.longBreakMinutes)
+            : null,
         cyclesBeforeLongBreak:
-          form.mode === "cycles"
+          form.mode === "cycles" && segments.length === 0
             ? Number(form.cyclesBeforeLongBreak) || 4
             : null,
         targetCycles:
-          form.mode === "cycles"
+          form.mode === "cycles" && segments.length === 0
             ? form.indefiniteCycles
               ? null
               : Number(form.targetCycles)
@@ -464,77 +463,10 @@ export function PresetEditorDialog({
                 ))}
               </div>
 
-              <div className="focus-segments-editor">
-                <div className="focus-section-head">
-                  <h3>{t("presets.structuredPlan")}</h3>
-                  <p className="muted">{t("presets.structuredPlanHint")}</p>
-                </div>
-                {form.segments.map((segment, index) => (
-                  <div className="form-row" key={`segment-${index}`}>
-                    <label>
-                      {t("presets.segmentKind")}
-                      <select
-                        value={segment.kind}
-                        onChange={(event) => {
-                          const next = [...form.segments];
-                          next[index] = {
-                            ...segment,
-                            kind: event.target.value as FocusSegment["kind"],
-                          };
-                          update("segments", next);
-                        }}
-                      >
-                        <option value="focus">{t("phases.focus")}</option>
-                        <option value="short_break">
-                          {t("phases.shortBreak")}
-                        </option>
-                        <option value="long_break">
-                          {t("phases.longBreak")}
-                        </option>
-                      </select>
-                    </label>
-                    <label>
-                      {t("presets.segmentMinutes")}
-                      <input
-                        inputMode="numeric"
-                        value={segment.minutes}
-                        onChange={(event) => {
-                          const next = [...form.segments];
-                          next[index] = {
-                            ...segment,
-                            minutes: event.target.value,
-                          };
-                          update("segments", next);
-                        }}
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      className="pill"
-                      onClick={() =>
-                        update(
-                          "segments",
-                          form.segments.filter((_, i) => i !== index),
-                        )
-                      }
-                    >
-                      {common("cancel")}
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  className="pill"
-                  onClick={() =>
-                    update("segments", [
-                      ...form.segments,
-                      { kind: "focus", minutes: "25", label: "" },
-                    ])
-                  }
-                >
-                  {t("presets.addSegment")}
-                </button>
-              </div>
+              <SessionPlanEditor
+                segments={form.segments}
+                onChange={(segments) => update("segments", segments)}
+              />
             </details>
 
             {fieldError ? (

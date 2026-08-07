@@ -10,7 +10,7 @@ import {
   startFocusSessionAction,
   transitionFocusSessionAction,
 } from "./actions";
-import type { FocusMode, FocusPreset, FocusSession } from "./types";
+import type { FocusMode, FocusPreset, FocusSegment, FocusSession } from "./types";
 import type { QuickFocusPreset } from "./defaults";
 import { recordFocusStart } from "./focus-recents";
 import {
@@ -65,6 +65,7 @@ export type SessionStartDraft = {
   completeTaskOnEnd?: boolean;
   keepScreenAwake?: boolean;
   preferFullscreen?: boolean;
+  segments?: FocusSegment[];
 };
 
 type FormState = {
@@ -87,6 +88,7 @@ type FormState = {
   completeTaskOnEnd: boolean;
   keepScreenAwake: boolean;
   preferFullscreen: boolean;
+  segments: FocusSegment[];
 };
 
 function preferenceDefaults(
@@ -113,6 +115,7 @@ function preferenceDefaults(
     completeTaskOnEnd: accountPrefs.completeTaskOnEndDefault,
     keepScreenAwake: devicePrefs.wakeLockPreferred,
     preferFullscreen: devicePrefs.preferFullscreen,
+    segments: [],
   };
 }
 
@@ -200,6 +203,7 @@ function draftToForm(
       draft.keepScreenAwake ?? preset?.keepScreenAwake ?? false,
     preferFullscreen:
       draft.preferFullscreen ?? preset?.preferFullscreen ?? false,
+    segments: draft.segments ?? preset?.segments ?? [],
   };
 }
 
@@ -213,6 +217,7 @@ function applyPresetToForm(preset: FocusPreset): FormState {
       cyclesBeforeLongBreak: preset.cyclesBeforeLongBreak,
       targetCycles: preset.targetCycles,
       presetId: preset.id,
+      title: preset.intention,
       autoStartBreaks: preset.autoStartBreaks,
       autoStartFocus: preset.autoStartFocus,
       soundEnabled: preset.soundEnabled,
@@ -221,6 +226,7 @@ function applyPresetToForm(preset: FocusPreset): FormState {
       completeTaskOnEnd: preset.completeTaskOnSessionEnd,
       keepScreenAwake: preset.keepScreenAwake,
       preferFullscreen: preset.preferFullscreen,
+      segments: preset.segments,
     },
     [preset],
   );
@@ -313,7 +319,10 @@ export function SessionStartDialog({
     if (form.completeTaskOnEnd && (!form.taskId || !form.occurrenceDate.trim())) {
       return t("config.errors.completeNeedsTask");
     }
-    if (form.mode === "countdown" || form.mode === "cycles") {
+    if (
+      form.segments.length === 0 &&
+      (form.mode === "countdown" || form.mode === "cycles")
+    ) {
       const focusSec = secFromMinutes(form.focusMinutes);
       if (focusSec == null || focusSec < FOCUS_MIN_DURATION_SEC) {
         return t("config.errors.focusDurationRequired");
@@ -397,6 +406,7 @@ export function SessionStartDialog({
       completeTaskOnEnd: form.completeTaskOnEnd,
       keepScreenAwake: form.keepScreenAwake,
       preferFullscreen: form.preferFullscreen,
+      segments: form.segments,
       linkSnapshot: selectedTask
         ? {
             taskTitle: selectedTask.title,

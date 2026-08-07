@@ -30,15 +30,68 @@ export const focusPhaseKindSchema = z.enum([
   "pause",
 ]);
 
-export const focusSegmentSchema = z.object({
-  kind: z.enum(["focus", "short_break", "long_break"]),
+/** Accepts legacy segment shapes and normalizes to the structured-plan model. */
+export const focusSegmentSchema = z.preprocess((raw) => {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const item = raw as Record<string, unknown>;
+  const legacyKind = item.kind;
+  const kind =
+    legacyKind === "focus"
+      ? "focus"
+      : legacyKind === "break" ||
+          legacyKind === "short_break" ||
+          legacyKind === "long_break"
+        ? "break"
+        : legacyKind;
+  const durationRaw =
+    typeof item.durationSec === "number"
+      ? item.durationSec
+      : typeof item.duration_sec === "number"
+        ? item.duration_sec
+        : null;
+  const durationSec =
+    durationRaw == null
+      ? null
+      : durationRaw <= 0
+        ? null
+        : durationRaw;
+  const name =
+    typeof item.name === "string" && item.name.trim()
+      ? item.name
+      : typeof item.label === "string" && item.label.trim()
+        ? item.label
+        : "Block";
+  const autoAdvance =
+    typeof item.autoAdvance === "boolean"
+      ? item.autoAdvance
+      : durationSec != null;
+  return {
+    name,
+    emoji:
+      typeof item.emoji === "string" || item.emoji === null
+        ? item.emoji
+        : null,
+    kind,
+    durationSec,
+    description:
+      typeof item.description === "string" || item.description === null
+        ? item.description
+        : null,
+    autoAdvance,
+  };
+}, z.object({
+  name: z.string().trim().min(1).max(80),
+  emoji: z.string().trim().min(1).max(16).nullable().optional(),
+  kind: z.enum(["focus", "break"]),
   durationSec: z
     .number()
     .int()
-    .min(0)
-    .max(FOCUS_MAX_DURATION_SEC),
-  label: z.string().trim().min(1).max(80).optional(),
-});
+    .min(FOCUS_MIN_DURATION_SEC)
+    .max(FOCUS_MAX_DURATION_SEC)
+    .nullable(),
+  description: z.string().trim().max(280).nullable().optional(),
+  autoAdvance: z.boolean(),
+}));
 
 const durationSec = z
   .number()
@@ -154,7 +207,11 @@ export const startFocusSessionSchema = z
       .optional(),
   })
   .superRefine((value, ctx) => {
-    if (value.mode === "countdown" || value.mode === "cycles") {
+    const hasPlan = (value.segments?.length ?? 0) > 0;
+    if (
+      !hasPlan &&
+      (value.mode === "countdown" || value.mode === "cycles")
+    ) {
       if (value.focusDurationSec == null) {
         ctx.addIssue({
           code: "custom",
@@ -163,7 +220,7 @@ export const startFocusSessionSchema = z
         });
       }
     }
-    if (value.mode === "cycles") {
+    if (value.mode === "cycles" && !hasPlan) {
       if (value.shortBreakSec == null) {
         ctx.addIssue({
           code: "custom",
@@ -208,6 +265,11 @@ export const focusTransitionSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("finish_phase"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+  }),
+  z.object({
+    type: z.literal("skip_segment"),
     sessionId: uuid,
     expectedRevision: z.number().int().min(1),
   }),

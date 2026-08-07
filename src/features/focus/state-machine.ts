@@ -21,6 +21,12 @@ import type {
   FocusSessionConfig,
   FocusTransitionResult,
 } from "./types";
+import {
+  hasStructuredPlan,
+  plannedPlanFocusSec,
+  segmentPhaseKind,
+  segmentStatus,
+} from "./session-plan";
 
 export type FocusDomainAction =
   | { type: "start"; input: StartFocusSessionInput; userId: string }
@@ -30,6 +36,8 @@ export type FocusDomainAction =
   | { type: "skip_break" }
   | { type: "extend_break"; extraSec: number }
   | { type: "finish_phase" }
+  /** Advance the structured plan explicitly (skip records early leave). */
+  | { type: "skip_segment" }
   | {
       type: "complete";
       notes?: string | null;
@@ -164,15 +172,25 @@ export function createStartedSession(
   const now = options.now ?? Date.now();
   const startedAt = toIso(now);
   const config = buildSessionConfig(input);
+  const plan = config.segments;
+  const first = plan[0];
   const planned =
-    input.mode === "stopwatch"
-      ? (input.focusDurationSec ?? null)
-      : (input.focusDurationSec ?? null);
+    plan.length > 0
+      ? plannedPlanFocusSec(plan)
+      : input.mode === "stopwatch"
+        ? (input.focusDurationSec ?? null)
+        : (input.focusDurationSec ?? null);
+
+  const firstKind = first ? segmentPhaseKind(first) : "focus";
+  const firstStatus = first ? segmentStatus(first) : "running";
+  const firstPlanned = first
+    ? first.durationSec
+    : (input.focusDurationSec ?? null);
 
   const session: FocusSession = {
     id: options.sessionId ?? createId(),
     userId,
-    status: "running",
+    status: firstStatus,
     mode: input.mode,
     title: input.title ?? null,
     presetId: input.presetId ?? null,
@@ -184,7 +202,7 @@ export function createStartedSession(
     focusSec: 0,
     pausedSec: 0,
     breakSec: 0,
-    currentPhaseKind: "focus",
+    currentPhaseKind: firstKind,
     currentCycle: 1,
     config,
     linkSnapshot: input.linkSnapshot ?? {},
@@ -204,11 +222,68 @@ export function createStartedSession(
 
   return openPhase(session, {
     id: options.intervalId ?? createId(),
-    kind: "focus",
+    kind: firstKind,
     cycleIndex: 1,
-    plannedDurationSec: planned,
+    plannedDurationSec: firstPlanned,
     at: now,
   });
+}
+
+/**
+ * Structured plan advance: close current segment and open the next, or complete.
+ * Going backward is intentionally unsupported so interval history stays append-only.
+ */
+function advancePlanSegment(
+  session: FocusSession,
+  at: Date | number,
+  createId: () => string,
+  skipped: boolean,
+): { session: FocusSession; events: FocusEventName[] } {
+  if (!hasStructuredPlan(session)) {
+    invalid("No structured plan is active");
+  }
+  if (session.status === "paused") {
+    invalid("Cannot advance a plan while paused");
+  }
+  if (!isActiveStatus(session.status)) {
+    invalid("Only an active session can advance a plan segment");
+  }
+
+  const closed = closeOpenInterval(session, at);
+  const finished = closed.intervals.filter((item) => item.endedAt != null).length;
+  const events: FocusEventName[] = skipped
+    ? ["segment_skipped", "phase_finished"]
+    : ["phase_finished"];
+
+  if (finished >= closed.config.segments.length) {
+    return {
+      session: finishToTerminal(closed, "completed", at),
+      events: [...events, "completed"],
+    };
+  }
+
+  const nextSegment = closed.config.segments[finished]!;
+  const kind = segmentPhaseKind(nextSegment);
+  const status = segmentStatus(nextSegment);
+  const next = openPhase(
+    {
+      ...closed,
+      status,
+      updatedAt: toIso(at),
+    },
+    {
+      id: createId(),
+      kind,
+      cycleIndex: finished + 1,
+      plannedDurationSec: nextSegment.durationSec,
+      at,
+    },
+  );
+
+  return {
+    session: bump(withTotals(next)),
+    events,
+  };
 }
 
 function finishToTerminal(
@@ -355,6 +430,9 @@ function applyFinishPhase(
   if (session.status === "paused") {
     // Closing a pause then finishing is not valid; resume first.
     invalid("Cannot finish a phase while paused");
+  }
+  if (hasStructuredPlan(session)) {
+    return advancePlanSegment(session, at, createId, false);
   }
   if (session.status === "running") {
     return advanceFromFocus(session, at, createId);
@@ -565,6 +643,13 @@ export function applyFocusAction(
     }
     case "finish_phase": {
       const result = applyFinishPhase(current, at, createId);
+      return { ...result, recovered: false };
+    }
+    case "skip_segment": {
+      if (!hasStructuredPlan(current)) {
+        invalid("No structured plan is active");
+      }
+      const result = advancePlanSegment(current, at, createId, true);
       return { ...result, recovered: false };
     }
     case "complete": {

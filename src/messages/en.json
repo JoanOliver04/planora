@@ -220,6 +220,54 @@
       "cancelDescription": "Accumulated time will be kept and the session will be cancelled.",
       "dismiss": "Got it"
     },
+    "plan": {
+      "title": "Session plan",
+      "hint": "Optional ordered blocks with a purpose — not only a single timer.",
+      "suggestions": "Starter ideas",
+      "empty": "No plan yet. Add blocks or apply a suggestion and edit freely.",
+      "clear": "Clear plan",
+      "add": "Add block",
+      "name": "Block name",
+      "emoji": "Emoji",
+      "kind": "Type",
+      "kindFocus": "Focus",
+      "kindBreak": "Break",
+      "minutes": "Minutes (empty = open)",
+      "openDuration": "Open",
+      "description": "Short description",
+      "autoAdvance": "Auto-advance when the timer ends",
+      "moveUp": "Move block up",
+      "moveDown": "Move block down",
+      "duplicate": "Duplicate block",
+      "remove": "Remove block",
+      "defaultBlockName": "Block {n}",
+      "totalTimed": "{count} blocks · {time} planned",
+      "totalOpen": "Includes open blocks without a fixed total",
+      "blockOf": "Block {current} of {total}",
+      "nextBlock": "Next",
+      "lastBlock": "Last block of the plan",
+      "advance": "Next block",
+      "skip": "Skip block",
+      "summaryTitle": "Plan breakdown",
+      "summaryHint": "Planned vs actual time per block. Going backward is not supported so history stays append-only.",
+      "skippedEarly": "left early",
+      "templates": {
+        "programming": {
+          "name": "Programming"
+        },
+        "english": {
+          "name": "English"
+        },
+        "piano": {
+          "name": "Piano"
+        }
+      },
+      "errors": {
+        "tooMany": "Too many plan blocks.",
+        "nameRequired": "Every plan block needs a name.",
+        "durationInvalid": "Timed blocks need a valid duration of at least 1 minute."
+      }
+    },
     "settings": {
       "title": "Focus preferences",
       "hint": "Account options sync across devices. Device options stay on this browser only.",

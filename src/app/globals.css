@@ -4228,6 +4228,78 @@ select:disabled,
 .focus-active-time[data-size="compact"] {
   font-size: clamp(1.8rem, 6vw, 2.4rem);
 }
+.focus-plan-editor {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.focus-plan-templates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+.focus-plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+.focus-plan-item {
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.55rem;
+}
+.focus-plan-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+.focus-plan-item-actions {
+  display: inline-flex;
+  gap: 0.15rem;
+}
+.focus-plan-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.focus-plan-live {
+  margin: 0.35rem 0 0;
+  display: grid;
+  gap: 0.2rem;
+}
+.focus-plan-live-current {
+  margin: 0;
+}
+.focus-plan-summary {
+  margin-top: 0.75rem;
+}
+.focus-plan-summary h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+.focus-plan-summary ul {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+.focus-plan-summary li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-2, var(--surface)) 90%, transparent);
+}
 button.mini-task {
   width: 100%;
   border: 0;
