@@ -33,8 +33,10 @@ describe("Vercel Web Analytics", () => {
     expect(privacy).toContain("Vercel Web Analytics");
     expect(privacy).toContain("sin cookies de seguimiento");
     expect(privacy).toContain("without tracking cookies");
-    expect(privacy).toContain("tareas, eventos o notas");
-    expect(privacy).toContain("tasks, events or notes");
+    expect(privacy).toContain("tareas, eventos, notas ni sesiones de Enfoque");
+    expect(privacy).toContain("tasks, events, notes or Focus sessions");
+    expect(privacy).toContain("Enfoque (sesiones y notas)");
+    expect(privacy).toContain("Focus (sessions and notes)");
   });
   it("does not add custom Vercel events", () => {
     const layout = source("src/app/layout.tsx");
