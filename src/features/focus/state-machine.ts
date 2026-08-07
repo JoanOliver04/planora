@@ -533,12 +533,19 @@ export function applyFocusAction(
       };
     }
     case "extend_break": {
-      if (current.status !== "on_break") {
-        invalid("Only an active break can be extended");
+      // Also used as "add time" during a timed focus phase (countdown/cycles).
+      if (current.status !== "on_break" && current.status !== "running") {
+        invalid("Only a running phase or break can be extended");
       }
       const open = openInterval(current);
-      if (!open || !isBreakKind(open.kind)) {
+      if (!open || open.kind === "pause") {
+        invalid("No active timed interval to extend");
+      }
+      if (current.status === "on_break" && !isBreakKind(open.kind)) {
         invalid("No active break interval to extend");
+      }
+      if (current.status === "running" && open.kind !== "focus") {
+        invalid("No active focus interval to extend");
       }
       const planned = (open.plannedDurationSec ?? 0) + action.extraSec;
       const intervals = current.intervals.map((interval) =>

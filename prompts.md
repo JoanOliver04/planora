@@ -781,6 +781,8 @@ Describe el algoritmo temporal, recuperación, idempotencia, rendimiento, archiv
 
 ## Prompt 06 — Pantalla activa premium, compacta y de pantalla completa
 
+> **HECHO** — `ActiveSessionView`, `FocusCompactBar`, `FocusRuntime` en shell, immersive/fullscreen progresivo, notas, +tiempo, a11y. Tests `tests/focus-active-view.test.tsx`.
+
 ```text
 Diseña e implementa la experiencia visual de una sesión activa de Enfoque.
 

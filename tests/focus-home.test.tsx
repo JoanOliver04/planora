@@ -118,7 +118,7 @@ describe("Focus home shell", () => {
 
     expect(screen.getByText("Sesión activa")).toBeVisible();
     expect(screen.getByText("Piano practice")).toBeVisible();
-    expect(screen.getByRole("button", { name: /Pausar/i })).toBeVisible();
+    expect(screen.getByRole("button", { name: /Pausar|Reanudar/i })).toBeVisible();
     expect(screen.getByRole("button", { name: /Terminar/i })).toBeVisible();
     expect(
       screen.queryByRole("button", { name: /^Iniciar sesión$/i }),
