@@ -276,6 +276,8 @@ export const focusPresetInputSchema = z
   .object({
     id: uuid.optional(),
     name: z.string().trim().min(1).max(80),
+    emoji: z.string().trim().min(1).max(16).optional().nullable(),
+    intention: z.string().trim().min(1).max(140).optional().nullable(),
     mode: focusModeSchema,
     focusDurationSec: optionalDuration,
     shortBreakSec,
@@ -304,7 +306,8 @@ export const focusPresetInputSchema = z
     preferFullscreen: z.boolean().default(false),
     segments: z.array(focusSegmentSchema).max(FOCUS_MAX_SEGMENTS).default([]),
     isFavorite: z.boolean().default(false),
-    sortOrder: z.number().int().default(0),
+    sortOrder: z.number().int().optional(),
+    defaultCategoryId: uuid.optional().nullable(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -315,6 +318,13 @@ export const focusPresetInputSchema = z
         code: "custom",
         path: ["focusDurationSec"],
         message: "Focus duration is required for this mode",
+      });
+    }
+    if (value.mode === "cycles" && value.shortBreakSec == null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["shortBreakSec"],
+        message: "Short break duration is required for cycles",
       });
     }
   });

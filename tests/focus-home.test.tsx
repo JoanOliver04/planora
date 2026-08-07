@@ -44,6 +44,30 @@ vi.mock("@/features/focus/actions", () => ({
     ok: true,
     data: { id: "discarded" },
   })),
+  saveFocusPresetAction: vi.fn(async () => ({
+    ok: false,
+    error: { code: "DATABASE_ERROR", message: "not used" },
+  })),
+  duplicateFocusPresetAction: vi.fn(async () => ({
+    ok: false,
+    error: { code: "DATABASE_ERROR", message: "not used" },
+  })),
+  setFocusPresetArchivedAction: vi.fn(async () => ({
+    ok: false,
+    error: { code: "DATABASE_ERROR", message: "not used" },
+  })),
+  deleteFocusPresetAction: vi.fn(async () => ({
+    ok: false,
+    error: { code: "DATABASE_ERROR", message: "not used" },
+  })),
+  reorderFocusPresetsAction: vi.fn(async () => ({
+    ok: true,
+    data: { count: 0 },
+  })),
+  toggleFocusPresetFavoriteAction: vi.fn(async () => ({
+    ok: false,
+    error: { code: "DATABASE_ERROR", message: "not used" },
+  })),
 }));
 
 vi.mock("@/lib/supabase/client", () => ({
@@ -122,9 +146,10 @@ describe("Focus home shell", () => {
       screen.getByRole("button", { name: /Sesión rápida/i }),
     ).toBeVisible();
     expect(
-      screen.getByRole("button", { name: /Crear preset/i }),
-    ).toBeVisible();
-    expect(screen.getByText("25 minutos")).toBeVisible();
+      screen.getAllByRole("button", { name: /Crear preset/i }).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByText("Pomodoro 25/5")).toBeVisible();
+    expect(screen.getByText("Cronómetro libre")).toBeVisible();
     expect(screen.queryByText("Esta semana")).toBeNull();
   });
 

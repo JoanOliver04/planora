@@ -113,6 +113,8 @@ const reminderSchema = z.object({
 const focusPresetSchema = z.object({
   id: uuid,
   name: z.string().min(1).max(80),
+  emoji: z.string().min(1).max(16).nullable().optional().default(null),
+  intention: z.string().min(1).max(140).nullable().optional().default(null),
   mode: z.enum(["countdown", "stopwatch", "cycles"]),
   focus_duration_sec: z.number().int().min(60).max(8 * 60 * 60).nullable(),
   short_break_sec: z.number().int().min(0).max(60 * 60).nullable(),
@@ -130,6 +132,8 @@ const focusPresetSchema = z.object({
   segments: z.array(z.unknown()).max(40).default([]),
   is_favorite: z.boolean(),
   sort_order: z.number().int(),
+  default_category_id: nullableUuid.optional().default(null),
+  archived_at: timestamp.nullable().optional().default(null),
 });
 
 const focusSessionSchema = z.object({

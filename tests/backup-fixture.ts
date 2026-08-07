@@ -131,6 +131,8 @@ export function backupFixture(): BackupData {
       {
         id: backupIds.focusPreset,
         name: "Pomodoro",
+        emoji: "🍅",
+        intention: "Deep work",
         mode: "cycles",
         focus_duration_sec: 1500,
         short_break_sec: 300,
@@ -148,6 +150,8 @@ export function backupFixture(): BackupData {
         segments: [],
         is_favorite: true,
         sort_order: 0,
+        default_category_id: null,
+        archived_at: null,
       },
     ],
     focus_sessions: [

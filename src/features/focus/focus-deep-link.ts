@@ -50,6 +50,7 @@ export function draftFromPreset(preset: FocusPreset): SessionStartDraft {
     cyclesBeforeLongBreak: preset.cyclesBeforeLongBreak,
     targetCycles: preset.targetCycles,
     presetId: preset.id,
+    title: preset.intention,
     autoStartBreaks: preset.autoStartBreaks,
     autoStartFocus: preset.autoStartFocus,
     soundEnabled: preset.soundEnabled,

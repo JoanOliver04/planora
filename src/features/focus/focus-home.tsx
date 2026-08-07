@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Clock3, ListPlus, Play, Sparkles, Target, Timer } from "lucide-react";
+import { ListPlus, Play, Target, Timer } from "lucide-react";
 import type {
   FocusGoal,
   FocusMode,
@@ -12,7 +12,7 @@ import type {
 } from "./types";
 import { calculateWeeklyGoalProgress } from "./goals";
 import { deriveSessionClock, sessionSummary } from "./time";
-import { formatFocusDuration, QUICK_FOCUS_PRESETS } from "./defaults";
+import { formatFocusDuration } from "./defaults";
 import {
   SessionStartDialog,
   type FocusTaskOption,
@@ -25,6 +25,7 @@ import {
 import { ActiveSessionView } from "./active-session-view";
 import type { UseFocusSessionResult } from "./use-focus-session";
 import { SessionCompleteCard } from "./session-complete-card";
+import { FocusPresetManager } from "./preset-manager";
 
 export type FocusHomeProps = {
   activeSession: FocusSession | null;
@@ -35,6 +36,7 @@ export type FocusHomeProps = {
   timezone: string;
   weekStartsOn: number;
   tasks?: FocusTaskOption[];
+  categories?: Array<{ id: string; name: string; emoji: string | null }>;
   /** Prefill from task deep link (e.g. /focus?taskId=…&date=…). */
   initialDraft?: SessionStartDraft | null;
   autoOpenConfigurator?: boolean;
@@ -58,6 +60,7 @@ export function FocusHome({
   timezone,
   weekStartsOn,
   tasks = [],
+  categories = [],
   initialDraft = null,
   autoOpenConfigurator = false,
 }: FocusHomeProps) {
@@ -116,12 +119,6 @@ export function FocusHome({
       new Date(now),
     );
   }, [goal, weekSessions, timezone, weekStartsOn, now]);
-
-  const favoritePresets = presets
-    .filter((preset) => preset.isFavorite)
-    .slice(0, 4);
-  const displayPresets =
-    favoritePresets.length > 0 ? favoritePresets : presets.slice(0, 4);
 
   const hasHistory = recentSessions.length > 0 || hasActive;
 
@@ -206,7 +203,7 @@ export function FocusHome({
             <button
               type="button"
               className="focus-secondary-action"
-              onClick={() => toast.message(t("placeholders.createPreset"))}
+              onClick={() => openConfigurator(null)}
             >
               <ListPlus size={18} aria-hidden="true" />
               {t("actions.createPreset")}
@@ -215,80 +212,14 @@ export function FocusHome({
         </div>
       ) : null}
 
-      <section className="focus-section" aria-labelledby="focus-presets-title">
-        <div className="focus-section-head">
-          <h2 id="focus-presets-title">{t("presets.title")}</h2>
-          <p className="muted">{t("presets.subtitle")}</p>
-        </div>
-        <div className="focus-preset-grid">
-          {displayPresets.length > 0
-            ? displayPresets.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  className="surface focus-preset-card"
-                  onClick={() =>
-                    openConfigurator({
-                      mode: preset.mode,
-                      focusDurationSec: preset.focusDurationSec,
-                      shortBreakSec: preset.shortBreakSec,
-                      longBreakSec: preset.longBreakSec,
-                      cyclesBeforeLongBreak: preset.cyclesBeforeLongBreak,
-                      targetCycles: preset.targetCycles,
-                      presetId: preset.id,
-                      autoStartBreaks: preset.autoStartBreaks,
-                      autoStartFocus: preset.autoStartFocus,
-                      soundEnabled: preset.soundEnabled,
-                      vibrationEnabled: preset.vibrationEnabled,
-                      notifyOnPhaseEnd: preset.notifyOnPhaseEnd,
-                      completeTaskOnEnd: preset.completeTaskOnSessionEnd,
-                      keepScreenAwake: preset.keepScreenAwake,
-                      preferFullscreen: preset.preferFullscreen,
-                    })
-                  }
-                >
-                  <span className="focus-preset-icon" aria-hidden="true">
-                    <Sparkles size={18} />
-                  </span>
-                  <strong>{preset.name}</strong>
-                  <small>
-                    {modeLabel(preset.mode, t)}
-                    {preset.focusDurationSec
-                      ? ` · ${formatFocusDuration(preset.focusDurationSec, "compact")}`
-                      : ""}
-                  </small>
-                </button>
-              ))
-            : QUICK_FOCUS_PRESETS.map((preset) => (
-                <button
-                  key={preset.key}
-                  type="button"
-                  className="surface focus-preset-card"
-                  onClick={() =>
-                    openConfigurator({
-                      mode: preset.mode,
-                      focusDurationSec: preset.focusDurationSec,
-                      shortBreakSec: preset.shortBreakSec,
-                      longBreakSec: preset.longBreakSec,
-                      cyclesBeforeLongBreak: preset.cyclesBeforeLongBreak,
-                      quickKey: preset.key,
-                    })
-                  }
-                >
-                  <span className="focus-preset-icon" aria-hidden="true">
-                    <Clock3 size={18} />
-                  </span>
-                  <strong>{t(`quickPresets.${preset.key}`)}</strong>
-                  <small>
-                    {modeLabel(preset.mode, t)}
-                    {preset.focusDurationSec
-                      ? ` · ${formatFocusDuration(preset.focusDurationSec, "compact")}`
-                      : ""}
-                  </small>
-                </button>
-              ))}
-        </div>
-      </section>
+      {!hasActive ? (
+        <FocusPresetManager
+          presets={presets}
+          recentSessions={recentSessions}
+          categories={categories}
+          onStartPreset={(draft) => openConfigurator(draft)}
+        />
+      ) : null}
 
       {goalProgress ? (
         <section

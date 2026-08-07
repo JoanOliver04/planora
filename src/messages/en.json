@@ -103,7 +103,78 @@
     },
     "presets": {
       "title": "Presets and quick starts",
-      "subtitle": "Pick a starting point. You can tailor it in the next step."
+      "subtitle": "Pick a starting point. Favourites appear first; recent use is only a badge.",
+      "createTitle": "New Focus preset",
+      "editTitle": "Edit Focus preset",
+      "editorHint": "Save a reusable setup for study, work or practice.",
+      "name": "Name",
+      "emoji": "Emoji",
+      "intention": "Suggested intention",
+      "intentionPlaceholder": "Optional default session title",
+      "defaultCategory": "Default category",
+      "noCategory": "None",
+      "advanced": "Behaviour and structured plan",
+      "favorite": "Mark as favourite",
+      "favoriteBadge": "Favourite",
+      "recentBadge": "Recent",
+      "archivedBadge": "Archived",
+      "structuredPlan": "Optional structured plan",
+      "structuredPlanHint": "Add ordered blocks if you want a custom sequence beyond simple cycles.",
+      "segmentKind": "Block type",
+      "segmentMinutes": "Minutes",
+      "addSegment": "Add block",
+      "manage": "Manage presets",
+      "hideManage": "Hide manager",
+      "manageTitle": "Your presets",
+      "manageHint": "Reorder with the handle. Archive instead of deleting when you still want history.",
+      "emptyTemplates": "No presets yet. Create one of these suggestions — they stay editable and optional.",
+      "noActive": "No active presets.",
+      "edit": "Edit preset",
+      "duplicate": "Duplicate preset",
+      "archive": "Archive preset",
+      "restore": "Restore preset",
+      "delete": "Delete preset permanently",
+      "unfavorite": "Remove from favourites",
+      "showArchived": "Show archived ({count})",
+      "hideArchived": "Hide archived",
+      "saved": "Preset saved",
+      "createdFromTemplate": "Preset created from template",
+      "duplicated": "Preset duplicated",
+      "archived": "Preset archived",
+      "restored": "Preset restored",
+      "deleted": "Preset deleted",
+      "favoriteUpdated": "Favourite updated",
+      "deleteTitle": "Delete this preset permanently?",
+      "deleteDescription": "Past sessions keep their configuration snapshot. The preset itself will be removed.",
+      "deleteConfirm": "Delete permanently",
+      "errors": {
+        "generic": "Could not save the preset.",
+        "nameRequired": "Enter a name.",
+        "focusDuration": "Enter a focus duration of at least 1 minute.",
+        "focusDurationMax": "Maximum focus duration is 8 hours.",
+        "shortBreak": "Short break duration is not valid.",
+        "longBreak": "Long break duration is not valid.",
+        "targetCycles": "Target cycles value is not valid.",
+        "cyclesBeforeLong": "Enter how many cycles come before the long break."
+      }
+    },
+    "templates": {
+      "pomodoro": {
+        "name": "Pomodoro 25/5",
+        "hint": "Cycles · 25 min focus · 5 min break"
+      },
+      "focus50": {
+        "name": "Focus 50/10",
+        "hint": "Cycles · 50 min focus · 10 min break"
+      },
+      "deep90": {
+        "name": "Deep work 90",
+        "hint": "Countdown · 90 minutes"
+      },
+      "stopwatch": {
+        "name": "Free stopwatch",
+        "hint": "Open-ended focus"
+      }
     },
     "quickPresets": {
       "quick-25": "25 minutes",

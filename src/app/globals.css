@@ -4108,6 +4108,104 @@ select:disabled,
 .focus-secondary-action.is-danger {
   color: color-mix(in srgb, var(--danger, #b42318) 92%, var(--foreground));
 }
+.focus-presets-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.focus-presets-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.focus-preset-card-managed {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem;
+}
+.focus-preset-start {
+  display: grid;
+  gap: 0.25rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  min-height: 44px;
+}
+.focus-preset-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  justify-content: flex-end;
+}
+.focus-template-grid,
+.focus-preset-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+}
+.focus-preset-manage {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.75rem;
+}
+.focus-preset-manage-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 48px;
+}
+.focus-preset-manage-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+  flex: 1;
+}
+.focus-preset-manage-main small {
+  display: block;
+}
+.focus-preset-sort-list {
+  display: grid;
+  gap: 0.45rem;
+}
+.focus-preset-editor {
+  width: min(100%, 560px);
+  max-height: min(90vh, 820px);
+  overflow: auto;
+}
+.focus-preset-form .focus-mode-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.focus-preset-toggles {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+}
+.focus-segments-editor {
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.55rem;
+}
+.focus-archived-presets {
+  display: grid;
+  gap: 0.45rem;
+}
 button.mini-task {
   width: 100%;
   border: 0;

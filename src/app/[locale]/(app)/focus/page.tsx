@@ -47,6 +47,7 @@ export default async function FocusPage({
     { data: presetRows },
     { data: goalRow },
     { data: taskRows },
+    { data: categoryRows },
   ] = await Promise.all([
     db
       .from("focus_sessions")
@@ -73,7 +74,7 @@ export default async function FocusPage({
       .select("*")
       .eq("user_id", user.id)
       .order("sort_order", { ascending: true })
-      .limit(12),
+      .limit(100),
     db
       .from("focus_goals")
       .select("*")
@@ -89,6 +90,12 @@ export default async function FocusPage({
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .limit(80),
+    db
+      .from("categories")
+      .select("id,name,emoji")
+      .eq("user_id", user.id)
+      .order("sort_order", { ascending: true })
+      .limit(100),
   ]);
 
   const sessionIds = [
@@ -228,6 +235,11 @@ export default async function FocusPage({
       timezone={timezone}
       weekStartsOn={weekStartsOn}
       tasks={tasks}
+      categories={(categoryRows ?? []).map((category) => ({
+        id: category.id,
+        name: category.name,
+        emoji: category.emoji,
+      }))}
       initialDraft={initialDraft}
       autoOpenConfigurator={autoOpenConfigurator}
     />

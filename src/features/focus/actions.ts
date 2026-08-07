@@ -19,15 +19,22 @@ import {
 } from "./repository";
 import {
   completeLinkedTaskSchema,
+  focusPresetInputSchema,
   focusTransitionSchema,
   startFocusSessionSchema,
   updateFocusMetadataSchema,
+  type FocusPresetInput,
   type FocusTransitionInput,
   type StartFocusSessionInput,
   type UpdateFocusMetadataInput,
 } from "./validation";
-import type { FocusSession } from "./types";
-import { configToJson, linkSnapshotToJson } from "./mappers";
+import type { FocusPreset, FocusSession } from "./types";
+import {
+  configToJson,
+  linkSnapshotToJson,
+  mapPresetRow,
+  presetToRowPayload,
+} from "./mappers";
 import {
   aggregateTaskFocusStats,
   isTaskOccurrenceAllowed,
@@ -538,6 +545,265 @@ export async function discardFocusSessionAction(
 
     refresh();
     return { ok: true, data: { id: data.id } };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function saveFocusPresetAction(
+  input: unknown,
+): Promise<FocusActionResult<FocusPreset>> {
+  try {
+    const value = focusPresetInputSchema.parse(input) as FocusPresetInput;
+    const { db, user } = await auth();
+
+    if (value.defaultCategoryId) {
+      const { data: category } = await db
+        .from("categories")
+        .select("id")
+        .eq("id", value.defaultCategoryId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!category) {
+        throw new FocusError(
+          "VALIDATION_ERROR",
+          "Default category is not available",
+        );
+      }
+    }
+
+    let sortOrder = value.sortOrder;
+    if (sortOrder == null) {
+      const { data: last } = await db
+        .from("focus_presets")
+        .select("sort_order")
+        .eq("user_id", user.id)
+        .is("archived_at", null)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      sortOrder = (last?.sort_order ?? -1) + 1;
+    }
+
+    const payload = presetToRowPayload(user.id, {
+      id: value.id,
+      name: value.name,
+      emoji: value.emoji ?? null,
+      intention: value.intention ?? null,
+      mode: value.mode,
+      focusDurationSec: value.focusDurationSec ?? null,
+      shortBreakSec: value.shortBreakSec ?? null,
+      longBreakSec: value.longBreakSec ?? null,
+      cyclesBeforeLongBreak: value.cyclesBeforeLongBreak ?? null,
+      targetCycles: value.targetCycles ?? null,
+      autoStartBreaks: value.autoStartBreaks,
+      autoStartFocus: value.autoStartFocus,
+      soundEnabled: value.soundEnabled,
+      vibrationEnabled: value.vibrationEnabled,
+      notifyOnPhaseEnd: value.notifyOnPhaseEnd,
+      completeTaskOnSessionEnd: value.completeTaskOnSessionEnd,
+      keepScreenAwake: value.keepScreenAwake,
+      preferFullscreen: value.preferFullscreen,
+      segments: value.segments,
+      isFavorite: value.isFavorite,
+      sortOrder,
+      defaultCategoryId: value.defaultCategoryId ?? null,
+      archivedAt: null,
+    });
+
+    if (value.id) {
+      const { data, error } = await db
+        .from("focus_presets")
+        .update(payload)
+        .eq("id", value.id)
+        .eq("user_id", user.id)
+        .select("*")
+        .maybeSingle();
+      if (error) {
+        throw new FocusError("DATABASE_ERROR", "Unable to update focus preset");
+      }
+      if (!data) {
+        throw new FocusError("NOT_FOUND", "Focus preset not found.");
+      }
+      refresh();
+      return { ok: true, data: mapPresetRow(data) };
+    }
+
+    const { data, error } = await db
+      .from("focus_presets")
+      .insert(payload)
+      .select("*")
+      .single();
+    if (error || !data) {
+      throw new FocusError("DATABASE_ERROR", "Unable to create focus preset");
+    }
+    refresh();
+    return { ok: true, data: mapPresetRow(data) };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function duplicateFocusPresetAction(
+  input: unknown,
+): Promise<FocusActionResult<FocusPreset>> {
+  try {
+    const value = z.object({ presetId: z.string().uuid() }).parse(input);
+    const { db, user } = await auth();
+    const { data: source } = await db
+      .from("focus_presets")
+      .select("*")
+      .eq("id", value.presetId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!source) {
+      throw new FocusError("NOT_FOUND", "Focus preset not found.");
+    }
+    const mapped = mapPresetRow(source);
+    const copyName =
+      mapped.name.length > 70
+        ? `${mapped.name.slice(0, 70)}…`
+        : `${mapped.name} copy`;
+    return saveFocusPresetAction({
+      name: copyName,
+      emoji: mapped.emoji,
+      intention: mapped.intention,
+      mode: mapped.mode,
+      focusDurationSec: mapped.focusDurationSec,
+      shortBreakSec: mapped.shortBreakSec,
+      longBreakSec: mapped.longBreakSec,
+      cyclesBeforeLongBreak: mapped.cyclesBeforeLongBreak,
+      targetCycles: mapped.targetCycles,
+      autoStartBreaks: mapped.autoStartBreaks,
+      autoStartFocus: mapped.autoStartFocus,
+      soundEnabled: mapped.soundEnabled,
+      vibrationEnabled: mapped.vibrationEnabled,
+      notifyOnPhaseEnd: mapped.notifyOnPhaseEnd,
+      completeTaskOnSessionEnd: mapped.completeTaskOnSessionEnd,
+      keepScreenAwake: mapped.keepScreenAwake,
+      preferFullscreen: mapped.preferFullscreen,
+      segments: mapped.segments,
+      isFavorite: false,
+      defaultCategoryId: mapped.defaultCategoryId,
+    });
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function setFocusPresetArchivedAction(
+  input: unknown,
+): Promise<FocusActionResult<FocusPreset>> {
+  try {
+    const value = z
+      .object({
+        presetId: z.string().uuid(),
+        archived: z.boolean(),
+      })
+      .parse(input);
+    const { db, user } = await auth();
+    const { data, error } = await db
+      .from("focus_presets")
+      .update({
+        archived_at: value.archived ? new Date().toISOString() : null,
+      })
+      .eq("id", value.presetId)
+      .eq("user_id", user.id)
+      .select("*")
+      .maybeSingle();
+    if (error) {
+      throw new FocusError("DATABASE_ERROR", "Unable to archive focus preset");
+    }
+    if (!data) {
+      throw new FocusError("NOT_FOUND", "Focus preset not found.");
+    }
+    refresh();
+    return { ok: true, data: mapPresetRow(data) };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function deleteFocusPresetAction(
+  input: unknown,
+): Promise<FocusActionResult<{ id: string }>> {
+  try {
+    const value = z.object({ presetId: z.string().uuid() }).parse(input);
+    const { db, user } = await auth();
+    const { data, error } = await db
+      .from("focus_presets")
+      .delete()
+      .eq("id", value.presetId)
+      .eq("user_id", user.id)
+      .select("id")
+      .maybeSingle();
+    if (error) {
+      throw new FocusError("DATABASE_ERROR", "Unable to delete focus preset");
+    }
+    if (!data) {
+      throw new FocusError("NOT_FOUND", "Focus preset not found.");
+    }
+    refresh();
+    return { ok: true, data: { id: data.id } };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function reorderFocusPresetsAction(
+  input: unknown,
+): Promise<FocusActionResult<{ count: number }>> {
+  try {
+    const value = z
+      .object({
+        orderedIds: z
+          .array(z.string().uuid())
+          .min(1)
+          .max(200)
+          .refine((ids) => new Set(ids).size === ids.length),
+      })
+      .parse(input);
+    const { db } = await auth();
+    const { error } = await db.rpc("reorder_resources", {
+      resource_type: "focus_presets",
+      ordered_ids: value.orderedIds,
+    });
+    if (error) {
+      throw new FocusError("DATABASE_ERROR", "Unable to reorder focus presets");
+    }
+    refresh();
+    return { ok: true, data: { count: value.orderedIds.length } };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function toggleFocusPresetFavoriteAction(
+  input: unknown,
+): Promise<FocusActionResult<FocusPreset>> {
+  try {
+    const value = z
+      .object({
+        presetId: z.string().uuid(),
+        isFavorite: z.boolean(),
+      })
+      .parse(input);
+    const { db, user } = await auth();
+    const { data, error } = await db
+      .from("focus_presets")
+      .update({ is_favorite: value.isFavorite })
+      .eq("id", value.presetId)
+      .eq("user_id", user.id)
+      .select("*")
+      .maybeSingle();
+    if (error) {
+      throw new FocusError("DATABASE_ERROR", "Unable to update favorite");
+    }
+    if (!data) {
+      throw new FocusError("NOT_FOUND", "Focus preset not found.");
+    }
+    refresh();
+    return { ok: true, data: mapPresetRow(data) };
   } catch (error) {
     return fail(error);
   }

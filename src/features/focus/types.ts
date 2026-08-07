@@ -108,6 +108,8 @@ export type FocusPreset = {
   id: string;
   userId: string;
   name: string;
+  emoji: string | null;
+  intention: string | null;
   mode: FocusMode;
   focusDurationSec: number | null;
   shortBreakSec: number | null;
@@ -125,6 +127,10 @@ export type FocusPreset = {
   segments: FocusSegment[];
   isFavorite: boolean;
   sortOrder: number;
+  defaultCategoryId: string | null;
+  archivedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type FocusGoal = {

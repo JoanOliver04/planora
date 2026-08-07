@@ -197,6 +197,8 @@ export type Database = {
           id: string;
           user_id: string;
           name: string;
+          emoji: string | null;
+          intention: string | null;
           mode: "countdown" | "stopwatch" | "cycles";
           focus_duration_sec: number | null;
           short_break_sec: number | null;
@@ -214,6 +216,8 @@ export type Database = {
           segments: Json;
           is_favorite: boolean;
           sort_order: number;
+          default_category_id: string | null;
+          archived_at: string | null;
           created_at: string;
           updated_at: string;
         };

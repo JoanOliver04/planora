@@ -136,6 +136,8 @@ describe("focus database TypeScript types", () => {
       id: "00000000-0000-4000-8000-000000000001",
       user_id: "00000000-0000-4000-8000-000000000002",
       name: "Deep work",
+      emoji: "🎯",
+      intention: "Deep work block",
       mode: "countdown",
       focus_duration_sec: 1500,
       short_break_sec: 300,
@@ -153,6 +155,8 @@ describe("focus database TypeScript types", () => {
       segments: [],
       is_favorite: true,
       sort_order: 0,
+      default_category_id: null,
+      archived_at: null,
       created_at: "2026-08-07T00:00:00.000Z",
       updated_at: "2026-08-07T00:00:00.000Z",
     } satisfies FocusPreset;

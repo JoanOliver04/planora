@@ -23,6 +23,8 @@ const preset = {
   id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
   userId: "user",
   name: "Deep work",
+  emoji: "🎯",
+  intention: null,
   mode: "countdown",
   focusDurationSec: 1500,
   shortBreakSec: null,
@@ -40,6 +42,8 @@ const preset = {
   segments: [],
   isFavorite: true,
   sortOrder: 0,
+  defaultCategoryId: null,
+  archivedAt: null,
   createdAt: "2026-08-01T00:00:00.000Z",
   updatedAt: "2026-08-01T00:00:00.000Z",
 } as FocusPreset;

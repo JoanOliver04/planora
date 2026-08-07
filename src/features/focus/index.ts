@@ -40,7 +40,21 @@ export {
 } from "./focus-review";
 export {
   discardFocusSessionAction,
+  saveFocusPresetAction,
+  duplicateFocusPresetAction,
+  setFocusPresetArchivedAction,
+  deleteFocusPresetAction,
+  reorderFocusPresetsAction,
+  toggleFocusPresetFavoriteAction,
 } from "./actions";
+export { FocusPresetManager } from "./preset-manager";
+export { PresetEditorDialog } from "./preset-editor";
+export {
+  FOCUS_PRESET_TEMPLATES,
+  orderPresetsForHome,
+  recentPresetIdsFromSessions,
+  templateToPresetInput,
+} from "./preset-templates";
 export {
   getCycleProgress,
   summarizeEndedSession,

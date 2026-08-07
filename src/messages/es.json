@@ -103,7 +103,78 @@
     },
     "presets": {
       "title": "Presets y accesos rápidos",
-      "subtitle": "Elige un punto de partida. Podrás personalizarlo en el siguiente paso."
+      "subtitle": "Elige un punto de partida. Los favoritos van primero; el uso reciente solo se marca con una etiqueta.",
+      "createTitle": "Nuevo preset de Enfoque",
+      "editTitle": "Editar preset de Enfoque",
+      "editorHint": "Guarda una configuración reutilizable para estudiar, trabajar o practicar.",
+      "name": "Nombre",
+      "emoji": "Emoji",
+      "intention": "Intención sugerida",
+      "intentionPlaceholder": "Título opcional por defecto de la sesión",
+      "defaultCategory": "Categoría por defecto",
+      "noCategory": "Ninguna",
+      "advanced": "Comportamiento y plan estructurado",
+      "favorite": "Marcar como favorito",
+      "favoriteBadge": "Favorito",
+      "recentBadge": "Reciente",
+      "archivedBadge": "Archivado",
+      "structuredPlan": "Plan estructurado opcional",
+      "structuredPlanHint": "Añade bloques ordenados si quieres una secuencia personalizada más allá de ciclos simples.",
+      "segmentKind": "Tipo de bloque",
+      "segmentMinutes": "Minutos",
+      "addSegment": "Añadir bloque",
+      "manage": "Gestionar presets",
+      "hideManage": "Ocultar gestión",
+      "manageTitle": "Tus presets",
+      "manageHint": "Reordena con el asa. Archiva en lugar de borrar si quieres conservar historial.",
+      "emptyTemplates": "Aún no hay presets. Crea una de estas sugerencias: son editables y opcionales.",
+      "noActive": "No hay presets activos.",
+      "edit": "Editar preset",
+      "duplicate": "Duplicar preset",
+      "archive": "Archivar preset",
+      "restore": "Restaurar preset",
+      "delete": "Eliminar preset permanentemente",
+      "unfavorite": "Quitar de favoritos",
+      "showArchived": "Ver archivados ({count})",
+      "hideArchived": "Ocultar archivados",
+      "saved": "Preset guardado",
+      "createdFromTemplate": "Preset creado desde plantilla",
+      "duplicated": "Preset duplicado",
+      "archived": "Preset archivado",
+      "restored": "Preset restaurado",
+      "deleted": "Preset eliminado",
+      "favoriteUpdated": "Favorito actualizado",
+      "deleteTitle": "¿Eliminar este preset de forma permanente?",
+      "deleteDescription": "Las sesiones pasadas conservan su configuración. El preset en sí se eliminará.",
+      "deleteConfirm": "Eliminar permanentemente",
+      "errors": {
+        "generic": "No se pudo guardar el preset.",
+        "nameRequired": "Escribe un nombre.",
+        "focusDuration": "Indica una duración de enfoque de al menos 1 minuto.",
+        "focusDurationMax": "La duración máxima de enfoque es de 8 horas.",
+        "shortBreak": "La duración del descanso corto no es válida.",
+        "longBreak": "La duración del descanso largo no es válida.",
+        "targetCycles": "El número de ciclos no es válido.",
+        "cyclesBeforeLong": "Indica cuántos ciclos hay antes del descanso largo."
+      }
+    },
+    "templates": {
+      "pomodoro": {
+        "name": "Pomodoro 25/5",
+        "hint": "Ciclos · 25 min enfoque · 5 min descanso"
+      },
+      "focus50": {
+        "name": "Concentración 50/10",
+        "hint": "Ciclos · 50 min enfoque · 10 min descanso"
+      },
+      "deep90": {
+        "name": "Deep work 90",
+        "hint": "Cuenta atrás · 90 minutos"
+      },
+      "stopwatch": {
+        "name": "Cronómetro libre",
+        "hint": "Enfoque sin límite fijo"
+      }
     },
     "quickPresets": {
       "quick-25": "25 minutos",

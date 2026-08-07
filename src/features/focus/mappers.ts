@@ -274,6 +274,8 @@ export function mapPresetRow(row: FocusPresetRow): FocusPreset {
     id: row.id,
     userId: row.user_id,
     name: row.name,
+    emoji: row.emoji ?? null,
+    intention: row.intention ?? null,
     mode: row.mode as FocusMode,
     focusDurationSec: row.focus_duration_sec,
     shortBreakSec: row.short_break_sec,
@@ -291,6 +293,44 @@ export function mapPresetRow(row: FocusPresetRow): FocusPreset {
     segments: parseFocusSegments(row.segments),
     isFavorite: row.is_favorite,
     sortOrder: row.sort_order,
+    defaultCategoryId: row.default_category_id ?? null,
+    archivedAt: row.archived_at ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function presetToRowPayload(
+  userId: string,
+  preset: Omit<FocusPreset, "id" | "userId" | "createdAt" | "updatedAt"> & {
+    id?: string;
+  },
+) {
+  return {
+    ...(preset.id ? { id: preset.id } : {}),
+    user_id: userId,
+    name: preset.name,
+    emoji: preset.emoji,
+    intention: preset.intention,
+    mode: preset.mode,
+    focus_duration_sec: preset.focusDurationSec,
+    short_break_sec: preset.shortBreakSec,
+    long_break_sec: preset.longBreakSec,
+    cycles_before_long_break: preset.cyclesBeforeLongBreak,
+    target_cycles: preset.targetCycles,
+    auto_start_breaks: preset.autoStartBreaks,
+    auto_start_focus: preset.autoStartFocus,
+    sound_enabled: preset.soundEnabled,
+    vibration_enabled: preset.vibrationEnabled,
+    notify_on_phase_end: preset.notifyOnPhaseEnd,
+    complete_task_on_session_end: preset.completeTaskOnSessionEnd,
+    keep_screen_awake: preset.keepScreenAwake,
+    prefer_fullscreen: preset.preferFullscreen,
+    segments: preset.segments,
+    is_favorite: preset.isFavorite,
+    sort_order: preset.sortOrder,
+    default_category_id: preset.defaultCategoryId,
+    archived_at: preset.archivedAt,
   };
 }
 

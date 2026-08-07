@@ -1181,6 +1181,8 @@ Explica el modelo de revisión y la privacidad de notas.
 
 ## Prompt 11 — Presets completamente personalizables
 
+> **HECHO** — CRUD de presets (crear/editar/duplicar/archivar/restaurar/eliminar/reordenar), plantillas sugeridas localizadas (no insertadas), favoritos primero + badge reciente sin alterar orden, emoji/intención/categoría/plan estructurado, snapshot en sesiones al usar preset.
+
 ```text
 Implementa la gestión completa de presets de Enfoque.
 
