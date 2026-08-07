@@ -573,6 +573,8 @@ Indica rutas, navegación, componentes reutilizados, archivos modificados y resu
 
 ## Prompt 04 — Configurador de sesión y arranque rápido
 
+> **HECHO** — `SessionStartDialog` con modos, avanzadas, conflicto de sesión activa, validación y arranque vía server action. Tests en `tests/focus-session-start.test.tsx`.
+
 ```text
 Implementa el flujo para configurar e iniciar una sesión de Enfoque.
 

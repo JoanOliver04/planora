@@ -12,7 +12,20 @@ import { join } from "node:path";
 
 const toastMessage = vi.fn();
 vi.mock("sonner", () => ({
-  toast: { message: (...args: unknown[]) => toastMessage(...args) },
+  toast: {
+    message: (...args: unknown[]) => toastMessage(...args),
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+
+vi.mock("@/features/focus/actions", () => ({
+  startFocusSessionAction: vi.fn(),
+  transitionFocusSessionAction: vi.fn(),
 }));
 
 afterEach(() => {
@@ -92,7 +105,7 @@ describe("Focus home shell", () => {
     expect(screen.getByRole("button", { name: /Start session/i })).toBeVisible();
   });
 
-  it("prioritises the active session and blocks a second start", async () => {
+  it("prioritises the active session card", async () => {
     const user = userEvent.setup();
     const active = sampleActiveSession();
     renderHome({ activeSession: active });
@@ -106,11 +119,17 @@ describe("Focus home shell", () => {
       screen.queryByRole("button", { name: /^Iniciar sesión$/i }),
     ).toBeNull();
 
-    const preset = screen.getByRole("button", { name: /25 minutos/i });
-    expect(preset).toBeDisabled();
-
     await user.click(screen.getByRole("button", { name: /Continuar sesión/i }));
     expect(toastMessage).toHaveBeenCalled();
+  });
+
+  it("opens the configurator from the primary start action", async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+    expect(
+      screen.getByRole("heading", { name: "Nueva sesión de Enfoque" }),
+    ).toBeVisible();
   });
 
   it("shows recent sessions and weekly summary when history exists", () => {

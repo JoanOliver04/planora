@@ -3667,6 +3667,105 @@ select:disabled,
   }
 }
 
+.focus-start-dialog {
+  width: min(100%, 520px);
+  max-height: min(90vh, 760px);
+  overflow: auto;
+}
+.focus-start-form {
+  margin-top: 0.75rem;
+}
+.focus-mode-fieldset {
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 0.85);
+  padding: 0.75rem;
+}
+.focus-mode-fieldset legend {
+  padding-inline: 0.25rem;
+  font-weight: 700;
+  font-size: 0.86rem;
+}
+.focus-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.focus-mode-option {
+  display: grid;
+  min-height: 44px;
+  place-items: center;
+  gap: 0.25rem;
+  padding: 0.55rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 0.75);
+  background: var(--surface);
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-align: center;
+  cursor: pointer;
+}
+.focus-mode-option:has(input:checked) {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--primary-2) 70%, var(--surface));
+  color: var(--primary-strong);
+}
+.focus-mode-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.focus-advanced {
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 0.85);
+  padding: 0.65rem 0.8rem;
+  background: color-mix(in srgb, var(--surface-muted) 45%, var(--surface));
+}
+.focus-advanced summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+.focus-advanced-grid {
+  display: grid;
+  gap: 0.7rem;
+  padding-top: 0.55rem;
+}
+.focus-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  min-height: 44px;
+  line-height: 1.35;
+}
+.focus-check input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.15rem;
+  flex: 0 0 auto;
+}
+.focus-form-error {
+  margin: 0;
+  color: var(--destructive);
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+.focus-conflict {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+.focus-conflict-actions {
+  display: grid;
+  gap: 0.55rem;
+}
+@media (max-width: 420px) {
+  .focus-mode-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Task cards: content/actions separated, mobile-first. */
 .task { min-width: 0; }
 .task-body { min-width: 0; overflow-wrap: normal; word-break: normal; }

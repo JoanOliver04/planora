@@ -9,6 +9,11 @@ export * from "./mappers";
 export * from "./defaults";
 export { FocusHome } from "./focus-home";
 export {
+  SessionStartDialog,
+  type FocusTaskOption,
+  type SessionStartDraft,
+} from "./session-start-dialog";
+export {
   fetchActiveFocusSession,
   fetchFocusSessionById,
   persistFocusSession,
