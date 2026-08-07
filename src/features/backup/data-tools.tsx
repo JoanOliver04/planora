@@ -130,7 +130,7 @@ export function DataTools({
     try {
       if (kind === "json") {
         download(
-          "planora-backup-v2.json",
+          "planora-backup-v3.json",
           JSON.stringify(createBackup(data), null, 2),
           "application/json",
         );
@@ -228,6 +228,10 @@ export function DataTools({
     templates: t("summary.templates"),
     reminders: t("summary.reminders"),
     alarms: t("summary.alarms"),
+    focus_presets: t("summary.focus_presets"),
+    focus_sessions: t("summary.focus_sessions"),
+    focus_intervals: t("summary.focus_intervals"),
+    focus_goals: t("summary.focus_goals"),
   };
 
   return (

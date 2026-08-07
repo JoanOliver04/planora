@@ -320,7 +320,7 @@
       "title": "Restore a backup",
       "description": "Select a JSON backup created by Planora to replace your current workspace.",
       "selectTitle": "Select a Planora backup",
-      "fileType": "JSON file · Backup formats v1 and v2",
+      "fileType": "JSON file · Backup formats v1, v2 and v3",
       "selectAction": "Select file",
       "removeFile": "Remove {name}",
       "validating": "Checking backup…",
@@ -336,7 +336,7 @@
       "fileName": "File",
       "createdAt": "Created",
       "version": "Format version",
-      "replaceWarning": "Schedules, categories, tasks, events, history, templates and reminders not present in this backup will be removed.",
+      "replaceWarning": "Schedules, categories, tasks, events, history, templates, reminders and focus data not present in this backup will be removed.",
       "cancel": "Cancel",
       "confirmAction": "Restore and replace data",
       "preparing": "Preparing restore…",
@@ -351,7 +351,11 @@
       "completions": "Records",
       "templates": "Templates",
       "reminders": "Reminders",
-      "alarms": "Alarms"
+      "alarms": "Alarms",
+      "focus_presets": "Focus presets",
+      "focus_sessions": "Focus sessions",
+      "focus_intervals": "Focus intervals",
+      "focus_goals": "Focus goals"
     },
     "privacy": {
       "title": "Privacy and control",

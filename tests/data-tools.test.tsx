@@ -32,7 +32,7 @@ function renderTools() {
 
 function backupFile() {
   const content = JSON.stringify(createBackup(data));
-  const file = new File([content], "planora-backup-v2.json", {
+  const file = new File([content], "planora-backup-v3.json", {
     type: "application/json",
   });
   Object.defineProperty(file, "text", { value: vi.fn(async () => content) });
@@ -109,7 +109,7 @@ describe("DataTools", () => {
     await selectValidBackup();
     await user.click(screen.getByRole("button", { name: "Restore backup" }));
     const dialog = screen.getByRole("alertdialog");
-    expect(within(dialog).getByText("planora-backup-v2.json")).toBeVisible();
+    expect(within(dialog).getByText("planora-backup-v3.json")).toBeVisible();
     expect(within(dialog).getByText("Format version")).toBeVisible();
     expect(within(dialog).getByText(/will be removed/i)).toBeVisible();
     await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
@@ -154,7 +154,7 @@ describe("DataTools", () => {
     ).toBeVisible();
   });
 
-  it("downloads the full JSON backup in version two format", async () => {
+  it("downloads the full JSON backup in version three format", async () => {
     const user = userEvent.setup();
     const click = vi
       .spyOn(HTMLAnchorElement.prototype, "click")

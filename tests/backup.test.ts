@@ -21,11 +21,16 @@ describe("portable backups", () => {
       timezone: "Europe/Madrid",
     });
     expect(backup.backupId).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(BACKUP_SCHEMA_VERSION).toBe(3);
     expect(parseBackup(backup).success).toBe(true);
     expect(summarizeBackup(backup)).toMatchObject({
       tasks: 1,
       events: 1,
       alarms: 1,
+      focus_presets: 1,
+      focus_sessions: 1,
+      focus_intervals: 1,
+      focus_goals: 1,
     });
   });
 
@@ -35,14 +40,51 @@ describe("portable backups", () => {
       format: "planora-backup",
       version: 1,
       exportedAt: current.createdAt,
-      data: current.data,
+      data: {
+        profile: current.data.profile,
+        schedules: current.data.schedules,
+        categories: current.data.categories,
+        tasks: current.data.tasks,
+        events: current.data.events,
+        completions: current.data.completions,
+        templates: current.data.templates,
+        reminders: current.data.reminders,
+      },
     };
     const first = parseBackup(legacy);
     const second = parseBackup(legacy);
     expect(first.success).toBe(true);
     expect(second.success).toBe(true);
-    if (first.success && second.success)
+    if (first.success && second.success) {
       expect(first.data.backupId).toBe(second.data.backupId);
+      expect(first.data.data.focus_presets).toEqual([]);
+      expect(first.data.schemaVersion).toBe(3);
+    }
+  });
+
+  it("upgrades version two backups with empty focus collections", () => {
+    const current = createBackup(backupFixture());
+    const v2 = {
+      ...current,
+      schemaVersion: 2,
+      data: {
+        profile: current.data.profile,
+        schedules: current.data.schedules,
+        categories: current.data.categories,
+        tasks: current.data.tasks,
+        events: current.data.events,
+        completions: current.data.completions,
+        templates: current.data.templates,
+        reminders: current.data.reminders,
+      },
+    };
+    const parsed = parseBackup(v2);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.schemaVersion).toBe(3);
+      expect(parsed.data.data.focus_sessions).toEqual([]);
+      expect(parsed.data.data.focus_goals).toEqual([]);
+    }
   });
 
   it.each([
@@ -99,7 +141,42 @@ describe("portable backups", () => {
     expect(payload.tasks[0].category_id).toBe(payload.categories[0].id);
     expect(payload.completions[0].task_id).toBe(payload.tasks[0].id);
     expect(payload.reminders[0].task_id).toBe(payload.tasks[0].id);
+    expect(payload.focus_presets[0].id).not.toBe(backupIds.focusPreset);
+    expect(payload.focus_sessions[0].id).not.toBe(backupIds.focusSession);
+    expect(payload.focus_sessions[0].preset_id).toBe(payload.focus_presets[0].id);
+    expect(payload.focus_sessions[0].task_id).toBe(payload.tasks[0].id);
+    expect(payload.focus_intervals[0].session_id).toBe(
+      payload.focus_sessions[0].id,
+    );
     expect(JSON.stringify(payload)).not.toContain("user_id");
+  });
+
+  it("cancels live focus sessions and closes open intervals on restore", () => {
+    const backup = createBackup(backupFixture());
+    backup.data.focus_sessions[0] = {
+      ...backup.data.focus_sessions[0],
+      status: "running",
+      current_phase_kind: "focus",
+      ended_at: null,
+      revision: 7,
+    };
+    backup.data.focus_intervals[0] = {
+      ...backup.data.focus_intervals[0],
+      ended_at: null,
+    };
+    const parsed = parseBackup(backup);
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    const payload = prepareRestorePayload(parsed.data);
+    expect(payload.focus_sessions[0].status).toBe("cancelled");
+    expect(payload.focus_sessions[0].ended_at).toBe(
+      payload.focus_sessions[0].started_at,
+    );
+    expect(payload.focus_sessions[0].current_phase_kind).toBeNull();
+    expect(payload.focus_sessions[0].revision).toBe(1);
+    expect(payload.focus_intervals[0].ended_at).toBe(
+      payload.focus_intervals[0].started_at,
+    );
   });
 
   it("produces one replacement payload when restored repeatedly", () => {
@@ -135,6 +212,10 @@ describe("portable backups", () => {
     empty.completions = [];
     empty.templates = [];
     empty.reminders = [];
+    empty.focus_presets = [];
+    empty.focus_sessions = [];
+    empty.focus_intervals = [];
+    empty.focus_goals = [];
     expect(parseBackup(createBackup(empty)).success).toBe(true);
   });
 

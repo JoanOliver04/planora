@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 export const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
-export const BACKUP_SCHEMA_VERSION = 2;
+/** v3 adds Focus entities (presets, sessions, intervals, goals). */
+export const BACKUP_SCHEMA_VERSION = 3;
 
 const uuid = z.string().uuid();
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -109,6 +110,79 @@ const reminderSchema = z.object({
   next_trigger_at: timestamp,
 });
 
+const focusPresetSchema = z.object({
+  id: uuid,
+  name: z.string().min(1).max(80),
+  mode: z.enum(["countdown", "stopwatch", "cycles"]),
+  focus_duration_sec: z.number().int().min(60).max(8 * 60 * 60).nullable(),
+  short_break_sec: z.number().int().min(0).max(60 * 60).nullable(),
+  long_break_sec: z.number().int().min(0).max(3 * 60 * 60).nullable(),
+  cycles_before_long_break: z.number().int().min(1).max(20).nullable(),
+  target_cycles: z.number().int().min(1).max(50).nullable(),
+  auto_start_breaks: z.boolean(),
+  auto_start_focus: z.boolean(),
+  sound_enabled: z.boolean(),
+  vibration_enabled: z.boolean(),
+  notify_on_phase_end: z.boolean(),
+  complete_task_on_session_end: z.boolean(),
+  keep_screen_awake: z.boolean(),
+  prefer_fullscreen: z.boolean(),
+  segments: z.array(z.unknown()).max(40).default([]),
+  is_favorite: z.boolean(),
+  sort_order: z.number().int(),
+});
+
+const focusSessionSchema = z.object({
+  id: uuid,
+  status: z.enum(["running", "paused", "on_break", "completed", "cancelled"]),
+  mode: z.enum(["countdown", "stopwatch", "cycles"]),
+  title: z.string().min(1).max(140).nullable(),
+  preset_id: nullableUuid,
+  task_id: nullableUuid,
+  category_id: nullableUuid,
+  schedule_id: nullableUuid,
+  occurrence_date: date.nullable(),
+  planned_focus_sec: z.number().int().min(60).max(8 * 60 * 60).nullable(),
+  focus_sec: z.number().int().min(0),
+  paused_sec: z.number().int().min(0),
+  break_sec: z.number().int().min(0),
+  current_phase_kind: z
+    .enum(["focus", "short_break", "long_break", "pause"])
+    .nullable(),
+  current_cycle: z.number().int().min(1),
+  config: jsonObject,
+  link_snapshot: jsonObject,
+  started_at: timestamp,
+  ended_at: timestamp.nullable(),
+  notes: z.string().max(4000).nullable(),
+  distractions: z.array(z.string().max(280)).max(50).default([]),
+  subjective_focus: z.number().int().min(1).max(5).nullable(),
+  subjective_energy: z.number().int().min(1).max(5).nullable(),
+  complete_task_on_end: z.boolean(),
+  task_completion_applied: z.boolean(),
+  revision: z.number().int().min(1),
+});
+
+const focusIntervalSchema = z.object({
+  id: uuid,
+  session_id: uuid,
+  kind: z.enum(["focus", "short_break", "long_break", "pause"]),
+  sequence: z.number().int().min(0),
+  cycle_index: z.number().int().min(1).nullable(),
+  started_at: timestamp,
+  ended_at: timestamp.nullable(),
+  planned_duration_sec: z.number().int().min(0).nullable(),
+});
+
+const focusGoalSchema = z.object({
+  id: uuid,
+  period: z.literal("weekly"),
+  target_focus_sec: z.number().int().min(1).max(8 * 60 * 60 * 14),
+  timezone: z.string().min(1).max(100),
+  week_starts_on: z.number().int().min(0).max(6),
+  active: z.boolean(),
+});
+
 const backupDataSchema = z
   .object({
     profile: profileSchema.nullable(),
@@ -119,6 +193,10 @@ const backupDataSchema = z
     completions: z.array(completionSchema).max(20000),
     templates: z.array(templateSchema).max(500),
     reminders: z.array(reminderSchema).max(1000),
+    focus_presets: z.array(focusPresetSchema).max(200).default([]),
+    focus_sessions: z.array(focusSessionSchema).max(5000).default([]),
+    focus_intervals: z.array(focusIntervalSchema).max(50000).default([]),
+    focus_goals: z.array(focusGoalSchema).max(50).default([]),
   })
   .superRefine((data, context) => {
     const unique = (name: string, values: string[]) => {
@@ -156,11 +234,29 @@ const backupDataSchema = z
       "reminder",
       data.reminders.map((item) => item.id),
     );
+    unique(
+      "focus preset",
+      data.focus_presets.map((item) => item.id),
+    );
+    unique(
+      "focus session",
+      data.focus_sessions.map((item) => item.id),
+    );
+    unique(
+      "focus interval",
+      data.focus_intervals.map((item) => item.id),
+    );
+    unique(
+      "focus goal",
+      data.focus_goals.map((item) => item.id),
+    );
 
     const schedules = new Set(data.schedules.map((item) => item.id));
     const categories = new Set(data.categories.map((item) => item.id));
     const tasks = new Set(data.tasks.map((item) => item.id));
     const events = new Set(data.events.map((item) => item.id));
+    const focusPresets = new Set(data.focus_presets.map((item) => item.id));
+    const focusSessions = new Set(data.focus_sessions.map((item) => item.id));
     const invalid = (message: string) =>
       context.addIssue({ code: z.ZodIssueCode.custom, message });
 
@@ -276,6 +372,59 @@ const backupDataSchema = z
       data.reminders.filter((item) => item.kind === "daily_summary").length > 1
     )
       invalid("Only one daily summary is supported");
+
+    for (const item of data.focus_presets) {
+      if (
+        item.mode !== "stopwatch" &&
+        (item.focus_duration_sec == null || item.focus_duration_sec < 60)
+      )
+        invalid("Focus preset duration is invalid");
+    }
+    for (const item of data.focus_sessions) {
+      if (item.preset_id && !focusPresets.has(item.preset_id))
+        invalid("Focus session references an unknown preset");
+      if (item.task_id && !tasks.has(item.task_id))
+        invalid("Focus session references an unknown task");
+      if (item.category_id && !categories.has(item.category_id))
+        invalid("Focus session references an unknown category");
+      if (item.schedule_id && !schedules.has(item.schedule_id))
+        invalid("Focus session references an unknown schedule");
+      if (
+        (item.status === "completed" || item.status === "cancelled") &&
+        !item.ended_at
+      )
+        invalid("Terminal focus session must include ended_at");
+      if (
+        (item.status === "running" ||
+          item.status === "paused" ||
+          item.status === "on_break") &&
+        item.ended_at
+      )
+        invalid("Active focus session cannot include ended_at");
+      if (item.ended_at && item.ended_at < item.started_at)
+        invalid("Focus session ends before it starts");
+    }
+    const openBySession = new Map<string, number>();
+    for (const item of data.focus_intervals) {
+      if (!focusSessions.has(item.session_id))
+        invalid("Focus interval references an unknown session");
+      if (item.ended_at && item.ended_at < item.started_at)
+        invalid("Focus interval ends before it starts");
+      if (!item.ended_at)
+        openBySession.set(
+          item.session_id,
+          (openBySession.get(item.session_id) ?? 0) + 1,
+        );
+    }
+    for (const [sessionId, openCount] of openBySession)
+      if (openCount > 1)
+        invalid(`Focus session ${sessionId} has multiple open intervals`);
+    unique(
+      "focus interval sequence",
+      data.focus_intervals.map((item) => `${item.session_id}:${item.sequence}`),
+    );
+    if (data.focus_goals.filter((item) => item.active).length > 1)
+      invalid("Only one active focus goal is supported");
   });
 
 export const backupSchema = z.object({
@@ -339,9 +488,44 @@ function legacyBackupId(value: string) {
   const valueHex = hex.join("");
   return `${valueHex.slice(0, 8)}-${valueHex.slice(8, 12)}-${valueHex.slice(12, 16)}-${valueHex.slice(16, 20)}-${valueHex.slice(20)}`;
 }
+function withFocusDefaults(data: Record<string, unknown>) {
+  return {
+    focus_presets: [],
+    focus_sessions: [],
+    focus_intervals: [],
+    focus_goals: [],
+    ...data,
+  };
+}
+
 export function parseBackup(value: unknown) {
   const current = backupSchema.safeParse(value);
   if (current.success) return current;
+
+  // Upgrade v2 backups (pre-Focus) to v3 with empty focus collections.
+  if (
+    value &&
+    typeof value === "object" &&
+    (value as { schemaVersion?: number }).schemaVersion === 2
+  ) {
+    const v2 = value as {
+      format: string;
+      schemaVersion: number;
+      backupId: string;
+      createdAt: string;
+      exportedBy: string;
+      locale: "es" | "en";
+      timezone: string;
+      data: Record<string, unknown>;
+    };
+    const upgraded = backupSchema.safeParse({
+      ...v2,
+      schemaVersion: BACKUP_SCHEMA_VERSION,
+      data: withFocusDefaults(v2.data),
+    });
+    if (upgraded.success) return upgraded;
+  }
+
   const legacy = legacyBackupSchema.safeParse(value);
   if (!legacy.success) return current;
   const profile = legacy.data.data.profile;
@@ -356,7 +540,7 @@ export function parseBackup(value: unknown) {
       typeof profile?.timezone === "string"
         ? profile.timezone
         : "Europe/Madrid",
-    data: legacy.data.data,
+    data: withFocusDefaults(legacy.data.data as Record<string, unknown>),
   });
 }
 
@@ -372,6 +556,12 @@ export function prepareRestorePayload(backup: PlanoraBackup) {
   );
   const eventIds = new Map(
     backup.data.events.map((item) => [item.id, crypto.randomUUID()]),
+  );
+  const focusPresetIds = new Map(
+    backup.data.focus_presets.map((item) => [item.id, crypto.randomUUID()]),
+  );
+  const focusSessionIds = new Map(
+    backup.data.focus_sessions.map((item) => [item.id, crypto.randomUUID()]),
   );
   const mapped = (ids: Map<string, string>, value: string | null) =>
     value ? (ids.get(value) ?? null) : null;
@@ -424,6 +614,51 @@ export function prepareRestorePayload(backup: PlanoraBackup) {
       task_id: mapped(taskIds, item.task_id),
       event_id: mapped(eventIds, item.event_id),
     })),
+    focus_presets: backup.data.focus_presets.map((item) => ({
+      ...item,
+      id: focusPresetIds.get(item.id)!,
+    })),
+    focus_sessions: backup.data.focus_sessions.map((item) => ({
+      ...item,
+      id: focusSessionIds.get(item.id)!,
+      preset_id: mapped(focusPresetIds, item.preset_id),
+      task_id: mapped(taskIds, item.task_id),
+      category_id: mapped(categoryIds, item.category_id),
+      schedule_id: mapped(scheduleIds, item.schedule_id),
+      // Never restore mid-flight sessions as active; force terminal state.
+      status:
+        item.status === "running" ||
+        item.status === "paused" ||
+        item.status === "on_break"
+          ? "cancelled"
+          : item.status,
+      ended_at:
+        item.ended_at ??
+        (item.status === "running" ||
+        item.status === "paused" ||
+        item.status === "on_break"
+          ? item.started_at
+          : null),
+      current_phase_kind:
+        item.status === "running" ||
+        item.status === "paused" ||
+        item.status === "on_break"
+          ? null
+          : item.current_phase_kind,
+      revision: 1,
+      task_completion_applied: item.task_completion_applied,
+    })),
+    focus_intervals: backup.data.focus_intervals.map((item) => ({
+      ...item,
+      id: crypto.randomUUID(),
+      session_id: focusSessionIds.get(item.session_id)!,
+      // Close any open interval so restore never rehydrates a live timer.
+      ended_at: item.ended_at ?? item.started_at,
+    })),
+    focus_goals: backup.data.focus_goals.map((item) => ({
+      ...item,
+      id: crypto.randomUUID(),
+    })),
   };
 }
 export function summarizeBackup(backup: PlanoraBackup) {
@@ -438,6 +673,10 @@ export function summarizeBackup(backup: PlanoraBackup) {
       .length,
     alarms: backup.data.reminders.filter((item) => item.kind === "alarm")
       .length,
+    focus_presets: backup.data.focus_presets.length,
+    focus_sessions: backup.data.focus_sessions.length,
+    focus_intervals: backup.data.focus_intervals.length,
+    focus_goals: backup.data.focus_goals.length,
   };
 }
 

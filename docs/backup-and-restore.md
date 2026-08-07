@@ -1,6 +1,6 @@
 # Backup and restore
 
-Planora exports UTF-8 JSON backups with explicit metadata (`format`, `schemaVersion`, `backupId`, `createdAt`, `exportedBy`, locale and timezone), separate CSV tables, and an RFC 5545-compatible ICS calendar. Version 2 is the current JSON contract. Each task record includes `scope` (`schedule` or `global`). Global tasks use `schedule_id: null`; schedule tasks require a valid `schedule_id`. Backups without `scope` are treated as schedule-scoped for backward compatibility. Genuine version 1 exports are migrated in memory, validated against the current model, and never modified on disk.
+Planora exports UTF-8 JSON backups with explicit metadata (`format`, `schemaVersion`, `backupId`, `createdAt`, `exportedBy`, locale and timezone), separate CSV tables, and an RFC 5545-compatible ICS calendar. Version 3 is the current JSON contract: it adds Focus entities (`focus_presets`, `focus_sessions`, `focus_intervals`, `focus_goals`). Version 2 backups upgrade in memory with empty Focus collections. Each task record includes `scope` (`schedule` or `global`). Global tasks use `schedule_id: null`; schedule tasks require a valid `schedule_id`. Backups without `scope` are treated as schedule-scoped for backward compatibility. Genuine version 1 exports are migrated in memory, validated against the current model, and never modified on disk.
 
 ## Restore semantics
 
@@ -12,9 +12,10 @@ The database replacement runs through `public.restore_planora_backup(jsonb)`. Th
 
 - derives ownership exclusively from `auth.uid()`;
 - serializes restores for the same account with a transaction-scoped advisory lock;
-- deletes dependent entities in foreign-key order;
-- inserts the complete replacement in dependency order;
+- deletes dependent entities in foreign-key order (Focus intervals/sessions/goals/presets first, then workspace entities);
+- inserts the complete replacement in dependency order (workspace first, then Focus);
 - disables restored reminders and alarms;
+- never rehydrates a live Focus timer: the app layer cancels active sessions and closes open intervals before the RPC runs;
 - runs as one PostgreSQL statement, so any validation, deletion or insertion error rolls back the entire replacement;
 - cannot affect another user's rows because every delete and insert is bound to the authenticated user and RLS remains active.
 

@@ -320,7 +320,7 @@
       "title": "Restaurar una copia",
       "description": "Selecciona una copia JSON creada por Planora para sustituir tu espacio de trabajo actual.",
       "selectTitle": "Selecciona una copia de Planora",
-      "fileType": "Archivo JSON · Formatos de copia v1 y v2",
+      "fileType": "Archivo JSON · Formatos de copia v1, v2 y v3",
       "selectAction": "Seleccionar archivo",
       "removeFile": "Quitar {name}",
       "validating": "Comprobando la copia…",
@@ -336,7 +336,7 @@
       "fileName": "Archivo",
       "createdAt": "Creada",
       "version": "Versión del formato",
-      "replaceWarning": "Se eliminarán los horarios, categorías, tareas, eventos, historial, plantillas y recordatorios que no estén en esta copia.",
+      "replaceWarning": "Se eliminarán los horarios, categorías, tareas, eventos, historial, plantillas, recordatorios y datos de Enfoque que no estén en esta copia.",
       "cancel": "Cancelar",
       "confirmAction": "Restaurar y sustituir datos",
       "preparing": "Preparando restauración…",
@@ -351,7 +351,11 @@
       "completions": "Registros",
       "templates": "Plantillas",
       "reminders": "Recordatorios",
-      "alarms": "Alarmas"
+      "alarms": "Alarmas",
+      "focus_presets": "Presets de Enfoque",
+      "focus_sessions": "Sesiones de Enfoque",
+      "focus_intervals": "Intervalos de Enfoque",
+      "focus_goals": "Metas de Enfoque"
     },
     "privacy": {
       "title": "Privacidad y control",
