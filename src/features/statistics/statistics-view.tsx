@@ -2,6 +2,7 @@
 import { useLocale } from "next-intl";
 import type { WorkspaceData } from "@/features/workspace/types";
 import { calculateStatistics } from "./analytics";
+import { FocusStatisticsPanel } from "@/features/focus/focus-statistics";
 
 export function StatisticsView({ data }: { data: WorkspaceData }) {
   const locale = useLocale() as "es" | "en";
@@ -168,6 +169,10 @@ export function StatisticsView({ data }: { data: WorkspaceData }) {
           </div>
         </>
       )}
+      <FocusStatisticsPanel
+        timezone={data.profile.timezone}
+        weekStartsOn={data.profile.week_starts_on === 0 ? 0 : 1}
+      />
     </div>
   );
 }

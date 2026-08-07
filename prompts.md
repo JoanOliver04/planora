@@ -1496,6 +1496,8 @@ Explica reglas de conteo e historial.
 
 ## Prompt 15 — Estadísticas e insights comprensibles
 
+> **HECHO** — `focus-analytics.ts` (agregados puros, umbral de insights = 5), UI `FocusStatisticsPanel` en Enfoque (compacto) y Estadísticas, filtros 7d/30d/custom + categoría/preset/modo, barras CSS, batch de intervalos sin N+1. Tests `tests/focus-analytics.test.ts`. Migraciones Focus ya en remoto.
+
 ```text
 Integra estadísticas de Enfoque en el módulo y en la sección general de Estadísticas.
 

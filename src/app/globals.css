@@ -4382,6 +4382,100 @@ select:disabled,
 .focus-home-secondary[data-landing="start"] [data-block="history-list"] {
   order: 3;
 }
+.focus-home-secondary [data-block="stats"] {
+  order: 10;
+}
+
+/* Focus statistics (Prompt 15) — reuses statistics KPIs/bars, no heavy chart libs */
+.focus-stats-panel {
+  display: grid;
+  gap: 1rem;
+}
+.focus-stats-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 0.85rem;
+  align-items: end;
+}
+.focus-stats-filters label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--foreground) 72%, transparent);
+}
+.focus-stats-filters select.pill,
+.focus-stats-filters input.pill {
+  min-height: 40px;
+  font-weight: 600;
+}
+.focus-stats-kpis {
+  margin: 0;
+}
+.focus-stats-daily {
+  display: grid;
+  gap: 0.75rem;
+}
+.focus-stats-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.28rem;
+  min-height: 120px;
+  padding: 0.35rem 0.15rem 0;
+  overflow-x: auto;
+}
+.focus-stats-bar {
+  flex: 1 1 0;
+  min-width: 10px;
+  max-width: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  height: 110px;
+  justify-content: flex-end;
+}
+.focus-stats-bar-fill {
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  background: color-mix(in srgb, var(--primary) 78%, var(--surface-muted));
+  min-height: 4px;
+}
+.focus-stats-bar-label {
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+}
+.focus-stats-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+.focus-stats-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+  font-size: 0.9rem;
+}
+.focus-stats-list li span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.focus-stats-insights {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.45rem;
+  color: color-mix(in srgb, var(--foreground) 88%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .focus-stats-bar-fill {
+    transition: none;
+  }
+}
 button.mini-task {
   width: 100%;
   border: 0;

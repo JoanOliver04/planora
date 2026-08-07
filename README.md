@@ -59,6 +59,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Fully customizable Focus presets (emoji, intention, durations, cycles, behaviour, structured plan, favourites, archive and reorder) plus optional starter templates.
 - Structured session plans with named blocks (timed or open), editable starter ideas for programming, English and piano, live current/next block UI, skip/advance, and planned-vs-actual summary.
 - Flexible weekly Focus goals (minutes, sessions or active days; global, category or preset scope) with a primary goal on home, neutral pace hints and recent-week history — no streaks or guilt.
+- Focus statistics on Focus home (compact) and in Statistics: daily bars, finish rate, category/task breakdown, goal progress and optional insights only after a minimum sample — pure client aggregates, no heavy chart libraries, no titles/notes sent to product analytics.
 - Focus preferences split by scope: account-synced options (default mode/preset, review, goal visibility) and device-local options (sound volume, vibration, notifications, Wake Lock, compact bar).
 - Optional link to a task or habit; finishing a session never auto-completes work unless the user chose that explicitly.
 - Quick starts from Today (continue / quick session / next task / last preset) and a secondary timer action in Week and Tasks.

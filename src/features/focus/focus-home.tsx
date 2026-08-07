@@ -11,6 +11,7 @@ import type {
   FocusSession,
 } from "./types";
 import { FocusGoalsPanel } from "./focus-goals-panel";
+import { FocusStatisticsPanel } from "./focus-statistics";
 import { deriveSessionClock, sessionSummary } from "./time";
 import { formatFocusDuration } from "./defaults";
 import {
@@ -291,6 +292,14 @@ export function FocusHome({
               </section>
             </div>
           ) : null}
+
+          <div className="focus-home-block" data-block="stats">
+            <FocusStatisticsPanel
+              timezone={timezone}
+              weekStartsOn={weekStartsOn}
+              compact
+            />
+          </div>
         </div>
       ) : null}
 
