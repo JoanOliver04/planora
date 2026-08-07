@@ -100,7 +100,64 @@
     },
     "empty": {
       "title": "Empieza tu primera sesión de Enfoque",
-      "body": "Enfoque te ayuda a concentrarte a tu ritmo: una cuenta atrás, un cronómetro libre o ciclos de trabajo y descanso. Sin presión y sin puntuaciones opacas."
+      "body": "Enfoque te ayuda a concentrarte a tu ritmo: una cuenta atrás, un cronómetro libre o ciclos de trabajo y descanso. Sin presión y sin puntuaciones opacas.",
+      "offlineHint": "Si estás sin conexión, puedes seguir una sesión ya iniciada — para empezar una nueva hace falta conexión."
+    },
+    "onboarding": {
+      "eyebrow": "Bienvenida",
+      "title": "¿Qué es Enfoque?",
+      "body": "Sesiones flexibles de concentración para estudiar, trabajar o practicar — a tu ritmo, sin culpa ni puntuaciones opacas.",
+      "points": {
+        "modes": "Tres modos: cuenta atrás, cronómetro libre o ciclos trabajo/descanso.",
+        "tasks": "Puedes vincular una tarea o hábito — terminar nunca completa el trabajo salvo que lo elijas.",
+        "privacy": "Notas y distracciones son privadas y solo salen en la exportación de tu cuenta.",
+        "recovery": "El temporizador se recupera al recargar; los avisos con la app cerrada dependen del navegador."
+      },
+      "startFirst": "Iniciar primera sesión",
+      "notNow": "Ahora no",
+      "dismiss": "Cerrar introducción",
+      "reopenHelp": "Cómo funciona Enfoque",
+      "pathsHint": "Elige un camino — todo se puede cambiar después.",
+      "paths": {
+        "quick25": "Rápida 25 minutos",
+        "focus50": "Bloque de 50 minutos",
+        "stopwatch": "Cronómetro libre",
+        "createPreset": "Crear un preset personalizado"
+      },
+      "suggestionsHint": "Ejemplos editables (no son categorías — tú decides):",
+      "suggestions": {
+        "programming": "Plan de programación",
+        "english": "Práctica de inglés",
+        "piano": "Práctica de piano",
+        "reading": "Lectura 25 min"
+      },
+      "back": "Volver"
+    },
+    "help": {
+      "autoStart": {
+        "label": "Sobre el auto-inicio",
+        "body": "El auto-inicio pasa a la siguiente fase cuando termina un bloque con tiempo. Sigue pudiendo pausar, saltar o terminar a mano. Puedes dejarlo desactivado si prefieres reiniciar con calma."
+      },
+      "wakeLock": {
+        "label": "Sobre mantener la pantalla activa",
+        "body": "Wake Lock solo actúa con una sesión activa y la opción activada. Algunos navegadores lo niegan o lo sueltan al ocultar la pestaña. Enfoque funciona igual sin él."
+      },
+      "notifications": {
+        "label": "Sobre las notificaciones",
+        "body": "Los avisos del sistema requieren un permiso explícito. Si se deniega, los avisos dentro de la app y el sonido (si está activo) siguen con Planora abierta. Una PWA totalmente cerrada puede no recibir avisos."
+      },
+      "completeTask": {
+        "label": "Sobre completar una tarea",
+        "body": "Terminar Enfoque nunca marca una tarea como hecha salvo que lo actives en esa sesión. En hábitos puede pedir confirmación si la ocurrencia no es clara."
+      },
+      "structuredPlan": {
+        "label": "Sobre planes estructurados",
+        "body": "Bloques ordenados opcionales (con tiempo o abiertos). Puedes avanzar; no se permite volver atrás para que el historial sea honesto. Las ideas de programación, inglés y piano se editan a tu gusto."
+      },
+      "sync": {
+        "label": "Sobre pestañas y dispositivos",
+        "body": "Una sola sesión activa por cuenta. Otras pestañas quedan en solo lectura hasta Continuar aquí. Sin conexión puedes seguir una sesión conocida; iniciar una nueva necesita red."
+      }
     },
     "presets": {
       "title": "Presets y accesos rápidos",
@@ -192,6 +249,7 @@
       "title": "Objetivos semanales de Enfoque",
       "hint": "Metas suaves para la constancia — nunca una puntuación ni una racha.",
       "empty": "Aún no hay objetivo semanal. Añade uno de minutos, sesiones o días activos.",
+      "emptyHint": "Los objetivos son opcionales. Sirven para una constancia suave — nunca como puntuación ni racha.",
       "add": "Añadir objetivo",
       "manage": "Gestionar objetivos",
       "hideManage": "Ocultar gestión",
@@ -280,6 +338,7 @@
       "allPresets": "Todos los presets",
       "emptyTitle": "Sin datos de Enfoque en este rango",
       "emptyBody": "Completa algunas sesiones para ver minutos, tasa de finalización e insights suaves.",
+      "emptyHint": "Los insights opcionales solo aparecen con suficientes sesiones completadas. Empezar en vacío es normal.",
       "summary": "Resumen de Enfoque",
       "focusTime": "Tiempo de enfoque",
       "completedSessions": "Sesiones completadas",

@@ -100,7 +100,64 @@
     },
     "empty": {
       "title": "Start your first Focus session",
-      "body": "Focus helps you concentrate at your own pace: a countdown, a free stopwatch, or work-and-break cycles. No pressure and no opaque scores."
+      "body": "Focus helps you concentrate at your own pace: a countdown, a free stopwatch, or work-and-break cycles. No pressure and no opaque scores.",
+      "offlineHint": "If you are offline, you can still continue a session you already started — starting a new one needs a connection."
+    },
+    "onboarding": {
+      "eyebrow": "Welcome",
+      "title": "What is Focus?",
+      "body": "Flexible concentration sessions for study, work or practice — at your pace, without guilt or opaque scores.",
+      "points": {
+        "modes": "Three modes: countdown, free stopwatch, or work/break cycles.",
+        "tasks": "Optional link to a task or habit — finishing never auto-completes work unless you choose it.",
+        "privacy": "Notes and distractions stay private and only live in your account export.",
+        "recovery": "Timers recover after reload; delivery of alerts depends on the browser when the app is fully closed."
+      },
+      "startFirst": "Start first session",
+      "notNow": "Not now",
+      "dismiss": "Dismiss introduction",
+      "reopenHelp": "How Focus works",
+      "pathsHint": "Pick a path — you can change everything later.",
+      "paths": {
+        "quick25": "Quick 25 minutes",
+        "focus50": "50-minute block",
+        "stopwatch": "Free stopwatch",
+        "createPreset": "Create a custom preset"
+      },
+      "suggestionsHint": "Editable examples (not categories — you keep control):",
+      "suggestions": {
+        "programming": "Programming plan",
+        "english": "English practice",
+        "piano": "Piano practice",
+        "reading": "Reading 25 min"
+      },
+      "back": "Back"
+    },
+    "help": {
+      "autoStart": {
+        "label": "About auto-start",
+        "body": "Auto-start moves to the next phase when a timed block ends. You can still pause, skip or finish manually. Off by default for focus after breaks if you prefer a deliberate restart."
+      },
+      "wakeLock": {
+        "label": "About keeping the screen awake",
+        "body": "Screen Wake Lock only runs while a session is active and this option is on. Some browsers deny it or release it when the tab is hidden. Focus still works without it."
+      },
+      "notifications": {
+        "label": "About notifications",
+        "body": "System alerts need an explicit allow. If permission is denied, in-app cues and sound (when enabled) still work while Planora is open. Fully closed PWAs may not receive alerts."
+      },
+      "completeTask": {
+        "label": "About completing a task",
+        "body": "Finishing a Focus session never marks a task done unless you opt in for that session. Habits may ask for a confirmation when the occurrence is ambiguous."
+      },
+      "structuredPlan": {
+        "label": "About structured plans",
+        "body": "Optional ordered blocks (timed or open). You can skip forward; going back is not allowed so history stays honest. Starter ideas for programming, English and piano are fully editable."
+      },
+      "sync": {
+        "label": "About tabs and devices",
+        "body": "One active session per account. Other tabs become view-only until you choose Continue here. Offline you can keep a known session going; starting a new one needs a network connection."
+      }
     },
     "presets": {
       "title": "Presets and quick starts",
@@ -192,6 +249,7 @@
       "title": "Weekly Focus goals",
       "hint": "Gentle targets for consistency — never a score or streak.",
       "empty": "No weekly goal yet. Add one for minutes, sessions or active days.",
+      "emptyHint": "Goals are optional. Use them for gentle consistency — never as a score or streak.",
       "add": "Add goal",
       "manage": "Manage goals",
       "hideManage": "Hide manager",
@@ -280,6 +338,7 @@
       "allPresets": "All presets",
       "emptyTitle": "No Focus data in this range",
       "emptyBody": "Complete a few sessions to see minutes, finish rate and gentle insights.",
+      "emptyHint": "Optional insights appear only after enough completed sessions (minimum sample). Empty is normal when you are just starting.",
       "summary": "Focus summary",
       "focusTime": "Focus time",
       "completedSessions": "Completed sessions",

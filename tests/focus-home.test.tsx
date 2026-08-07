@@ -90,6 +90,7 @@ vi.mock("@/app/actions/domain", () => ({
 afterEach(() => {
   cleanup();
   toastMessage.mockReset();
+  window.localStorage.clear();
 });
 
 function renderHome(
@@ -132,11 +133,24 @@ function sampleActiveSession(): FocusSession {
 }
 
 describe("Focus home shell", () => {
-  it("renders the Spanish empty state with quick start actions", () => {
+  it("renders the Spanish first-visit intro with start actions", async () => {
+    const user = userEvent.setup();
     renderHome();
     expect(
       screen.getByRole("heading", { name: "Enfoque", level: 1 }),
     ).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "¿Qué es Enfoque?" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: /Iniciar primera sesión/i }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: /Ahora no/i })).toBeVisible();
+    expect(screen.getByText("Pomodoro 25/5")).toBeVisible();
+    expect(screen.getByText("Cronómetro libre")).toBeVisible();
+    expect(screen.queryByText("Esta semana")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /Ahora no/i }));
     expect(
       screen.getByRole("heading", {
         name: "Empieza tu primera sesión de Enfoque",
@@ -145,23 +159,18 @@ describe("Focus home shell", () => {
     expect(
       screen.getByRole("button", { name: /Sesión rápida/i }),
     ).toBeVisible();
-    expect(
-      screen.getAllByRole("button", { name: /Crear preset/i }).length,
-    ).toBeGreaterThan(0);
-    expect(screen.getByText("Pomodoro 25/5")).toBeVisible();
-    expect(screen.getByText("Cronómetro libre")).toBeVisible();
-    expect(screen.queryByText("Esta semana")).toBeNull();
   });
 
-  it("renders the English title and empty copy", () => {
+  it("renders the English intro and start session", () => {
     renderHome({}, "en");
     expect(
       screen.getByRole("heading", { name: "Focus", level: 1 }),
     ).toBeVisible();
     expect(
-      screen.getByRole("heading", {
-        name: "Start your first Focus session",
-      }),
+      screen.getByRole("heading", { name: "What is Focus?" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: /Start first session/i }),
     ).toBeVisible();
     expect(screen.getByRole("button", { name: /Start session/i })).toBeVisible();
   });

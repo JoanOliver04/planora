@@ -21,6 +21,7 @@ import {
   previewFocusSound,
 } from "./focus-phase-alerts";
 import { isFocusWakeLockSupported } from "./focus-wake-lock";
+import { FocusHelpTip } from "./focus-help-tip";
 import { mapPresetRow } from "./mappers";
 import type { FocusPreset } from "./types";
 import { normalizePreferences, type UserPreferences } from "@/lib/preferences";
@@ -421,7 +422,11 @@ export function FocusSettingsPanel({
           <p className="muted focus-settings-permission" role="status">
             {t("settings.wakeLockUnsupported")}
           </p>
-        ) : null}
+        ) : (
+          <FocusHelpTip tipKey="wakeLock" />
+        )}
+        <FocusHelpTip tipKey="notifications" />
+        <FocusHelpTip tipKey="sync" />
         <label className="settings-row check-row">
           <span>{t("settings.fullscreen")}</span>
           <input

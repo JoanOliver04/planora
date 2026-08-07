@@ -1971,6 +1971,10 @@ Explica cambios de formato, migración y política para sesiones activas.
 
 ## Prompt 21 — Onboarding, ayuda contextual y empty states
 
+> **HECHO** — Intro de primera visita (sin carrusel) + rutas 25/50/cronómetro/preset + sugerencias editables programación/inglés/piano/lectura; «Ahora no» y reabrir ayuda; tips contextuales (auto-inicio, Wake Lock, notificaciones, completar tarea, plan, sync) con disclosure (no tooltips móviles); empty states mejorados. Tests `tests/focus-onboarding.test.ts`.
+>
+> **Activación:** intro → elegir ruta → configurador o preset → primera sesión. Estimación &lt; 1 min si se elige 25 min o cronómetro.
+
 ```text
 Crea la primera experiencia de Planora Enfoque sin convertirla en un tutorial largo.
 

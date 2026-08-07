@@ -64,6 +64,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Multi-tab/device Focus continuity: BroadcastChannel (+ localStorage fallback), light server poll, optimistic revision as write authority, view-only follower mode and explicit “Continue here” takeover without creating a second session.
 - Offline Focus: continue a known session with local transitions (idempotent queue, no per-second rows); sync in order on reconnect; starting a new session still requires network; remote revision wins on conflict.
 - Focus accessibility: desktop keyboard shortcuts (optional), screen-reader phase/status announcements without per-second chatter, on-demand time readout, 44px targets, small-screen and landscape safe areas, reduced-motion respect.
+- Focus first-visit intro (skip anytime), quick paths (25/50/stopwatch/custom preset) and editable practice suggestions, plus discrete contextual help and clearer empty states.
 - Focus preferences split by scope: account-synced options (default mode/preset, review, goal visibility) and device-local options (sound volume, vibration, notifications, Wake Lock, compact bar).
 - Optional link to a task or habit; finishing a session never auto-completes work unless the user chose that explicitly.
 - Quick starts from Today (continue / quick session / next task / last preset) and a secondary timer action in Week and Tasks.

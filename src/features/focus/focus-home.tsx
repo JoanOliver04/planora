@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ListPlus, Play, Timer } from "lucide-react";
@@ -31,7 +31,13 @@ import {
   defaultFocusAccountPreferences,
   type FocusAccountPreferences,
 } from "./focus-preferences";
-
+import { FocusOnboardingPanel } from "./focus-onboarding-panel";
+import {
+  defaultFocusOnboardingState,
+  loadFocusOnboardingState,
+  shouldShowFocusIntro,
+  subscribeFocusOnboarding,
+} from "./focus-onboarding";
 export type FocusHomeProps = {
   activeSession: FocusSession | null;
   recentSessions: FocusSession[];
@@ -81,6 +87,12 @@ export function FocusHome({
   );
   const [dialogKey, setDialogKey] = useState(0);
   const [draft, setDraft] = useState<SessionStartDraft | null>(initialDraft);
+  const [openPresetCreate, setOpenPresetCreate] = useState(0);
+  const onboarding = useSyncExternalStore(
+    subscribeFocusOnboarding,
+    loadFocusOnboardingState,
+    () => defaultFocusOnboardingState,
+  );
 
   const shared = useOptionalFocusSessionContext();
 
@@ -124,6 +136,10 @@ export function FocusHome({
   );
 
   const hasHistory = recentSessions.length > 0 || hasActive;
+  const showIntro = shouldShowFocusIntro({
+    hasHistory,
+    introDismissed: onboarding.introDismissed,
+  });
 
   function openConfigurator(nextDraft: SessionStartDraft | null = null) {
     setDraft(nextDraft);
@@ -141,17 +157,37 @@ export function FocusHome({
           </h1>
           <p className="muted">{t("subtitle")}</p>
         </div>
-        {!hasActive ? (
-          <button
-            type="button"
-            className="primary focus-primary-action"
-            onClick={() => openConfigurator(null)}
-          >
-            <Play size={18} aria-hidden="true" />
-            {t("actions.startSession")}
-          </button>
-        ) : null}
+        <div className="focus-home-header-actions">
+          {!showIntro ? (
+            <FocusOnboardingPanel
+              hasHistory={hasHistory}
+              compact
+              onStartPath={openConfigurator}
+              onCreatePreset={() => setOpenPresetCreate((n) => n + 1)}
+            />
+          ) : null}
+          {!hasActive ? (
+            <button
+              type="button"
+              className="primary focus-primary-action"
+              onClick={() => openConfigurator(null)}
+            >
+              <Play size={18} aria-hidden="true" />
+              {t("actions.startSession")}
+            </button>
+          ) : null}
+        </div>
       </header>
+
+      {!hasActive && showIntro ? (
+        <FocusOnboardingPanel
+          hasHistory={hasHistory}
+          onStartPath={openConfigurator}
+          onCreatePreset={() => {
+            setOpenPresetCreate((n) => n + 1);
+          }}
+        />
+      ) : null}
 
       {hasActive && shared ? (
         <ActiveSessionView />
@@ -169,7 +205,7 @@ export function FocusHome({
         />
       ) : null}
 
-      {!hasHistory ? (
+      {!hasHistory && !showIntro ? (
         <div className="empty surface focus-empty" role="status">
           <span className="empty-icon" aria-hidden="true">
             <Timer size={28} />
@@ -200,6 +236,7 @@ export function FocusHome({
               {t("actions.createPreset")}
             </button>
           </div>
+          <p className="muted focus-empty-hint">{t("empty.offlineHint")}</p>
         </div>
       ) : null}
 
@@ -215,6 +252,7 @@ export function FocusHome({
               recentSessions={recentSessions}
               categories={categories}
               onStartPreset={(draft) => openConfigurator(draft)}
+              openCreateSignal={openPresetCreate}
             />
           </div>
 

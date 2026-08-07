@@ -220,7 +220,10 @@ export function FocusGoalsPanel({
           ) : null}
         </div>
       ) : (
-        <p className="muted">{t("goals.empty")}</p>
+        <div className="empty empty-compact focus-goal-empty" role="status">
+          <p>{t("goals.empty")}</p>
+          <p className="muted">{t("goals.emptyHint")}</p>
+        </div>
       )}
 
       {manageOpen ? (

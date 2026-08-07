@@ -291,9 +291,10 @@ export function FocusStatisticsPanel({
       </div>
 
       {stats.empty ? (
-        <div className="empty empty-compact">
+        <div className="empty empty-compact" role="status">
           <h3>{t("stats.emptyTitle")}</h3>
           <p>{t("stats.emptyBody")}</p>
+          <p className="muted">{t("stats.emptyHint")}</p>
         </div>
       ) : (
         <FocusStatisticsBody stats={stats} compact={compact} />

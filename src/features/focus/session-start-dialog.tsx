@@ -27,6 +27,7 @@ import {
   FOCUS_MAX_SHORT_BREAK_SEC,
   FOCUS_MIN_DURATION_SEC,
 } from "./validation";
+import { FocusHelpTip } from "./focus-help-tip";
 
 export type FocusTaskOption = {
   id: string;
@@ -801,6 +802,7 @@ export function SessionStartDialog({
                           />
                           <span>{t("config.autoStartFocus")}</span>
                         </label>
+                        <FocusHelpTip tipKey="autoStart" />
                       </>
                     ) : null}
                     <label className="focus-check">
@@ -833,6 +835,7 @@ export function SessionStartDialog({
                       />
                       <span>{t("config.notify")}</span>
                     </label>
+                    <FocusHelpTip tipKey="notifications" />
                     <label className="focus-check">
                       <input
                         type="checkbox"
@@ -843,6 +846,7 @@ export function SessionStartDialog({
                       />
                       <span>{t("config.completeTask")}</span>
                     </label>
+                    <FocusHelpTip tipKey="completeTask" />
                     <label className="focus-check">
                       <input
                         type="checkbox"
@@ -863,6 +867,9 @@ export function SessionStartDialog({
                       />
                       <span>{t("config.keepAwake")}</span>
                     </label>
+                    <FocusHelpTip tipKey="wakeLock" />
+                    <FocusHelpTip tipKey="structuredPlan" />
+                    <FocusHelpTip tipKey="sync" />
                   </div>
                 </details>
 

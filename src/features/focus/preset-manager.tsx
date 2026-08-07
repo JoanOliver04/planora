@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -43,12 +43,15 @@ export function FocusPresetManager({
   categories = [],
   onStartPreset,
   maxHomeCards = 6,
+  openCreateSignal = 0,
 }: {
   presets: FocusPreset[];
   recentSessions?: FocusSession[];
   categories?: CategoryOption[];
   onStartPreset: (draft: SessionStartDraft) => void;
   maxHomeCards?: number;
+  /** Increment to open the create-preset editor from outside (onboarding). */
+  openCreateSignal?: number;
 }) {
   const t = useTranslations("Focus");
   const common = useTranslations("Common");
@@ -74,6 +77,16 @@ export function FocusPresetManager({
     [recentSessions],
   );
   const homeCards = activePresets.slice(0, maxHomeCards);
+
+  useEffect(() => {
+    if (!openCreateSignal) return;
+    // Open create editor after the click that bumped the signal (avoid setState-in-render).
+    const id = window.setTimeout(() => {
+      setEditing(null);
+      setEditorOpen(true);
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [openCreateSignal]);
 
   function openCreate() {
     setEditing(null);
