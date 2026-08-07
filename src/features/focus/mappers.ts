@@ -153,6 +153,14 @@ export function parseLinkSnapshot(
   value: Json | null | undefined,
 ): FocusLinkSnapshot {
   const raw = asRecord(value);
+  const outcome =
+    raw.outcome === "done" ||
+    raw.outcome === "progress" ||
+    raw.outcome === "blocked" ||
+    raw.outcome === "other" ||
+    raw.outcome === null
+      ? (raw.outcome as FocusLinkSnapshot["outcome"])
+      : undefined;
   return {
     taskTitle: typeof raw.taskTitle === "string" ? raw.taskTitle : undefined,
     taskEmoji:
@@ -174,6 +182,11 @@ export function parseLinkSnapshot(
     scheduleName:
       typeof raw.scheduleName === "string" || raw.scheduleName === null
         ? (raw.scheduleName as string | null)
+        : undefined,
+    outcome,
+    nextStep:
+      typeof raw.nextStep === "string" || raw.nextStep === null
+        ? (raw.nextStep as string | null)
         : undefined,
   };
 }

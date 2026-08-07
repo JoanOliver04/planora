@@ -1095,6 +1095,8 @@ Resume decisiones de discoverability y densidad visual.
 
 ## Prompt 10 — Cierre de sesión, reflexión y notas privadas
 
+> **HECHO** — Revisión opcional post-sesión (tiempos, plan vs real, meta semanal, nota, ratings, resultado, próximo paso), distracciones aparcadas mid-sesión convertibles a tarea, y distinción finalizar / cancelar (conserva tiempo) / descartar (borra con confirmación). Notas y distracciones privadas.
+
 ```text
 Implementa el flujo de cierre y revisión de una sesión de Enfoque.
 

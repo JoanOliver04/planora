@@ -32,6 +32,16 @@ export { ActiveSessionView } from "./active-session-view";
 export { FocusCompactBar } from "./focus-compact-bar";
 export { SessionCompleteCard } from "./session-complete-card";
 export {
+  buildSessionReviewSummary,
+  addDistraction,
+  removeDistractionAt,
+  emptyReviewDraft,
+  FOCUS_OUTCOMES,
+} from "./focus-review";
+export {
+  discardFocusSessionAction,
+} from "./actions";
+export {
   getCycleProgress,
   summarizeEndedSession,
   buildExtraBlockStartInput,

@@ -55,6 +55,10 @@ export type FocusLinkSnapshot = {
   categoryName?: string | null;
   categoryColour?: string | null;
   scheduleName?: string | null;
+  /** Private optional session outcome (done / progress / blocked / other). */
+  outcome?: "done" | "progress" | "blocked" | "other" | null;
+  /** Private optional next-step note after the session. */
+  nextStep?: string | null;
 };
 
 export type FocusInterval = {

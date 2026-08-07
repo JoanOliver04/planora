@@ -53,6 +53,17 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Custom categories with a name, emoji and colour.
 - Global or schedule-specific events with an optional time.
 
+### Focus (Enfoque)
+
+- Flexible concentration sessions: countdown, free stopwatch, or work/break cycles — Pomodoro is optional, not mandatory.
+- Optional link to a task or habit; finishing a session never auto-completes work unless the user chose that explicitly.
+- Quick starts from Today (continue / quick session / next task / last preset) and a secondary timer action in Week and Tasks.
+- Robust timer based on timestamps (not per-second DB writes), recovery after reload, and a compact bar while browsing other views.
+- Optional end-of-session reflection: private notes, concentration and energy ratings, result label, next step, and parked distractions.
+- Park distractions mid-session without pausing; convert one into a Planora task or dismiss it after the session.
+- Clear endings: finish and save, cancel and keep partial time, or discard the session permanently with confirmation.
+- Focus data is included in portable JSON backup schema v3 (export and atomic restore).
+
 ### Progress and history
 
 - Complete or undo tasks for a specific occurrence date.
@@ -82,7 +93,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Google OAuth only; Planora stores no passwords.
 - Public no-registration demo, guided onboarding and reusable schedule templates.
 - Offline mutation queue, installable PWA and a customizable notification and alarm center.
-- Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports.
+- Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports (including Focus entities in backup v3).
 - Archived tasks act as a recoverable trash area, with explicit permanent deletion for the task, its completion history and reminders.
 - Privacy-focused Vercel Web Analytics for anonymous, aggregate page-view metrics without tracking cookies or custom product events.
 - Sanitized error telemetry and rate-limited sensitive endpoints.

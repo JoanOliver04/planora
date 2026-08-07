@@ -12,6 +12,8 @@ import {
   SkipForward,
   Square,
   StickyNote,
+  Inbox,
+  Trash2,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { formatFocusDuration } from "./defaults";
@@ -20,10 +22,18 @@ import {
   countCompletedFocusBlocks,
   getCycleProgress,
 } from "./cycles";
-import { updateFocusSessionMetadataAction } from "./actions";
+import {
+  discardFocusSessionAction,
+  updateFocusSessionMetadataAction,
+} from "./actions";
 import { useFocusSessionContext } from "./focus-session-context";
 import type { FocusPhaseKind, FocusSession } from "./types";
 import { toast } from "sonner";
+import { addDistraction } from "./focus-review";
+import {
+  FOCUS_MAX_DISTRACTION_LENGTH,
+  FOCUS_MAX_DISTRACTIONS,
+} from "./validation";
 
 
 function phaseLabel(
@@ -69,9 +79,12 @@ export function ActiveSessionView({
   const session = engine.session;
   const clock = engine.snapshot?.clock;
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
+  const [distractionOpen, setDistractionOpen] = useState(false);
   const [note, setNote] = useState(() => session?.notes ?? "");
+  const [distractionDraft, setDistractionDraft] = useState("");
   const [noteSessionId, setNoteSessionId] = useState(session?.id ?? "");
   const [customExtend, setCustomExtend] = useState("3");
   const [online, setOnline] = useState(
@@ -79,11 +92,13 @@ export function ActiveSessionView({
   );
   const phaseLiveId = useId();
   const rootRef = useRef<HTMLElement | null>(null);
+  const distractionInputRef = useRef<HTMLInputElement | null>(null);
 
   // Keep the draft note aligned when the active session identity changes.
   if (session && session.id !== noteSessionId) {
     setNoteSessionId(session.id);
     setNote(session.notes ?? "");
+    setDistractionDraft("");
   }
 
   useEffect(() => {
@@ -175,6 +190,53 @@ export function ActiveSessionView({
     setNoteOpen(false);
   }
 
+  async function parkDistraction() {
+    if (!session) return;
+    const next = addDistraction(session.distractions, distractionDraft);
+    if (!next.ok) {
+      toast.error(
+        next.reason === "limit"
+          ? t("review.distractionLimit")
+          : t("review.distractionEmpty"),
+      );
+      return;
+    }
+    const result = await updateFocusSessionMetadataAction({
+      sessionId: session.id,
+      expectedRevision: session.revision,
+      distractions: next.distractions,
+    });
+    if (!result.ok) {
+      toast.error(t("engine.persistError"));
+      return;
+    }
+    hydrateSession({
+      ...session,
+      distractions: next.distractions,
+      revision: result.data.revision,
+      updatedAt: result.data.updatedAt,
+    });
+    setDistractionDraft("");
+    setDistractionOpen(false);
+    toast.success(t("review.distractionParked"));
+  }
+
+  async function discardActive() {
+    if (!session) return false;
+    const result = await discardFocusSessionAction({
+      sessionId: session.id,
+      expectedRevision: session.revision,
+    });
+    if (!result.ok) {
+      toast.error(t("engine.persistError"));
+      return false;
+    }
+    toast.success(t("review.discarded"));
+    hydrateSession(null);
+    setImmersive(false);
+    return true;
+  }
+
   const waitingManual =
     engine.snapshot?.phaseComplete &&
     !engine.snapshot.shouldAutoAdvance &&
@@ -259,6 +321,21 @@ export function ActiveSessionView({
                 <button
                   type="button"
                   role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setDistractionOpen(true);
+                    window.setTimeout(
+                      () => distractionInputRef.current?.focus(),
+                      0,
+                    );
+                  }}
+                >
+                  <Inbox size={16} aria-hidden="true" />
+                  {t("review.parkDistraction")}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
                   className="is-danger"
                   onClick={() => {
                     setMenuOpen(false);
@@ -266,6 +343,18 @@ export function ActiveSessionView({
                   }}
                 >
                   {t("engine.cancel")}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="is-danger"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setConfirmDiscard(true);
+                  }}
+                >
+                  <Trash2 size={16} aria-hidden="true" />
+                  {t("review.discard")}
                 </button>
               </div>
             ) : null}
@@ -474,6 +563,12 @@ export function ActiveSessionView({
 
       <p className="muted focus-shortcuts">{t("activeView.shortcuts")}</p>
 
+      {session.distractions.length > 0 ? (
+        <p className="muted focus-distraction-count" role="status">
+          {t("review.distractionCount", { count: session.distractions.length })}
+        </p>
+      ) : null}
+
       {noteOpen ? (
         <div className="focus-note-panel surface">
           <label>
@@ -504,6 +599,52 @@ export function ActiveSessionView({
         </div>
       ) : null}
 
+      {distractionOpen ? (
+        <div className="focus-note-panel surface">
+          <label>
+            {t("review.parkDistraction")}
+            <input
+              ref={distractionInputRef}
+              type="text"
+              value={distractionDraft}
+              maxLength={FOCUS_MAX_DISTRACTION_LENGTH}
+              placeholder={t("review.parkPlaceholder")}
+              onChange={(event) => setDistractionDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  void parkDistraction();
+                }
+              }}
+            />
+          </label>
+          <p className="muted">
+            {t("review.parkHint", {
+              remaining: Math.max(
+                0,
+                FOCUS_MAX_DISTRACTIONS - session.distractions.length,
+              ),
+            })}
+          </p>
+          <div className="dialog-actions">
+            <button
+              type="button"
+              className="pill"
+              onClick={() => setDistractionOpen(false)}
+            >
+              {common("cancel")}
+            </button>
+            <button
+              type="button"
+              className="primary"
+              onClick={() => void parkDistraction()}
+            >
+              {t("review.parkAction")}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <ConfirmDialog
         open={confirmCancel}
         onOpenChange={setConfirmCancel}
@@ -517,6 +658,17 @@ export function ActiveSessionView({
           setImmersive(false);
           return true;
         }}
+      />
+
+      <ConfirmDialog
+        open={confirmDiscard}
+        onOpenChange={setConfirmDiscard}
+        title={t("review.discardTitle")}
+        description={t("review.discardDescription")}
+        cancelLabel={common("cancel")}
+        confirmLabel={t("review.discardConfirm")}
+        variant="danger"
+        onConfirm={() => discardActive()}
       />
     </section>
   );

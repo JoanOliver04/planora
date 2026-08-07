@@ -236,6 +236,13 @@ export const focusTransitionSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+export const focusOutcomeSchema = z.enum([
+  "done",
+  "progress",
+  "blocked",
+  "other",
+]);
+
 export const updateFocusMetadataSchema = z.object({
   sessionId: uuid,
   expectedRevision: z.number().int().min(1),
@@ -247,6 +254,10 @@ export const updateFocusMetadataSchema = z.object({
     .optional(),
   subjectiveFocus: z.number().int().min(1).max(5).optional().nullable(),
   subjectiveEnergy: z.number().int().min(1).max(5).optional().nullable(),
+  /** Private optional result label for the session review. */
+  outcome: focusOutcomeSchema.optional().nullable(),
+  /** Private optional next step after the session. */
+  nextStep: z.string().trim().max(280).optional().nullable(),
 });
 
 export const focusGoalInputSchema = z.object({

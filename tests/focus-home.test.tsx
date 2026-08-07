@@ -32,6 +32,35 @@ vi.mock("@/features/focus/actions", () => ({
     ok: false,
     error: { code: "DATABASE_ERROR", message: "offline in test" },
   })),
+  updateFocusSessionMetadataAction: vi.fn(async () => ({
+    ok: true,
+    data: {},
+  })),
+  completeLinkedTaskFromFocusAction: vi.fn(async () => ({
+    ok: false,
+    error: { code: "DATABASE_ERROR", message: "not used" },
+  })),
+  discardFocusSessionAction: vi.fn(async () => ({
+    ok: true,
+    data: { id: "discarded" },
+  })),
+}));
+
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({
+    auth: { getUser: async () => ({ data: { user: null } }) },
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({ data: null }),
+        }),
+      }),
+    }),
+  }),
+}));
+
+vi.mock("@/app/actions/domain", () => ({
+  saveTask: vi.fn(),
 }));
 
 afterEach(() => {

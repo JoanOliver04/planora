@@ -164,6 +164,20 @@ export function FocusHome({
         <SessionCompleteCard
           session={shared.lastCompleted}
           onDismiss={() => shared.clearLastCompleted()}
+          weeklyGoalLabel={
+            goalProgress
+              ? t("goal.progress", {
+                  done: formatFocusDuration(
+                    goalProgress.completedFocusSec,
+                    "compact",
+                  ),
+                  target: formatFocusDuration(
+                    goalProgress.targetFocusSec,
+                    "compact",
+                  ),
+                })
+              : null
+          }
         />
       ) : null}
 

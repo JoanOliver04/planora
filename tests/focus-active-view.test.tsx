@@ -41,6 +41,14 @@ vi.mock("@/features/focus/actions", () => ({
     ok: true,
     data: {},
   })),
+  discardFocusSessionAction: vi.fn(async () => ({
+    ok: true,
+    data: { id: "discarded" },
+  })),
+  completeLinkedTaskFromFocusAction: vi.fn(async () => ({
+    ok: false,
+    error: { code: "DATABASE_ERROR", message: "n/a" },
+  })),
 }));
 
 vi.mock("sonner", () => ({

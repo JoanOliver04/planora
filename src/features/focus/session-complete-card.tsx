@@ -4,30 +4,54 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Play, Check, ListChecks } from "lucide-react";
-import type { FocusSession } from "./types";
 import {
-  buildExtraBlockStartInput,
-  summarizeEndedSession,
-} from "./cycles";
+  Play,
+  Check,
+  ListChecks,
+  Trash2,
+  Plus,
+  LoaderCircle,
+} from "lucide-react";
+import type { FocusSession } from "./types";
+import { buildExtraBlockStartInput } from "./cycles";
 import { formatFocusDuration } from "./defaults";
 import {
   completeLinkedTaskFromFocusAction,
+  discardFocusSessionAction,
   startFocusSessionAction,
+  updateFocusSessionMetadataAction,
 } from "./actions";
 import { useOptionalFocusSessionContext } from "./focus-session-context";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import {
+  buildSessionReviewSummary,
+  emptyReviewDraft,
+  FOCUS_OUTCOMES,
+  type FocusOutcome,
+  type FocusReviewInput,
+  removeDistractionAt,
+} from "./focus-review";
+import {
+  FOCUS_MAX_DISTRACTION_LENGTH,
+  FOCUS_MAX_NOTES_LENGTH,
+} from "./validation";
+import { TaskForm } from "@/features/workspace/task-form";
+import type { Category, Schedule } from "@/features/workspace/types";
+import { createClient } from "@/lib/supabase/client";
 
 /**
- * Neutral summary after a completed session.
- * Offers extra block and optional linked-task completion without surprise side effects.
+ * Neutral end-of-session review: summary first, optional reflection, no forced fields.
+ * Notes and distractions stay private (never logged or sent to analytics).
  */
 export function SessionCompleteCard({
   session,
   onDismiss,
+  weeklyGoalLabel,
 }: {
   session: FocusSession;
   onDismiss?: () => void;
+  /** Optional preformatted weekly goal progress line. */
+  weeklyGoalLabel?: string | null;
 }) {
   const t = useTranslations("Focus");
   const common = useTranslations("Common");
@@ -36,21 +60,74 @@ export function SessionCompleteCard({
   const [pending, startTransition] = useTransition();
   const [hidden, setHidden] = useState(false);
   const [forceOpen, setForceOpen] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
   const [localSession, setLocalSession] = useState(session);
-  const summary = summarizeEndedSession(localSession);
+  const [review, setReview] = useState<FocusReviewInput>(() =>
+    emptyReviewDraft(session),
+  );
+  const [saved, setSaved] = useState(false);
+  const [taskTitle, setTaskTitle] = useState<string | null>(null);
+  const [taskResources, setTaskResources] = useState<{
+    schedules: Schedule[];
+    categories: Category[];
+    timezone: string;
+  } | null>(null);
+  const [loadingTaskForm, setLoadingTaskForm] = useState(false);
+
+  const summary = buildSessionReviewSummary(localSession);
   const linked =
     Boolean(localSession.taskId) && Boolean(localSession.occurrenceDate);
   const applied = localSession.taskCompletionApplied;
+  const isCancelled = localSession.status === "cancelled";
+  const isCompleted = localSession.status === "completed";
 
-  if (hidden || localSession.status !== "completed") return null;
+  if (hidden || (!isCompleted && !isCancelled)) return null;
 
   function dismiss() {
     setHidden(true);
     onDismiss?.();
   }
 
-  function extraBlock() {
+  function updateReview<K extends keyof FocusReviewInput>(
+    key: K,
+    value: FocusReviewInput[K],
+  ) {
+    setReview((current) => ({ ...current, [key]: value }));
+    setSaved(false);
+  }
+
+  function saveReview() {
     if (pending) return;
+    startTransition(async () => {
+      const notes = review.notes?.trim() || null;
+      if (notes && notes.length > FOCUS_MAX_NOTES_LENGTH) {
+        toast.error(t("review.noteTooLong"));
+        return;
+      }
+      const result = await updateFocusSessionMetadataAction({
+        sessionId: localSession.id,
+        expectedRevision: localSession.revision,
+        notes,
+        subjectiveFocus: review.subjectiveFocus,
+        subjectiveEnergy: review.subjectiveEnergy,
+        distractions: review.distractions,
+        outcome: review.outcome,
+        nextStep: review.nextStep?.trim() || null,
+      });
+      if (!result.ok) {
+        toast.error(result.error.message || t("config.errors.network"));
+        return;
+      }
+      setLocalSession(result.data);
+      setReview(emptyReviewDraft(result.data));
+      setSaved(true);
+      toast.success(t("review.saved"));
+      router.refresh();
+    });
+  }
+
+  function extraBlock() {
+    if (pending || isCancelled) return;
     startTransition(async () => {
       const result = await startFocusSessionAction(
         buildExtraBlockStartInput(localSession),
@@ -94,37 +171,96 @@ export function SessionCompleteCard({
     });
   }
 
+  function discardSession() {
+    if (pending) return;
+    startTransition(async () => {
+      const result = await discardFocusSessionAction({
+        sessionId: localSession.id,
+        expectedRevision: localSession.revision,
+      });
+      if (!result.ok) {
+        toast.error(result.error.message || t("config.errors.network"));
+        return;
+      }
+      toast.success(t("review.discarded"));
+      void shared?.hydrateSession(null);
+      void shared?.clearLastCompleted();
+      router.refresh();
+      dismiss();
+    });
+  }
+
+  async function openConvertToTask(text: string) {
+    setLoadingTaskForm(true);
+    try {
+      const db = createClient();
+      const {
+        data: { user },
+      } = await db.auth.getUser();
+      if (!user) {
+        toast.error(t("config.errors.network"));
+        return;
+      }
+      const [{ data: schedules }, { data: categories }, { data: profile }] =
+        await Promise.all([
+          db.from("schedules").select("*").eq("user_id", user.id),
+          db.from("categories").select("*").eq("user_id", user.id),
+          db
+            .from("profiles")
+            .select("timezone")
+            .eq("id", user.id)
+            .maybeSingle(),
+        ]);
+      setTaskResources({
+        schedules: (schedules ?? []) as Schedule[],
+        categories: (categories ?? []) as Category[],
+        timezone: profile?.timezone ?? "Europe/Madrid",
+      });
+      setTaskTitle(text.slice(0, 140));
+    } catch {
+      toast.error(t("config.errors.network"));
+    } finally {
+      setLoadingTaskForm(false);
+    }
+  }
+
+  const intention =
+    summary.taskTitle ||
+    summary.intention ||
+    t("active.untitled");
+
   return (
     <section
       className="surface focus-complete-card"
       aria-labelledby="focus-complete-title"
     >
-      <p className="eyebrow">{t("cycles.completeEyebrow")}</p>
-      <h2 id="focus-complete-title">{t("cycles.completeTitle")}</h2>
-      <p className="muted">{t("cycles.completeBody")}</p>
-      {linked ? (
-        <p className="focus-linked-task">
-          <ListChecks size={16} aria-hidden="true" />
-          <span>
-            {localSession.linkSnapshot.taskTitle || t("config.linkedTask")}
-            {localSession.occurrenceDate
-              ? ` · ${localSession.occurrenceDate}`
-              : ""}
-          </span>
-        </p>
-      ) : null}
+      <p className="eyebrow">
+        {isCancelled ? t("review.cancelledEyebrow") : t("cycles.completeEyebrow")}
+      </p>
+      <h2 id="focus-complete-title">
+        {isCancelled ? t("review.cancelledTitle") : t("cycles.completeTitle")}
+      </h2>
+      <p className="muted">
+        {isCancelled ? t("review.cancelledBody") : t("cycles.completeBody")}
+      </p>
+
+      <p className="focus-linked-task">
+        <ListChecks size={16} aria-hidden="true" />
+        <span>{intention}</span>
+      </p>
+
       <ul className="focus-complete-stats">
         <li>
           <span>{t("cycles.statFocus")}</span>
-          <strong>
-            {formatFocusDuration(summary.focusSec, "compact")}
-          </strong>
+          <strong>{formatFocusDuration(summary.focusSec, "compact")}</strong>
         </li>
         <li>
           <span>{t("cycles.statBreak")}</span>
-          <strong>
-            {formatFocusDuration(summary.breakSec, "compact")}
-          </strong>
+          <strong>{formatFocusDuration(summary.breakSec, "compact")}</strong>
+        </li>
+        <li>
+          <span>{t("review.statPaused")}</span>
+          <strong>{formatFocusDuration(summary.pausedSec, "compact")}</strong>
         </li>
         {localSession.mode === "cycles" ? (
           <li>
@@ -137,10 +273,180 @@ export function SessionCompleteCard({
             </strong>
           </li>
         ) : null}
+        {summary.plannedFocusSec != null ? (
+          <li>
+            <span>{t("review.statPlanned")}</span>
+            <strong>
+              {formatFocusDuration(summary.plannedFocusSec, "compact")}
+              {summary.plannedVsActualSec != null
+                ? ` → ${formatFocusDuration(summary.focusSec, "compact")}`
+                : ""}
+            </strong>
+          </li>
+        ) : null}
       </ul>
 
-      {linked ? (
-        <div className="focus-link-complete-options" role="group" aria-label={t("link.optionsLabel")}>
+      {weeklyGoalLabel ? (
+        <p className="muted focus-complete-task-note">{weeklyGoalLabel}</p>
+      ) : null}
+
+      {review.distractions.length > 0 ? (
+        <div className="focus-review-distractions">
+          <h3>{t("review.distractionsTitle")}</h3>
+          <p className="muted">{t("review.distractionsHint")}</p>
+          <ul>
+            {review.distractions.map((item, index) => (
+              <li key={`${item}-${index}`}>
+                <span>{item}</span>
+                <div className="focus-review-distraction-actions">
+                  <button
+                    type="button"
+                    className="pill"
+                    disabled={pending || loadingTaskForm}
+                    onClick={() => void openConvertToTask(item)}
+                  >
+                    <Plus size={14} aria-hidden="true" />
+                    {t("review.convertToTask")}
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-button"
+                    disabled={pending}
+                    aria-label={t("review.dismissDistraction")}
+                    onClick={() =>
+                      updateReview(
+                        "distractions",
+                        removeDistractionAt(review.distractions, index),
+                      )
+                    }
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <details className="focus-review-optional">
+        <summary>{t("review.optionalTitle")}</summary>
+        <p className="muted">{t("review.optionalHint")}</p>
+
+        <label className="focus-review-field">
+          {t("review.finalNote")}
+          <textarea
+            value={review.notes ?? ""}
+            maxLength={FOCUS_MAX_NOTES_LENGTH}
+            rows={3}
+            onChange={(event) => updateReview("notes", event.target.value)}
+            placeholder={t("review.finalNotePlaceholder")}
+          />
+        </label>
+
+        <fieldset className="focus-review-rating">
+          <legend>{t("review.focusRating")}</legend>
+          <div className="focus-rating-row">
+            {[1, 2, 3, 4, 5].map((value) => (
+              <button
+                key={`focus-${value}`}
+                type="button"
+                className="focus-rating-chip"
+                data-active={review.subjectiveFocus === value || undefined}
+                aria-pressed={review.subjectiveFocus === value}
+                onClick={() =>
+                  updateReview(
+                    "subjectiveFocus",
+                    review.subjectiveFocus === value ? null : value,
+                  )
+                }
+              >
+                {value}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset className="focus-review-rating">
+          <legend>{t("review.energyRating")}</legend>
+          <div className="focus-rating-row">
+            {[1, 2, 3, 4, 5].map((value) => (
+              <button
+                key={`energy-${value}`}
+                type="button"
+                className="focus-rating-chip"
+                data-active={review.subjectiveEnergy === value || undefined}
+                aria-pressed={review.subjectiveEnergy === value}
+                onClick={() =>
+                  updateReview(
+                    "subjectiveEnergy",
+                    review.subjectiveEnergy === value ? null : value,
+                  )
+                }
+              >
+                {value}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset className="focus-review-rating">
+          <legend>{t("review.outcome")}</legend>
+          <div className="focus-rating-row focus-outcome-row">
+            {FOCUS_OUTCOMES.map((value) => (
+              <button
+                key={value}
+                type="button"
+                className="focus-rating-chip"
+                data-active={review.outcome === value || undefined}
+                aria-pressed={review.outcome === value}
+                onClick={() =>
+                  updateReview(
+                    "outcome",
+                    review.outcome === value
+                      ? null
+                      : (value as FocusOutcome),
+                  )
+                }
+              >
+                {t(`review.outcomes.${value}`)}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <label className="focus-review-field">
+          {t("review.nextStep")}
+          <input
+            type="text"
+            value={review.nextStep ?? ""}
+            maxLength={FOCUS_MAX_DISTRACTION_LENGTH}
+            onChange={(event) => updateReview("nextStep", event.target.value)}
+            placeholder={t("review.nextStepPlaceholder")}
+          />
+        </label>
+
+        <div className="focus-complete-actions">
+          <button
+            type="button"
+            className="primary"
+            disabled={pending}
+            onClick={saveReview}
+          >
+            {pending ? (
+              <LoaderCircle className="spin" size={16} aria-hidden="true" />
+            ) : null}
+            {saved ? t("review.saved") : t("review.saveReflection")}
+          </button>
+        </div>
+      </details>
+
+      {linked && isCompleted ? (
+        <div
+          className="focus-link-complete-options"
+          role="group"
+          aria-label={t("link.optionsLabel")}
+        >
           {applied ? (
             <p className="muted focus-complete-task-note">
               {t("link.alreadyApplied")}
@@ -171,14 +477,14 @@ export function SessionCompleteCard({
             </>
           )}
         </div>
-      ) : (
+      ) : isCompleted ? (
         <p className="muted focus-complete-task-note">
           {t("cycles.taskNotAuto")}
         </p>
-      )}
+      ) : null}
 
       <div className="focus-complete-actions">
-        {localSession.mode === "cycles" ? (
+        {localSession.mode === "cycles" && isCompleted ? (
           <button
             type="button"
             className="primary"
@@ -197,6 +503,15 @@ export function SessionCompleteCard({
           <Check size={16} aria-hidden="true" />
           {t("cycles.done")}
         </button>
+        <button
+          type="button"
+          className="focus-secondary-action is-danger"
+          disabled={pending}
+          onClick={() => setDiscardOpen(true)}
+        >
+          <Trash2 size={16} aria-hidden="true" />
+          {t("review.discard")}
+        </button>
       </div>
 
       <ConfirmDialog
@@ -212,6 +527,37 @@ export function SessionCompleteCard({
           return true;
         }}
       />
+
+      <ConfirmDialog
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title={t("review.discardTitle")}
+        description={t("review.discardDescription")}
+        cancelLabel={common("cancel")}
+        confirmLabel={t("review.discardConfirm")}
+        variant="danger"
+        onConfirm={() => {
+          discardSession();
+          return true;
+        }}
+      />
+
+      {taskResources && taskTitle ? (
+        <TaskForm
+          open={Boolean(taskTitle)}
+          onOpenChange={(open) => {
+            if (!open) setTaskTitle(null);
+          }}
+          schedules={taskResources.schedules}
+          categories={taskResources.categories}
+          timezone={taskResources.timezone}
+          defaultTitle={taskTitle}
+          onSaved={async () => {
+            setTaskTitle(null);
+            router.refresh();
+          }}
+        />
+      ) : null}
     </section>
   );
 }

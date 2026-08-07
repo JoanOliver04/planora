@@ -430,6 +430,14 @@ export async function updateFocusSessionMetadataAction(
       );
     }
 
+    const nextLink = { ...current.linkSnapshot };
+    if (value.outcome !== undefined) {
+      nextLink.outcome = value.outcome;
+    }
+    if (value.nextStep !== undefined) {
+      nextLink.nextStep = value.nextStep ? value.nextStep.trim() || null : null;
+    }
+
     const next: FocusSession = {
       ...current,
       title: value.title === undefined ? current.title : value.title,
@@ -446,6 +454,7 @@ export async function updateFocusSessionMetadataAction(
         value.subjectiveEnergy === undefined
           ? current.subjectiveEnergy
           : value.subjectiveEnergy,
+      linkSnapshot: nextLink,
       revision: current.revision + 1,
       updatedAt: new Date().toISOString(),
     };
@@ -480,6 +489,55 @@ export async function updateFocusSessionMetadataAction(
 
     refresh();
     return { ok: true, data: next };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+/** Permanently discard a session (and cascaded intervals). Requires confirmation in UI. */
+export async function discardFocusSessionAction(
+  input: unknown,
+): Promise<FocusActionResult<{ id: string }>> {
+  try {
+    const value = z
+      .object({
+        sessionId: z.string().uuid(),
+        expectedRevision: z.number().int().min(1),
+      })
+      .parse(input);
+    const { db, user } = await auth();
+    const current = await fetchFocusSessionById(db, user.id, value.sessionId);
+    if (!current) {
+      throw new FocusError("NOT_FOUND", "Focus session not found.");
+    }
+    if (current.revision !== value.expectedRevision) {
+      throw new FocusError(
+        "REVISION_CONFLICT",
+        "This focus session was updated elsewhere. Reload and try again.",
+      );
+    }
+
+    const { data, error } = await db
+      .from("focus_sessions")
+      .delete()
+      .eq("id", current.id)
+      .eq("user_id", user.id)
+      .eq("revision", current.revision)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      throw new FocusError("DATABASE_ERROR", "Unable to discard focus session");
+    }
+    if (!data) {
+      throw new FocusError(
+        "REVISION_CONFLICT",
+        "This focus session was updated elsewhere. Reload and try again.",
+      );
+    }
+
+    refresh();
+    return { ok: true, data: { id: data.id } };
   } catch (error) {
     return fail(error);
   }

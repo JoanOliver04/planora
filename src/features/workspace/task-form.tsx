@@ -16,6 +16,7 @@ export function TaskForm({
   categories,
   timezone,
   task,
+  defaultTitle,
   onSaved,
 }: {
   open: boolean;
@@ -24,6 +25,8 @@ export function TaskForm({
   categories: Category[];
   timezone: string;
   task?: Task | null;
+  /** Prefill title when creating a new task (e.g. from a parked distraction). */
+  defaultTitle?: string;
   onSaved: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
@@ -107,14 +110,18 @@ export function TaskForm({
             {task ? t("edit") : t("add")} · {t("title")}
           </Dialog.Title>
           <Dialog.Description className="muted">{summary}</Dialog.Description>
-          <form action={submit} className="form-grid" key={task?.id ?? "new"}>
+          <form
+            action={submit}
+            className="form-grid"
+            key={task?.id ?? defaultTitle ?? "new"}
+          >
             <label>
               {t("title")}
               <input
                 name="title"
                 required
                 maxLength={140}
-                defaultValue={task?.title}
+                defaultValue={task?.title ?? defaultTitle ?? ""}
               />
             </label>
             <fieldset className="availability-fieldset">

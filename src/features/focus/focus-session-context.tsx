@@ -105,6 +105,9 @@ export function FocusSessionProvider({
       if (session.status === "completed") {
         toast.success(t("engine.completed"));
         setLastCompleted(session);
+      } else if (session.status === "cancelled") {
+        toast.message(t("engine.cancelled"));
+        setLastCompleted(session);
       }
       setImmersive(false);
       setSeed(null);
