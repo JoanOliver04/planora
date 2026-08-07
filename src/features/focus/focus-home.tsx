@@ -26,6 +26,10 @@ import { ActiveSessionView } from "./active-session-view";
 import type { UseFocusSessionResult } from "./use-focus-session";
 import { SessionCompleteCard } from "./session-complete-card";
 import { FocusPresetManager } from "./preset-manager";
+import {
+  defaultFocusAccountPreferences,
+  type FocusAccountPreferences,
+} from "./focus-preferences";
 
 export type FocusHomeProps = {
   activeSession: FocusSession | null;
@@ -37,6 +41,7 @@ export type FocusHomeProps = {
   weekStartsOn: number;
   tasks?: FocusTaskOption[];
   categories?: Array<{ id: string; name: string; emoji: string | null }>;
+  accountPreferences?: FocusAccountPreferences;
   /** Prefill from task deep link (e.g. /focus?taskId=…&date=…). */
   initialDraft?: SessionStartDraft | null;
   autoOpenConfigurator?: boolean;
@@ -61,6 +66,7 @@ export function FocusHome({
   weekStartsOn,
   tasks = [],
   categories = [],
+  accountPreferences = defaultFocusAccountPreferences,
   initialDraft = null,
   autoOpenConfigurator = false,
 }: FocusHomeProps) {
@@ -77,6 +83,11 @@ export function FocusHome({
   useEffect(() => {
     if (shared && activeSession) shared.hydrateSession(activeSession);
   }, [shared, activeSession]);
+
+  useEffect(() => {
+    document.documentElement.dataset.focusTimerDisplay =
+      accountPreferences.timerDisplay;
+  }, [accountPreferences.timerDisplay]);
 
   // Prefer the app-wide engine so compact bar and home share one timer.
   const localEngine = useFocusSession(shared ? null : activeSession, {
@@ -161,8 +172,9 @@ export function FocusHome({
         <SessionCompleteCard
           session={shared.lastCompleted}
           onDismiss={() => shared.clearLastCompleted()}
+          openReviewByDefault={accountPreferences.askReviewOnEnd}
           weeklyGoalLabel={
-            goalProgress
+            goalProgress && accountPreferences.showWeeklyGoal
               ? t("goal.progress", {
                   done: formatFocusDuration(
                     goalProgress.completedFocusSec,
@@ -221,10 +233,11 @@ export function FocusHome({
         />
       ) : null}
 
-      {goalProgress ? (
+      {goalProgress && accountPreferences.showWeeklyGoal ? (
         <section
           className="surface focus-goal-card"
           aria-labelledby="focus-goal-title"
+          data-weekdays-only={accountPreferences.goalWeekdaysOnly || undefined}
         >
           <div className="focus-section-head">
             <h2 id="focus-goal-title">
@@ -319,6 +332,8 @@ export function FocusHome({
         activeSession={hasActive ? liveSession : null}
         presets={presets}
         tasks={tasks}
+        accountPreferences={accountPreferences}
+        askIntentionOnStart={accountPreferences.askIntentionOnStart}
         defaultOccurrenceDate={
           // Prefer draft occurrence, else profile-local today for new task links.
           draft?.occurrenceDate ??

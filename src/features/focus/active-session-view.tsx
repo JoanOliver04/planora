@@ -34,6 +34,7 @@ import {
   FOCUS_MAX_DISTRACTION_LENGTH,
   FOCUS_MAX_DISTRACTIONS,
 } from "./validation";
+import { defaultFocusAccountPreferences } from "./focus-preferences";
 
 
 function phaseLabel(
@@ -152,10 +153,31 @@ export function ActiveSessionView({
     session.linkSnapshot.taskTitle ||
     t("active.untitled");
   const category = session.linkSnapshot.categoryName;
+  const timerDisplay =
+    typeof window === "undefined"
+      ? defaultFocusAccountPreferences.timerDisplay
+      : (() => {
+          try {
+            const raw = window.localStorage.getItem("planora-focus-timer-display");
+            // Prefer account prefs passed via data attribute set by FocusHome when available.
+            const fromDom = document.documentElement.dataset.focusTimerDisplay;
+            if (fromDom === "compact" || fromDom === "large") return fromDom;
+            if (raw === "compact" || raw === "large") return raw;
+          } catch {
+            // ignore
+          }
+          return defaultFocusAccountPreferences.timerDisplay;
+        })();
   const displayTime =
     clock.remainingSec != null
-      ? formatFocusDuration(clock.remainingSec)
-      : formatFocusDuration(clock.focusElapsedSec);
+      ? formatFocusDuration(
+          clock.remainingSec,
+          timerDisplay === "compact" ? "compact" : "clock",
+        )
+      : formatFocusDuration(
+          clock.focusElapsedSec,
+          timerDisplay === "compact" ? "compact" : "clock",
+        );
 
   async function toggleImmersive() {
     if (immersive) {
@@ -371,6 +393,7 @@ export function ActiveSessionView({
         <p className="focus-active-phase">{phaseLabel(session.currentPhaseKind, t)}</p>
         <p
           className="focus-active-time"
+          data-size={timerDisplay}
           aria-hidden="true"
         >
           {displayTime}

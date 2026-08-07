@@ -14,6 +14,12 @@ import type { FocusMode, FocusPreset, FocusSession } from "./types";
 import type { QuickFocusPreset } from "./defaults";
 import { recordFocusStart } from "./focus-recents";
 import {
+  defaultFocusAccountPreferences,
+  defaultFocusDevicePreferences,
+  loadFocusDevicePreferences,
+  type FocusAccountPreferences,
+} from "./focus-preferences";
+import {
   FOCUS_MAX_CYCLES,
   FOCUS_MAX_CYCLES_BEFORE_LONG,
   FOCUS_MAX_DURATION_SEC,
@@ -83,27 +89,40 @@ type FormState = {
   preferFullscreen: boolean;
 };
 
-const defaultForm = (): FormState => ({
-  mode: "countdown",
-  focusMinutes: "25",
-  shortBreakMinutes: "5",
-  longBreakMinutes: "15",
-  cyclesBeforeLongBreak: "4",
-  targetCycles: "4",
-  indefiniteCycles: false,
-  title: "",
-  presetId: "",
-  taskId: "",
-  occurrenceDate: "",
-  autoStartBreaks: true,
-  autoStartFocus: false,
-  soundEnabled: true,
-  vibrationEnabled: true,
-  notifyOnPhaseEnd: true,
-  completeTaskOnEnd: false,
-  keepScreenAwake: false,
-  preferFullscreen: false,
-});
+function preferenceDefaults(
+  accountPrefs = defaultFocusAccountPreferences,
+  devicePrefs = defaultFocusDevicePreferences,
+): FormState {
+  return {
+    mode: accountPrefs.defaultMode,
+    focusMinutes: "25",
+    shortBreakMinutes: "5",
+    longBreakMinutes: "15",
+    cyclesBeforeLongBreak: "4",
+    targetCycles: "4",
+    indefiniteCycles: false,
+    title: "",
+    presetId: accountPrefs.defaultPresetId ?? "",
+    taskId: "",
+    occurrenceDate: "",
+    autoStartBreaks: true,
+    autoStartFocus: false,
+    soundEnabled: devicePrefs.soundEnabled,
+    vibrationEnabled: devicePrefs.vibrationEnabled,
+    notifyOnPhaseEnd: devicePrefs.systemNotifyEnabled,
+    completeTaskOnEnd: accountPrefs.completeTaskOnEndDefault,
+    keepScreenAwake: devicePrefs.wakeLockPreferred,
+    preferFullscreen: devicePrefs.preferFullscreen,
+  };
+}
+
+const defaultForm = (): FormState => {
+  const device =
+    typeof window === "undefined"
+      ? defaultFocusDevicePreferences
+      : loadFocusDevicePreferences();
+  return preferenceDefaults(defaultFocusAccountPreferences, device);
+};
 
 function minutesFromSec(sec: number | null | undefined, fallback: string) {
   if (sec == null) return fallback;
@@ -232,6 +251,8 @@ export function SessionStartDialog({
   tasks = [],
   onStarted,
   defaultOccurrenceDate = null,
+  accountPreferences,
+  askIntentionOnStart = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -242,15 +263,28 @@ export function SessionStartDialog({
   onStarted?: (session: FocusSession) => void;
   /** Profile-local YYYY-MM-DD used when linking a task without a date. */
   defaultOccurrenceDate?: string | null;
+  accountPreferences?: FocusAccountPreferences;
+  askIntentionOnStart?: boolean;
 }) {
   const t = useTranslations("Focus");
   const common = useTranslations("Common");
   const router = useRouter();
   const formId = useId();
+  const account = accountPreferences ?? defaultFocusAccountPreferences;
+  const device =
+    typeof window === "undefined"
+      ? defaultFocusDevicePreferences
+      : loadFocusDevicePreferences();
   // Parent remounts this dialog (key) when opening with a new draft.
-  const [form, setForm] = useState<FormState>(() =>
-    draftToForm(draft, presets),
-  );
+  const [form, setForm] = useState<FormState>(() => {
+    if (draft) return draftToForm(draft, presets);
+    const base = preferenceDefaults(account, device);
+    if (account.defaultPresetId) {
+      const preset = presets.find((item) => item.id === account.defaultPresetId);
+      if (preset) return applyPresetToForm(preset);
+    }
+    return base;
+  });
   const [draftSnapshot] = useState(() => draft?.linkSnapshot ?? null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -270,6 +304,9 @@ export function SessionStartDialog({
   }
 
   function validate(): string | null {
+    if (askIntentionOnStart && !form.title.trim()) {
+      return t("config.errors.intentionRequired");
+    }
     if (form.taskId && !form.occurrenceDate.trim()) {
       return t("config.errors.occurrenceRequired");
     }

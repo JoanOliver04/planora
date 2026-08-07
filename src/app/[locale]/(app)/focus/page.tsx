@@ -6,6 +6,7 @@ import type { FocusSession } from "@/features/focus/types";
 import { resolveDeepLinkDraft } from "@/features/focus/focus-deep-link";
 import type { FocusTaskSource } from "@/features/focus/task-link";
 import type { SessionStartDraft } from "@/features/focus/session-start-dialog";
+import { readFocusAccountFromProfilePreferences } from "@/features/focus/focus-preferences";
 
 export default async function FocusPage({
   searchParams,
@@ -26,7 +27,7 @@ export default async function FocusPage({
 
   const { data: profile } = await db
     .from("profiles")
-    .select("timezone,week_starts_on")
+    .select("timezone,week_starts_on,preferences")
     .eq("id", user.id)
     .single();
 
@@ -240,6 +241,9 @@ export default async function FocusPage({
         name: category.name,
         emoji: category.emoji,
       }))}
+      accountPreferences={readFocusAccountFromProfilePreferences(
+        profile?.preferences,
+      )}
       initialDraft={initialDraft}
       autoOpenConfigurator={autoOpenConfigurator}
     />

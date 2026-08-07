@@ -32,6 +32,7 @@ import {
 } from "@/lib/preferences";
 import { filterEvents, type EventVisibility } from "@/lib/workspace/visibility";
 import { categoriesForSchedule } from "./categories";
+import { FocusSettingsPanel } from "@/features/focus/focus-settings";
 const fail = (e: unknown, fallback: string) =>
   toast.error(e instanceof Error ? e.message : fallback);
 export function EventsView({
@@ -832,7 +833,12 @@ function PersonalizationSettings({
       <div className="row-actions">
         <button
           className="pill"
-          onClick={() => setPreferences(defaultPreferences)}
+          onClick={() =>
+            setPreferences((current) => ({
+              ...defaultPreferences,
+              focus: current.focus,
+            }))
+          }
         >
           {t("reset")}
         </button>
@@ -925,6 +931,12 @@ export function SettingsView({
           </select>
         </div>
         <PersonalizationSettings data={data} save={profile} />
+        <FocusSettingsPanel
+          profilePreferences={data.profile.preferences}
+          onSaveAccount={async (preferences) => {
+            await profile({ preferences });
+          }}
+        />
         <DayPartsSettings data={data} reload={reload} />
         {Intl.DateTimeFormat().resolvedOptions().timeZone !==
           data.profile.timezone && (

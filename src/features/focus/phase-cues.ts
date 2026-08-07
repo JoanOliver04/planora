@@ -1,10 +1,11 @@
 import type { FocusSession } from "./types";
+import { loadFocusDevicePreferences } from "./focus-preferences";
 
 export type PhaseCueKind = "phase_change" | "session_complete" | "soft_goal";
 
 /**
  * Progressive enhancement cues for phase changes.
- * Never throws; never blocks the timer. Honours session flags and browser limits.
+ * Never throws; never blocks the timer. Honours session flags, device prefs and browser limits.
  */
 export async function playPhaseCue(
   session: FocusSession,
@@ -12,12 +13,17 @@ export async function playPhaseCue(
 ): Promise<{ sound: boolean; vibration: boolean; notification: boolean }> {
   const result = { sound: false, vibration: false, notification: false };
   if (typeof window === "undefined") return result;
+  const device = loadFocusDevicePreferences();
 
-  if (session.config.soundEnabled) {
-    result.sound = playSoftChime();
+  if (session.config.soundEnabled && device.soundEnabled) {
+    result.sound = playSoftChime(device.soundVolume);
   }
 
-  if (session.config.vibrationEnabled && typeof navigator.vibrate === "function") {
+  if (
+    session.config.vibrationEnabled &&
+    device.vibrationEnabled &&
+    typeof navigator.vibrate === "function"
+  ) {
     try {
       // Short, non-alarming pattern.
       result.vibration = navigator.vibrate(
@@ -28,14 +34,18 @@ export async function playPhaseCue(
     }
   }
 
-  if (session.config.notifyOnPhaseEnd && kind !== "soft_goal") {
+  if (
+    session.config.notifyOnPhaseEnd &&
+    device.systemNotifyEnabled &&
+    kind !== "soft_goal"
+  ) {
     result.notification = await tryNotifyPhase(session, kind);
   }
 
   return result;
 }
 
-function playSoftChime(): boolean {
+function playSoftChime(volume = 0.5): boolean {
   try {
     const AudioCtx =
       window.AudioContext ||
@@ -45,13 +55,14 @@ function playSoftChime(): boolean {
     const ctx = new AudioCtx();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    const peak = Math.max(0.0001, Math.min(0.08, 0.05 * volume));
     osc.type = "sine";
     osc.frequency.value = 528;
     gain.gain.value = 0.0001;
     osc.connect(gain);
     gain.connect(ctx.destination);
     const now = ctx.currentTime;
-    gain.gain.exponentialRampToValueAtTime(0.05, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
     osc.start(now);
     osc.stop(now + 0.4);

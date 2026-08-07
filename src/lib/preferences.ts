@@ -1,4 +1,9 @@
 import type { Json } from "@/types/database";
+import {
+  defaultFocusAccountPreferences,
+  normalizeFocusAccountPreferences,
+  type FocusAccountPreferences,
+} from "@/features/focus/focus-preferences";
 
 export type Density = "compact" | "comfortable" | "spacious";
 export type Radius = "square" | "soft" | "rounded";
@@ -9,6 +14,8 @@ export type UserPreferences = {
   radius: Radius;
   reduceMotion: boolean;
   showCompleted: boolean;
+  /** Synced Focus preferences (not device-local). */
+  focus: FocusAccountPreferences;
 };
 
 export const defaultPreferences: UserPreferences = {
@@ -18,6 +25,7 @@ export const defaultPreferences: UserPreferences = {
   radius: "rounded",
   reduceMotion: false,
   showCompleted: true,
+  focus: defaultFocusAccountPreferences,
 };
 
 export function normalizePreferences(value: Json | undefined): UserPreferences {
@@ -50,6 +58,7 @@ export function normalizePreferences(value: Json | undefined): UserPreferences {
       typeof input.reduceMotion === "boolean" ? input.reduceMotion : false,
     showCompleted:
       typeof input.showCompleted === "boolean" ? input.showCompleted : true,
+    focus: normalizeFocusAccountPreferences(input.focus),
   };
 }
 

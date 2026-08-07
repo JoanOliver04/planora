@@ -47,11 +47,14 @@ export function SessionCompleteCard({
   session,
   onDismiss,
   weeklyGoalLabel,
+  openReviewByDefault = true,
 }: {
   session: FocusSession;
   onDismiss?: () => void;
   /** Optional preformatted weekly goal progress line. */
   weeklyGoalLabel?: string | null;
+  /** When true, the optional reflection panel starts expanded. */
+  openReviewByDefault?: boolean;
 }) {
   const t = useTranslations("Focus");
   const common = useTranslations("Common");
@@ -329,7 +332,7 @@ export function SessionCompleteCard({
         </div>
       ) : null}
 
-      <details className="focus-review-optional">
+      <details className="focus-review-optional" open={openReviewByDefault}>
         <summary>{t("review.optionalTitle")}</summary>
         <p className="muted">{t("review.optionalHint")}</p>
 

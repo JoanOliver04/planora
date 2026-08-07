@@ -57,6 +57,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 
 - Flexible concentration sessions: countdown, free stopwatch, or work/break cycles — Pomodoro is optional, not mandatory.
 - Fully customizable Focus presets (emoji, intention, durations, cycles, behaviour, structured plan, favourites, archive and reorder) plus optional starter templates.
+- Focus preferences split by scope: account-synced options (default mode/preset, review, goal visibility) and device-local options (sound volume, vibration, notifications, Wake Lock, compact bar).
 - Optional link to a task or habit; finishing a session never auto-completes work unless the user chose that explicitly.
 - Quick starts from Today (continue / quick session / next task / last preset) and a secondary timer action in Week and Tasks.
 - Robust timer based on timestamps (not per-second DB writes), recovery after reload, and a compact bar while browsing other views.

@@ -4206,6 +4206,28 @@ select:disabled,
   display: grid;
   gap: 0.45rem;
 }
+.focus-settings {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+.focus-settings-group {
+  display: grid;
+  gap: 0.55rem;
+}
+.focus-settings-group h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.focus-settings-permission {
+  margin: 0;
+  font-size: 0.88rem;
+}
+.focus-active-time[data-size="compact"] {
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
+}
 button.mini-task {
   width: 100%;
   border: 0;

@@ -15,6 +15,7 @@ import {
 import { isActiveStatus } from "./time";
 import type { FocusSession } from "./types";
 import { applyFocusAction, type FocusDomainAction } from "./state-machine";
+import { loadFocusDevicePreferences } from "./focus-preferences";
 
 export type UseFocusSessionOptions = {
   onRecovered?: (session: FocusSession) => void;
@@ -224,7 +225,23 @@ export function useFocusSession(
     };
 
     const onVisibility = () => {
-      if (document.visibilityState === "visible") onVisible();
+      if (document.visibilityState === "visible") {
+        onVisible();
+        return;
+      }
+      // Best-effort lock/background pause from device preferences.
+      const prefs = loadFocusDevicePreferences();
+      const current = sessionRef.current;
+      if (
+        prefs.lockScreenBehavior === "pause" &&
+        current &&
+        (current.status === "running" || current.status === "on_break")
+      ) {
+        void persistAction(
+          { type: "pause" },
+          `pause-lock:${current.id}:${current.revision}`,
+        );
+      }
     };
 
     window.addEventListener("pageshow", onVisible);

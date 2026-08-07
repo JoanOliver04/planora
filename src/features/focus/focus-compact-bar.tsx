@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { usePathname } from "@/i18n/routing";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
@@ -7,6 +8,11 @@ import { Pause, Play } from "lucide-react";
 import { formatFocusDuration } from "./defaults";
 import { useOptionalFocusSessionContext } from "./focus-session-context";
 import { matchesNavigationPath } from "@/config/navigation";
+import {
+  defaultFocusDevicePreferences,
+  loadFocusDevicePreferences,
+  subscribeFocusDevicePreferences,
+} from "./focus-preferences";
 
 /**
  * Persistent compact session card while browsing the rest of Planora.
@@ -16,6 +22,11 @@ export function FocusCompactBar() {
   const ctx = useOptionalFocusSessionContext();
   const t = useTranslations("Focus");
   const pathname = usePathname();
+  const device = useSyncExternalStore(
+    subscribeFocusDevicePreferences,
+    loadFocusDevicePreferences,
+    () => defaultFocusDevicePreferences,
+  );
 
   if (!ctx) return null;
   const { engine, immersive } = ctx;
@@ -32,6 +43,7 @@ export function FocusCompactBar() {
 
   // Full view owns the experience on /focus or immersive mode.
   if (matchesNavigationPath(pathname, "/focus") || immersive) return null;
+  if (!device.showCompactBar) return null;
 
   const title =
     session.title ||

@@ -1259,6 +1259,8 @@ Resume modelo, UX y pruebas.
 
 ## Prompt 12 — Preferencias personales y comportamiento por dispositivo
 
+> **HECHO** — Preferencias de cuenta en `profiles.preferences.focus` (sincronizadas) y preferencias de dispositivo en `localStorage` (sonido/volumen, vibración, notificaciones, Wake Lock, fullscreen, barra compacta, pausa al ocultar). UI en Ajustes, permisos solo bajo acción explícita, restablecer sin borrar historial/presets.
+
 ```text
 Añade una sección de preferencias de Enfoque dentro de Ajustes o del propio módulo, siguiendo la arquitectura de settings actual.
 
