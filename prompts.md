@@ -684,6 +684,8 @@ Explica cómo se crea la sesión, validaciones, tratamiento de conflictos, archi
 
 ## Prompt 05 — Motor de timer robusto y recuperación tras recarga
 
+> **HECHO** — `engine.ts` + `useFocusSession` (anti-deriva, visibility/pageshow, auto phase end, recover, gate idempotente). Controles en home. Tests `tests/focus-engine.test.ts`.
+
 ```text
 Implementa el motor de ejecución de una sesión activa de Planora Enfoque.
 

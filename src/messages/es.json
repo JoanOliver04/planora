@@ -123,6 +123,21 @@
       "createPreset": "La gestión de presets llegará en una próxima entrega.",
       "startPreset": "El arranque desde preset llegará en la siguiente entrega."
     },
+    "engine": {
+      "pause": "Pausar",
+      "resume": "Reanudar",
+      "complete": "Terminar",
+      "cancel": "Cancelar sesión",
+      "skipBreak": "Saltar descanso",
+      "recovered": "Sesión recuperada. El tiempo se recalculó tras la pausa o recarga.",
+      "softGoal": "Has alcanzado la meta opcional del cronómetro. Puedes seguir o terminar.",
+      "completed": "Sesión de enfoque completada",
+      "persistError": "No se pudo guardar el cambio de la sesión. Inténtalo de nuevo.",
+      "revisionConflict": "La sesión se actualizó en otra pestaña. Se ha recargado el estado.",
+      "cancelTitle": "¿Cancelar la sesión activa?",
+      "cancelDescription": "Se guardará el tiempo acumulado y la sesión quedará cancelada.",
+      "dismiss": "Entendido"
+    },
     "config": {
       "title": "Nueva sesión de Enfoque",
       "description": "Configura lo esencial y empieza. Las opciones avanzadas son opcionales.",

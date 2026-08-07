@@ -390,6 +390,8 @@ export function recoverFocusSession(
     steps += 1;
     const open = openInterval(current);
     if (!open || open.plannedDurationSec == null) break;
+    // Stopwatch focus goals are soft: never auto-finish on recovery.
+    if (current.mode === "stopwatch" && open.kind === "focus") break;
     const phaseEndMs =
       Date.parse(open.startedAt) + open.plannedDurationSec * 1000;
     if (phaseEndMs > toInstantSafe(now)) break;

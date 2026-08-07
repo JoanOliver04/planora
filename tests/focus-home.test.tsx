@@ -24,8 +24,14 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/features/focus/actions", () => ({
-  startFocusSessionAction: vi.fn(),
-  transitionFocusSessionAction: vi.fn(),
+  startFocusSessionAction: vi.fn(async () => ({
+    ok: false,
+    error: { code: "DATABASE_ERROR", message: "not used" },
+  })),
+  transitionFocusSessionAction: vi.fn(async () => ({
+    ok: false,
+    error: { code: "DATABASE_ERROR", message: "offline in test" },
+  })),
 }));
 
 afterEach(() => {
@@ -55,6 +61,7 @@ function renderHome(
 }
 
 function sampleActiveSession(): FocusSession {
+  // Start "now" so the engine does not treat the phase as already overdue.
   return createStartedSession(
     {
       mode: "countdown",
@@ -63,7 +70,7 @@ function sampleActiveSession(): FocusSession {
     },
     "user-1",
     {
-      now: Date.parse("2026-08-07T10:00:00.000Z"),
+      now: Date.now(),
       sessionId: "sess-1",
       intervalId: "int-1",
       createId: () => "x",
@@ -105,22 +112,17 @@ describe("Focus home shell", () => {
     expect(screen.getByRole("button", { name: /Start session/i })).toBeVisible();
   });
 
-  it("prioritises the active session card", async () => {
-    const user = userEvent.setup();
+  it("prioritises the active session card with engine controls", () => {
     const active = sampleActiveSession();
     renderHome({ activeSession: active });
 
     expect(screen.getByText("Sesión activa")).toBeVisible();
     expect(screen.getByText("Piano practice")).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: /Continuar sesión/i }),
-    ).toBeVisible();
+    expect(screen.getByRole("button", { name: /Pausar/i })).toBeVisible();
+    expect(screen.getByRole("button", { name: /Terminar/i })).toBeVisible();
     expect(
       screen.queryByRole("button", { name: /^Iniciar sesión$/i }),
     ).toBeNull();
-
-    await user.click(screen.getByRole("button", { name: /Continuar sesión/i }));
-    expect(toastMessage).toHaveBeenCalled();
   });
 
   it("opens the configurator from the primary start action", async () => {

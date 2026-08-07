@@ -3484,13 +3484,29 @@ select:disabled,
   font-weight: 650;
 }
 .focus-active-actions {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.55rem;
+  align-items: center;
 }
 .focus-active-hint {
   margin: 0;
   font-size: 0.86rem;
   line-height: 1.45;
+  flex: 1 0 100%;
+}
+.focus-recovered-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.55rem 0 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: calc(var(--radius) * 0.7);
+  background: color-mix(in srgb, var(--primary-2) 80%, var(--surface));
+  color: var(--primary-strong);
+  font-size: 0.86rem;
+  line-height: 1.4;
 }
 .focus-empty {
   display: grid;

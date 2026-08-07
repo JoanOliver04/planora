@@ -14,6 +14,15 @@ export {
   type SessionStartDraft,
 } from "./session-start-dialog";
 export {
+  evaluateFocusEngine,
+  prepareFocusSessionOnLoad,
+  runFocusEngineAction,
+  createFocusActionGate,
+  assertNoDrift,
+  autoAdvanceAction,
+} from "./engine";
+export { useFocusSession } from "./use-focus-session";
+export {
   fetchActiveFocusSession,
   fetchFocusSessionById,
   persistFocusSession,

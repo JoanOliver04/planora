@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   Clock3,
   ListPlus,
+  Pause,
   Play,
   Sparkles,
+  Square,
   Target,
   Timer,
 } from "lucide-react";
@@ -25,6 +27,8 @@ import {
   type FocusTaskOption,
   type SessionStartDraft,
 } from "./session-start-dialog";
+import { useFocusSession } from "./use-focus-session";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export type FocusHomeProps = {
   activeSession: FocusSession | null;
@@ -68,21 +72,23 @@ export function FocusHome({
   tasks = [],
 }: FocusHomeProps) {
   const t = useTranslations("Focus");
-  const [now, setNow] = useState(() => Date.now());
+  const common = useTranslations("Common");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogKey, setDialogKey] = useState(0);
   const [draft, setDraft] = useState<SessionStartDraft | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
-  useEffect(() => {
-    if (!activeSession) return;
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, [activeSession]);
+  const engine = useFocusSession(activeSession, {
+    onRecovered: () => toast.message(t("engine.recovered")),
+    onSoftGoal: () => toast.message(t("engine.softGoal")),
+    onTerminal: (session) => {
+      if (session.status === "completed") toast.success(t("engine.completed"));
+    },
+  });
 
-  const activeClock = useMemo(
-    () => (activeSession ? deriveSessionClock(activeSession, now) : null),
-    [activeSession, now],
-  );
+  const liveSession = engine.session ?? activeSession;
+  const activeClock = engine.snapshot?.clock ?? null;
+  const now = engine.now;
 
   const weekFocusSec = useMemo(
     () =>
@@ -114,7 +120,7 @@ export function FocusHome({
   const displayPresets =
     favoritePresets.length > 0 ? favoritePresets : presets.slice(0, 4);
 
-  const hasHistory = recentSessions.length > 0 || Boolean(activeSession);
+  const hasHistory = recentSessions.length > 0 || Boolean(liveSession);
 
   function openConfigurator(nextDraft: SessionStartDraft | null = null) {
     setDraft(nextDraft);
@@ -132,7 +138,9 @@ export function FocusHome({
           </h1>
           <p className="muted">{t("subtitle")}</p>
         </div>
-        {!activeSession ? (
+        {!liveSession ||
+        liveSession.status === "completed" ||
+        liveSession.status === "cancelled" ? (
           <button
             type="button"
             className="primary focus-primary-action"
@@ -144,7 +152,11 @@ export function FocusHome({
         ) : null}
       </header>
 
-      {activeSession && activeClock ? (
+      {liveSession &&
+      activeClock &&
+      (liveSession.status === "running" ||
+        liveSession.status === "paused" ||
+        liveSession.status === "on_break") ? (
         <article
           className="surface focus-active-card"
           aria-labelledby="focus-active-title"
@@ -152,18 +164,30 @@ export function FocusHome({
           <div className="focus-active-copy">
             <p className="eyebrow">{t("active.badge")}</p>
             <h2 id="focus-active-title">
-              {activeSession.title ||
-                activeSession.linkSnapshot.taskTitle ||
+              {liveSession.title ||
+                liveSession.linkSnapshot.taskTitle ||
                 t("active.untitled")}
             </h2>
             <p className="muted">
-              {modeLabel(activeSession.mode, t)}
+              {modeLabel(liveSession.mode, t)}
               {" · "}
-              {phaseLabel(activeSession.currentPhaseKind, t)}
-              {activeSession.mode === "cycles"
-                ? ` · ${t("active.cycle", { n: activeSession.currentCycle })}`
+              {phaseLabel(liveSession.currentPhaseKind, t)}
+              {liveSession.mode === "cycles"
+                ? ` · ${t("active.cycle", { n: liveSession.currentCycle })}`
                 : null}
             </p>
+            {engine.recoveredNotice ? (
+              <p className="focus-recovered-banner" role="status">
+                {t("engine.recovered")}
+                <button
+                  type="button"
+                  className="pill"
+                  onClick={() => engine.clearRecoveredNotice()}
+                >
+                  {t("engine.dismiss")}
+                </button>
+              </p>
+            ) : null}
           </div>
           <div className="focus-active-clock" aria-live="polite">
             <strong>
@@ -178,13 +202,55 @@ export function FocusHome({
             </span>
           </div>
           <div className="focus-active-actions">
+            {liveSession.status === "running" ||
+            liveSession.status === "on_break" ? (
+              <button
+                type="button"
+                className="primary"
+                disabled={engine.pending}
+                onClick={() => void engine.pause()}
+              >
+                <Pause size={18} aria-hidden="true" />
+                {t("engine.pause")}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="primary"
+                disabled={engine.pending}
+                onClick={() => void engine.resume()}
+              >
+                <Play size={18} aria-hidden="true" />
+                {t("engine.resume")}
+              </button>
+            )}
             <button
               type="button"
-              className="primary"
-              onClick={() => toast.message(t("placeholders.continueSession"))}
+              className="focus-secondary-action"
+              disabled={engine.pending}
+              onClick={() => void engine.complete()}
             >
-              {t("actions.continueSession")}
+              <Square size={16} aria-hidden="true" />
+              {t("engine.complete")}
             </button>
+            <button
+              type="button"
+              className="pill"
+              disabled={engine.pending}
+              onClick={() => setConfirmCancel(true)}
+            >
+              {t("engine.cancel")}
+            </button>
+            {liveSession.status === "on_break" ? (
+              <button
+                type="button"
+                className="focus-secondary-action"
+                disabled={engine.pending}
+                onClick={() => void engine.skipBreak()}
+              >
+                {t("engine.skipBreak")}
+              </button>
+            ) : null}
             <p className="muted focus-active-hint">{t("active.conflictHint")}</p>
           </div>
         </article>
@@ -391,9 +457,30 @@ export function FocusHome({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         draft={draft}
-        activeSession={activeSession}
+        activeSession={
+          liveSession &&
+          (liveSession.status === "running" ||
+            liveSession.status === "paused" ||
+            liveSession.status === "on_break")
+            ? liveSession
+            : null
+        }
         presets={presets}
         tasks={tasks}
+      />
+
+      <ConfirmDialog
+        open={confirmCancel}
+        onOpenChange={setConfirmCancel}
+        title={t("engine.cancelTitle")}
+        description={t("engine.cancelDescription")}
+        cancelLabel={common("cancel")}
+        confirmLabel={t("engine.cancel")}
+        variant="danger"
+        onConfirm={async () => {
+          await engine.cancel();
+          return true;
+        }}
       />
     </section>
   );

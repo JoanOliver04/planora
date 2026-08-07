@@ -123,6 +123,21 @@
       "createPreset": "Preset management arrives in a later delivery.",
       "startPreset": "Starting from a preset arrives in the next delivery."
     },
+    "engine": {
+      "pause": "Pause",
+      "resume": "Resume",
+      "complete": "Finish",
+      "cancel": "Cancel session",
+      "skipBreak": "Skip break",
+      "recovered": "Session recovered. Time was recalculated after suspension or reload.",
+      "softGoal": "You reached the optional stopwatch goal. Keep going or finish when ready.",
+      "completed": "Focus session completed",
+      "persistError": "Could not save the session change. Please try again.",
+      "revisionConflict": "This session was updated in another tab. State was refreshed.",
+      "cancelTitle": "Cancel the active session?",
+      "cancelDescription": "Accumulated time will be kept and the session will be cancelled.",
+      "dismiss": "Got it"
+    },
     "config": {
       "title": "New Focus session",
       "description": "Set the essentials and start. Advanced options stay optional.",
