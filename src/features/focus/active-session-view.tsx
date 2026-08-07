@@ -80,10 +80,17 @@ export function ActiveSessionView({
 } = {}) {
   const t = useTranslations("Focus");
   const common = useTranslations("Common");
-  const { engine, immersive, setImmersive, hydrateSession } =
-    useFocusSessionContext();
+  const {
+    engine,
+    immersive,
+    setImmersive,
+    hydrateSession,
+    controlMode,
+    setTakeoverDialogOpen,
+  } = useFocusSessionContext();
   const session = engine.session;
   const clock = engine.snapshot?.clock;
+  const readOnly = controlMode === "follower";
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -136,7 +143,12 @@ export function ActiveSessionView({
         onExitImmersive?.();
         exitBrowserFullscreen();
       }
-      if (event.key === " " && !(event.target instanceof HTMLInputElement) && !(event.target instanceof HTMLTextAreaElement)) {
+      if (
+        event.key === " " &&
+        !readOnly &&
+        !(event.target instanceof HTMLInputElement) &&
+        !(event.target instanceof HTMLTextAreaElement)
+      ) {
         event.preventDefault();
         if (session?.status === "paused") void engine.resume();
         else if (session?.status === "running" || session?.status === "on_break")
@@ -145,7 +157,7 @@ export function ActiveSessionView({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [immersive, session?.status, engine, setImmersive, onExitImmersive]);
+  }, [immersive, session?.status, engine, setImmersive, onExitImmersive, readOnly]);
 
   if (!session || !clock || !isLive(session)) return null;
 
@@ -281,7 +293,24 @@ export function ActiveSessionView({
       aria-labelledby="focus-active-heading"
       data-pending={engine.pending || undefined}
       data-offline={!online || undefined}
+      data-control={controlMode}
     >
+      {readOnly ? (
+        <div className="focus-sync-banner" role="status">
+          <div>
+            <strong>{t("sync.followerTitle")}</strong>
+            <p className="muted">{t("sync.followerBody")}</p>
+          </div>
+          <button
+            type="button"
+            className="primary"
+            disabled={engine.pending}
+            onClick={() => setTakeoverDialogOpen(true)}
+          >
+            {t("sync.continueHere")}
+          </button>
+        </div>
+      ) : null}
       <div className="focus-active-view-top">
         <div>
           <p className="eyebrow">{t("active.badge")}</p>
@@ -485,12 +514,14 @@ export function ActiveSessionView({
         </div>
       ) : null}
 
-      <div className="focus-active-controls">
+      <fieldset
+        className="focus-active-controls"
+        disabled={engine.pending || readOnly}
+      >
         {waitingManual && session.status === "running" ? (
           <button
             type="button"
             className="primary focus-control-main"
-            disabled={engine.pending}
             onClick={() => void engine.finishPhase()}
           >
             <Play size={20} aria-hidden="true" />
@@ -502,7 +533,6 @@ export function ActiveSessionView({
           <button
             type="button"
             className="primary focus-control-main"
-            disabled={engine.pending}
             onClick={() => void engine.finishPhase()}
           >
             <Play size={20} aria-hidden="true" />
@@ -514,7 +544,6 @@ export function ActiveSessionView({
           <button
             type="button"
             className="primary focus-control-main"
-            disabled={engine.pending}
             onClick={() => void engine.resume()}
           >
             <Play size={20} aria-hidden="true" />
@@ -524,7 +553,6 @@ export function ActiveSessionView({
           <button
             type="button"
             className="primary focus-control-main"
-            disabled={engine.pending}
             onClick={() => void engine.pause()}
           >
             <Pause size={20} aria-hidden="true" />
@@ -537,7 +565,6 @@ export function ActiveSessionView({
             <button
               type="button"
               className="focus-secondary-action"
-              disabled={engine.pending}
               onClick={() => void engine.finishPhase()}
             >
               <SkipForward size={16} aria-hidden="true" />
@@ -546,7 +573,6 @@ export function ActiveSessionView({
             <button
               type="button"
               className="focus-secondary-action"
-              disabled={engine.pending}
               onClick={() => void engine.skipSegment()}
             >
               <SkipForward size={16} aria-hidden="true" />
@@ -558,7 +584,6 @@ export function ActiveSessionView({
         <button
           type="button"
           className="focus-secondary-action"
-          disabled={engine.pending}
           onClick={() => void engine.complete()}
         >
           <Square size={16} aria-hidden="true" />
@@ -570,7 +595,6 @@ export function ActiveSessionView({
             <button
               type="button"
               className="focus-secondary-action"
-              disabled={engine.pending}
               onClick={() => void engine.skipBreak()}
             >
               <SkipForward size={16} aria-hidden="true" />
@@ -579,7 +603,6 @@ export function ActiveSessionView({
             <button
               type="button"
               className="focus-secondary-action"
-              disabled={engine.pending}
               onClick={() => void engine.extendBreak(60)}
             >
               <Plus size={16} aria-hidden="true" />
@@ -588,7 +611,6 @@ export function ActiveSessionView({
             <button
               type="button"
               className="focus-secondary-action"
-              disabled={engine.pending}
               onClick={() => void engine.extendBreak(300)}
             >
               <Plus size={16} aria-hidden="true" />
@@ -608,7 +630,6 @@ export function ActiveSessionView({
               <button
                 type="button"
                 className="focus-secondary-action"
-                disabled={engine.pending}
                 onClick={() => {
                   const minutes = Number(customExtend);
                   if (!Number.isFinite(minutes) || minutes < 1) return;
@@ -628,7 +649,6 @@ export function ActiveSessionView({
             <button
               type="button"
               className="focus-secondary-action"
-              disabled={engine.pending}
               onClick={() => void engine.extendBreak(60)}
             >
               <Plus size={16} aria-hidden="true" />
@@ -637,7 +657,6 @@ export function ActiveSessionView({
             <button
               type="button"
               className="focus-secondary-action"
-              disabled={engine.pending}
               onClick={() => void engine.extendBreak(300)}
             >
               <Plus size={16} aria-hidden="true" />
@@ -645,7 +664,7 @@ export function ActiveSessionView({
             </button>
           </>
         ) : null}
-      </div>
+      </fieldset>
 
       <p className="muted focus-shortcuts">{t("activeView.shortcuts")}</p>
 
@@ -740,6 +759,7 @@ export function ActiveSessionView({
         confirmLabel={t("engine.cancel")}
         variant="danger"
         onConfirm={async () => {
+          if (readOnly) return false;
           await engine.cancel();
           setImmersive(false);
           return true;
@@ -754,8 +774,9 @@ export function ActiveSessionView({
         cancelLabel={common("cancel")}
         confirmLabel={t("review.discardConfirm")}
         variant="danger"
-        onConfirm={() => discardActive()}
+        onConfirm={() => (readOnly ? false : discardActive())}
       />
+
     </section>
   );
 }

@@ -32,9 +32,21 @@ export type UseFocusSessionOptions = {
   onRecovered?: (session: FocusSession) => void;
   onTerminal?: (session: FocusSession) => void;
   onSoftGoal?: (session: FocusSession) => void;
+  /** Fired after a successful server write (for multi-tab broadcast). */
+  onSessionCommitted?: (
+    session: FocusSession,
+    action: FocusDomainAction["type"],
+  ) => void;
+  /** Fired when optimistic revision loses a race. */
+  onRevisionConflict?: () => void;
   tickMs?: number;
   /** Locale for scheduled Focus alerts (`es` | `en`). */
   locale?: string;
+  /**
+   * When true, block user-driven writes (follower tab/device).
+   * Auto-recover / auto-advance still allowed so the timer stays honest.
+   */
+  readOnly?: boolean;
 };
 
 export type UseFocusSessionResult = {
@@ -53,6 +65,7 @@ export type UseFocusSessionResult = {
   skipSegment: () => Promise<void>;
   extendBreak: (extraSec: number) => Promise<void>;
   recover: () => Promise<void>;
+  takeover: () => Promise<void>;
   refreshNow: () => void;
 };
 
@@ -105,9 +118,21 @@ export function useFocusSession(
   }, []);
 
   const persistAction = useCallback(
-    async (action: FocusDomainAction, gateKey: string) => {
+    async (
+      action: FocusDomainAction,
+      gateKey: string,
+      options?: { allowWhenReadOnly?: boolean },
+    ) => {
       const current = sessionRef.current;
       if (!current || !isActiveStatus(current.status)) return;
+      if (
+        optionsRef.current.readOnly &&
+        !options?.allowWhenReadOnly &&
+        action.type !== "recover" &&
+        action.type !== "takeover"
+      ) {
+        return;
+      }
       if (!gateRef.current.tryBegin(gateKey)) return;
 
       setPending(true);
@@ -131,6 +156,7 @@ export function useFocusSession(
           const code = result && !result.ok ? result.error.code : null;
           if (code === "REVISION_CONFLICT") {
             toast.error(t("engine.revisionConflict"));
+            optionsRef.current.onRevisionConflict?.();
             router.refresh();
             return;
           }
@@ -146,6 +172,7 @@ export function useFocusSession(
         setSession(nextSession);
         sessionRef.current = nextSession;
         setNow(Date.now());
+        optionsRef.current.onSessionCommitted?.(nextSession, action.type);
         if (
           nextSession.status === "completed" ||
           nextSession.status === "cancelled"
@@ -194,6 +221,7 @@ export function useFocusSession(
       sessionRef.current = nextSession;
       setRecoveredNotice(true);
       optionsRef.current.onRecovered?.(nextSession);
+      optionsRef.current.onSessionCommitted?.(nextSession, "recover");
       setNow(Date.now());
       if (
         nextSession.status === "completed" ||
@@ -424,7 +452,17 @@ export function useFocusSession(
     [persistAction],
   );
   const recover = useCallback(
-    () => persistAction({ type: "recover" }, "recover"),
+    () =>
+      persistAction({ type: "recover" }, "recover", {
+        allowWhenReadOnly: true,
+      }),
+    [persistAction],
+  );
+  const takeover = useCallback(
+    () =>
+      persistAction({ type: "takeover" }, "takeover", {
+        allowWhenReadOnly: true,
+      }),
     [persistAction],
   );
 
@@ -444,6 +482,7 @@ export function useFocusSession(
     skipSegment,
     extendBreak,
     recover,
+    takeover,
     refreshNow,
   };
 }

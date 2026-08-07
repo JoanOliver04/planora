@@ -29,9 +29,15 @@ export function FocusCompactBar() {
   );
 
   if (!ctx) return null;
-  const { engine, immersive } = ctx;
+  const {
+    engine,
+    immersive,
+    controlMode,
+    setTakeoverDialogOpen,
+  } = ctx;
   const session = engine.session;
   const clock = engine.snapshot?.clock;
+  const readOnly = controlMode === "follower";
 
   if (!session || !clock) return null;
   if (
@@ -55,16 +61,33 @@ export function FocusCompactBar() {
       : formatFocusDuration(clock.focusElapsedSec);
 
   return (
-    <div className="focus-compact-bar" role="region" aria-label={t("active.badge")}>
+    <div
+      className="focus-compact-bar"
+      role="region"
+      aria-label={t("active.badge")}
+      data-control={controlMode}
+    >
       <div className="focus-compact-copy">
         <span className="focus-compact-badge">{t("active.badge")}</span>
         <strong className="focus-compact-title">{title}</strong>
         <span className="focus-compact-time" aria-hidden="true">
           {time}
         </span>
+        {readOnly ? (
+          <span className="focus-compact-follower muted">{t("sync.followerShort")}</span>
+        ) : null}
       </div>
       <div className="focus-compact-actions">
-        {session.status === "paused" ? (
+        {readOnly ? (
+          <button
+            type="button"
+            className="primary focus-compact-return"
+            disabled={engine.pending}
+            onClick={() => setTakeoverDialogOpen(true)}
+          >
+            {t("sync.continueHere")}
+          </button>
+        ) : session.status === "paused" ? (
           <button
             type="button"
             className="icon-button"

@@ -1657,6 +1657,8 @@ Explica qué puede garantizar Planora y qué depende de plataforma.
 
 ## Prompt 17 — Sincronización entre pestañas, dispositivos y conflictos
 
+> **HECHO** — `focus-sync` (BroadcastChannel + localStorage), poll ligero multi-dispositivo, revisión optimista como autoridad DB, modo follower + takeover «Continuar aquí», rechazo de revisiones obsoletas. Tests `tests/focus-sync.test.ts`.
+
 ```text
 Implementa continuidad y resolución de conflictos para sesiones de Enfoque.
 

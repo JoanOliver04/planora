@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { FocusSessionProvider } from "./focus-session-context";
 import { FocusCompactBar } from "./focus-compact-bar";
+import { FocusTakeoverDialog } from "./focus-takeover-dialog";
 import type { FocusSession } from "./types";
 
 /**
@@ -19,6 +20,7 @@ export function FocusRuntime({
     <FocusSessionProvider initialSession={initialSession}>
       {children}
       <FocusCompactBar />
+      <FocusTakeoverDialog />
     </FocusSessionProvider>
   );
 }

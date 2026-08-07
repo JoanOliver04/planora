@@ -335,10 +335,21 @@
       "completed": "Focus session completed",
       "cancelled": "Session cancelled. Partial time was kept.",
       "persistError": "Could not save the session change. Please try again.",
-      "revisionConflict": "This session was updated in another tab. State was refreshed.",
+      "revisionConflict": "This session was updated in another tab or device. State was refreshed.",
       "cancelTitle": "Cancel the active session?",
       "cancelDescription": "Accumulated time will be kept and the session will be cancelled.",
       "dismiss": "Got it"
+    },
+    "sync": {
+      "followerTitle": "Viewing only",
+      "followerBody": "This Focus session is being controlled from another tab or device. You can watch the timer here, or continue control on this device.",
+      "followerShort": "View only",
+      "continueHere": "Continue here",
+      "takeoverTitle": "Control this session here?",
+      "takeoverDescription": "This device will take control. The other tab or device becomes view-only until someone continues there. No second session is created.",
+      "takeoverDone": "You control this Focus session here now",
+      "updatedElsewhere": "Focus session updated elsewhere — controls are view-only until you continue here.",
+      "endedElsewhere": "The Focus session ended in another tab or device."
     },
     "plan": {
       "title": "Session plan",

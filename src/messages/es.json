@@ -335,10 +335,21 @@
       "completed": "Sesión de enfoque completada",
       "cancelled": "Sesión cancelada. Se ha conservado el tiempo parcial.",
       "persistError": "No se pudo guardar el cambio de la sesión. Inténtalo de nuevo.",
-      "revisionConflict": "La sesión se actualizó en otra pestaña. Se ha recargado el estado.",
+      "revisionConflict": "La sesión se actualizó en otra pestaña o dispositivo. Se ha recargado el estado.",
       "cancelTitle": "¿Cancelar la sesión activa?",
       "cancelDescription": "Se guardará el tiempo acumulado y la sesión quedará cancelada.",
       "dismiss": "Entendido"
+    },
+    "sync": {
+      "followerTitle": "Solo lectura",
+      "followerBody": "Esta sesión de Enfoque se controla desde otra pestaña o dispositivo. Puedes ver el temporizador aquí, o continuar el control en este dispositivo.",
+      "followerShort": "Solo ver",
+      "continueHere": "Continuar aquí",
+      "takeoverTitle": "¿Controlar la sesión aquí?",
+      "takeoverDescription": "Este dispositivo tomará el control. La otra pestaña o dispositivo pasará a solo lectura hasta que alguien continúe allí. No se crea una segunda sesión.",
+      "takeoverDone": "Ahora controlas la sesión de Enfoque aquí",
+      "updatedElsewhere": "La sesión de Enfoque se actualizó en otro sitio — controles en solo lectura hasta que continúes aquí.",
+      "endedElsewhere": "La sesión de Enfoque terminó en otra pestaña o dispositivo."
     },
     "plan": {
       "title": "Plan de sesión",
