@@ -276,11 +276,12 @@ Open [http://localhost:3000](http://localhost:3000). Web Analytics is only mount
 | `npm run build`         | Create an optimised production build    |
 | `npm start`             | Run the production build                |
 | `npm run lint`          | Run ESLint                              |
+| `npm run format`        | Format the codebase with Prettier       |
+| `npm run format:check`  | Fail if Prettier formatting drifts (CI) |
 | `npm run typecheck`     | Run strict TypeScript checks            |
 | `npm test`              | Run unit and component tests            |
 | `npm run test:coverage` | Generate a coverage report              |
 | `npm run test:e2e`      | Run Playwright desktop and mobile flows |
-| `npm run format`        | Format the codebase with Prettier       |
 | `npm run db:types`      | Regenerate Supabase database types      |
 
 ## Security
@@ -307,6 +308,7 @@ No application can be guaranteed completely secure. See [docs/security.md](docs/
 
 ```bash
 npm run lint
+npm run format:check
 npm run typecheck
 npm test
 npm run test:e2e
@@ -314,7 +316,17 @@ npm run build
 npm audit
 ```
 
-The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, forms, loading states, protected navigation, platform metadata, mobile authentication and the single-instance, automatic-only Analytics integration.
+CI runs lint, Prettier (`format:check`), typecheck, unit tests and production build on every push to `main`, plus Playwright e2e and Lighthouse on the live site.
+
+The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync, backup v4), forms, loading states, protected navigation, platform metadata, mobile authentication and the single-instance, automatic-only Analytics integration.
+
+Focus portfolio screenshots (light theme) live under `docs/images/13–17-*.png`. To regenerate them against a local production server with Supabase credentials in `.env.local`:
+
+```bash
+npm run build
+npm start -- --hostname 127.0.0.1 --port 3000
+node scripts/capture-focus-screenshots.mjs
+```
 
 ## Deployment
 

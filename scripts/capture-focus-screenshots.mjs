@@ -318,9 +318,12 @@ async function main() {
     await page.reload({ waitUntil: "networkidle" });
     await forceLightTheme(page);
     await waitFocusReady(page);
-    await page.getByText(/Presets y accesos|Deep work|Iniciar sesión/i).first().waitFor({
-      timeout: 15_000,
-    });
+    await page
+      .getByText(/Presets y accesos|Deep work|Iniciar sesión/i)
+      .first()
+      .waitFor({
+        timeout: 15_000,
+      });
     await page.waitForTimeout(500);
     await page.screenshot({
       path: join(OUT_DIR, "14-focus-home.png"),
@@ -371,17 +374,19 @@ async function main() {
       revision: 1,
     });
     if (liveError) throw new Error(`live session: ${liveError.message}`);
-    const { error: liveIntervalError } = await db.from("focus_intervals").insert({
-      id: crypto.randomUUID(),
-      user_id: userId,
-      session_id: liveId,
-      kind: "focus",
-      sequence: 0,
-      cycle_index: null,
-      started_at: liveStart,
-      ended_at: null,
-      planned_duration_sec: 50 * 60,
-    });
+    const { error: liveIntervalError } = await db
+      .from("focus_intervals")
+      .insert({
+        id: crypto.randomUUID(),
+        user_id: userId,
+        session_id: liveId,
+        kind: "focus",
+        sequence: 0,
+        cycle_index: null,
+        started_at: liveStart,
+        ended_at: null,
+        planned_duration_sec: 50 * 60,
+      });
     if (liveIntervalError) {
       throw new Error(`live interval: ${liveIntervalError.message}`);
     }
