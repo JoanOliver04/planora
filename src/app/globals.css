@@ -3835,6 +3835,140 @@ select:disabled,
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
+.focus-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  align-items: baseline;
+  justify-content: center;
+  text-align: center;
+}
+.focus-shortcuts .link-button {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0.15rem 0.25rem;
+}
+.focus-shortcuts .link-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ring) 55%, transparent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.focus-shortcuts-help {
+  position: fixed;
+  inset: auto 1rem 1rem;
+  z-index: 70;
+  max-width: min(28rem, calc(100vw - 2rem));
+  margin-inline: auto;
+  left: 0;
+  right: 0;
+  padding: 1rem 1.1rem
+    calc(1rem + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  gap: 0.65rem;
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--foreground) 18%, transparent);
+}
+.focus-shortcuts-help h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.focus-shortcuts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.focus-shortcuts-list li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+.focus-shortcuts-list kbd {
+  display: inline-flex;
+  min-width: 4.5rem;
+  justify-content: center;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.focus-active-controls .primary,
+.focus-active-controls .focus-secondary-action,
+.focus-active-controls .focus-control-main {
+  min-height: 44px;
+}
+.focus-sync-banner .primary {
+  min-height: 44px;
+}
+@media (max-width: 374px) {
+  .focus-active-view {
+    padding-inline: 0.75rem;
+  }
+  .focus-active-time {
+    font-size: clamp(2.1rem, 18vw, 3.2rem);
+  }
+  .focus-active-view-top {
+    flex-direction: column;
+  }
+  .focus-active-view-tools {
+    justify-content: flex-start;
+  }
+  .focus-active-controls {
+    gap: 0.45rem;
+  }
+  .focus-control-main {
+    min-width: 100%;
+  }
+}
+@media (max-width: 320px) {
+  .focus-active-time {
+    font-size: 2rem;
+  }
+  .focus-status-chip {
+    font-size: 0.68rem;
+  }
+}
+@media (orientation: landscape) and (max-height: 480px) {
+  .focus-active-view.is-immersive {
+    align-content: start;
+    overflow: auto;
+    padding-block: 0.65rem;
+  }
+  .focus-active-time {
+    font-size: clamp(1.8rem, 12vh, 3rem);
+  }
+  .focus-active-stage {
+    padding-block: 0.15rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .focus-active-view,
+  .focus-compact-bar,
+  .focus-progress span,
+  .focus-shortcuts-help {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+@media (min-resolution: 2dppx) {
+  .focus-active-controls button,
+  .focus-active-view-tools .icon-button {
+    /* Keep comfortable targets at high zoom / density */
+    min-width: 44px;
+  }
+}
 .focus-control-main {
   min-height: 48px;
   min-width: 140px;

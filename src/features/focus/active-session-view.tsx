@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import {
   Maximize2,
@@ -14,6 +14,8 @@ import {
   StickyNote,
   Inbox,
   Trash2,
+  Keyboard,
+  Volume2,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { formatFocusDuration } from "./defaults";
@@ -34,12 +36,23 @@ import {
   FOCUS_MAX_DISTRACTION_LENGTH,
   FOCUS_MAX_DISTRACTIONS,
 } from "./validation";
-import { defaultFocusAccountPreferences } from "./focus-preferences";
+import {
+  defaultFocusAccountPreferences,
+  defaultFocusDevicePreferences,
+  loadFocusDevicePreferences,
+  subscribeFocusDevicePreferences,
+} from "./focus-preferences";
 import {
   currentSegment,
   hasStructuredPlan,
   nextSegment,
 } from "./session-plan";
+import {
+  FOCUS_SHORTCUT_LIST,
+  isDesktopPointer,
+  isTypingTarget,
+  resolveFocusShortcut,
+} from "./focus-keyboard";
 
 
 function phaseLabel(
@@ -93,19 +106,32 @@ export function ActiveSessionView({
   const readOnly = controlMode === "follower";
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [confirmComplete, setConfirmComplete] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [distractionOpen, setDistractionOpen] = useState(false);
+  const [shortcutsHelpOpen, setShortcutsHelpOpen] = useState(false);
   const [note, setNote] = useState(() => session?.notes ?? "");
   const [distractionDraft, setDistractionDraft] = useState("");
   const [noteSessionId, setNoteSessionId] = useState(session?.id ?? "");
   const [customExtend, setCustomExtend] = useState("3");
+  const [statusAnnouncement, setStatusAnnouncement] = useState("");
+  const [statusTrackKey, setStatusTrackKey] = useState<string | null>(null);
+  const [timeAnnouncement, setTimeAnnouncement] = useState("");
   const [online, setOnline] = useState(
     typeof navigator === "undefined" ? true : navigator.onLine,
   );
+  const device = useSyncExternalStore(
+    subscribeFocusDevicePreferences,
+    loadFocusDevicePreferences,
+    () => defaultFocusDevicePreferences,
+  );
   const phaseLiveId = useId();
+  const statusLiveId = useId();
+  const timeLiveId = useId();
   const rootRef = useRef<HTMLElement | null>(null);
   const distractionInputRef = useRef<HTMLInputElement | null>(null);
+  const noteTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Keep the draft note aligned when the active session identity changes.
   if (session && session.id !== noteSessionId) {
@@ -135,29 +161,157 @@ export function ActiveSessionView({
     }`;
   }, [session, t]);
 
-  useEffect(() => {
-    if (!immersive) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setImmersive(false);
-        onExitImmersive?.();
-        exitBrowserFullscreen();
+  // Announce pause / resume / terminal during render adjust (not every second).
+  if (session) {
+    const key = `${session.id}:${session.status}`;
+    if (statusTrackKey !== key) {
+      const previous = statusTrackKey;
+      setStatusTrackKey(key);
+      if (previous != null) {
+        if (session.status === "paused") setStatusAnnouncement(t("a11y.paused"));
+        else if (session.status === "running")
+          setStatusAnnouncement(t("a11y.resumed"));
+        else if (session.status === "on_break")
+          setStatusAnnouncement(t("a11y.onBreak"));
+        else if (session.status === "completed")
+          setStatusAnnouncement(t("a11y.completed"));
+        else if (session.status === "cancelled")
+          setStatusAnnouncement(t("a11y.cancelled"));
       }
-      if (
-        event.key === " " &&
-        !readOnly &&
-        !(event.target instanceof HTMLInputElement) &&
-        !(event.target instanceof HTMLTextAreaElement)
-      ) {
-        event.preventDefault();
+    }
+  }
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const hasOverlay =
+        menuOpen ||
+        noteOpen ||
+        distractionOpen ||
+        shortcutsHelpOpen ||
+        confirmCancel ||
+        confirmDiscard ||
+        confirmComplete;
+
+      const action = resolveFocusShortcut(event, {
+        enabled: device.keyboardShortcutsEnabled,
+        desktop: isDesktopPointer(),
+        typingTarget: isTypingTarget(event.target),
+        hasChordModifier: event.ctrlKey || event.metaKey || event.altKey,
+        hasOverlay,
+        immersive,
+        readOnly,
+      });
+      if (!action) return;
+
+      event.preventDefault();
+
+      if (action === "closeOverlay") {
+        if (shortcutsHelpOpen) {
+          setShortcutsHelpOpen(false);
+          return;
+        }
+        if (noteOpen) {
+          setNoteOpen(false);
+          return;
+        }
+        if (distractionOpen) {
+          setDistractionOpen(false);
+          return;
+        }
+        if (menuOpen) {
+          setMenuOpen(false);
+          return;
+        }
+        if (confirmComplete) {
+          setConfirmComplete(false);
+          return;
+        }
+        if (confirmCancel) {
+          setConfirmCancel(false);
+          return;
+        }
+        if (confirmDiscard) {
+          setConfirmDiscard(false);
+          return;
+        }
+        if (immersive) {
+          setImmersive(false);
+          onExitImmersive?.();
+          exitBrowserFullscreen();
+        }
+        return;
+      }
+
+      if (action === "pauseResume") {
         if (session?.status === "paused") void engine.resume();
         else if (session?.status === "running" || session?.status === "on_break")
           void engine.pause();
+        return;
+      }
+      if (action === "toggleImmersive") {
+        void toggleImmersive();
+        return;
+      }
+      if (action === "openNote") {
+        setMenuOpen(false);
+        setNoteOpen(true);
+        window.setTimeout(() => noteTextareaRef.current?.focus(), 0);
+        return;
+      }
+      if (action === "openDistraction") {
+        setMenuOpen(false);
+        setDistractionOpen(true);
+        window.setTimeout(() => distractionInputRef.current?.focus(), 0);
+        return;
+      }
+      if (action === "openShortcutsHelp") {
+        setShortcutsHelpOpen(true);
+        return;
+      }
+      if (action === "confirmComplete") {
+        setConfirmComplete(true);
+        return;
+      }
+      if (action === "announceTime") {
+        announceTimeNow();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [immersive, session?.status, engine, setImmersive, onExitImmersive, readOnly]);
+    // announceTimeNow / toggleImmersive read latest session via closure each render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyboard handler rebinds on UI chrome state
+  }, [
+    device.keyboardShortcutsEnabled,
+    immersive,
+    session?.status,
+    engine,
+    setImmersive,
+    onExitImmersive,
+    readOnly,
+    menuOpen,
+    noteOpen,
+    distractionOpen,
+    shortcutsHelpOpen,
+    confirmCancel,
+    confirmDiscard,
+    confirmComplete,
+    session,
+    clock,
+    t,
+  ]);
+
+  function announceTimeNow() {
+    if (!session || !clock) return;
+    const value =
+      clock.remainingSec != null
+        ? formatFocusDuration(clock.remainingSec, "compact")
+        : formatFocusDuration(clock.focusElapsedSec, "compact");
+    const label =
+      clock.remainingSec != null
+        ? t("a11y.timeRemaining", { time: value })
+        : t("a11y.timeElapsed", { time: value });
+    setTimeAnnouncement(label);
+  }
 
   if (!session || !clock || !isLive(session)) return null;
 
@@ -351,6 +505,24 @@ export function ActiveSessionView({
           <button
             type="button"
             className="icon-button"
+            aria-label={t("a11y.announceTime")}
+            title={t("a11y.announceTime")}
+            onClick={() => announceTimeNow()}
+          >
+            <Volume2 size={18} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={t("a11y.shortcutsHelp")}
+            title={t("a11y.shortcutsHelp")}
+            onClick={() => setShortcutsHelpOpen(true)}
+          >
+            <Keyboard size={18} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
             aria-label={
               immersive
                 ? t("activeView.exitFocusMode")
@@ -358,7 +530,11 @@ export function ActiveSessionView({
             }
             onClick={() => void toggleImmersive()}
           >
-            {immersive ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            {immersive ? (
+              <Minimize2 size={18} aria-hidden="true" />
+            ) : (
+              <Maximize2 size={18} aria-hidden="true" />
+            )}
           </button>
           <div className="focus-more-menu">
             <button
@@ -428,9 +604,15 @@ export function ActiveSessionView({
         </div>
       </div>
 
-      {/* Phase changes only — aria-live polite, content updates on phase key */}
+      {/* Phase / status / on-demand time — never each tick */}
       <p id={phaseLiveId} className="sr-only" aria-live="polite">
         {phaseAnnouncement}
+      </p>
+      <p id={statusLiveId} className="sr-only" aria-live="polite">
+        {statusAnnouncement}
+      </p>
+      <p id={timeLiveId} className="sr-only" aria-live="assertive">
+        {timeAnnouncement}
       </p>
 
       <div className="focus-active-stage">
@@ -441,6 +623,15 @@ export function ActiveSessionView({
           aria-hidden="true"
         >
           {displayTime}
+        </p>
+        <p className="sr-only">
+          {clock.remainingSec != null
+            ? t("a11y.timeRemaining", {
+                time: formatFocusDuration(clock.remainingSec, "compact"),
+              })
+            : t("a11y.timeElapsed", {
+                time: formatFocusDuration(clock.focusElapsedSec, "compact"),
+              })}
         </p>
         <p className="muted">
           {clock.remainingSec != null
@@ -671,7 +862,18 @@ export function ActiveSessionView({
         ) : null}
       </fieldset>
 
-      <p className="muted focus-shortcuts">{t("activeView.shortcuts")}</p>
+      <p className="muted focus-shortcuts">
+        {device.keyboardShortcutsEnabled
+          ? t("activeView.shortcuts")
+          : t("a11y.shortcutsDisabled")}{" "}
+        <button
+          type="button"
+          className="link-button"
+          onClick={() => setShortcutsHelpOpen(true)}
+        >
+          {t("a11y.shortcutsHelp")}
+        </button>
+      </p>
 
       {session.distractions.length > 0 ? (
         <p className="muted focus-distraction-count" role="status">
@@ -684,6 +886,7 @@ export function ActiveSessionView({
           <label>
             {t("activeView.noteLabel")}
             <textarea
+              ref={noteTextareaRef}
               value={note}
               maxLength={4000}
               rows={3}
@@ -756,6 +959,21 @@ export function ActiveSessionView({
       ) : null}
 
       <ConfirmDialog
+        open={confirmComplete}
+        onOpenChange={setConfirmComplete}
+        title={t("a11y.completeTitle")}
+        description={t("a11y.completeDescription")}
+        cancelLabel={common("cancel")}
+        confirmLabel={t("engine.complete")}
+        onConfirm={async () => {
+          if (readOnly) return false;
+          await engine.complete();
+          setImmersive(false);
+          return true;
+        }}
+      />
+
+      <ConfirmDialog
         open={confirmCancel}
         onOpenChange={setConfirmCancel}
         title={t("engine.cancelTitle")}
@@ -781,6 +999,36 @@ export function ActiveSessionView({
         variant="danger"
         onConfirm={() => (readOnly ? false : discardActive())}
       />
+
+      {shortcutsHelpOpen ? (
+        <div
+          className="focus-shortcuts-help surface"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="focus-shortcuts-title"
+        >
+          <h3 id="focus-shortcuts-title">{t("a11y.shortcutsTitle")}</h3>
+          <p className="muted">{t("a11y.shortcutsIntro")}</p>
+          <ul className="focus-shortcuts-list">
+            {FOCUS_SHORTCUT_LIST.map((item) => (
+              <li key={item.action}>
+                <kbd>{item.keys}</kbd>
+                <span>{t(`a11y.actions.${item.action}`)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="muted">{t("a11y.shortcutsDisableHint")}</p>
+          <div className="dialog-actions">
+            <button
+              type="button"
+              className="primary"
+              onClick={() => setShortcutsHelpOpen(false)}
+            >
+              {common("close")}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
     </section>
   );

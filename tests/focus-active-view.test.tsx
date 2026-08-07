@@ -98,7 +98,10 @@ describe("Focus active session UI", () => {
     expect(
       screen.getByRole("progressbar", { name: /Progreso de la fase/i }),
     ).toBeVisible();
-    expect(screen.getByText(/Atajos:/i)).toBeVisible();
+    expect(screen.getByText(/Atajos de escritorio/i)).toBeVisible();
+    expect(
+      screen.getAllByRole("button", { name: /Atajos de teclado/i }).length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it("opens the secondary menu for cancel and note actions", async () => {

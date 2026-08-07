@@ -7,6 +7,7 @@
     "add": "Añadir",
     "save": "Guardar",
     "cancel": "Cancelar",
+    "close": "Cerrar",
     "search": "Buscar",
     "today": "Hoy",
     "all": "Todos"
@@ -451,6 +452,8 @@
       "wakeLockUnsupported": "Este navegador no admite Screen Wake Lock. La sesión sigue funcionando con normalidad.",
       "fullscreen": "Preferir pantalla completa al iniciar",
       "compactBar": "Mostrar barra compacta de sesión fuera de Enfoque",
+      "keyboardShortcuts": "Atajos de teclado de escritorio en la sesión activa",
+      "keyboardShortcutsHint": "Espacio, F, N y otros solo en escritorio y nunca al escribir. Escape cierra paneles; no cancela la sesión.",
       "lockScreen": "Al ocultar la pestaña o bloquear la pantalla",
       "lockContinue": "Seguir en marcha (recomendado)",
       "lockPause": "Intentar pausar (mejor esfuerzo)",
@@ -526,7 +529,34 @@
       "extend5": "+5 min descanso",
       "add1": "+1 min",
       "add5": "+5 min",
-      "shortcuts": "Atajos: espacio pausa o reanuda · Esc sale de concentración"
+      "shortcuts": "Atajos de escritorio: Espacio pausa/reanuda · F concentración · N nota · Esc cierra paneles"
+    },
+    "a11y": {
+      "announceTime": "Anunciar el tiempo actual",
+      "shortcutsHelp": "Atajos de teclado",
+      "shortcutsTitle": "Atajos de teclado de Enfoque",
+      "shortcutsIntro": "Disponibles en escritorio cuando no escribes en un campo. Nunca cancelan la sesión por sí solos.",
+      "shortcutsDisableHint": "Puedes desactivarlos en Ajustes → Enfoque → Este dispositivo.",
+      "shortcutsDisabled": "Los atajos de teclado están desactivados.",
+      "paused": "Sesión en pausa",
+      "resumed": "Sesión en marcha",
+      "onBreak": "En descanso",
+      "completed": "Sesión completada",
+      "cancelled": "Sesión cancelada",
+      "timeRemaining": "Tiempo restante: {time}",
+      "timeElapsed": "Tiempo transcurrido: {time}",
+      "completeTitle": "¿Terminar esta sesión de Enfoque?",
+      "completeDescription": "La sesión se guardará como completada. Confirma para terminar.",
+      "actions": {
+        "pauseResume": "Pausar o reanudar",
+        "toggleImmersive": "Entrar o salir de la vista de concentración",
+        "openNote": "Abrir nota rápida",
+        "openDistraction": "Aparcar una distracción",
+        "openShortcutsHelp": "Mostrar esta ayuda de atajos",
+        "closeOverlay": "Cerrar panel o salir de concentración",
+        "confirmComplete": "Terminar sesión (pide confirmación)",
+        "announceTime": "Anunciar el temporizador actual"
+      }
     },
     "cycles": {
       "progress": "Bloques de enfoque: {done} de {total}",

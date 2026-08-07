@@ -7,6 +7,7 @@
     "add": "Add",
     "save": "Save",
     "cancel": "Cancel",
+    "close": "Close",
     "search": "Search",
     "today": "Today",
     "all": "All"
@@ -451,6 +452,8 @@
       "wakeLockUnsupported": "This browser does not support Screen Wake Lock. The session still runs normally.",
       "fullscreen": "Prefer fullscreen when starting",
       "compactBar": "Show compact active session bar outside Focus",
+      "keyboardShortcuts": "Desktop keyboard shortcuts on the active session",
+      "keyboardShortcutsHint": "Space, F, N and others only on desktop and never while typing. Escape closes panels; it does not cancel the session.",
       "lockScreen": "When the tab is hidden or the screen locks",
       "lockContinue": "Keep running (recommended)",
       "lockPause": "Try to pause (best effort)",
@@ -526,7 +529,34 @@
       "extend5": "+5 min break",
       "add1": "+1 min",
       "add5": "+5 min",
-      "shortcuts": "Shortcuts: space pauses or resumes · Esc leaves concentration view"
+      "shortcuts": "Desktop shortcuts: Space pause/resume · F concentration · N note · Esc closes panels"
+    },
+    "a11y": {
+      "announceTime": "Announce current time",
+      "shortcutsHelp": "Keyboard shortcuts",
+      "shortcutsTitle": "Focus keyboard shortcuts",
+      "shortcutsIntro": "Available on desktop when you are not typing in a field. They never cancel a session by themselves.",
+      "shortcutsDisableHint": "Turn shortcuts off in Settings → Focus → This device if you prefer.",
+      "shortcutsDisabled": "Keyboard shortcuts are off.",
+      "paused": "Session paused",
+      "resumed": "Session running",
+      "onBreak": "On a break",
+      "completed": "Session completed",
+      "cancelled": "Session cancelled",
+      "timeRemaining": "Time remaining: {time}",
+      "timeElapsed": "Time elapsed: {time}",
+      "completeTitle": "Finish this Focus session?",
+      "completeDescription": "The session will be saved as completed. Confirm to finish.",
+      "actions": {
+        "pauseResume": "Pause or resume",
+        "toggleImmersive": "Enter or leave concentration view",
+        "openNote": "Open quick note",
+        "openDistraction": "Park a distraction",
+        "openShortcutsHelp": "Show this shortcuts help",
+        "closeOverlay": "Close panel or leave concentration view",
+        "confirmComplete": "Finish session (asks for confirmation)",
+        "announceTime": "Announce current timer"
+      }
     },
     "cycles": {
       "progress": "Focus blocks: {done} of {total}",

@@ -31,6 +31,8 @@ export type FocusDevicePreferences = {
    * Browsers cannot guarantee behaviour while fully suspended.
    */
   lockScreenBehavior: "continue" | "pause";
+  /** Desktop keyboard shortcuts on the active session view. */
+  keyboardShortcutsEnabled: boolean;
 };
 
 export const defaultFocusAccountPreferences: FocusAccountPreferences = {
@@ -54,6 +56,7 @@ export const defaultFocusDevicePreferences: FocusDevicePreferences = {
   preferFullscreen: false,
   showCompactBar: true,
   lockScreenBehavior: "continue",
+  keyboardShortcutsEnabled: true,
 };
 
 export const FOCUS_DEVICE_PREFS_KEY = "planora-focus-device-preferences-v1";
@@ -146,6 +149,10 @@ export function normalizeFocusDevicePreferences(
         : defaultFocusDevicePreferences.showCompactBar,
     lockScreenBehavior:
       input.lockScreenBehavior === "pause" ? "pause" : "continue",
+    keyboardShortcutsEnabled:
+      typeof input.keyboardShortcutsEnabled === "boolean"
+        ? input.keyboardShortcutsEnabled
+        : defaultFocusDevicePreferences.keyboardShortcutsEnabled,
   };
 }
 

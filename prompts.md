@@ -1808,6 +1808,12 @@ Explica garantías y limitaciones reales.
 
 ## Prompt 19 — Accesibilidad, teclado y responsive exhaustivo
 
+> **HECHO** — Atajos de teclado de escritorio (Space/F/N/D/T/Shift+X/?/Esc) desactivables; ayuda de atajos; anuncios SR de fase/pausa/tiempo bajo demanda (no cada segundo); targets 44px; CSS 320px + landscape + reduced-motion; foco visible reutilizado. Tests `tests/focus-keyboard.test.ts`.
+>
+> **Incidencias corregidas:** atajos solo en immersive; Escape podía confundirse con cancelar; sin ayuda/desactivación de atajos; reloj visual oculto sin anuncio bajo demanda; gaps responsive en 320px/landscape.
+>
+> **Pendientes (no bloqueantes):** axe e2e de `/focus` autenticado (requiere sesión); auditoría manual exhaustiva de contraste en todos los temas de acento del usuario.
+
 ```text
 Realiza una auditoría completa de accesibilidad y responsive de Planora Enfoque.
 

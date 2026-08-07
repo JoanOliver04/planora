@@ -442,6 +442,17 @@ export function FocusSettingsPanel({
             }
           />
         </label>
+        <label className="settings-row check-row">
+          <span>{t("settings.keyboardShortcuts")}</span>
+          <input
+            type="checkbox"
+            checked={device.keyboardShortcutsEnabled}
+            onChange={(event) =>
+              updateDevice("keyboardShortcutsEnabled", event.target.checked)
+            }
+          />
+        </label>
+        <p className="muted">{t("settings.keyboardShortcutsHint")}</p>
         <div className="settings-row">
           <span>{t("settings.lockScreen")}</span>
           <select
