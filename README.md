@@ -102,7 +102,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Google OAuth only; Planora stores no passwords.
 - Public no-registration demo, guided onboarding and reusable schedule templates.
 - Offline mutation queue, installable PWA and a customizable notification and alarm center.
-- Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports (including Focus entities in backup v3).
+- Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports (including Focus entities in backup v4).
 - Archived tasks act as a recoverable trash area, with explicit permanent deletion for the task, its completion history and reminders.
 - Privacy-focused Vercel Web Analytics for anonymous, aggregate page-view metrics without tracking cookies or custom product events.
 - Sanitized error telemetry and rate-limited sensitive endpoints.
