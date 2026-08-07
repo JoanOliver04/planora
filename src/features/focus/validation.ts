@@ -1,0 +1,315 @@
+import { z } from "zod";
+
+export const FOCUS_MIN_DURATION_SEC = 60;
+export const FOCUS_MAX_DURATION_SEC = 8 * 60 * 60;
+export const FOCUS_MAX_SHORT_BREAK_SEC = 60 * 60;
+export const FOCUS_MAX_LONG_BREAK_SEC = 3 * 60 * 60;
+export const FOCUS_MAX_CYCLES = 50;
+export const FOCUS_MAX_CYCLES_BEFORE_LONG = 20;
+export const FOCUS_MAX_NOTES_LENGTH = 4000;
+export const FOCUS_MAX_DISTRACTIONS = 50;
+export const FOCUS_MAX_DISTRACTION_LENGTH = 280;
+export const FOCUS_MAX_SEGMENTS = 40;
+export const FOCUS_MAX_EXTEND_BREAK_SEC = 60 * 60;
+
+const uuid = z.string().uuid();
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+export const focusModeSchema = z.enum(["countdown", "stopwatch", "cycles"]);
+export const focusStatusSchema = z.enum([
+  "running",
+  "paused",
+  "on_break",
+  "completed",
+  "cancelled",
+]);
+export const focusPhaseKindSchema = z.enum([
+  "focus",
+  "short_break",
+  "long_break",
+  "pause",
+]);
+
+export const focusSegmentSchema = z.object({
+  kind: z.enum(["focus", "short_break", "long_break"]),
+  durationSec: z
+    .number()
+    .int()
+    .min(0)
+    .max(FOCUS_MAX_DURATION_SEC),
+  label: z.string().trim().min(1).max(80).optional(),
+});
+
+const durationSec = z
+  .number()
+  .int()
+  .min(FOCUS_MIN_DURATION_SEC)
+  .max(FOCUS_MAX_DURATION_SEC);
+const optionalDuration = durationSec.nullable().optional();
+const shortBreakSec = z
+  .number()
+  .int()
+  .min(0)
+  .max(FOCUS_MAX_SHORT_BREAK_SEC)
+  .nullable()
+  .optional();
+const longBreakSec = z
+  .number()
+  .int()
+  .min(0)
+  .max(FOCUS_MAX_LONG_BREAK_SEC)
+  .nullable()
+  .optional();
+
+export const focusSessionConfigSchema = z.object({
+  focusDurationSec: z
+    .number()
+    .int()
+    .min(FOCUS_MIN_DURATION_SEC)
+    .max(FOCUS_MAX_DURATION_SEC)
+    .nullable(),
+  shortBreakSec: z
+    .number()
+    .int()
+    .min(0)
+    .max(FOCUS_MAX_SHORT_BREAK_SEC)
+    .nullable(),
+  longBreakSec: z
+    .number()
+    .int()
+    .min(0)
+    .max(FOCUS_MAX_LONG_BREAK_SEC)
+    .nullable(),
+  cyclesBeforeLongBreak: z
+    .number()
+    .int()
+    .min(1)
+    .max(FOCUS_MAX_CYCLES_BEFORE_LONG)
+    .nullable(),
+  targetCycles: z
+    .number()
+    .int()
+    .min(1)
+    .max(FOCUS_MAX_CYCLES)
+    .nullable(),
+  autoStartBreaks: z.boolean(),
+  autoStartFocus: z.boolean(),
+  soundEnabled: z.boolean(),
+  vibrationEnabled: z.boolean(),
+  notifyOnPhaseEnd: z.boolean(),
+  completeTaskOnSessionEnd: z.boolean(),
+  keepScreenAwake: z.boolean(),
+  preferFullscreen: z.boolean(),
+  segments: z.array(focusSegmentSchema).max(FOCUS_MAX_SEGMENTS),
+});
+
+export const startFocusSessionSchema = z
+  .object({
+    mode: focusModeSchema,
+    title: z.string().trim().min(1).max(140).optional().nullable(),
+    presetId: uuid.optional().nullable(),
+    taskId: uuid.optional().nullable(),
+    categoryId: uuid.optional().nullable(),
+    scheduleId: uuid.optional().nullable(),
+    occurrenceDate: isoDate.optional().nullable(),
+    focusDurationSec: optionalDuration,
+    shortBreakSec,
+    longBreakSec,
+    cyclesBeforeLongBreak: z
+      .number()
+      .int()
+      .min(1)
+      .max(FOCUS_MAX_CYCLES_BEFORE_LONG)
+      .optional()
+      .nullable(),
+    targetCycles: z
+      .number()
+      .int()
+      .min(1)
+      .max(FOCUS_MAX_CYCLES)
+      .optional()
+      .nullable(),
+    autoStartBreaks: z.boolean().optional(),
+    autoStartFocus: z.boolean().optional(),
+    soundEnabled: z.boolean().optional(),
+    vibrationEnabled: z.boolean().optional(),
+    notifyOnPhaseEnd: z.boolean().optional(),
+    completeTaskOnEnd: z.boolean().optional(),
+    keepScreenAwake: z.boolean().optional(),
+    preferFullscreen: z.boolean().optional(),
+    segments: z.array(focusSegmentSchema).max(FOCUS_MAX_SEGMENTS).optional(),
+    linkSnapshot: z
+      .object({
+        taskTitle: z.string().max(140).optional(),
+        taskEmoji: z.string().max(16).nullable().optional(),
+        taskKind: z.enum(["one_time", "habit"]).optional(),
+        categoryName: z.string().max(60).nullable().optional(),
+        categoryColour: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .nullable()
+          .optional(),
+        scheduleName: z.string().max(80).nullable().optional(),
+      })
+      .optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.mode === "countdown" || value.mode === "cycles") {
+      if (value.focusDurationSec == null) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["focusDurationSec"],
+          message: "Focus duration is required for this mode",
+        });
+      }
+    }
+    if (value.mode === "cycles") {
+      if (value.shortBreakSec == null) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["shortBreakSec"],
+          message: "Short break duration is required for cycles",
+        });
+      }
+    }
+  });
+
+export const focusTransitionSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("pause"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+  }),
+  z.object({
+    type: z.literal("resume"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+  }),
+  z.object({
+    type: z.literal("begin_break"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+    breakKind: z.enum(["short_break", "long_break"]).optional(),
+  }),
+  z.object({
+    type: z.literal("skip_break"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+  }),
+  z.object({
+    type: z.literal("extend_break"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+    extraSec: z
+      .number()
+      .int()
+      .min(1)
+      .max(FOCUS_MAX_EXTEND_BREAK_SEC),
+  }),
+  z.object({
+    type: z.literal("finish_phase"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+  }),
+  z.object({
+    type: z.literal("complete"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+    notes: z.string().max(FOCUS_MAX_NOTES_LENGTH).optional().nullable(),
+    subjectiveFocus: z.number().int().min(1).max(5).optional().nullable(),
+    subjectiveEnergy: z.number().int().min(1).max(5).optional().nullable(),
+  }),
+  z.object({
+    type: z.literal("cancel"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+  }),
+  z.object({
+    type: z.literal("recover"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+  }),
+  z.object({
+    type: z.literal("takeover"),
+    sessionId: uuid,
+    expectedRevision: z.number().int().min(1),
+  }),
+]);
+
+export const updateFocusMetadataSchema = z.object({
+  sessionId: uuid,
+  expectedRevision: z.number().int().min(1),
+  title: z.string().trim().min(1).max(140).optional().nullable(),
+  notes: z.string().max(FOCUS_MAX_NOTES_LENGTH).optional().nullable(),
+  distractions: z
+    .array(z.string().trim().min(1).max(FOCUS_MAX_DISTRACTION_LENGTH))
+    .max(FOCUS_MAX_DISTRACTIONS)
+    .optional(),
+  subjectiveFocus: z.number().int().min(1).max(5).optional().nullable(),
+  subjectiveEnergy: z.number().int().min(1).max(5).optional().nullable(),
+});
+
+export const focusGoalInputSchema = z.object({
+  id: uuid.optional(),
+  targetFocusSec: z
+    .number()
+    .int()
+    .min(1)
+    .max(FOCUS_MAX_DURATION_SEC * 14),
+  timezone: z.string().min(1).max(100),
+  weekStartsOn: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6)]),
+  active: z.boolean().default(true),
+});
+
+export const focusPresetInputSchema = z
+  .object({
+    id: uuid.optional(),
+    name: z.string().trim().min(1).max(80),
+    mode: focusModeSchema,
+    focusDurationSec: optionalDuration,
+    shortBreakSec,
+    longBreakSec,
+    cyclesBeforeLongBreak: z
+      .number()
+      .int()
+      .min(1)
+      .max(FOCUS_MAX_CYCLES_BEFORE_LONG)
+      .optional()
+      .nullable(),
+    targetCycles: z
+      .number()
+      .int()
+      .min(1)
+      .max(FOCUS_MAX_CYCLES)
+      .optional()
+      .nullable(),
+    autoStartBreaks: z.boolean().default(true),
+    autoStartFocus: z.boolean().default(false),
+    soundEnabled: z.boolean().default(true),
+    vibrationEnabled: z.boolean().default(true),
+    notifyOnPhaseEnd: z.boolean().default(true),
+    completeTaskOnSessionEnd: z.boolean().default(false),
+    keepScreenAwake: z.boolean().default(false),
+    preferFullscreen: z.boolean().default(false),
+    segments: z.array(focusSegmentSchema).max(FOCUS_MAX_SEGMENTS).default([]),
+    isFavorite: z.boolean().default(false),
+    sortOrder: z.number().int().default(0),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      (value.mode === "countdown" || value.mode === "cycles") &&
+      value.focusDurationSec == null
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["focusDurationSec"],
+        message: "Focus duration is required for this mode",
+      });
+    }
+  });
+
+export type StartFocusSessionInput = z.infer<typeof startFocusSessionSchema>;
+export type FocusTransitionInput = z.infer<typeof focusTransitionSchema>;
+export type UpdateFocusMetadataInput = z.infer<typeof updateFocusMetadataSchema>;
+export type FocusGoalInput = z.infer<typeof focusGoalInputSchema>;
+export type FocusPresetInput = z.infer<typeof focusPresetInputSchema>;

@@ -192,6 +192,109 @@ export type Database = {
         Update: Record<string, unknown>;
         Relationships: [];
       };
+      focus_presets: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          mode: "countdown" | "stopwatch" | "cycles";
+          focus_duration_sec: number | null;
+          short_break_sec: number | null;
+          long_break_sec: number | null;
+          cycles_before_long_break: number | null;
+          target_cycles: number | null;
+          auto_start_breaks: boolean;
+          auto_start_focus: boolean;
+          sound_enabled: boolean;
+          vibration_enabled: boolean;
+          notify_on_phase_end: boolean;
+          complete_task_on_session_end: boolean;
+          keep_screen_awake: boolean;
+          prefer_fullscreen: boolean;
+          segments: Json;
+          is_favorite: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      focus_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          status: "running" | "paused" | "on_break" | "completed" | "cancelled";
+          mode: "countdown" | "stopwatch" | "cycles";
+          title: string | null;
+          preset_id: string | null;
+          task_id: string | null;
+          category_id: string | null;
+          schedule_id: string | null;
+          occurrence_date: string | null;
+          planned_focus_sec: number | null;
+          focus_sec: number;
+          paused_sec: number;
+          break_sec: number;
+          current_phase_kind:
+            | "focus"
+            | "short_break"
+            | "long_break"
+            | "pause"
+            | null;
+          current_cycle: number;
+          config: Json;
+          link_snapshot: Json;
+          started_at: string;
+          ended_at: string | null;
+          notes: string | null;
+          distractions: Json;
+          subjective_focus: number | null;
+          subjective_energy: number | null;
+          complete_task_on_end: boolean;
+          task_completion_applied: boolean;
+          revision: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      focus_intervals: {
+        Row: {
+          id: string;
+          user_id: string;
+          session_id: string;
+          kind: "focus" | "short_break" | "long_break" | "pause";
+          sequence: number;
+          cycle_index: number | null;
+          started_at: string;
+          ended_at: string | null;
+          planned_duration_sec: number | null;
+          created_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      focus_goals: {
+        Row: {
+          id: string;
+          user_id: string;
+          period: "weekly";
+          target_focus_sec: number;
+          timezone: string;
+          week_starts_on: number;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
