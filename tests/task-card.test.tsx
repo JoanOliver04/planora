@@ -12,6 +12,20 @@ vi.mock("@/app/actions/domain", () => ({
   setTaskArchived: vi.fn(),
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
+
+vi.mock("@/i18n/routing", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => "/tasks",
+  Link: ({ href, children, ...props }: React.ComponentProps<"a">) => (
+    <a href={String(href)} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
 afterEach(cleanup);
 
 const task = {
@@ -39,6 +53,24 @@ function renderCard(onToggle: () => Promise<boolean>) {
 }
 
 describe("TaskCard completion", () => {
+  it("exposes a start-focus action when provided", async () => {
+    const user = userEvent.setup();
+    const onStartFocus = vi.fn();
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <TaskCard
+          task={task}
+          categories={[]}
+          onStartFocus={onStartFocus}
+        />
+      </NextIntlClientProvider>,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start focus: read/i }),
+    );
+    expect(onStartFocus).toHaveBeenCalledTimes(1);
+  });
+
   it("opens the task note in a dialog", async () => {
     const user = userEvent.setup();
     render(

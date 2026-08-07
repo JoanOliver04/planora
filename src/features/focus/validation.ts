@@ -308,8 +308,18 @@ export const focusPresetInputSchema = z
     }
   });
 
+export const completeLinkedTaskSchema = z.object({
+  sessionId: uuid,
+  expectedRevision: z.number().int().min(1),
+  taskId: uuid,
+  occurrenceDate: isoDate,
+  /** When true, complete even if the habit is not expected that day (explicit confirm). */
+  force: z.boolean().default(false),
+});
+
 export type StartFocusSessionInput = z.infer<typeof startFocusSessionSchema>;
 export type FocusTransitionInput = z.infer<typeof focusTransitionSchema>;
 export type UpdateFocusMetadataInput = z.infer<typeof updateFocusMetadataSchema>;
 export type FocusGoalInput = z.infer<typeof focusGoalInputSchema>;
 export type FocusPresetInput = z.infer<typeof focusPresetInputSchema>;
+export type CompleteLinkedTaskInput = z.infer<typeof completeLinkedTaskSchema>;

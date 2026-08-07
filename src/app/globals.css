@@ -3999,6 +3999,27 @@ select:disabled,
   margin: 0;
   line-height: 1.45;
 }
+.focus-linked-task {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-weight: 650;
+}
+.focus-link-complete-options {
+  display: grid;
+  gap: 0.55rem;
+}
+button.mini-task {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+}
 @media (max-width: 420px) {
   .focus-complete-stats {
     grid-template-columns: 1fr;

@@ -950,6 +950,8 @@ Explica las reglas de ciclos, flexibilidad, casos límite y resultados.
 
 ## Prompt 08 — Vincular sesiones con tareas y hábitos
 
+> **HECHO** — Entrada desde Hoy/Semana/Tareas, deep link `/focus?taskId=&date=`, snapshots, completar ocurrencia al final con confirmación de hábitos, stats helpers. Tests `focus-task-link` + task-card.
+
 ```text
 Integra Enfoque con las tareas y hábitos existentes de Planora.
 

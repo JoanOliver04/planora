@@ -4,19 +4,23 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Play, Check } from "lucide-react";
+import { Play, Check, ListChecks } from "lucide-react";
 import type { FocusSession } from "./types";
 import {
   buildExtraBlockStartInput,
   summarizeEndedSession,
 } from "./cycles";
 import { formatFocusDuration } from "./defaults";
-import { startFocusSessionAction } from "./actions";
+import {
+  completeLinkedTaskFromFocusAction,
+  startFocusSessionAction,
+} from "./actions";
 import { useOptionalFocusSessionContext } from "./focus-session-context";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 /**
  * Neutral summary after a completed session.
- * Offers one extra focus block without guilt language or auto task completion.
+ * Offers extra block and optional linked-task completion without surprise side effects.
  */
 export function SessionCompleteCard({
   session,
@@ -26,13 +30,19 @@ export function SessionCompleteCard({
   onDismiss?: () => void;
 }) {
   const t = useTranslations("Focus");
+  const common = useTranslations("Common");
   const router = useRouter();
   const shared = useOptionalFocusSessionContext();
   const [pending, startTransition] = useTransition();
   const [hidden, setHidden] = useState(false);
-  const summary = summarizeEndedSession(session);
+  const [forceOpen, setForceOpen] = useState(false);
+  const [localSession, setLocalSession] = useState(session);
+  const summary = summarizeEndedSession(localSession);
+  const linked =
+    Boolean(localSession.taskId) && Boolean(localSession.occurrenceDate);
+  const applied = localSession.taskCompletionApplied;
 
-  if (hidden || session.status !== "completed") return null;
+  if (hidden || localSession.status !== "completed") return null;
 
   function dismiss() {
     setHidden(true);
@@ -43,7 +53,7 @@ export function SessionCompleteCard({
     if (pending) return;
     startTransition(async () => {
       const result = await startFocusSessionAction(
-        buildExtraBlockStartInput(session),
+        buildExtraBlockStartInput(localSession),
       );
       if (!result.ok) {
         toast.error(t("config.errors.network"));
@@ -57,6 +67,33 @@ export function SessionCompleteCard({
     });
   }
 
+  function completeTask(force = false) {
+    if (pending || !localSession.taskId || !localSession.occurrenceDate) return;
+    startTransition(async () => {
+      const result = await completeLinkedTaskFromFocusAction({
+        sessionId: localSession.id,
+        expectedRevision: localSession.revision,
+        taskId: localSession.taskId,
+        occurrenceDate: localSession.occurrenceDate,
+        force,
+      });
+      if (!result.ok) {
+        if (
+          result.error.code === "VALIDATION_ERROR" &&
+          /not expected/i.test(result.error.message)
+        ) {
+          setForceOpen(true);
+          return;
+        }
+        toast.error(result.error.message || t("config.errors.network"));
+        return;
+      }
+      setLocalSession(result.data);
+      toast.success(t("link.taskCompleted"));
+      router.refresh();
+    });
+  }
+
   return (
     <section
       className="surface focus-complete-card"
@@ -65,6 +102,17 @@ export function SessionCompleteCard({
       <p className="eyebrow">{t("cycles.completeEyebrow")}</p>
       <h2 id="focus-complete-title">{t("cycles.completeTitle")}</h2>
       <p className="muted">{t("cycles.completeBody")}</p>
+      {linked ? (
+        <p className="focus-linked-task">
+          <ListChecks size={16} aria-hidden="true" />
+          <span>
+            {localSession.linkSnapshot.taskTitle || t("config.linkedTask")}
+            {localSession.occurrenceDate
+              ? ` · ${localSession.occurrenceDate}`
+              : ""}
+          </span>
+        </p>
+      ) : null}
       <ul className="focus-complete-stats">
         <li>
           <span>{t("cycles.statFocus")}</span>
@@ -78,7 +126,7 @@ export function SessionCompleteCard({
             {formatFocusDuration(summary.breakSec, "compact")}
           </strong>
         </li>
-        {session.mode === "cycles" ? (
+        {localSession.mode === "cycles" ? (
           <li>
             <span>{t("cycles.statBlocks")}</span>
             <strong>
@@ -90,17 +138,47 @@ export function SessionCompleteCard({
           </li>
         ) : null}
       </ul>
-      {session.completeTaskOnEnd ? (
-        <p className="muted focus-complete-task-note">
-          {t("cycles.taskPrefNote")}
-        </p>
+
+      {linked ? (
+        <div className="focus-link-complete-options" role="group" aria-label={t("link.optionsLabel")}>
+          {applied ? (
+            <p className="muted focus-complete-task-note">
+              {t("link.alreadyApplied")}
+            </p>
+          ) : (
+            <>
+              <p className="muted focus-complete-task-note">
+                {t("link.chooseOutcome")}
+              </p>
+              <div className="focus-complete-actions">
+                <button
+                  type="button"
+                  className="primary"
+                  disabled={pending}
+                  onClick={() => completeTask(false)}
+                >
+                  {t("link.completeOccurrence")}
+                </button>
+                <button
+                  type="button"
+                  className="focus-secondary-action"
+                  disabled={pending}
+                  onClick={dismiss}
+                >
+                  {t("link.saveOnly")}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       ) : (
         <p className="muted focus-complete-task-note">
           {t("cycles.taskNotAuto")}
         </p>
       )}
+
       <div className="focus-complete-actions">
-        {session.mode === "cycles" ? (
+        {localSession.mode === "cycles" ? (
           <button
             type="button"
             className="primary"
@@ -120,6 +198,20 @@ export function SessionCompleteCard({
           {t("cycles.done")}
         </button>
       </div>
+
+      <ConfirmDialog
+        open={forceOpen}
+        onOpenChange={setForceOpen}
+        title={t("link.forceTitle")}
+        description={t("link.forceDescription")}
+        cancelLabel={common("cancel")}
+        confirmLabel={t("link.forceConfirm")}
+        variant="primary"
+        onConfirm={() => {
+          completeTask(true);
+          return true;
+        }}
+      />
     </section>
   );
 }

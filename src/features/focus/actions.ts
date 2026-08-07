@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
   FocusError,
@@ -18,6 +18,7 @@ import {
   persistFocusSession,
 } from "./repository";
 import {
+  completeLinkedTaskSchema,
   focusTransitionSchema,
   startFocusSessionSchema,
   updateFocusMetadataSchema,
@@ -27,6 +28,10 @@ import {
 } from "./validation";
 import type { FocusSession } from "./types";
 import { configToJson, linkSnapshotToJson } from "./mappers";
+import {
+  aggregateTaskFocusStats,
+  isTaskOccurrenceAllowed,
+} from "./task-link";
 
 async function auth() {
   const db = await createClient();
@@ -111,10 +116,194 @@ export async function transitionFocusSessionAction(
       expectedRevision: value.expectedRevision,
     });
     await persistFocusSession(db, current, result.session);
+
+    // Optional auto-complete of linked task when the user enabled it for this session.
+    if (
+      value.type === "complete" &&
+      result.session.status === "completed" &&
+      result.session.completeTaskOnEnd &&
+      result.session.taskId &&
+      result.session.occurrenceDate &&
+      !result.session.taskCompletionApplied
+    ) {
+      try {
+        await applyLinkedTaskCompletion(db, user.id, result.session, {
+          force: false,
+        });
+        const refreshed = await fetchFocusSessionById(
+          db,
+          user.id,
+          result.session.id,
+        );
+        refresh();
+        return { ok: true, data: refreshed ?? result.session };
+      } catch {
+        // Keep the focus session; UI can still offer manual completion.
+      }
+    }
+
     refresh();
     return { ok: true, data: result.session };
   } catch (error) {
     return fail(error);
+  }
+}
+
+export async function completeLinkedTaskFromFocusAction(
+  input: unknown,
+): Promise<FocusActionResult<FocusSession>> {
+  try {
+    const value = completeLinkedTaskSchema.parse(input);
+    const { db, user } = await auth();
+    const session = await fetchFocusSessionById(db, user.id, value.sessionId);
+    if (!session) throw new FocusError("NOT_FOUND", "Focus session not found.");
+    if (session.revision !== value.expectedRevision) {
+      throw new FocusError(
+        "REVISION_CONFLICT",
+        "This focus session was updated elsewhere. Reload and try again.",
+      );
+    }
+    if (session.taskId !== value.taskId) {
+      throw new FocusError(
+        "VALIDATION_ERROR",
+        "The session is not linked to that task.",
+      );
+    }
+    if (session.taskCompletionApplied) {
+      return { ok: true, data: session };
+    }
+
+    await applyLinkedTaskCompletion(
+      db,
+      user.id,
+      {
+        ...session,
+        occurrenceDate: value.occurrenceDate,
+      },
+      { force: value.force },
+    );
+
+    const updated = await fetchFocusSessionById(db, user.id, session.id);
+    refresh();
+    return { ok: true, data: updated ?? session };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function getTaskFocusStatsAction(input: unknown) {
+  try {
+    const value = z
+      .object({ taskId: z.string().uuid() })
+      .parse(input);
+    const { db, user } = await auth();
+    const { data, error } = await db
+      .from("focus_sessions")
+      .select("task_id,focus_sec,started_at,status")
+      .eq("user_id", user.id)
+      .eq("task_id", value.taskId)
+      .order("started_at", { ascending: false })
+      .limit(200);
+    if (error) {
+      throw new FocusError("DATABASE_ERROR", "Unable to load focus stats");
+    }
+    return {
+      ok: true as const,
+      data: aggregateTaskFocusStats(
+        (data ?? []).map((row) => ({
+          taskId: row.task_id,
+          focusSec: row.focus_sec,
+          startedAt: row.started_at,
+          status: row.status,
+        })),
+        value.taskId,
+      ),
+    };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+async function applyLinkedTaskCompletion(
+  db: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  session: FocusSession,
+  options: { force: boolean },
+) {
+  if (!session.taskId || !session.occurrenceDate) {
+    throw new FocusError("VALIDATION_ERROR", "Session has no linked occurrence");
+  }
+
+  const { data: task, error: taskError } = await db
+    .from("tasks")
+    .select(
+      "id,title,emoji,task_kind,category_id,schedule_id,start_date,end_date,archived_at,recurrence_type,recurrence_config",
+    )
+    .eq("id", session.taskId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (taskError || !task) {
+    throw new FocusError("NOT_FOUND", "Linked task was not found");
+  }
+  if (task.archived_at) {
+    throw new FocusError(
+      "VALIDATION_ERROR",
+      "Archived tasks cannot be completed from Focus",
+    );
+  }
+
+  if (!options.force && !isTaskOccurrenceAllowed(task, session.occurrenceDate)) {
+    throw new FocusError(
+      "VALIDATION_ERROR",
+      "This habit is not expected on that date",
+    );
+  }
+
+  const { data: category } = task.category_id
+    ? await db
+        .from("categories")
+        .select("name,colour")
+        .eq("id", task.category_id)
+        .eq("user_id", userId)
+        .maybeSingle()
+    : { data: null };
+
+  const { data: existing } = await db
+    .from("task_completions")
+    .select("id")
+    .eq("task_id", task.id)
+    .eq("occurrence_date", session.occurrenceDate)
+    .maybeSingle();
+
+  if (!existing) {
+    const { error: insertError } = await db.from("task_completions").insert({
+      user_id: userId,
+      task_id: task.id,
+      occurrence_date: session.occurrenceDate,
+      task_snapshot: {
+        title: task.title,
+        emoji: task.emoji,
+        category_name: category?.name ?? null,
+        category_colour: category?.colour ?? null,
+      },
+    });
+    if (insertError) {
+      throw new FocusError("DATABASE_ERROR", "Unable to complete the task");
+    }
+  }
+
+  const { error: updateError } = await db
+    .from("focus_sessions")
+    .update({
+      task_completion_applied: true,
+      revision: session.revision + 1,
+    })
+    .eq("id", session.id)
+    .eq("user_id", userId)
+    .eq("revision", session.revision);
+  if (updateError) {
+    throw new FocusError("DATABASE_ERROR", "Unable to update focus session");
   }
 }
 

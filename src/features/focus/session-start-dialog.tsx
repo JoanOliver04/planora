@@ -41,6 +41,15 @@ export type SessionStartDraft = {
   presetId?: string | null;
   quickKey?: string | null;
   taskId?: string | null;
+  occurrenceDate?: string | null;
+  linkSnapshot?: {
+    taskTitle?: string;
+    taskEmoji?: string | null;
+    taskKind?: "one_time" | "habit";
+    categoryName?: string | null;
+    categoryColour?: string | null;
+    scheduleName?: string | null;
+  };
   autoStartBreaks?: boolean;
   autoStartFocus?: boolean;
   soundEnabled?: boolean;
@@ -62,6 +71,7 @@ type FormState = {
   title: string;
   presetId: string;
   taskId: string;
+  occurrenceDate: string;
   autoStartBreaks: boolean;
   autoStartFocus: boolean;
   soundEnabled: boolean;
@@ -83,6 +93,7 @@ const defaultForm = (): FormState => ({
   title: "",
   presetId: "",
   taskId: "",
+  occurrenceDate: "",
   autoStartBreaks: true,
   autoStartFocus: false,
   soundEnabled: true,
@@ -154,6 +165,7 @@ function draftToForm(
     title: draft.title ?? "",
     presetId: draft.presetId ?? "",
     taskId: draft.taskId ?? "",
+    occurrenceDate: draft.occurrenceDate ?? "",
     autoStartBreaks:
       draft.autoStartBreaks ?? preset?.autoStartBreaks ?? true,
     autoStartFocus: draft.autoStartFocus ?? preset?.autoStartFocus ?? false,
@@ -235,6 +247,7 @@ export function SessionStartDialog({
   const [form, setForm] = useState<FormState>(() =>
     draftToForm(draft, presets),
   );
+  const [draftSnapshot] = useState(() => draft?.linkSnapshot ?? null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -315,6 +328,7 @@ export function SessionStartDialog({
       taskId: form.taskId || null,
       categoryId: selectedTask?.categoryId ?? null,
       scheduleId: selectedTask?.scheduleId ?? null,
+      occurrenceDate: form.occurrenceDate || null,
       focusDurationSec,
       shortBreakSec:
         form.mode === "cycles" ? secFromMinutes(form.shortBreakMinutes) : null,
@@ -341,8 +355,13 @@ export function SessionStartDialog({
             taskTitle: selectedTask.title,
             taskEmoji: selectedTask.emoji,
             taskKind: selectedTask.taskKind,
+            categoryName: draftSnapshot?.categoryName,
+            categoryColour: draftSnapshot?.categoryColour,
+            scheduleName: draftSnapshot?.scheduleName,
           }
-        : undefined,
+        : draftSnapshot && form.taskId
+          ? draftSnapshot
+          : undefined,
     };
   }
 
@@ -582,12 +601,15 @@ export function SessionStartDialog({
                   />
                 </label>
 
-                {tasks.length > 0 ? (
+                {tasks.length > 0 || form.taskId ? (
                   <label>
                     {t("config.task")}
                     <select
                       value={form.taskId}
-                      onChange={(event) => update("taskId", event.target.value)}
+                      onChange={(event) => {
+                        update("taskId", event.target.value);
+                        if (!event.target.value) update("occurrenceDate", "");
+                      }}
                     >
                       <option value="">{t("config.noTask")}</option>
                       {tasks.map((task) => (
@@ -596,7 +618,21 @@ export function SessionStartDialog({
                           {task.title}
                         </option>
                       ))}
+                      {form.taskId &&
+                      !tasks.some((task) => task.id === form.taskId) ? (
+                        <option value={form.taskId}>
+                          {draftSnapshot?.taskEmoji
+                            ? `${draftSnapshot.taskEmoji} `
+                            : ""}
+                          {draftSnapshot?.taskTitle ?? t("config.linkedTask")}
+                        </option>
+                      ) : null}
                     </select>
+                    {form.taskId && form.occurrenceDate ? (
+                      <small className="muted">
+                        {t("config.occurrence", { date: form.occurrenceDate })}
+                      </small>
+                    ) : null}
                   </label>
                 ) : null}
 

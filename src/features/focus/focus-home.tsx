@@ -35,6 +35,9 @@ export type FocusHomeProps = {
   timezone: string;
   weekStartsOn: number;
   tasks?: FocusTaskOption[];
+  /** Prefill from task deep link (e.g. /focus?taskId=…&date=…). */
+  initialDraft?: SessionStartDraft | null;
+  autoOpenConfigurator?: boolean;
 };
 
 function modeLabel(
@@ -55,11 +58,15 @@ export function FocusHome({
   timezone,
   weekStartsOn,
   tasks = [],
+  initialDraft = null,
+  autoOpenConfigurator = false,
 }: FocusHomeProps) {
   const t = useTranslations("Focus");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(
+    Boolean(autoOpenConfigurator && initialDraft),
+  );
   const [dialogKey, setDialogKey] = useState(0);
-  const [draft, setDraft] = useState<SessionStartDraft | null>(null);
+  const [draft, setDraft] = useState<SessionStartDraft | null>(initialDraft);
 
   const shared = useOptionalFocusSessionContext();
 

@@ -184,6 +184,17 @@
       "extraStarted": "New focus block started",
       "done": "Done"
     },
+    "link": {
+      "optionsLabel": "Linked task",
+      "chooseOutcome": "Choose what to do with the linked task:",
+      "completeOccurrence": "Mark the occurrence complete",
+      "saveOnly": "Save session without completing",
+      "alreadyApplied": "The occurrence was already marked complete.",
+      "taskCompleted": "Occurrence marked complete",
+      "forceTitle": "Complete an unexpected day?",
+      "forceDescription": "This habit is not scheduled for that date. Continue only if you want to mark it explicitly.",
+      "forceConfirm": "Complete anyway"
+    },
     "config": {
       "title": "New Focus session",
       "description": "Set the essentials and start. Advanced options stay optional.",
@@ -201,6 +212,8 @@
       "intentionPlaceholder": "For example: study English",
       "task": "Task or habit",
       "noTask": "No link",
+      "linkedTask": "Linked task",
+      "occurrence": "Occurrence date: {date}",
       "preset": "Preset",
       "noPreset": "None",
       "advanced": "Advanced options",
@@ -466,6 +479,7 @@
     "goodAfternoon": "Good afternoon",
     "goodEvening": "Good evening",
     "markComplete": "Mark as complete",
+    "startFocus": "Start focus",
     "noWeekGoals": "A light week with no planned tasks",
     "weekComplete": "Week complete",
     "remainingThisWeek": "{count} left this week",

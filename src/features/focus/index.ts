@@ -43,6 +43,16 @@ export {
   EDITABLE_MID_SESSION_CONFIG_KEYS,
 } from "./engine";
 export {
+  buildFocusDraftFromTask,
+  buildLinkSnapshot,
+  isTaskOccurrenceAllowed,
+  aggregateTaskFocusStats,
+} from "./task-link";
+export {
+  completeLinkedTaskFromFocusAction,
+  getTaskFocusStatsAction,
+} from "./actions";
+export {
   fetchActiveFocusSession,
   fetchFocusSessionById,
   persistFocusSession,

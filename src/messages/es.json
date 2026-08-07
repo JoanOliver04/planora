@@ -184,6 +184,17 @@
       "extraStarted": "Nuevo bloque de enfoque iniciado",
       "done": "Listo"
     },
+    "link": {
+      "optionsLabel": "Tarea vinculada",
+      "chooseOutcome": "Elige qué hacer con la tarea vinculada:",
+      "completeOccurrence": "Marcar la ocurrencia como completada",
+      "saveOnly": "Guardar sesión sin completar",
+      "alreadyApplied": "La ocurrencia ya se marcó como completada.",
+      "taskCompleted": "Ocurrencia marcada como completada",
+      "forceTitle": "¿Completar un día no previsto?",
+      "forceDescription": "Este hábito no corresponde a esa fecha según su recurrencia. Solo continúa si quieres marcarlo de forma explícita.",
+      "forceConfirm": "Completar de todos modos"
+    },
     "config": {
       "title": "Nueva sesión de Enfoque",
       "description": "Configura lo esencial y empieza. Las opciones avanzadas son opcionales.",
@@ -201,6 +212,8 @@
       "intentionPlaceholder": "Por ejemplo: estudiar inglés",
       "task": "Tarea o hábito",
       "noTask": "Sin vínculo",
+      "linkedTask": "Tarea vinculada",
+      "occurrence": "Fecha de ocurrencia: {date}",
       "preset": "Preset",
       "noPreset": "Ninguno",
       "advanced": "Opciones avanzadas",
@@ -466,6 +479,7 @@
     "goodAfternoon": "Buenas tardes",
     "goodEvening": "Buenas noches",
     "markComplete": "Marcar como completada",
+    "startFocus": "Iniciar enfoque",
     "noWeekGoals": "Una semana ligera, sin tareas previstas",
     "weekComplete": "Semana completada",
     "remainingThisWeek": "Te quedan {count} esta semana",

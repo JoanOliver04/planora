@@ -12,8 +12,10 @@ import {
   RotateCcw,
   Search,
   StickyNote,
+  Timer,
   Trash2,
 } from "lucide-react";
+import { useRouter } from "@/i18n/routing";
 import { toast } from "sonner";
 import {
   calculateWeeklyProgress,
@@ -55,6 +57,7 @@ export function TaskCard({
   completion,
   onToggle,
   onEdit,
+  onStartFocus,
   progress,
 }: {
   task: Task;
@@ -62,6 +65,7 @@ export function TaskCard({
   completion?: Completion;
   onToggle?: (completed: boolean) => Promise<boolean>;
   onEdit?: () => void;
+  onStartFocus?: () => void;
   progress?: string;
 }) {
   const t = useTranslations("Workspace"),
@@ -135,6 +139,17 @@ export function TaskCard({
           ))}
         </div>
       </div>
+      {onStartFocus && !task.archived_at ? (
+        <button
+          className="icon-button"
+          type="button"
+          onClick={onStartFocus}
+          aria-label={`${t("startFocus")}: ${task.title}`}
+          title={t("startFocus")}
+        >
+          <Timer size={17} />
+        </button>
+      ) : null}
       {onEdit && (
         <button
           className="icon-button"
@@ -229,6 +244,7 @@ export function TodayView({
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
+    router = useRouter(),
     [open, setOpen] = useState(false),
     [viewDate, setViewDate] = useState(() => localDate(data.profile.timezone)),
     [, setClock] = useState(0),
@@ -461,6 +477,11 @@ export function TodayView({
                     onToggle={(completed) =>
                       toggle(db, data, task, day, completed, reload, t("error"))
                     }
+                    onStartFocus={() =>
+                      router.push(
+                        `/focus?taskId=${encodeURIComponent(task.id)}&date=${encodeURIComponent(day)}`,
+                      )
+                    }
                   />
                 );
               }}
@@ -528,6 +549,7 @@ export function TodayView({
 export function WeekView({ data }: { data: WorkspaceData }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
+    router = useRouter(),
     today = localDate(data.profile.timezone),
     [viewDate, setViewDate] = useState(today),
     week = localWeek(
@@ -607,7 +629,8 @@ export function WeekView({ data }: { data: WorkspaceData }) {
               (item) => item.id === task.category_id,
             );
             return (
-              <div
+              <button
+                type="button"
                 className="mini-task"
                 key={task.id}
                 style={
@@ -615,10 +638,17 @@ export function WeekView({ data }: { data: WorkspaceData }) {
                     "--accent": category?.colour ?? "var(--primary)",
                   } as React.CSSProperties
                 }
+                onClick={() =>
+                  router.push(
+                    `/focus?taskId=${encodeURIComponent(task.id)}&date=${encodeURIComponent(day)}`,
+                  )
+                }
+                aria-label={`${t("startFocus")}: ${task.title}`}
+                title={t("startFocus")}
               >
                 <span>{task.emoji || "•"}</span>
                 <span>{task.title}</span>
-              </div>
+              </button>
             );
           })}
           {!events.length && !tasks.length && (
@@ -722,6 +752,7 @@ export function TasksView({
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
+    router = useRouter(),
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Task | null>(null),
     [search, setSearch] = useState(""),
@@ -906,6 +937,21 @@ export function TasksView({
                     <StickyNote size={16} /> {t("viewNote")}
                   </button>
                 )}
+                {!task.archived_at ? (
+                  <button
+                    className="icon-button"
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        `/focus?taskId=${encodeURIComponent(task.id)}&date=${encodeURIComponent(localDate(data.profile.timezone))}`,
+                      )
+                    }
+                    aria-label={`${t("startFocus")}: ${task.title}`}
+                    title={t("startFocus")}
+                  >
+                    <Timer size={16} />
+                  </button>
+                ) : null}
                 <button
                   className="icon-button"
                   onClick={() => {
