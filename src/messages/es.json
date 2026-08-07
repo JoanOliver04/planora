@@ -67,6 +67,16 @@
       "quickStart": "Sesión rápida",
       "createPreset": "Crear preset"
     },
+    "shortcuts": {
+      "label": "Accesos de Enfoque",
+      "eyebrow": "Enfoque",
+      "title": "Empieza a concentrarte",
+      "nextTask": "Siguiente: {title}",
+      "lastPreset": "Preset: {name}",
+      "savedPreset": "preset guardado",
+      "untitledTask": "tarea",
+      "openFocus": "Abrir Enfoque"
+    },
     "modes": {
       "countdown": "Cuenta atrás",
       "stopwatch": "Cronómetro",
@@ -486,6 +496,7 @@
     "goodEvening": "Buenas noches",
     "markComplete": "Marcar como completada",
     "startFocus": "Iniciar enfoque",
+    "continueFocus": "Continuar enfoque",
     "noWeekGoals": "Una semana ligera, sin tareas previstas",
     "weekComplete": "Semana completada",
     "remainingThisWeek": "Te quedan {count} esta semana",

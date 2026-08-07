@@ -67,6 +67,16 @@
       "quickStart": "Quick start",
       "createPreset": "Create preset"
     },
+    "shortcuts": {
+      "label": "Focus shortcuts",
+      "eyebrow": "Focus",
+      "title": "Start concentrating",
+      "nextTask": "Next: {title}",
+      "lastPreset": "Preset: {name}",
+      "savedPreset": "saved preset",
+      "untitledTask": "task",
+      "openFocus": "Open Focus"
+    },
     "modes": {
       "countdown": "Countdown",
       "stopwatch": "Stopwatch",
@@ -486,6 +496,7 @@
     "goodEvening": "Good evening",
     "markComplete": "Mark as complete",
     "startFocus": "Start focus",
+    "continueFocus": "Continue focus",
     "noWeekGoals": "A light week with no planned tasks",
     "weekComplete": "Week complete",
     "remainingThisWeek": "{count} left this week",

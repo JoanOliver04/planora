@@ -45,6 +45,9 @@ import {
   uniqueMetadata,
 } from "./presentation";
 import { categoriesForSchedule } from "./categories";
+import { FocusTodayShortcuts } from "@/features/focus/focus-today-shortcuts";
+import { buildFocusHref } from "@/features/focus/focus-deep-link";
+import { useOptionalFocusSessionContext } from "@/features/focus/focus-session-context";
 const adapter = (task: Task) => ({
   startDate: task.start_date,
   endDate: task.end_date,
@@ -58,6 +61,7 @@ export function TaskCard({
   onToggle,
   onEdit,
   onStartFocus,
+  focusActionLabel,
   progress,
 }: {
   task: Task;
@@ -66,6 +70,8 @@ export function TaskCard({
   onToggle?: (completed: boolean) => Promise<boolean>;
   onEdit?: () => void;
   onStartFocus?: () => void;
+  /** Overrides the default "Start focus" aria/title when a session is already live. */
+  focusActionLabel?: string;
   progress?: string;
 }) {
   const t = useTranslations("Workspace"),
@@ -75,6 +81,7 @@ export function TaskCard({
     [noteOpen, setNoteOpen] = useState(false),
     [togglePending, setTogglePending] = useState(false),
     done = optimisticDone ?? Boolean(completion),
+    focusLabel = focusActionLabel ?? t("startFocus"),
     timing =
       task.start_time?.slice(0, 5) ??
       (task.time_mode === "day_part"
@@ -144,8 +151,8 @@ export function TaskCard({
           className="icon-button"
           type="button"
           onClick={onStartFocus}
-          aria-label={`${t("startFocus")}: ${task.title}`}
-          title={t("startFocus")}
+          aria-label={`${focusLabel}: ${task.title}`}
+          title={focusLabel}
         >
           <Timer size={17} />
         </button>
@@ -245,6 +252,14 @@ export function TodayView({
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
     router = useRouter(),
+    focusCtx = useOptionalFocusSessionContext(),
+    liveFocus = focusCtx?.engine.session,
+    hasActiveFocus =
+      Boolean(liveFocus) &&
+      (liveFocus?.status === "running" ||
+        liveFocus?.status === "paused" ||
+        liveFocus?.status === "on_break"),
+    focusActionLabel = hasActiveFocus ? t("continueFocus") : t("startFocus"),
     [open, setOpen] = useState(false),
     [viewDate, setViewDate] = useState(() => localDate(data.profile.timezone)),
     [, setClock] = useState(0),
@@ -405,6 +420,17 @@ export function TodayView({
           <span>{stats.expected ? `${stats.percentage}%` : "—"}</span>
         </div>
       </section>
+      <FocusTodayShortcuts
+        day={day}
+        tasks={tasks}
+        completedTaskIds={
+          new Set(
+            data.completions
+              .filter((item) => item.occurrence_date === day)
+              .map((item) => item.task_id),
+          )
+        }
+      />
       {groups.map((group) => {
         const list = tasks.filter(
           (task) =>
@@ -477,9 +503,15 @@ export function TodayView({
                     onToggle={(completed) =>
                       toggle(db, data, task, day, completed, reload, t("error"))
                     }
+                    focusActionLabel={focusActionLabel}
                     onStartFocus={() =>
                       router.push(
-                        `/focus?taskId=${encodeURIComponent(task.id)}&date=${encodeURIComponent(day)}`,
+                        hasActiveFocus
+                          ? "/focus"
+                          : buildFocusHref({
+                              taskId: task.id,
+                              date: day,
+                            }),
                       )
                     }
                   />
@@ -550,6 +582,14 @@ export function WeekView({ data }: { data: WorkspaceData }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
     router = useRouter(),
+    focusCtx = useOptionalFocusSessionContext(),
+    liveFocus = focusCtx?.engine.session,
+    hasActiveFocus =
+      Boolean(liveFocus) &&
+      (liveFocus?.status === "running" ||
+        liveFocus?.status === "paused" ||
+        liveFocus?.status === "on_break"),
+    focusActionLabel = hasActiveFocus ? t("continueFocus") : t("startFocus"),
     today = localDate(data.profile.timezone),
     [viewDate, setViewDate] = useState(today),
     week = localWeek(
@@ -629,26 +669,36 @@ export function WeekView({ data }: { data: WorkspaceData }) {
               (item) => item.id === task.category_id,
             );
             return (
-              <button
-                type="button"
-                className="mini-task"
+              <div
+                className="mini-task mini-task-with-focus"
                 key={task.id}
                 style={
                   {
                     "--accent": category?.colour ?? "var(--primary)",
                   } as React.CSSProperties
                 }
-                onClick={() =>
-                  router.push(
-                    `/focus?taskId=${encodeURIComponent(task.id)}&date=${encodeURIComponent(day)}`,
-                  )
-                }
-                aria-label={`${t("startFocus")}: ${task.title}`}
-                title={t("startFocus")}
               >
                 <span>{task.emoji || "•"}</span>
-                <span>{task.title}</span>
-              </button>
+                <span className="mini-task-title">{task.title}</span>
+                <button
+                  type="button"
+                  className="icon-button mini-task-focus"
+                  onClick={() =>
+                    router.push(
+                      hasActiveFocus
+                        ? "/focus"
+                        : buildFocusHref({
+                            taskId: task.id,
+                            date: day,
+                          }),
+                    )
+                  }
+                  aria-label={`${focusActionLabel}: ${task.title}`}
+                  title={focusActionLabel}
+                >
+                  <Timer size={15} aria-hidden="true" />
+                </button>
+              </div>
             );
           })}
           {!events.length && !tasks.length && (
@@ -753,6 +803,14 @@ export function TasksView({
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
     router = useRouter(),
+    focusCtx = useOptionalFocusSessionContext(),
+    liveFocus = focusCtx?.engine.session,
+    hasActiveFocus =
+      Boolean(liveFocus) &&
+      (liveFocus?.status === "running" ||
+        liveFocus?.status === "paused" ||
+        liveFocus?.status === "on_break"),
+    focusActionLabel = hasActiveFocus ? t("continueFocus") : t("startFocus"),
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Task | null>(null),
     [search, setSearch] = useState(""),
@@ -943,11 +1001,16 @@ export function TasksView({
                     type="button"
                     onClick={() =>
                       router.push(
-                        `/focus?taskId=${encodeURIComponent(task.id)}&date=${encodeURIComponent(localDate(data.profile.timezone))}`,
+                        hasActiveFocus
+                          ? "/focus"
+                          : buildFocusHref({
+                              taskId: task.id,
+                              date: localDate(data.profile.timezone),
+                            }),
                       )
                     }
-                    aria-label={`${t("startFocus")}: ${task.title}`}
-                    title={t("startFocus")}
+                    aria-label={`${focusActionLabel}: ${task.title}`}
+                    title={focusActionLabel}
                   >
                     <Timer size={16} />
                   </button>

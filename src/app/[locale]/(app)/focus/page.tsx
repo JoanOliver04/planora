@@ -3,13 +3,19 @@ import { FocusHome } from "@/features/focus/focus-home";
 import { mapGoalRow, mapPresetRow, mapSessionRow } from "@/features/focus/mappers";
 import { localWeek, localDate } from "@/lib/dates/timezone";
 import type { FocusSession } from "@/features/focus/types";
-import { buildFocusDraftFromTask } from "@/features/focus/task-link";
+import { resolveDeepLinkDraft } from "@/features/focus/focus-deep-link";
+import type { FocusTaskSource } from "@/features/focus/task-link";
 import type { SessionStartDraft } from "@/features/focus/session-start-dialog";
 
 export default async function FocusPage({
   searchParams,
 }: {
-  searchParams: Promise<{ taskId?: string; date?: string }>;
+  searchParams: Promise<{
+    taskId?: string;
+    date?: string;
+    presetId?: string;
+    start?: string;
+  }>;
 }) {
   const params = await searchParams;
   const db = await createClient();
@@ -148,23 +154,26 @@ export default async function FocusPage({
     scheduleId: task.schedule_id,
   }));
 
-  let initialDraft: SessionStartDraft | null = null;
-  const linkTaskId = params.taskId;
-  const linkDate =
-    params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date)
-      ? params.date
-      : today;
+  const presets = (presetRows ?? []).map(mapPresetRow);
+  let linkedTask: FocusTaskSource | null = null;
+  let linkedCategory: {
+    name: string;
+    colour: string;
+    emoji: string | null;
+  } | null = null;
+  let linkedSchedule: { name: string } | null = null;
 
-  if (linkTaskId) {
+  if (params.taskId) {
     const { data: task } = await db
       .from("tasks")
       .select(
         "id,title,emoji,task_kind,category_id,schedule_id,start_date,end_date,archived_at,recurrence_type,recurrence_config",
       )
-      .eq("id", linkTaskId)
+      .eq("id", params.taskId)
       .eq("user_id", user.id)
       .maybeSingle();
     if (task && !task.archived_at) {
+      linkedTask = task;
       const [{ data: category }, { data: schedule }] = await Promise.all([
         task.category_id
           ? db
@@ -183,13 +192,8 @@ export default async function FocusPage({
               .maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
-      initialDraft = buildFocusDraftFromTask({
-        task,
-        occurrenceDate: linkDate,
-        category,
-        schedule,
-      });
-      // Ensure linked task appears in the configurator select.
+      linkedCategory = category;
+      linkedSchedule = schedule;
       if (!tasks.some((item) => item.id === task.id)) {
         tasks.unshift({
           id: task.id,
@@ -203,18 +207,29 @@ export default async function FocusPage({
     }
   }
 
+  const resolved = resolveDeepLinkDraft({
+    params,
+    today,
+    presets,
+    task: linkedTask,
+    category: linkedCategory,
+    schedule: linkedSchedule,
+  });
+  const initialDraft: SessionStartDraft | null = resolved.draft;
+  const autoOpenConfigurator = resolved.autoOpen && !activeSession;
+
   return (
     <FocusHome
       activeSession={activeSession}
       recentSessions={recentSessions}
-      presets={(presetRows ?? []).map(mapPresetRow)}
+      presets={presets}
       goal={goalRow ? mapGoalRow(goalRow) : null}
       weekSessions={weekSessions}
       timezone={timezone}
       weekStartsOn={weekStartsOn}
       tasks={tasks}
       initialDraft={initialDraft}
-      autoOpenConfigurator={Boolean(initialDraft)}
+      autoOpenConfigurator={autoOpenConfigurator}
     />
   );
 }

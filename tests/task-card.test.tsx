@@ -12,6 +12,26 @@ vi.mock("@/app/actions/domain", () => ({
   setTaskArchived: vi.fn(),
 }));
 
+vi.mock("@/features/focus/actions", () => ({
+  startFocusSessionAction: vi.fn(),
+  transitionFocusSessionAction: vi.fn(),
+  updateFocusSessionMetadataAction: vi.fn(),
+  completeLinkedTaskFromFocusAction: vi.fn(),
+  getTaskFocusStatsAction: vi.fn(),
+}));
+
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({ data: null }),
+        }),
+      }),
+    }),
+  }),
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));

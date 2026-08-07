@@ -12,6 +12,7 @@ import {
 } from "./actions";
 import type { FocusMode, FocusPreset, FocusSession } from "./types";
 import type { QuickFocusPreset } from "./defaults";
+import { recordFocusStart } from "./focus-recents";
 import {
   FOCUS_MAX_CYCLES,
   FOCUS_MAX_CYCLES_BEFORE_LONG,
@@ -408,6 +409,14 @@ export function SessionStartDialog({
         return;
       }
       toast.success(t("config.started"));
+      const preset = presets.find((item) => item.id === form.presetId);
+      recordFocusStart({
+        presetId: form.presetId || null,
+        presetName: preset?.name ?? null,
+        taskId: form.taskId || null,
+        taskTitle: selectedTask?.title ?? draftSnapshot?.taskTitle ?? null,
+        quickKey: draft?.quickKey ?? null,
+      });
       onOpenChange(false);
       onStarted?.(result.data);
       router.refresh();

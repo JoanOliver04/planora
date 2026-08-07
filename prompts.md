@@ -1037,6 +1037,8 @@ Describe puntos de entrada, vínculo, completion semantics, snapshots y pruebas.
 
 ## Prompt 09 — Accesos rápidos desde Hoy, Semana y acción global
 
+> **HECHO** — Accesos compactos en Hoy (continuar / rápida / próxima tarea / último preset), acción secundaria en Semana y Tareas, deep links `start=quick` y `presetId`, recents locales. El orbe “+” móvil se deja como acceso a Tareas (no se convirtió en menú global).
+
 ```text
 Añade accesos rápidos inteligentes a Enfoque sin saturar la interfaz.
 

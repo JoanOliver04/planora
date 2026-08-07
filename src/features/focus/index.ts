@@ -49,6 +49,20 @@ export {
   aggregateTaskFocusStats,
 } from "./task-link";
 export {
+  buildFocusHref,
+  buildFocusShortcuts,
+  pickNextFocusTask,
+  resolveDeepLinkDraft,
+  draftFromQuickStart,
+  draftFromPreset,
+} from "./focus-deep-link";
+export {
+  readFocusRecents,
+  recordFocusStart,
+  FOCUS_RECENTS_STORAGE_KEY,
+} from "./focus-recents";
+export { FocusTodayShortcuts } from "./focus-today-shortcuts";
+export {
   completeLinkedTaskFromFocusAction,
   getTaskFocusStatsAction,
 } from "./actions";
