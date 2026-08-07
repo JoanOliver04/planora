@@ -19,19 +19,23 @@ import {
 } from "./repository";
 import {
   completeLinkedTaskSchema,
+  focusGoalInputSchema,
   focusPresetInputSchema,
   focusTransitionSchema,
   startFocusSessionSchema,
   updateFocusMetadataSchema,
+  type FocusGoalInput,
   type FocusPresetInput,
   type FocusTransitionInput,
   type StartFocusSessionInput,
   type UpdateFocusMetadataInput,
 } from "./validation";
-import type { FocusPreset, FocusSession } from "./types";
+import type { FocusGoal, FocusPreset, FocusSession } from "./types";
 import {
   configToJson,
+  goalToRowPayload,
   linkSnapshotToJson,
+  mapGoalRow,
   mapPresetRow,
   presetToRowPayload,
 } from "./mappers";
@@ -39,6 +43,8 @@ import {
   aggregateTaskFocusStats,
   isTaskOccurrenceAllowed,
 } from "./task-link";
+import { FOCUS_MAX_GOALS } from "./goals";
+import { localDate } from "@/lib/dates/timezone";
 
 async function auth() {
   const db = await createClient();
@@ -804,6 +810,205 @@ export async function toggleFocusPresetFavoriteAction(
     }
     refresh();
     return { ok: true, data: mapPresetRow(data) };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function saveFocusGoalAction(
+  input: unknown,
+): Promise<FocusActionResult<FocusGoal>> {
+  try {
+    const value = focusGoalInputSchema.parse(input) as FocusGoalInput;
+    const { db, user } = await auth();
+
+    if (value.scope === "category" && value.categoryId) {
+      const { data: category } = await db
+        .from("categories")
+        .select("id")
+        .eq("id", value.categoryId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!category) {
+        throw new FocusError("VALIDATION_ERROR", "Category is not available");
+      }
+    }
+    if (value.scope === "preset" && value.presetId) {
+      const { data: preset } = await db
+        .from("focus_presets")
+        .select("id")
+        .eq("id", value.presetId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!preset) {
+        throw new FocusError("VALIDATION_ERROR", "Preset is not available");
+      }
+    }
+
+    const { count } = await db
+      .from("focus_goals")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    if (!value.id && (count ?? 0) >= FOCUS_MAX_GOALS) {
+      throw new FocusError(
+        "VALIDATION_ERROR",
+        `At most ${FOCUS_MAX_GOALS} Focus goals are supported`,
+      );
+    }
+
+    const targetValue =
+      value.metric === "focus_seconds"
+        ? (value.targetValue ?? value.targetFocusSec ?? 1)
+        : value.targetValue;
+    const startDate =
+      value.startDate ?? localDate(value.timezone, new Date());
+
+    let sortOrder = value.sortOrder;
+    if (sortOrder == null) {
+      const { data: last } = await db
+        .from("focus_goals")
+        .select("sort_order")
+        .eq("user_id", user.id)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      sortOrder = (last?.sort_order ?? -1) + 1;
+    }
+
+    // Ensure single primary: clear others when marking primary+active.
+    if (value.isPrimary && value.active) {
+      await db
+        .from("focus_goals")
+        .update({ is_primary: false })
+        .eq("user_id", user.id)
+        .eq("active", true)
+        .neq("id", value.id ?? "00000000-0000-4000-8000-000000000000");
+    }
+
+    const payload = goalToRowPayload(user.id, {
+      id: value.id,
+      period: "weekly",
+      metric: value.metric,
+      targetValue,
+      targetFocusSec:
+        value.metric === "focus_seconds" ? targetValue : targetValue,
+      scope: value.scope,
+      categoryId: value.scope === "category" ? value.categoryId ?? null : null,
+      presetId: value.scope === "preset" ? value.presetId ?? null : null,
+      startDate,
+      consideredDays: value.consideredDays,
+      isPrimary: value.isPrimary && value.active,
+      sortOrder,
+      timezone: value.timezone,
+      weekStartsOn: value.weekStartsOn,
+      active: value.active,
+    });
+
+    if (value.id) {
+      const { data, error } = await db
+        .from("focus_goals")
+        .update(payload)
+        .eq("id", value.id)
+        .eq("user_id", user.id)
+        .select("*")
+        .maybeSingle();
+      if (error) {
+        throw new FocusError("DATABASE_ERROR", "Unable to update focus goal");
+      }
+      if (!data) {
+        throw new FocusError("NOT_FOUND", "Focus goal not found.");
+      }
+      refresh();
+      return { ok: true, data: mapGoalRow(data) };
+    }
+
+    // First active goal becomes primary when none is set.
+    if (value.active && !value.isPrimary) {
+      const { data: primary } = await db
+        .from("focus_goals")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("active", true)
+        .eq("is_primary", true)
+        .maybeSingle();
+      if (!primary) {
+        payload.is_primary = true;
+      }
+    }
+
+    const { data, error } = await db
+      .from("focus_goals")
+      .insert(payload)
+      .select("*")
+      .single();
+    if (error || !data) {
+      throw new FocusError("DATABASE_ERROR", "Unable to create focus goal");
+    }
+    refresh();
+    return { ok: true, data: mapGoalRow(data) };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function deleteFocusGoalAction(
+  input: unknown,
+): Promise<FocusActionResult<{ id: string }>> {
+  try {
+    const value = z.object({ goalId: z.string().uuid() }).parse(input);
+    const { db, user } = await auth();
+    const { data, error } = await db
+      .from("focus_goals")
+      .delete()
+      .eq("id", value.goalId)
+      .eq("user_id", user.id)
+      .select("id")
+      .maybeSingle();
+    if (error) {
+      throw new FocusError("DATABASE_ERROR", "Unable to delete focus goal");
+    }
+    if (!data) {
+      throw new FocusError("NOT_FOUND", "Focus goal not found.");
+    }
+    refresh();
+    return { ok: true, data: { id: data.id } };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function setFocusGoalPrimaryAction(
+  input: unknown,
+): Promise<FocusActionResult<FocusGoal>> {
+  try {
+    const value = z.object({ goalId: z.string().uuid() }).parse(input);
+    const { db, user } = await auth();
+    const { data: existing } = await db
+      .from("focus_goals")
+      .select("*")
+      .eq("id", value.goalId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!existing) {
+      throw new FocusError("NOT_FOUND", "Focus goal not found.");
+    }
+    await db
+      .from("focus_goals")
+      .update({ is_primary: false })
+      .eq("user_id", user.id)
+      .eq("active", true);
+    const { data, error } = await db
+      .from("focus_goals")
+      .update({ is_primary: true, active: true })
+      .eq("id", value.goalId)
+      .eq("user_id", user.id)
+      .select("*")
+      .maybeSingle();
+    if (error || !data) {
+      throw new FocusError("DATABASE_ERROR", "Unable to set primary goal");
+    }
+    refresh();
+    return { ok: true, data: mapGoalRow(data) };
   } catch (error) {
     return fail(error);
   }

@@ -1418,6 +1418,8 @@ Describe modelo, editor, ejecución y resultados.
 
 ## Prompt 14 — Objetivos semanales flexibles
 
+> **HECHO** — Objetivos semanales: métricas (minutos / sesiones / días activos), alcance (global / categoría / preset), días considerados, varios activos (máx. 10) con uno principal, progreso + ritmo neutral + historial de semanas. Sesiones canceladas no cuentan. Edición a mitad de semana: se relee con la config actual (sin reescribir sesiones ni snapshots de versión).
+
 ```text
 Implementa objetivos de Enfoque personalizables.
 

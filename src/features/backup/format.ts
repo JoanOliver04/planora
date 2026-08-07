@@ -182,6 +182,28 @@ const focusGoalSchema = z.object({
   id: uuid,
   period: z.literal("weekly"),
   target_focus_sec: z.number().int().min(1).max(8 * 60 * 60 * 14),
+  metric: z
+    .enum(["focus_seconds", "sessions", "active_days"])
+    .optional()
+    .default("focus_seconds"),
+  target_value: z
+    .number()
+    .int()
+    .min(1)
+    .max(8 * 60 * 60 * 14)
+    .optional(),
+  scope: z.enum(["global", "category", "preset"]).optional().default("global"),
+  category_id: nullableUuid.optional().default(null),
+  preset_id: nullableUuid.optional().default(null),
+  start_date: date.optional(),
+  considered_days: z
+    .array(z.number().int().min(0).max(6))
+    .min(1)
+    .max(7)
+    .optional()
+    .default([0, 1, 2, 3, 4, 5, 6]),
+  is_primary: z.boolean().optional().default(false),
+  sort_order: z.number().int().optional().default(0),
   timezone: z.string().min(1).max(100),
   week_starts_on: z.number().int().min(0).max(6),
   active: z.boolean(),
@@ -427,8 +449,10 @@ const backupDataSchema = z
       "focus interval sequence",
       data.focus_intervals.map((item) => `${item.session_id}:${item.sequence}`),
     );
-    if (data.focus_goals.filter((item) => item.active).length > 1)
-      invalid("Only one active focus goal is supported");
+    if (data.focus_goals.length > 10)
+      invalid("Too many focus goals");
+    if (data.focus_goals.filter((item) => item.active && item.is_primary).length > 1)
+      invalid("Only one primary active focus goal is supported");
   });
 
 export const backupSchema = z.object({

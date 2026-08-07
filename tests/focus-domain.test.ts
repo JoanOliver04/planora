@@ -306,9 +306,24 @@ describe("focus domain layer", () => {
 
   it("11. attributes weekly goals using a non-UTC timezone", () => {
     const goal = {
+      id: "goal-1",
+      userId: "user-1",
+      period: "weekly" as const,
       targetFocusSec: 3600,
+      metric: "focus_seconds" as const,
+      targetValue: 3600,
+      scope: "global" as const,
+      categoryId: null,
+      presetId: null,
+      startDate: "2026-01-01",
+      consideredDays: [0, 1, 2, 3, 4, 5, 6],
+      isPrimary: true,
+      sortOrder: 0,
       timezone: "America/New_York",
-      weekStartsOn: 1 as const,
+      weekStartsOn: 1,
+      active: true,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
     };
     // Monday 2026-08-03 22:00 UTC = still Monday evening in NY (UTC-4)
     const sessionA = startCountdown(
@@ -348,7 +363,57 @@ describe("focus domain layer", () => {
     expect(progress.timezone).toBe("America/New_York");
     expect(progress.weekStart <= progress.weekEnd).toBe(true);
     // At least the Monday NY session counts toward that week.
+    expect(progress.completedValue).toBeGreaterThanOrEqual(30 * 60);
     expect(progress.completedFocusSec).toBeGreaterThanOrEqual(30 * 60);
+  });
+
+  it("11b. ignores cancelled sessions and supports sessions metric", () => {
+    const goal = {
+      id: "goal-2",
+      userId: "user-1",
+      period: "weekly" as const,
+      targetFocusSec: 2,
+      metric: "sessions" as const,
+      targetValue: 2,
+      scope: "global" as const,
+      categoryId: null,
+      presetId: null,
+      startDate: "2026-01-01",
+      consideredDays: [0, 1, 2, 3, 4, 5, 6],
+      isPrimary: true,
+      sortOrder: 0,
+      timezone: "Europe/Madrid",
+      weekStartsOn: 1,
+      active: true,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    };
+    const done = applyFocusAction(
+      startCountdown({}, Date.parse("2026-08-04T10:00:00.000Z")),
+      { type: "complete" },
+      {
+        now: Date.parse("2026-08-04T10:25:00.000Z"),
+        createId: idFactory("s"),
+        expectedRevision: 1,
+      },
+    ).session;
+    const cancelled = applyFocusAction(
+      startCountdown({}, Date.parse("2026-08-05T10:00:00.000Z")),
+      { type: "cancel" },
+      {
+        now: Date.parse("2026-08-05T10:10:00.000Z"),
+        createId: idFactory("c"),
+        expectedRevision: 1,
+      },
+    ).session;
+    const progress = calculateWeeklyGoalProgress(
+      goal,
+      [done, cancelled],
+      new Date("2026-08-06T12:00:00.000Z"),
+      { includeLive: false },
+    );
+    expect(progress.completedValue).toBe(1);
+    expect(progress.completed).toBe(false);
   });
 
   it("12. rejects invalid transitions without mutating state", () => {

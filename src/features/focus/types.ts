@@ -141,14 +141,30 @@ export type FocusPreset = {
   updatedAt: string;
 };
 
+export type FocusGoalMetric = "focus_seconds" | "sessions" | "active_days";
+export type FocusGoalScope = "global" | "category" | "preset";
+
 export type FocusGoal = {
   id: string;
   userId: string;
   period: "weekly";
+  /** Legacy alias of targetValue when metric is focus_seconds. */
   targetFocusSec: number;
+  metric: FocusGoalMetric;
+  targetValue: number;
+  scope: FocusGoalScope;
+  categoryId: string | null;
+  presetId: string | null;
+  startDate: string;
+  /** Local weekdays 0=Sun … 6=Sat that count toward the goal. */
+  consideredDays: number[];
+  isPrimary: boolean;
+  sortOrder: number;
   timezone: string;
   weekStartsOn: number;
   active: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type FocusPhaseView = {
@@ -184,13 +200,33 @@ export type FocusSessionSummary = {
 };
 
 export type FocusWeeklyGoalProgress = {
+  goalId: string;
+  metric: FocusGoalMetric;
+  targetValue: number;
+  /** Backward-compatible: same as targetValue for focus_seconds. */
   targetFocusSec: number;
+  completedValue: number;
+  /** Backward-compatible completed focus seconds (0 for non-time metrics). */
   completedFocusSec: number;
+  remainingValue: number;
   remainingFocusSec: number;
   progress: number;
+  completed: boolean;
+  /** Neutral pace hint: remaining / remaining considered days (null if done or no days left). */
+  suggestedPerRemainingDay: number | null;
+  remainingConsideredDays: number;
   weekStart: string;
   weekEnd: string;
   timezone: string;
+};
+
+export type FocusGoalWeekHistoryEntry = {
+  weekStart: string;
+  weekEnd: string;
+  completedValue: number;
+  targetValue: number;
+  progress: number;
+  completed: boolean;
 };
 
 export type FocusEventName =

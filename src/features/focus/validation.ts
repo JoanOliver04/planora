@@ -322,17 +322,87 @@ export const updateFocusMetadataSchema = z.object({
   nextStep: z.string().trim().max(280).optional().nullable(),
 });
 
-export const focusGoalInputSchema = z.object({
-  id: uuid.optional(),
-  targetFocusSec: z
-    .number()
-    .int()
-    .min(1)
-    .max(FOCUS_MAX_DURATION_SEC * 14),
-  timezone: z.string().min(1).max(100),
-  weekStartsOn: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6)]),
-  active: z.boolean().default(true),
-});
+export const focusGoalMetricSchema = z.enum([
+  "focus_seconds",
+  "sessions",
+  "active_days",
+]);
+export const focusGoalScopeSchema = z.enum(["global", "category", "preset"]);
+
+export const focusGoalInputSchema = z
+  .object({
+    id: uuid.optional(),
+    metric: focusGoalMetricSchema.default("focus_seconds"),
+    /** Seconds for focus_seconds, or counts for sessions/active_days. */
+    targetValue: z.number().int().min(1).max(FOCUS_MAX_DURATION_SEC * 14),
+    /** Legacy alias accepted for focus_seconds. */
+    targetFocusSec: z
+      .number()
+      .int()
+      .min(1)
+      .max(FOCUS_MAX_DURATION_SEC * 14)
+      .optional(),
+    scope: focusGoalScopeSchema.default("global"),
+    categoryId: uuid.optional().nullable(),
+    presetId: uuid.optional().nullable(),
+    startDate: isoDate.optional(),
+    consideredDays: z
+      .array(z.number().int().min(0).max(6))
+      .min(1)
+      .max(7)
+      .default([0, 1, 2, 3, 4, 5, 6]),
+    isPrimary: z.boolean().default(false),
+    sortOrder: z.number().int().optional(),
+    timezone: z.string().min(1).max(100),
+    weekStartsOn: z.union([
+      z.literal(0),
+      z.literal(1),
+      z.literal(2),
+      z.literal(3),
+      z.literal(4),
+      z.literal(5),
+      z.literal(6),
+    ]),
+    active: z.boolean().default(true),
+  })
+  .superRefine((value, ctx) => {
+    if (value.scope === "category" && !value.categoryId) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["categoryId"],
+        message: "Category is required for category-scoped goals",
+      });
+    }
+    if (value.scope === "preset" && !value.presetId) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["presetId"],
+        message: "Preset is required for preset-scoped goals",
+      });
+    }
+    if (value.metric === "sessions" && value.targetValue > 100) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["targetValue"],
+        message: "Session targets must be at most 100 per week",
+      });
+    }
+    if (value.metric === "active_days" && value.targetValue > 7) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["targetValue"],
+        message: "Active-day targets must be at most 7",
+      });
+    }
+    const uniqueDays = new Set(value.consideredDays);
+    if (uniqueDays.size !== value.consideredDays.length) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["consideredDays"],
+        message: "Considered days must be unique",
+      });
+    }
+  });
 
 export const focusPresetInputSchema = z
   .object({
@@ -406,3 +476,4 @@ export type UpdateFocusMetadataInput = z.infer<typeof updateFocusMetadataSchema>
 export type FocusGoalInput = z.infer<typeof focusGoalInputSchema>;
 export type FocusPresetInput = z.infer<typeof focusPresetInputSchema>;
 export type CompleteLinkedTaskInput = z.infer<typeof completeLinkedTaskSchema>;
+// FocusGoalInput is defined above after focusGoalInputSchema.

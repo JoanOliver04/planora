@@ -335,14 +335,63 @@ export function presetToRowPayload(
 }
 
 export function mapGoalRow(row: FocusGoalRow): FocusGoal {
+  const metric = row.metric ?? "focus_seconds";
+  const targetValue = row.target_value ?? row.target_focus_sec;
+  const considered =
+    Array.isArray(row.considered_days) && row.considered_days.length > 0
+      ? row.considered_days.filter(
+          (day): day is number =>
+            typeof day === "number" && day >= 0 && day <= 6,
+        )
+      : [0, 1, 2, 3, 4, 5, 6];
   return {
     id: row.id,
     userId: row.user_id,
     period: "weekly",
-    targetFocusSec: row.target_focus_sec,
+    targetFocusSec:
+      metric === "focus_seconds" ? targetValue : row.target_focus_sec,
+    metric,
+    targetValue,
+    scope: row.scope ?? "global",
+    categoryId: row.category_id ?? null,
+    presetId: row.preset_id ?? null,
+    startDate: row.start_date ?? row.created_at.slice(0, 10),
+    consideredDays: considered.length > 0 ? considered : [0, 1, 2, 3, 4, 5, 6],
+    isPrimary: Boolean(row.is_primary),
+    sortOrder: row.sort_order ?? 0,
     timezone: row.timezone,
     weekStartsOn: row.week_starts_on,
     active: row.active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function goalToRowPayload(
+  userId: string,
+  goal: Omit<FocusGoal, "id" | "userId" | "createdAt" | "updatedAt"> & {
+    id?: string;
+  },
+) {
+  const targetFocusSec =
+    goal.metric === "focus_seconds" ? goal.targetValue : goal.targetFocusSec || goal.targetValue;
+  return {
+    ...(goal.id ? { id: goal.id } : {}),
+    user_id: userId,
+    period: "weekly" as const,
+    target_focus_sec: Math.max(1, targetFocusSec),
+    metric: goal.metric,
+    target_value: goal.targetValue,
+    scope: goal.scope,
+    category_id: goal.categoryId,
+    preset_id: goal.presetId,
+    start_date: goal.startDate,
+    considered_days: goal.consideredDays,
+    is_primary: goal.isPrimary,
+    sort_order: goal.sortOrder,
+    timezone: goal.timezone,
+    week_starts_on: goal.weekStartsOn,
+    active: goal.active,
   };
 }
 

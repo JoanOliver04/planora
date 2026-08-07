@@ -289,6 +289,15 @@ export type Database = {
           user_id: string;
           period: "weekly";
           target_focus_sec: number;
+          metric: "focus_seconds" | "sessions" | "active_days";
+          target_value: number;
+          scope: "global" | "category" | "preset";
+          category_id: string | null;
+          preset_id: string | null;
+          start_date: string;
+          considered_days: number[];
+          is_primary: boolean;
+          sort_order: number;
           timezone: string;
           week_starts_on: number;
           active: boolean;

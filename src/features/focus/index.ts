@@ -46,6 +46,9 @@ export {
   deleteFocusPresetAction,
   reorderFocusPresetsAction,
   toggleFocusPresetFavoriteAction,
+  saveFocusGoalAction,
+  deleteFocusGoalAction,
+  setFocusGoalPrimaryAction,
 } from "./actions";
 export { FocusPresetManager } from "./preset-manager";
 export { PresetEditorDialog } from "./preset-editor";
@@ -67,6 +70,13 @@ export {
   FOCUS_DEVICE_PREFS_KEY,
 } from "./focus-preferences";
 export { FocusSettingsPanel } from "./focus-settings";
+export { FocusGoalsPanel } from "./focus-goals-panel";
+export {
+  FOCUS_MAX_GOALS,
+  calculateWeeklyGoalProgress,
+  calculateGoalWeekHistory,
+  pickPrimaryGoal,
+} from "./goals";
 export {
   SESSION_PLAN_TEMPLATES,
   hasStructuredPlan,

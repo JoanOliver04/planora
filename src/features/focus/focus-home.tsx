@@ -3,14 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { ListPlus, Play, Target, Timer } from "lucide-react";
+import { ListPlus, Play, Timer } from "lucide-react";
 import type {
   FocusGoal,
   FocusMode,
   FocusPreset,
   FocusSession,
 } from "./types";
-import { calculateWeeklyGoalProgress } from "./goals";
+import { FocusGoalsPanel } from "./focus-goals-panel";
 import { deriveSessionClock, sessionSummary } from "./time";
 import { formatFocusDuration } from "./defaults";
 import {
@@ -35,7 +35,9 @@ export type FocusHomeProps = {
   activeSession: FocusSession | null;
   recentSessions: FocusSession[];
   presets: FocusPreset[];
-  goal: FocusGoal | null;
+  goals?: FocusGoal[];
+  /** @deprecated use goals */
+  goal?: FocusGoal | null;
   weekSessions: FocusSession[];
   timezone: string;
   weekStartsOn: number;
@@ -60,7 +62,8 @@ export function FocusHome({
   activeSession,
   recentSessions,
   presets,
-  goal,
+  goals: goalsProp,
+  goal = null,
   weekSessions,
   timezone,
   weekStartsOn,
@@ -70,6 +73,7 @@ export function FocusHome({
   initialDraft = null,
   autoOpenConfigurator = false,
 }: FocusHomeProps) {
+  const goals = goalsProp ?? (goal ? [goal] : []);
   const t = useTranslations("Focus");
   const [dialogOpen, setDialogOpen] = useState(
     Boolean(autoOpenConfigurator && initialDraft),
@@ -118,19 +122,6 @@ export function FocusHome({
     [weekSessions, now],
   );
 
-  const goalProgress = useMemo(() => {
-    if (!goal) return null;
-    return calculateWeeklyGoalProgress(
-      {
-        targetFocusSec: goal.targetFocusSec,
-        timezone: goal.timezone || timezone,
-        weekStartsOn: goal.weekStartsOn ?? weekStartsOn,
-      },
-      weekSessions,
-      new Date(now),
-    );
-  }, [goal, weekSessions, timezone, weekStartsOn, now]);
-
   const hasHistory = recentSessions.length > 0 || hasActive;
 
   function openConfigurator(nextDraft: SessionStartDraft | null = null) {
@@ -173,20 +164,7 @@ export function FocusHome({
           session={shared.lastCompleted}
           onDismiss={() => shared.clearLastCompleted()}
           openReviewByDefault={accountPreferences.askReviewOnEnd}
-          weeklyGoalLabel={
-            goalProgress && accountPreferences.showWeeklyGoal
-              ? t("goal.progress", {
-                  done: formatFocusDuration(
-                    goalProgress.completedFocusSec,
-                    "compact",
-                  ),
-                  target: formatFocusDuration(
-                    goalProgress.targetFocusSec,
-                    "compact",
-                  ),
-                })
-              : null
-          }
+          weeklyGoalLabel={null}
         />
       ) : null}
 
@@ -233,44 +211,19 @@ export function FocusHome({
         />
       ) : null}
 
-      {goalProgress && accountPreferences.showWeeklyGoal ? (
-        <section
-          className="surface focus-goal-card"
-          aria-labelledby="focus-goal-title"
-          data-weekdays-only={accountPreferences.goalWeekdaysOnly || undefined}
-        >
-          <div className="focus-section-head">
-            <h2 id="focus-goal-title">
-              <Target size={18} aria-hidden="true" />
-              {t("goal.title")}
-            </h2>
-            <p className="muted">
-              {t("goal.range", {
-                start: goalProgress.weekStart,
-                end: goalProgress.weekEnd,
-              })}
-            </p>
-          </div>
-          <div className="focus-goal-meter" aria-hidden="true">
-            <span
-              style={{
-                width: `${Math.round(goalProgress.progress * 100)}%`,
-              }}
-            />
-          </div>
-          <p>
-            {t("goal.progress", {
-              done: formatFocusDuration(
-                goalProgress.completedFocusSec,
-                "compact",
-              ),
-              target: formatFocusDuration(
-                goalProgress.targetFocusSec,
-                "compact",
-              ),
-            })}
-          </p>
-        </section>
+      {!hasActive && accountPreferences.showWeeklyGoal ? (
+        <FocusGoalsPanel
+          goals={goals}
+          sessions={weekSessions}
+          timezone={timezone}
+          weekStartsOn={weekStartsOn}
+          categories={categories}
+          presets={presets.map((preset) => ({
+            id: preset.id,
+            name: preset.name,
+            emoji: preset.emoji,
+          }))}
+        />
       ) : null}
 
       {hasHistory ? (
