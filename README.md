@@ -132,6 +132,10 @@ Planora is a portfolio case study in turning irregular routines into a calm plan
     <td width="50%" align="center"><strong>Completion history</strong><br/><img src="docs/images/06-history.png" alt="Planora completion history" width="100%" /></td>
     <td width="50%" align="center"><strong>Deep personalization</strong><br/><img src="docs/images/09-settings.png" alt="Planora appearance and behavior settings" width="100%" /></td>
   </tr>
+  <tr>
+    <td width="50%" align="center"><strong>Focus home</strong><br/><img src="docs/images/14-focus-home.png" alt="Planora Focus home with presets and weekly goals in light theme" width="100%" /></td>
+    <td width="50%" align="center"><strong>Active Focus session</strong><br/><img src="docs/images/16-focus-active.png" alt="Planora active Focus countdown session in light theme" width="100%" /></td>
+  </tr>
 </table>
 
 <details>
@@ -141,6 +145,10 @@ Planora is a portfolio case study in turning irregular routines into a calm plan
   <tr>
     <td align="center"><img src="docs/images/07-schedules.png" alt="Schedule management" width="100%" /><br/><sub>Independent schedules for every context</sub></td>
     <td align="center"><img src="docs/images/08-categories.png" alt="Category management" width="100%" /><br/><sub>Color-coded categories</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/13-focus-intro.png" alt="Focus first-visit intro in light theme" width="100%" /><br/><sub>Focus first-visit intro</sub></td>
+    <td align="center"><img src="docs/images/15-focus-start.png" alt="Focus session start dialog in light theme" width="100%" /><br/><sub>Session start configurator</sub></td>
   </tr>
 </table>
 </details>
@@ -154,6 +162,8 @@ Planora is a portfolio case study in turning irregular routines into a calm plan
   <img src="docs/images/11-mobile-today.png" alt="Planora Today view on mobile" width="30%" />
   &nbsp;
   <img src="docs/images/12-mobile-week.png" alt="Planora Week view on mobile" width="30%" />
+  &nbsp;
+  <img src="docs/images/17-mobile-focus.png" alt="Planora Focus active session on mobile in light theme" width="30%" />
 </p>
 </details>
 
