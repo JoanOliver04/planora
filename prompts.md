@@ -876,6 +876,8 @@ Resume decisiones de UX, componentes, responsive, accesibilidad y resultados.
 
 ## Prompt 07 — Descansos, ciclos y control flexible
 
+> **HECHO** — Auto-start configurable, descanso 0, ampliar custom, fin de ciclo con resumen + bloque extra, cues progresivos, tests `tests/focus-cycles.test.ts`.
+
 ```text
 Completa la experiencia de ciclos y descansos de Planora Enfoque.
 

@@ -24,6 +24,7 @@ import {
 } from "./focus-session-context";
 import { ActiveSessionView } from "./active-session-view";
 import type { UseFocusSessionResult } from "./use-focus-session";
+import { SessionCompleteCard } from "./session-complete-card";
 
 export type FocusHomeProps = {
   activeSession: FocusSession | null;
@@ -150,6 +151,13 @@ export function FocusHome({
       ) : hasActive ? (
         // Fallback when provider is absent (isolated tests).
         <ActiveSessionFallback engine={engine} />
+      ) : null}
+
+      {!hasActive && shared?.lastCompleted ? (
+        <SessionCompleteCard
+          session={shared.lastCompleted}
+          onDismiss={() => shared.clearLastCompleted()}
+        />
       ) : null}
 
       {!hasHistory ? (

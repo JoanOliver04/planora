@@ -3937,6 +3937,74 @@ select:disabled,
   border: 0;
 }
 
+.focus-break-panel {
+  padding: 0.75rem 0.9rem;
+  border-radius: calc(var(--radius) * 0.8);
+  background: color-mix(in srgb, var(--primary-2) 55%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+}
+.focus-break-panel p {
+  margin: 0;
+  line-height: 1.45;
+}
+.focus-cycle-progress {
+  margin: 0.2rem 0 0;
+}
+.focus-custom-extend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+}
+.focus-custom-extend input {
+  width: 4.2rem;
+  min-height: 44px;
+}
+.focus-complete-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.15rem 1.2rem;
+}
+.focus-complete-card h2 {
+  margin: 0;
+}
+.focus-complete-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.focus-complete-stats li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: calc(var(--radius) * 0.75);
+  background: var(--surface-muted);
+}
+.focus-complete-stats span {
+  font-size: 0.78rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+}
+.focus-complete-stats strong {
+  font-variant-numeric: tabular-nums;
+}
+.focus-complete-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+.focus-complete-task-note {
+  margin: 0;
+  line-height: 1.45;
+}
+@media (max-width: 420px) {
+  .focus-complete-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
 .focus-start-dialog {
   width: min(100%, 520px);
   max-height: min(90vh, 760px);

@@ -15,11 +15,16 @@ import {
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { formatFocusDuration } from "./defaults";
-import { planNextPhase, countCompletedFocusBlocks } from "./cycles";
+import {
+  planNextPhase,
+  countCompletedFocusBlocks,
+  getCycleProgress,
+} from "./cycles";
 import { updateFocusSessionMetadataAction } from "./actions";
 import { useFocusSessionContext } from "./focus-session-context";
 import type { FocusPhaseKind, FocusSession } from "./types";
 import { toast } from "sonner";
+
 
 function phaseLabel(
   kind: FocusPhaseKind | null,
@@ -67,6 +72,7 @@ export function ActiveSessionView({
   const [noteOpen, setNoteOpen] = useState(false);
   const [note, setNote] = useState(() => session?.notes ?? "");
   const [noteSessionId, setNoteSessionId] = useState(session?.id ?? "");
+  const [customExtend, setCustomExtend] = useState("3");
   const [online, setOnline] = useState(
     typeof navigator === "undefined" ? true : navigator.onLine,
   );
@@ -122,6 +128,9 @@ export function ActiveSessionView({
   if (!session || !clock || !isLive(session)) return null;
 
   const progress = Math.round((clock.phase.progress || 0) * 100);
+  const cycleProgress =
+    session.mode === "cycles" ? getCycleProgress(session) : null;
+  const onBreak = session.status === "on_break";
   const title =
     session.title ||
     session.linkSnapshot.taskTitle ||
@@ -285,14 +294,62 @@ export function ActiveSessionView({
           <span style={{ width: `${progress}%` }} />
         </div>
         <p className="muted focus-next-hint">{nextPhaseHint(session, t)}</p>
+        {cycleProgress ? (
+          <p className="muted focus-cycle-progress">
+            {cycleProgress.indefinite
+              ? t("cycles.progressIndefinite", {
+                  n: cycleProgress.completedFocusBlocks,
+                })
+              : t("cycles.progress", {
+                  done: cycleProgress.completedFocusBlocks,
+                  total: cycleProgress.targetCycles ?? 0,
+                })}
+          </p>
+        ) : null}
         {waitingManual ? (
           <p className="focus-waiting" role="status">
-            {t("activeView.phaseEnded")}
+            {onBreak
+              ? t("cycles.breakEndedManual")
+              : t("cycles.focusEndedManual")}
           </p>
         ) : null}
       </div>
 
+      {onBreak ? (
+        <div className="focus-break-panel" role="region" aria-label={t("cycles.breakPanel")}>
+          <p>
+            <strong>{phaseLabel(session.currentPhaseKind, t)}</strong>
+            {" · "}
+            {t("cycles.breakNext")}: {nextPhaseHint(session, t)}
+          </p>
+        </div>
+      ) : null}
+
       <div className="focus-active-controls">
+        {waitingManual && session.status === "running" ? (
+          <button
+            type="button"
+            className="primary focus-control-main"
+            disabled={engine.pending}
+            onClick={() => void engine.finishPhase()}
+          >
+            <Play size={20} aria-hidden="true" />
+            {t("cycles.startBreak")}
+          </button>
+        ) : null}
+
+        {waitingManual && onBreak ? (
+          <button
+            type="button"
+            className="primary focus-control-main"
+            disabled={engine.pending}
+            onClick={() => void engine.finishPhase()}
+          >
+            <Play size={20} aria-hidden="true" />
+            {t("cycles.startFocusEarly")}
+          </button>
+        ) : null}
+
         {session.status === "paused" ? (
           <button
             type="button"
@@ -303,7 +360,7 @@ export function ActiveSessionView({
             <Play size={20} aria-hidden="true" />
             {t("engine.resume")}
           </button>
-        ) : (
+        ) : !waitingManual ? (
           <button
             type="button"
             className="primary focus-control-main"
@@ -313,7 +370,7 @@ export function ActiveSessionView({
             <Pause size={20} aria-hidden="true" />
             {t("engine.pause")}
           </button>
-        )}
+        ) : null}
 
         <button
           type="button"
@@ -325,7 +382,7 @@ export function ActiveSessionView({
           {t("engine.complete")}
         </button>
 
-        {session.status === "on_break" ? (
+        {onBreak ? (
           <>
             <button
               type="button"
@@ -334,7 +391,7 @@ export function ActiveSessionView({
               onClick={() => void engine.skipBreak()}
             >
               <SkipForward size={16} aria-hidden="true" />
-              {t("engine.skipBreak")}
+              {t("cycles.startFocusEarly")}
             </button>
             <button
               type="button"
@@ -354,35 +411,56 @@ export function ActiveSessionView({
               <Plus size={16} aria-hidden="true" />
               {t("activeView.extend5")}
             </button>
+            <label className="focus-custom-extend">
+              <span className="sr-only">{t("cycles.customExtend")}</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={60}
+                value={customExtend}
+                onChange={(event) => setCustomExtend(event.target.value)}
+                aria-label={t("cycles.customExtend")}
+              />
+              <button
+                type="button"
+                className="focus-secondary-action"
+                disabled={engine.pending}
+                onClick={() => {
+                  const minutes = Number(customExtend);
+                  if (!Number.isFinite(minutes) || minutes < 1) return;
+                  void engine.extendBreak(Math.round(minutes * 60));
+                }}
+              >
+                {t("cycles.applyExtend")}
+              </button>
+            </label>
           </>
         ) : null}
 
         {session.status === "running" &&
         session.mode !== "stopwatch" &&
         clock.phase.plannedSec != null ? (
-          <button
-            type="button"
-            className="focus-secondary-action"
-            disabled={engine.pending}
-            onClick={() => void engine.extendBreak(60)}
-          >
-            <Plus size={16} aria-hidden="true" />
-            {t("activeView.add1")}
-          </button>
-        ) : null}
-
-        {session.status === "running" &&
-        session.mode !== "stopwatch" &&
-        clock.phase.plannedSec != null ? (
-          <button
-            type="button"
-            className="focus-secondary-action"
-            disabled={engine.pending}
-            onClick={() => void engine.extendBreak(300)}
-          >
-            <Plus size={16} aria-hidden="true" />
-            {t("activeView.add5")}
-          </button>
+          <>
+            <button
+              type="button"
+              className="focus-secondary-action"
+              disabled={engine.pending}
+              onClick={() => void engine.extendBreak(60)}
+            >
+              <Plus size={16} aria-hidden="true" />
+              {t("activeView.add1")}
+            </button>
+            <button
+              type="button"
+              className="focus-secondary-action"
+              disabled={engine.pending}
+              onClick={() => void engine.extendBreak(300)}
+            >
+              <Plus size={16} aria-hidden="true" />
+              {t("activeView.add5")}
+            </button>
+          </>
         ) : null}
       </div>
 

@@ -58,6 +58,7 @@ type FormState = {
   longBreakMinutes: string;
   cyclesBeforeLongBreak: string;
   targetCycles: string;
+  indefiniteCycles: boolean;
   title: string;
   presetId: string;
   taskId: string;
@@ -78,6 +79,7 @@ const defaultForm = (): FormState => ({
   longBreakMinutes: "15",
   cyclesBeforeLongBreak: "4",
   targetCycles: "4",
+  indefiniteCycles: false,
   title: "",
   presetId: "",
   taskId: "",
@@ -135,7 +137,20 @@ function draftToForm(
         preset?.cyclesBeforeLongBreak ??
         4,
     ),
-    targetCycles: String(draft.targetCycles ?? preset?.targetCycles ?? 4),
+    targetCycles: (() => {
+      const resolved =
+        draft.targetCycles !== undefined
+          ? draft.targetCycles
+          : (preset?.targetCycles ?? 4);
+      return String(resolved ?? 4);
+    })(),
+    indefiniteCycles: (() => {
+      const resolved =
+        draft.targetCycles !== undefined
+          ? draft.targetCycles
+          : preset?.targetCycles;
+      return resolved === null;
+    })(),
     title: draft.title ?? "",
     presetId: draft.presetId ?? "",
     taskId: draft.taskId ?? "",
@@ -265,12 +280,16 @@ export function SessionStartDialog({
       if (longSec != null && (longSec < 0 || longSec > FOCUS_MAX_LONG_BREAK_SEC)) {
         return t("config.errors.longBreakInvalid");
       }
-      const cycles = Number(form.targetCycles);
-      if (
-        form.targetCycles.trim() &&
-        (!Number.isInteger(cycles) || cycles < 1 || cycles > FOCUS_MAX_CYCLES)
-      ) {
-        return t("config.errors.targetCyclesInvalid");
+      if (!form.indefiniteCycles) {
+        const cycles = Number(form.targetCycles);
+        if (
+          !form.targetCycles.trim() ||
+          !Number.isInteger(cycles) ||
+          cycles < 1 ||
+          cycles > FOCUS_MAX_CYCLES
+        ) {
+          return t("config.errors.targetCyclesInvalid");
+        }
       }
       const beforeLong = Number(form.cyclesBeforeLongBreak);
       if (
@@ -304,8 +323,10 @@ export function SessionStartDialog({
       cyclesBeforeLongBreak:
         form.mode === "cycles" ? Number(form.cyclesBeforeLongBreak) || 4 : null,
       targetCycles:
-        form.mode === "cycles" && form.targetCycles.trim()
-          ? Number(form.targetCycles)
+        form.mode === "cycles"
+          ? form.indefiniteCycles
+            ? null
+            : Number(form.targetCycles)
           : null,
       autoStartBreaks: form.autoStartBreaks,
       autoStartFocus: form.autoStartFocus,
@@ -506,34 +527,48 @@ export function SessionStartDialog({
                 )}
 
                 {form.mode === "cycles" ? (
-                  <div className="form-row">
-                    <label>
-                      {t("config.shortBreakMinutes")}
+                  <>
+                    <div className="form-row">
+                      <label>
+                        {t("config.shortBreakMinutes")}
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          max={Math.floor(FOCUS_MAX_SHORT_BREAK_SEC / 60)}
+                          value={form.shortBreakMinutes}
+                          onChange={(event) =>
+                            update("shortBreakMinutes", event.target.value)
+                          }
+                        />
+                        <small className="muted">{t("config.zeroBreakHint")}</small>
+                      </label>
+                      <label>
+                        {t("config.targetCycles")}
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          max={FOCUS_MAX_CYCLES}
+                          value={form.targetCycles}
+                          disabled={form.indefiniteCycles}
+                          onChange={(event) =>
+                            update("targetCycles", event.target.value)
+                          }
+                        />
+                      </label>
+                    </div>
+                    <label className="focus-check">
                       <input
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        max={Math.floor(FOCUS_MAX_SHORT_BREAK_SEC / 60)}
-                        value={form.shortBreakMinutes}
+                        type="checkbox"
+                        checked={form.indefiniteCycles}
                         onChange={(event) =>
-                          update("shortBreakMinutes", event.target.value)
+                          update("indefiniteCycles", event.target.checked)
                         }
                       />
+                      <span>{t("config.indefiniteCycles")}</span>
                     </label>
-                    <label>
-                      {t("config.targetCycles")}
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min={1}
-                        max={FOCUS_MAX_CYCLES}
-                        value={form.targetCycles}
-                        onChange={(event) =>
-                          update("targetCycles", event.target.value)
-                        }
-                      />
-                    </label>
-                  </div>
+                  </>
                 ) : null}
 
                 <label>

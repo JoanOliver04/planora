@@ -30,6 +30,18 @@ export {
 } from "./focus-session-context";
 export { ActiveSessionView } from "./active-session-view";
 export { FocusCompactBar } from "./focus-compact-bar";
+export { SessionCompleteCard } from "./session-complete-card";
+export {
+  getCycleProgress,
+  summarizeEndedSession,
+  buildExtraBlockStartInput,
+} from "./cycles";
+export { playPhaseCue } from "./phase-cues";
+export {
+  shouldAutoStartNextPhase,
+  isMidSessionConfigLocked,
+  EDITABLE_MID_SESSION_CONFIG_KEYS,
+} from "./engine";
 export {
   fetchActiveFocusSession,
   fetchFocusSessionById,

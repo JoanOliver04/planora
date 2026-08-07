@@ -266,8 +266,8 @@ function advanceFromFocus(
       ? (session.config.longBreakSec ?? plan.plannedDurationSec)
       : (session.config.shortBreakSec ?? plan.plannedDurationSec);
 
-  // Zero-length break: skip immediately into next focus if auto, else open 0-break.
-  if ((planned ?? 0) === 0 && session.config.autoStartFocus) {
+  // Zero-length break: skip straight to the next focus block (no empty break UI).
+  if ((planned ?? 0) === 0) {
     const afterSkip = openPhase(
       {
         ...closed,

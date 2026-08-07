@@ -96,3 +96,87 @@ export function isBreakKind(
 ): kind is "short_break" | "long_break" {
   return kind === "short_break" || kind === "long_break";
 }
+
+export type FocusCycleProgress = {
+  completedFocusBlocks: number;
+  targetCycles: number | null;
+  indefinite: boolean;
+  currentCycle: number;
+  /** 0–1 when target is set; null when indefinite. */
+  progress: number | null;
+  remainingFocusBlocks: number | null;
+  next: NextPhasePlan;
+};
+
+export function getCycleProgress(
+  session: FocusSession,
+  nowCompletedFocus = countCompletedFocusBlocks(session),
+): FocusCycleProgress {
+  const target = session.config.targetCycles;
+  const next = planNextPhase(session, nowCompletedFocus);
+  return {
+    completedFocusBlocks: nowCompletedFocus,
+    targetCycles: target,
+    indefinite: target == null,
+    currentCycle: session.currentCycle,
+    progress:
+      target != null && target > 0
+        ? Math.min(1, nowCompletedFocus / target)
+        : null,
+    remainingFocusBlocks:
+      target != null ? Math.max(0, target - nowCompletedFocus) : null,
+    next,
+  };
+}
+
+export type FocusSessionEndSummary = {
+  focusSec: number;
+  breakSec: number;
+  pausedSec: number;
+  completedFocusBlocks: number;
+  targetCycles: number | null;
+  mode: FocusSession["mode"];
+  reachedTarget: boolean;
+};
+
+export function summarizeEndedSession(
+  session: FocusSession,
+): FocusSessionEndSummary {
+  const completedFocusBlocks = countCompletedFocusBlocks(session);
+  const target = session.config.targetCycles;
+  return {
+    focusSec: session.focusSec,
+    breakSec: session.breakSec,
+    pausedSec: session.pausedSec,
+    completedFocusBlocks,
+    targetCycles: target,
+    mode: session.mode,
+    reachedTarget: target != null && completedFocusBlocks >= target,
+  };
+}
+
+/** Extra focus block after finishing planned cycles (same durations, one cycle). */
+export function buildExtraBlockStartInput(session: FocusSession) {
+  return {
+    mode: "cycles" as const,
+    title: session.title,
+    taskId: session.taskId,
+    categoryId: session.categoryId,
+    scheduleId: session.scheduleId,
+    occurrenceDate: session.occurrenceDate,
+    focusDurationSec: session.config.focusDurationSec,
+    shortBreakSec: session.config.shortBreakSec,
+    longBreakSec: session.config.longBreakSec,
+    cyclesBeforeLongBreak: session.config.cyclesBeforeLongBreak,
+    targetCycles: 1,
+    autoStartBreaks: session.config.autoStartBreaks,
+    autoStartFocus: session.config.autoStartFocus,
+    soundEnabled: session.config.soundEnabled,
+    vibrationEnabled: session.config.vibrationEnabled,
+    notifyOnPhaseEnd: session.config.notifyOnPhaseEnd,
+    completeTaskOnEnd: false,
+    keepScreenAwake: session.config.keepScreenAwake,
+    preferFullscreen: session.config.preferFullscreen,
+    linkSnapshot: session.linkSnapshot,
+  };
+}

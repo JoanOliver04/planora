@@ -23,6 +23,9 @@ type FocusSessionContextValue = {
   reloadActiveSession: () => Promise<void>;
   /** Seed/replace the active session from a server page payload. */
   hydrateSession: (session: FocusSession | null) => void;
+  /** Last completed session for the neutral summary card. */
+  lastCompleted: FocusSession | null;
+  clearLastCompleted: () => void;
 };
 
 const FocusSessionContext = createContext<FocusSessionContextValue | null>(
@@ -66,6 +69,9 @@ export function FocusSessionProvider({
   const [seedKey, setSeedKey] = useState(() => sessionKey(initialSession));
   const [initialLoaded, setInitialLoaded] = useState(Boolean(initialSession));
   const [immersive, setImmersive] = useState(false);
+  const [lastCompleted, setLastCompleted] = useState<FocusSession | null>(
+    null,
+  );
 
   // Sync server-provided initial session without an effect.
   const incomingKey = sessionKey(initialSession);
@@ -96,7 +102,10 @@ export function FocusSessionProvider({
     onRecovered: () => toast.message(t("engine.recovered")),
     onSoftGoal: () => toast.message(t("engine.softGoal")),
     onTerminal: (session) => {
-      if (session.status === "completed") toast.success(t("engine.completed"));
+      if (session.status === "completed") {
+        toast.success(t("engine.completed"));
+        setLastCompleted(session);
+      }
       setImmersive(false);
       setSeed(null);
       setSeedKey("none");
@@ -111,8 +120,17 @@ export function FocusSessionProvider({
       setImmersive,
       reloadActiveSession,
       hydrateSession,
+      lastCompleted,
+      clearLastCompleted: () => setLastCompleted(null),
     }),
-    [engine, initialLoaded, immersive, reloadActiveSession, hydrateSession],
+    [
+      engine,
+      initialLoaded,
+      immersive,
+      reloadActiveSession,
+      hydrateSession,
+      lastCompleted,
+    ],
   );
 
   return (

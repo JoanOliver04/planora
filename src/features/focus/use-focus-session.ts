@@ -265,7 +265,28 @@ export function useFocusSession(
     if (softGoalNotifiedRef.current === key) return;
     softGoalNotifiedRef.current = key;
     optionsRef.current.onSoftGoal?.(session);
+    void import("./phase-cues").then(({ playPhaseCue }) =>
+      playPhaseCue(session, "soft_goal"),
+    );
   }, [snapshot, session]);
+
+  // Neutral phase-change cues (sound / vibration / notification when allowed).
+  const lastPhaseKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!session) return;
+    const key = `${session.id}:${session.status}:${session.currentPhaseKind}:${session.currentCycle}`;
+    if (lastPhaseKeyRef.current == null) {
+      lastPhaseKeyRef.current = key;
+      return;
+    }
+    if (lastPhaseKeyRef.current === key) return;
+    lastPhaseKeyRef.current = key;
+    const kind =
+      session.status === "completed" ? "session_complete" : "phase_change";
+    void import("./phase-cues").then(({ playPhaseCue }) =>
+      playPhaseCue(session, kind),
+    );
+  }, [session]);
 
   const pause = useCallback(
     () => persistAction({ type: "pause" }, "pause"),

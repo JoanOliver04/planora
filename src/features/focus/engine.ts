@@ -59,14 +59,15 @@ export function evaluateFocusEngine(
     remaining != null &&
     remaining <= 0;
 
-  // Countdown/cycles auto-advance when a timed phase ends.
+  // Countdown always auto-finishes. Cycles respect auto-start preferences.
   // Stopwatch never auto-completes; soft goal is informational only.
   const shouldAutoAdvance =
     !isTerminal &&
     session.status !== "paused" &&
     phaseComplete &&
     !isStopwatchFocus &&
-    open?.plannedDurationSec != null;
+    open?.plannedDurationSec != null &&
+    shouldAutoStartNextPhase(session);
 
   return {
     session,
@@ -206,4 +207,35 @@ export function assertNoDrift(
     const clock = deriveSessionClock(session, sample.at);
     return clock.focusElapsedSec === sample.expectedFocusElapsed;
   });
+}
+
+/**
+ * Whether the engine may auto-call finish_phase when the current phase hits zero.
+ * Neutral language: this is a preference, not a streak rule.
+ */
+export function shouldAutoStartNextPhase(session: FocusSession): boolean {
+  if (session.mode === "countdown") return true;
+  if (session.mode === "stopwatch") return false;
+  // cycles
+  if (session.status === "running") return session.config.autoStartBreaks;
+  if (session.status === "on_break") return session.config.autoStartFocus;
+  return false;
+}
+
+/** Mid-session: only these config keys may be changed without restarting. */
+export const EDITABLE_MID_SESSION_CONFIG_KEYS = [
+  "autoStartBreaks",
+  "autoStartFocus",
+  "soundEnabled",
+  "vibrationEnabled",
+  "notifyOnPhaseEnd",
+  "keepScreenAwake",
+  "preferFullscreen",
+] as const;
+
+export type EditableMidSessionConfigKey =
+  (typeof EDITABLE_MID_SESSION_CONFIG_KEYS)[number];
+
+export function isMidSessionConfigLocked(key: string): boolean {
+  return !(EDITABLE_MID_SESSION_CONFIG_KEYS as readonly string[]).includes(key);
 }
