@@ -4347,6 +4347,41 @@ select:disabled,
   display: grid;
   gap: 0.45rem;
 }
+.focus-home-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.focus-home-secondary[data-landing="presets"] [data-block="presets"] {
+  order: 1;
+}
+.focus-home-secondary[data-landing="presets"] [data-block="goals"] {
+  order: 2;
+}
+.focus-home-secondary[data-landing="presets"] [data-block="history"],
+.focus-home-secondary[data-landing="presets"] [data-block="history-list"] {
+  order: 3;
+}
+.focus-home-secondary[data-landing="history"] [data-block="history"],
+.focus-home-secondary[data-landing="history"] [data-block="history-list"] {
+  order: 1;
+}
+.focus-home-secondary[data-landing="history"] [data-block="presets"] {
+  order: 2;
+}
+.focus-home-secondary[data-landing="history"] [data-block="goals"] {
+  order: 3;
+}
+.focus-home-secondary[data-landing="start"] [data-block="presets"] {
+  order: 1;
+}
+.focus-home-secondary[data-landing="start"] [data-block="goals"] {
+  order: 2;
+}
+.focus-home-secondary[data-landing="start"] [data-block="history"],
+.focus-home-secondary[data-landing="start"] [data-block="history-list"] {
+  order: 3;
+}
 button.mini-task {
   width: 100%;
   border: 0;

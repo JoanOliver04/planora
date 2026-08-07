@@ -202,76 +202,96 @@ export function FocusHome({
         </div>
       ) : null}
 
+      {/* Landing preference only reorders secondary blocks; active session stays first. */}
       {!hasActive ? (
-        <FocusPresetManager
-          presets={presets}
-          recentSessions={recentSessions}
-          categories={categories}
-          onStartPreset={(draft) => openConfigurator(draft)}
-        />
-      ) : null}
-
-      {!hasActive && accountPreferences.showWeeklyGoal ? (
-        <FocusGoalsPanel
-          goals={goals}
-          sessions={weekSessions}
-          timezone={timezone}
-          weekStartsOn={weekStartsOn}
-          categories={categories}
-          presets={presets.map((preset) => ({
-            id: preset.id,
-            name: preset.name,
-            emoji: preset.emoji,
-          }))}
-        />
-      ) : null}
-
-      {hasHistory ? (
-        <section
-          className="surface focus-week-summary"
-          aria-labelledby="focus-week-title"
+        <div
+          className="focus-home-secondary"
+          data-landing={accountPreferences.homeLanding}
         >
-          <h2 id="focus-week-title">{t("weekSummary.title")}</h2>
-          <p>
-            {t("weekSummary.body", {
-              time: formatFocusDuration(weekFocusSec, "compact"),
-              sessions: weekSessions.length,
-            })}
-          </p>
-        </section>
-      ) : null}
-
-      {recentSessions.length > 0 ? (
-        <section className="focus-section" aria-labelledby="focus-recent-title">
-          <div className="focus-section-head">
-            <h2 id="focus-recent-title">{t("recent.title")}</h2>
+          <div className="focus-home-block" data-block="presets">
+            <FocusPresetManager
+              presets={presets}
+              recentSessions={recentSessions}
+              categories={categories}
+              onStartPreset={(draft) => openConfigurator(draft)}
+            />
           </div>
-          <ul className="focus-recent-list">
-            {recentSessions.map((session) => {
-              const summary = sessionSummary(session);
-              return (
-                <li key={session.id} className="surface focus-recent-item">
-                  <div>
-                    <strong>
-                      {session.title ||
-                        session.linkSnapshot.taskTitle ||
-                        t("active.untitled")}
-                    </strong>
-                    <small className="muted">
-                      {modeLabel(session.mode, t)}
-                      {" · "}
-                      {formatFocusDuration(summary.focusSec, "compact")}
-                      {" · "}
-                      {session.status === "completed"
-                        ? t("status.completed")
-                        : t("status.cancelled")}
-                    </small>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+
+          {accountPreferences.showWeeklyGoal ? (
+            <div className="focus-home-block" data-block="goals">
+              <FocusGoalsPanel
+                goals={goals}
+                sessions={weekSessions}
+                timezone={timezone}
+                weekStartsOn={weekStartsOn}
+                categories={categories}
+                presets={presets.map((preset) => ({
+                  id: preset.id,
+                  name: preset.name,
+                  emoji: preset.emoji,
+                }))}
+              />
+            </div>
+          ) : null}
+
+          {hasHistory ? (
+            <div className="focus-home-block" data-block="history">
+              <section
+                className="surface focus-week-summary"
+                aria-labelledby="focus-week-title"
+              >
+                <h2 id="focus-week-title">{t("weekSummary.title")}</h2>
+                <p>
+                  {t("weekSummary.body", {
+                    time: formatFocusDuration(weekFocusSec, "compact"),
+                    sessions: weekSessions.length,
+                  })}
+                </p>
+              </section>
+            </div>
+          ) : null}
+
+          {recentSessions.length > 0 ? (
+            <div className="focus-home-block" data-block="history-list">
+              <section
+                className="focus-section"
+                aria-labelledby="focus-recent-title"
+              >
+                <div className="focus-section-head">
+                  <h2 id="focus-recent-title">{t("recent.title")}</h2>
+                </div>
+                <ul className="focus-recent-list">
+                  {recentSessions.map((session) => {
+                    const summary = sessionSummary(session);
+                    return (
+                      <li
+                        key={session.id}
+                        className="surface focus-recent-item"
+                      >
+                        <div>
+                          <strong>
+                            {session.title ||
+                              session.linkSnapshot.taskTitle ||
+                              t("active.untitled")}
+                          </strong>
+                          <small className="muted">
+                            {modeLabel(session.mode, t)}
+                            {" · "}
+                            {formatFocusDuration(summary.focusSec, "compact")}
+                            {" · "}
+                            {session.status === "completed"
+                              ? t("status.completed")
+                              : t("status.cancelled")}
+                          </small>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       <SessionStartDialog
