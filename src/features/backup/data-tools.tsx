@@ -230,7 +230,7 @@ export function DataTools({
   };
 
   return (
-    <main className="workspace-page data-page">
+    <section className="workspace-page data-page">
       <header className="data-page-header">
         <div className="data-heading-icon" aria-hidden="true">
           <Archive size={23} />
@@ -494,6 +494,6 @@ export function DataTools({
         variant="primary"
         onConfirm={restore}
       />
-    </main>
+    </section>
   );
 }

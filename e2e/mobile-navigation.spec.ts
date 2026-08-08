@@ -2,6 +2,7 @@ import { loadEnvConfig } from "@next/env";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 import type { Database } from "../src/types/database";
 
 loadEnvConfig(process.cwd());
@@ -80,6 +81,49 @@ test("mobile More navigation reaches every secondary area naturally", async ({
         url: "http://127.0.0.1:3000",
       })),
     );
+
+    const authenticatedRoutes = [
+      "today",
+      "week",
+      "tasks",
+      "focus",
+      "events",
+      "history",
+      "statistics",
+      "reminders",
+      "schedules",
+      "categories",
+      "templates",
+      "settings",
+      "data",
+      "more",
+    ];
+    const accessibilityRoutes = new Set(["today", "week", "focus", "settings"]);
+
+    await page.setViewportSize({ width: 320, height: 700 });
+    for (const route of authenticatedRoutes) {
+      await page.goto(`/es/${route}`);
+      await expect(page.locator("#main-content")).toBeVisible();
+      await expect(page.getByText("Algo no ha salido bien.")).toHaveCount(0);
+      expect(
+        await page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+        `${route} must not overflow horizontally at 320px`,
+      ).toBe(true);
+
+      if (accessibilityRoutes.has(route)) {
+        const results = await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa"])
+          .analyze();
+        expect(
+          results.violations.filter((item) => item.impact === "critical"),
+          `${route} must not have critical accessibility violations`,
+        ).toEqual([]);
+      }
+    }
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/es/more");
