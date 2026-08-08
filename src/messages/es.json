@@ -24,6 +24,8 @@
   "Nav": {
     "today": "Hoy",
     "week": "Semana",
+    "month": "Mes",
+    "search": "Buscar",
     "tasks": "Tareas",
     "events": "Eventos",
     "history": "Historial",
@@ -48,6 +50,8 @@
     },
     "items": {
       "history": "Consulta las tareas completadas y la actividad anterior.",
+      "month": "Visualiza todas tus tareas y eventos en un calendario mensual.",
+      "search": "Encuentra tareas, eventos, categorías y horarios al instante.",
       "focus": "Sesiones de concentración flexibles para estudiar o trabajar.",
       "statistics": "Comprende tu progreso y tus patrones de planificación.",
       "reminders": "Gestiona notificaciones, recordatorios y alarmas.",
@@ -57,6 +61,25 @@
       "settings": "Ajusta la apariencia, el idioma y tus preferencias.",
       "data": "Exporta o restaura de forma segura tu información."
     }
+  },
+  "Planning": {
+    "eyebrow": "Planificación mensual",
+    "title": "Mes",
+    "weekView": "Ver semana",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "today": "Hoy",
+    "searchEyebrow": "Todo Planora",
+    "searchTitle": "Buscar",
+    "searchPlaceholder": "Busca tareas, eventos, categorías u horarios…",
+    "searchHintTitle": "Encuentra cualquier cosa",
+    "searchHint": "Escribe al menos dos caracteres para buscar en todo tu espacio.",
+    "noResults": "No hay resultados",
+    "noResultsHint": "Prueba con otro término o revisa la ortografía.",
+    "task": "Tarea",
+    "event": "Evento",
+    "category": "Categoría",
+    "schedule": "Horario"
   },
   "Focus": {
     "eyebrow": "Concentración",
@@ -820,6 +843,8 @@
     }
   },
   "Workspace": {
+    "undo": "Deshacer",
+    "taskArchived": "Tarea archivada",
     "close": "Cerrar",
     "searchTask": "Buscar una tarea…",
     "searchEvent": "Buscar un evento…",

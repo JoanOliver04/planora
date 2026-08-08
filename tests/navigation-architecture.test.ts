@@ -12,6 +12,8 @@ describe("responsive navigation architecture", () => {
     expect(new Set(moreNavigationItems.map((item) => item.id))).toEqual(
       new Set([
         "history",
+        "month",
+        "search",
         "focus",
         "statistics",
         "reminders",
@@ -24,7 +26,7 @@ describe("responsive navigation architecture", () => {
     );
     expect(
       moreNavigationItems.filter((item) => item.group === "activity"),
-    ).toHaveLength(4);
+    ).toHaveLength(6);
     expect(
       moreNavigationItems.filter((item) => item.group === "organization"),
     ).toHaveLength(3);

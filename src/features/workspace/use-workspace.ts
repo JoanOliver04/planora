@@ -12,6 +12,8 @@ const requirements: Record<
 > = {
   today: new Set(["categories", "tasks", "events", "completions"]),
   week: new Set(["categories", "tasks", "events"]),
+  month: new Set(["categories", "tasks", "events"]),
+  search: new Set(["categories", "tasks", "events"]),
   tasks: new Set(["categories", "tasks", "completions"]),
   events: new Set(["categories", "events"]),
   history: new Set(["completions"]),
@@ -88,7 +90,7 @@ export function useWorkspace(mode: WorkspaceMode) {
       eventsQuery
         .gte("event_date", historyFrom.toISOString().slice(0, 10))
         .lte("event_date", today);
-    else if (mode === "week")
+    else if (mode === "week" || mode === "month")
       eventsQuery.gte("event_date", historyFrom.toISOString().slice(0, 10));
     let completionsQuery = db
       .from("task_completions")

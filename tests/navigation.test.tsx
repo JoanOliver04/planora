@@ -47,9 +47,9 @@ describe("main navigation", () => {
     expect(screen.queryByRole("link", { name: "Ajustes" })).toBeNull();
   });
 
-  it("keeps all thirteen direct destinations in the desktop sidebar", () => {
+  it("keeps all fifteen direct destinations in the desktop sidebar", () => {
     renderNavigation("desktop");
-    expect(screen.getAllByRole("link")).toHaveLength(13);
+    expect(screen.getAllByRole("link")).toHaveLength(15);
     expect(screen.getByRole("link", { name: "Enfoque" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Categorías" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Plantillas" })).toBeVisible();
@@ -72,14 +72,16 @@ describe("main navigation", () => {
       true,
     );
     expect(moreNavigationItems.map((item) => item.id)).toEqual([
-      "history",
+      "month",
       "schedules",
       "settings",
-      "focus",
+      "search",
       "categories",
       "data",
-      "statistics",
+      "history",
       "templates",
+      "focus",
+      "statistics",
       "reminders",
     ]);
   });
@@ -89,6 +91,8 @@ describe("main navigation", () => {
     "/reminders",
     "/data",
     "/focus",
+    "/month",
+    "/search",
     "/es/settings/profile",
   ])("keeps More active on %s", (pathname) => {
     routing.pathname = pathname;

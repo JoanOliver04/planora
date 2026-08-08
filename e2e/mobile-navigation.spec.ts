@@ -85,6 +85,8 @@ test("mobile More navigation reaches every secondary area naturally", async ({
     const authenticatedRoutes = [
       "today",
       "week",
+      "month",
+      "search",
       "tasks",
       "focus",
       "events",
@@ -98,7 +100,14 @@ test("mobile More navigation reaches every secondary area naturally", async ({
       "data",
       "more",
     ];
-    const accessibilityRoutes = new Set(["today", "week", "focus", "settings"]);
+    const accessibilityRoutes = new Set([
+      "today",
+      "week",
+      "month",
+      "search",
+      "focus",
+      "settings",
+    ]);
 
     await page.setViewportSize({ width: 320, height: 700 });
     for (const route of authenticatedRoutes) {
@@ -138,6 +147,8 @@ test("mobile More navigation reaches every secondary area naturally", async ({
 
     const secondaryLabels = [
       "Historial",
+      "Mes",
+      "Buscar",
       "Estadísticas",
       "Recordatorios",
       "Horarios",

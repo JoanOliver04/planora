@@ -18,6 +18,8 @@ export type WorkspaceData = {
 export type WorkspaceMode =
   | "today"
   | "week"
+  | "month"
+  | "search"
   | "tasks"
   | "events"
   | "history"

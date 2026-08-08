@@ -15,6 +15,16 @@ const TodayView = dynamic(() =>
 const WeekView = dynamic(() =>
   import("@/features/workspace/task-views").then((module) => module.WeekView),
 );
+const MonthView = dynamic(() =>
+  import("@/features/workspace/planning-views").then(
+    (module) => module.MonthView,
+  ),
+);
+const GlobalSearchView = dynamic(() =>
+  import("@/features/workspace/planning-views").then(
+    (module) => module.GlobalSearchView,
+  ),
+);
 const TasksView = dynamic(() =>
   import("@/features/workspace/task-views").then((module) => module.TasksView),
 );
@@ -132,6 +142,10 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
       <TodayView data={data} db={db} reload={reload} />
     ) : mode === "week" ? (
       <WeekView data={data} />
+    ) : mode === "month" ? (
+      <MonthView data={data} />
+    ) : mode === "search" ? (
+      <GlobalSearchView data={data} />
     ) : mode === "tasks" ? (
       <TasksView data={data} reload={reload} />
     ) : mode === "events" ? (

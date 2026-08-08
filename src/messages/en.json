@@ -24,6 +24,8 @@
   "Nav": {
     "today": "Today",
     "week": "Week",
+    "month": "Month",
+    "search": "Search",
     "tasks": "Tasks",
     "events": "Events",
     "history": "History",
@@ -48,6 +50,8 @@
     },
     "items": {
       "history": "Review completed tasks and past activity.",
+      "month": "See all your tasks and events in a monthly calendar.",
+      "search": "Find tasks, events, categories and schedules instantly.",
       "focus": "Flexible concentration sessions for study or work.",
       "statistics": "Understand your progress and planning patterns.",
       "reminders": "Manage notifications, reminders and alarms.",
@@ -57,6 +61,25 @@
       "settings": "Adjust appearance, language and preferences.",
       "data": "Export or safely restore your Planora information."
     }
+  },
+  "Planning": {
+    "eyebrow": "Monthly planning",
+    "title": "Month",
+    "weekView": "View week",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "today": "Today",
+    "searchEyebrow": "All of Planora",
+    "searchTitle": "Search",
+    "searchPlaceholder": "Search tasks, events, categories or schedules…",
+    "searchHintTitle": "Find anything",
+    "searchHint": "Enter at least two characters to search your whole workspace.",
+    "noResults": "No results",
+    "noResultsHint": "Try another term or check the spelling.",
+    "task": "Task",
+    "event": "Event",
+    "category": "Category",
+    "schedule": "Schedule"
   },
   "Focus": {
     "eyebrow": "Concentration",
@@ -820,6 +843,8 @@
     }
   },
   "Workspace": {
+    "undo": "Undo",
+    "taskArchived": "Task archived",
     "close": "Close",
     "searchTask": "Search for a task…",
     "searchEvent": "Search for an event…",

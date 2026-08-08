@@ -1103,10 +1103,24 @@ export function TasksView({
         confirmLabel={t("archive")}
         onConfirm={async () => {
           if (!confirmTask) return;
+          const archivedTask = confirmTask;
           try {
-            await setTaskArchived(confirmTask.id, true);
+            await setTaskArchived(archivedTask.id, true);
             await reload();
             setConfirmTask(null);
+            toast.success(t("taskArchived"), {
+              action: {
+                label: t("undo"),
+                onClick: () =>
+                  void setTaskArchived(archivedTask.id, false)
+                    .then(reload)
+                    .catch((error) =>
+                      toast.error(
+                        error instanceof Error ? error.message : t("error"),
+                      ),
+                    ),
+              },
+            });
           } catch (error) {
             toast.error(error instanceof Error ? error.message : t("error"));
           }
