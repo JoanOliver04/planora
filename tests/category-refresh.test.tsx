@@ -121,4 +121,24 @@ describe("CategoriesView", () => {
       expect.objectContaining({ emoji: "🎯", name: "Work" }),
     );
   });
+
+  it("offers an explicit cancel action and names row actions", async () => {
+    const user = userEvent.setup();
+    render(
+      <NextIntlClientProvider
+        locale="en"
+        messages={messages}
+        timeZone="Europe/Madrid"
+      >
+        <CategoryHarness reloadSpy={vi.fn()} />
+      </NextIntlClientProvider>,
+    );
+
+    expect(screen.getByRole("button", { name: "Edit Work" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Delete Work" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    expect(screen.getByRole("dialog", { name: "Category" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("dialog", { name: "Category" })).toBeNull();
+  });
 });

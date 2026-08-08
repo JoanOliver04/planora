@@ -122,6 +122,7 @@ export function EventsView({
             <div className="row-actions">
               <button
                 className="icon-button"
+                aria-label={`${t("edit")} ${e.title}`}
                 onClick={() => {
                   setEditing(e);
                   setAllDay(e.all_day);
@@ -347,12 +348,14 @@ export function SchedulesView({
               <button
                 className="pill"
                 disabled={s.is_archived}
+                aria-label={`${t("active")} ${s.name}`}
                 onClick={() => void setActiveSchedule(s.id).then(reload)}
               >
                 {t("active")}
               </button>
               <button
                 className="icon-button"
+                aria-label={`${t("edit")} ${s.name}`}
                 onClick={() => {
                   setEditing(s);
                   setOpen(true);
@@ -362,7 +365,7 @@ export function SchedulesView({
               </button>
               <button
                 className="icon-button"
-                aria-label={t("duplicate")}
+                aria-label={`${t("duplicate")} ${s.name}`}
                 onClick={() =>
                   void duplicateSchedule(s.id, true)
                     .then(reload)
@@ -373,7 +376,7 @@ export function SchedulesView({
               </button>
               <button
                 className="icon-button"
-                aria-label={t("delete")}
+                aria-label={`${t("delete")} ${s.name}`}
                 disabled={false}
                 onClick={() => setConfirming({ action: "delete", schedule: s })}
               >
@@ -381,6 +384,7 @@ export function SchedulesView({
               </button>
               <button
                 className="icon-button"
+                aria-label={`${s.is_archived ? t("restore") : t("archive")} ${s.name}`}
                 disabled={data.profile.active_schedule_id === s.id}
                 onClick={() =>
                   s.is_archived
@@ -447,7 +451,12 @@ export function SchedulesView({
                   defaultValue={editing?.description ?? ""}
                 />
               </label>
-              <button className="primary">{t("save")}</button>
+              <div className="dialog-actions">
+                <Dialog.Close className="pill" type="button">
+                  {t("cancel")}
+                </Dialog.Close>
+                <button className="primary">{t("save")}</button>
+              </div>
             </form>
           </Dialog.Content>
         </Dialog.Portal>
@@ -520,6 +529,7 @@ export function CategoriesView({
               <div className="row-actions">
                 <button
                   className="icon-button"
+                  aria-label={`${t("edit")} ${c.name}`}
                   onClick={() => {
                     setEditing(c);
                     setOpen(true);
@@ -529,7 +539,7 @@ export function CategoriesView({
                 </button>
                 <button
                   className="icon-button"
-                  aria-label={t("delete")}
+                  aria-label={`${t("delete")} ${c.name}`}
                   onClick={() => setDeleting(c)}
                 >
                   <Trash2 size={16} />
@@ -577,7 +587,12 @@ export function CategoriesView({
                     ))}
                 </select>
               </label>
-              <button className="primary">{t("save")}</button>
+              <div className="dialog-actions">
+                <Dialog.Close className="pill" type="button">
+                  {t("cancel")}
+                </Dialog.Close>
+                <button className="primary">{t("save")}</button>
+              </div>
             </form>
           </Dialog.Content>
         </Dialog.Portal>
