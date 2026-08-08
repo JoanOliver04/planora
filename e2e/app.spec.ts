@@ -97,3 +97,39 @@ test("mobile navigation stays pinned above scrollable content", async ({
     );
   expect(bottomPadding).toBeGreaterThanOrEqual(box?.height ?? 0);
 });
+
+test("narrow mobile layouts keep public content readable", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+
+  await page.goto("/es/demo/today");
+  await expect(page.locator(".demo-topbar")).toHaveCSS(
+    "flex-direction",
+    "column",
+  );
+  const demoCta = await page
+    .locator(".demo-topbar")
+    .getByRole("link", { name: /Crear mi cuenta/i })
+    .boundingBox();
+  expect(demoCta?.height).toBeGreaterThanOrEqual(44);
+
+  await page.goto("/es/demo/week");
+  const firstDay = await page.locator(".week-grid .day").first().boundingBox();
+  expect(firstDay?.width).toBeGreaterThanOrEqual(140);
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <=
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
+
+  await page.goto("/es");
+  for (const locator of [
+    page.locator(".landing-brand"),
+    page.locator(".landing-language"),
+    page.locator(".landing-text-link"),
+  ]) {
+    const target = await locator.boundingBox();
+    expect(target?.height).toBeGreaterThanOrEqual(44);
+  }
+});

@@ -171,8 +171,11 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
   return (
     <>
       <div className="schedule-bar">
-        <span className="muted">{t("activeSchedule")}</span>
+        <label className="muted" htmlFor="active-schedule">
+          {t("activeSchedule")}
+        </label>
         <select
+          id="active-schedule"
           className="pill"
           value={active?.id ?? ""}
           onChange={(e) => {

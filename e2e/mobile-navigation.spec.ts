@@ -124,6 +124,17 @@ test("mobile More navigation reaches every secondary area naturally", async ({
         `${route} must not overflow horizontally at 320px`,
       ).toBe(true);
 
+      if (route === "today") {
+        const heading = await page
+          .locator(".today-header > div")
+          .first()
+          .boundingBox();
+        const actions = await page.locator(".today-actions").boundingBox();
+        expect(heading).not.toBeNull();
+        expect(actions).not.toBeNull();
+        expect(actions!.y).toBeGreaterThanOrEqual(heading!.y + heading!.height);
+      }
+
       if (accessibilityRoutes.has(route)) {
         const results = await new AxeBuilder({ page })
           .withTags(["wcag2a", "wcag2aa"])
