@@ -2236,6 +2236,9 @@ select:disabled,
   gap: 18px;
   min-width: 0;
 }
+.daily-summary-page .topbar .pill {
+  white-space: nowrap;
+}
 .summary-progress {
   display: grid;
   gap: 12px;
