@@ -82,6 +82,14 @@ export type TaskFocusStats = {
   lastStartedAt: string | null;
 };
 
+export function isTaskFocusActionAvailable(input: {
+  focusEnabled: boolean;
+  occurrenceDate: string;
+  today: string;
+}): boolean {
+  return input.focusEnabled && input.occurrenceDate === input.today;
+}
+
 export function aggregateTaskFocusStats(
   sessions: Array<{
     taskId: string | null;

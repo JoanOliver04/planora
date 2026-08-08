@@ -56,6 +56,7 @@ export function backupFixture(): BackupData {
         title: "Focus deeply",
         description: null,
         emoji: "🎯",
+        focus_enabled: true,
         task_kind: "one_time",
         recurrence_type: "once",
         recurrence_config: {},

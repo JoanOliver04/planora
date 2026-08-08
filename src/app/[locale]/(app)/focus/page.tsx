@@ -92,6 +92,7 @@ export default async function FocusPage({
       .from("tasks")
       .select("id,title,emoji,task_kind,category_id,schedule_id")
       .eq("user_id", user.id)
+      .eq("focus_enabled", true)
       .is("archived_at", null)
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
@@ -180,12 +181,12 @@ export default async function FocusPage({
     const { data: task } = await db
       .from("tasks")
       .select(
-        "id,title,emoji,task_kind,category_id,schedule_id,start_date,end_date,archived_at,recurrence_type,recurrence_config",
+        "id,title,emoji,task_kind,category_id,schedule_id,start_date,end_date,archived_at,recurrence_type,recurrence_config,focus_enabled",
       )
       .eq("id", params.taskId)
       .eq("user_id", user.id)
       .maybeSingle();
-    if (task && !task.archived_at) {
+    if (task && !task.archived_at && task.focus_enabled) {
       linkedTask = task;
       const [{ data: category }, { data: schedule }] = await Promise.all([
         task.category_id

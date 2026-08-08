@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   aggregateTaskFocusStats,
   buildFocusDraftFromTask,
+  isTaskFocusActionAvailable,
   isTaskOccurrenceAllowed,
 } from "@/features/focus/task-link";
 import type { Task } from "@/features/workspace/types";
@@ -11,6 +12,7 @@ function task(partial: Partial<Task> & Pick<Task, "id" | "title">): Task {
     user_id: "u1",
     emoji: "📚",
     description: null,
+    focus_enabled: false,
     category_id: "c1",
     schedule_id: "s1",
     scope: "schedule",
@@ -33,6 +35,29 @@ function task(partial: Partial<Task> & Pick<Task, "id" | "title">): Task {
 }
 
 describe("focus task linking", () => {
+  it("offers task focus only when opted in and scheduled for today", () => {
+    expect(
+      isTaskFocusActionAvailable({
+        focusEnabled: true,
+        occurrenceDate: "2026-08-08",
+        today: "2026-08-08",
+      }),
+    ).toBe(true);
+    expect(
+      isTaskFocusActionAvailable({
+        focusEnabled: false,
+        occurrenceDate: "2026-08-08",
+        today: "2026-08-08",
+      }),
+    ).toBe(false);
+    expect(
+      isTaskFocusActionAvailable({
+        focusEnabled: true,
+        occurrenceDate: "2026-08-09",
+        today: "2026-08-08",
+      }),
+    ).toBe(false);
+  });
   it("builds a draft from a one-time task", () => {
     const oneTime = task({
       id: "11111111-1111-4111-8111-111111111111",

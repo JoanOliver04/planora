@@ -70,6 +70,7 @@ export type Database = {
           title: string;
           description: string | null;
           emoji: string | null;
+          focus_enabled: boolean;
           task_kind: "one_time" | "habit";
           recurrence_type:
             "once" | "daily" | "weekdays" | "times_per_week" | "interval";

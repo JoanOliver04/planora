@@ -4695,6 +4695,7 @@ select:disabled,
 }
 .focus-stats-filters label {
   display: grid;
+  min-width: 0;
   gap: 0.3rem;
   font-size: 0.78rem;
   font-weight: 600;
@@ -4702,8 +4703,33 @@ select:disabled,
 }
 .focus-stats-filters select.pill,
 .focus-stats-filters input.pill {
+  max-width: 100%;
+  min-width: 0;
   min-height: 40px;
   font-weight: 600;
+}
+.focus-stats-panel,
+.focus-stats-panel h2,
+.focus-stats-panel h3,
+.focus-stats-panel p,
+.statistic-kpi {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .focus-stats-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .focus-stats-filters label,
+  .focus-stats-filters select.pill,
+  .focus-stats-filters input.pill {
+    width: 100%;
+  }
+  .focus-stats-panel .empty-compact {
+    max-width: 100%;
+    padding-inline: 0.75rem;
+  }
 }
 .focus-stats-kpis {
   margin: 0;
@@ -4802,6 +4828,12 @@ button.mini-task {
   flex-shrink: 0;
   min-width: 36px;
   min-height: 36px;
+}
+.task-focus-option {
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
 }
 .focus-today-shortcuts {
   margin: 0 0 1rem;

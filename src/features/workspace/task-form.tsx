@@ -88,6 +88,7 @@ export function TaskForm({
       title: String(fd.get("title")),
       description: String(fd.get("description") || "") || null,
       emoji: String(fd.get("emoji") || "") || null,
+      focusEnabled: fd.get("focusEnabled") === "on",
       scope,
       scheduleId: scope === "global" ? null : String(fd.get("scheduleId")),
       categoryId: String(fd.get("categoryId") || "") || null,
@@ -219,6 +220,17 @@ export function TaskForm({
                 maxLength={2000}
                 defaultValue={task?.description ?? ""}
               />
+            </label>
+            <label className="scope-option task-focus-option">
+              <input
+                type="checkbox"
+                name="focusEnabled"
+                defaultChecked={task?.focus_enabled ?? false}
+              />
+              <span>
+                <b>{t("focusEnabled")}</b>
+                <small>{t("focusEnabledHint")}</small>
+              </span>
             </label>
             <label>
               {t("recurrence")}

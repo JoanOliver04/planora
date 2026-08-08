@@ -25,6 +25,18 @@ describe("Focus release readiness contracts", () => {
     expect(schema).not.toMatch(/create table public\.focus_ticks/i);
   });
 
+  it("keeps task Focus opt-in private, indexed and backup-safe", () => {
+    const migration = read(
+      "supabase/migrations/20260808190000_task_focus_enabled.sql",
+    );
+    expect(migration).toContain(
+      "add column focus_enabled boolean not null default false",
+    );
+    expect(migration).toContain("tasks_focus_enabled_idx");
+    expect(migration).toContain("task.user_id = current_user_id");
+    expect(migration).toContain("coalesce(source.focus_enabled, false)");
+  });
+
   it("does not ship service-role secrets in client Focus modules", () => {
     const files = [
       "src/features/focus/actions.ts",

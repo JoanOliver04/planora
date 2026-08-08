@@ -151,6 +151,7 @@ describe("portable backups", () => {
     expect(payload.schedules[0].id).not.toBe(backupIds.schedule);
     expect(payload.tasks[0].schedule_id).toBe(payload.schedules[0].id);
     expect(payload.tasks[0].category_id).toBe(payload.categories[0].id);
+    expect(payload.tasks[0].focus_enabled).toBe(true);
     expect(payload.completions[0].task_id).toBe(payload.tasks[0].id);
     expect(payload.reminders[0].task_id).toBe(payload.tasks[0].id);
     expect(payload.focus_presets[0].id).not.toBe(backupIds.focusPreset);

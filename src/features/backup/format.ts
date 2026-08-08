@@ -55,6 +55,7 @@ const taskSchema = z.object({
   title: z.string().min(1).max(140),
   description: z.string().max(2000).nullable(),
   emoji: z.string().max(16).nullable(),
+  focus_enabled: z.boolean().default(false),
   task_kind: z.enum(["one_time", "habit"]),
   recurrence_type: z.enum([
     "once",

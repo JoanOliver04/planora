@@ -648,6 +648,7 @@ export async function saveTask(
     title: v.title,
     description: v.description ?? null,
     emoji: v.emoji ?? null,
+    focus_enabled: v.focusEnabled,
     task_kind: r.type === "once" ? ("one_time" as const) : ("habit" as const),
     recurrence_type: r.type,
     recurrence_config: r,

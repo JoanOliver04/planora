@@ -42,6 +42,9 @@ describe("TaskForm", () => {
     expect(screen.getByLabelText("Start date (optional)")).toHaveValue("");
     expect(screen.getByLabelText("End date (optional)")).not.toBeRequired();
     expect(screen.getByLabelText("End date (optional)")).toHaveValue("");
+    expect(
+      screen.getByRole("checkbox", { name: /allow focus sessions/i }),
+    ).not.toBeChecked();
   });
 
   it("reveals recurrence and timing controls progressively", async () => {
