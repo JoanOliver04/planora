@@ -43,6 +43,7 @@ import { filterEvents, type EventVisibility } from "@/lib/workspace/visibility";
 import { categoriesForSchedule } from "./categories";
 import { FocusSettingsPanel } from "@/features/focus/focus-settings";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
+import { useHashTarget } from "@/lib/workspace/use-hash-target";
 const fail = (e: unknown, fallback: string) =>
   toast.error(e instanceof Error ? e.message : fallback);
 export function EventsView({
@@ -74,6 +75,7 @@ export function EventsView({
       normalizeTaskSearch(search),
     ),
   );
+  useHashTarget(events.length);
   function submit(fd: FormData) {
     start(async () => {
       try {
@@ -138,7 +140,12 @@ export function EventsView({
       </div>
       <div className="task-list">
         {events.map((e) => (
-          <article className="task surface" id={`event-${e.id}`} key={e.id}>
+          <article
+            className="task surface"
+            id={`event-${e.id}`}
+            key={e.id}
+            tabIndex={-1}
+          >
             <span>{e.emoji || "📅"}</span>
             <div>
               <b>{e.title}</b>
@@ -328,6 +335,7 @@ export function SchedulesView({
       action: "delete" | "archive";
       schedule: Schedule;
     } | null>(null);
+  useHashTarget(data.schedules.length);
   async function submit(fd: FormData) {
     try {
       await saveSchedule({
@@ -370,6 +378,7 @@ export function SchedulesView({
             className="surface resource-card"
             id={`schedule-${s.id}`}
             key={s.id}
+            tabIndex={-1}
           >
             <div>
               <span className="resource-emoji">{s.emoji || "🌿"}</span>
@@ -511,6 +520,7 @@ export function CategoriesView({
     [editing, setEditing] = useState<Category | null>(null),
     [open, setOpen] = useState(false),
     [deleting, setDeleting] = useState<Category | null>(null);
+  useHashTarget(data.categories.length);
   async function submit(fd: FormData) {
     try {
       await saveCategory({
@@ -550,7 +560,12 @@ export function CategoriesView({
           onCommit={(ids) => reorderResources({ type: "categories", ids })}
           onError={() => toast.error(t("error"))}
           renderItem={(c) => (
-            <div className="settings-row" id={`category-${c.id}`} key={c.id}>
+            <div
+              className="settings-row"
+              id={`category-${c.id}`}
+              key={c.id}
+              tabIndex={-1}
+            >
               <span className="category-name">
                 <i style={{ background: c.colour }} />
                 {c.emoji} <b>{c.name}</b>

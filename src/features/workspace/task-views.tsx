@@ -40,6 +40,7 @@ import { SortableResourceList } from "@/components/sortable-resource-list";
 import { enqueueCompletion } from "@/lib/offline/queue";
 import { filterTasks, type TaskVisibility } from "@/lib/workspace/visibility";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
+import { useHashTarget } from "@/lib/workspace/use-hash-target";
 import {
   formatCategoryMetadata,
   formatNaturalDate,
@@ -882,6 +883,7 @@ export function TasksView({
     locale,
     data.categories,
   ]);
+  useHashTarget(tasks.length);
   return (
     <>
       <header className="topbar">
@@ -1000,6 +1002,7 @@ export function TasksView({
             <article
               className="task surface"
               id={`task-${task.id}`}
+              tabIndex={-1}
               key={task.id}
               style={
                 {
