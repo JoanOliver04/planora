@@ -2,11 +2,20 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Alert from "@radix-ui/react-alert-dialog";
 import { useEffect, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "@/components/theme-provider";
 import { clearPrivateOfflineData } from "@/lib/offline/queue";
 import { useRouter } from "@/i18n/routing";
-import { Archive, Copy, Edit3, Plus, RotateCcw, Trash2 } from "lucide-react";
+import {
+  Archive,
+  Copy,
+  Edit3,
+  Plus,
+  RotateCcw,
+  Search,
+  Trash2,
+} from "lucide-react";
 import {
   deleteCategory,
   deleteEmptySchedule,
@@ -33,6 +42,7 @@ import {
 import { filterEvents, type EventVisibility } from "@/lib/workspace/visibility";
 import { categoriesForSchedule } from "./categories";
 import { FocusSettingsPanel } from "@/features/focus/focus-settings";
+import { normalizeTaskSearch } from "@/lib/workspace/task-search";
 const fail = (e: unknown, fallback: string) =>
   toast.error(e instanceof Error ? e.message : fallback);
 export function EventsView({
@@ -43,14 +53,27 @@ export function EventsView({
   reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
+    searchParams = useSearchParams(),
+    initialSearch = searchParams.get("q") ?? "",
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Event | null>(null),
     [allDay, setAllDay] = useState(true),
     [eventSchedule, setEventSchedule] = useState(""),
-    [visibility, setVisibility] = useState<EventVisibility>("active"),
+    [visibility, setVisibility] = useState<EventVisibility>(
+      initialSearch ? "all" : "active",
+    ),
+    [search, setSearch] = useState(initialSearch),
     [deleting, setDeleting] = useState<Event | null>(null),
     [pending, start] = useTransition();
-  const events = filterEvents(data.events, visibility, data.profile.timezone);
+  const events = filterEvents(
+    data.events,
+    visibility,
+    data.profile.timezone,
+  ).filter((event) =>
+    normalizeTaskSearch(`${event.title} ${event.description ?? ""}`).includes(
+      normalizeTaskSearch(search),
+    ),
+  );
   function submit(fd: FormData) {
     start(async () => {
       try {
@@ -92,6 +115,14 @@ export function EventsView({
         </button>
       </header>
       <div className="filterbar surface resource-filterbar">
+        <label className="search-field">
+          <Search size={17} />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={t("searchEvent")}
+          />
+        </label>
         <select
           className="pill"
           aria-label={t("eventStatus")}
@@ -107,7 +138,7 @@ export function EventsView({
       </div>
       <div className="task-list">
         {events.map((e) => (
-          <article className="task surface" key={e.id}>
+          <article className="task surface" id={`event-${e.id}`} key={e.id}>
             <span>{e.emoji || "📅"}</span>
             <div>
               <b>{e.title}</b>
@@ -335,7 +366,11 @@ export function SchedulesView({
         onCommit={(ids) => reorderResources({ type: "schedules", ids })}
         onError={() => toast.error(t("error"))}
         renderItem={(s) => (
-          <article className="surface resource-card" key={s.id}>
+          <article
+            className="surface resource-card"
+            id={`schedule-${s.id}`}
+            key={s.id}
+          >
             <div>
               <span className="resource-emoji">{s.emoji || "🌿"}</span>
               <h2>{s.name}</h2>
@@ -515,7 +550,7 @@ export function CategoriesView({
           onCommit={(ids) => reorderResources({ type: "categories", ids })}
           onError={() => toast.error(t("error"))}
           renderItem={(c) => (
-            <div className="settings-row" key={c.id}>
+            <div className="settings-row" id={`category-${c.id}`} key={c.id}>
               <span className="category-name">
                 <i style={{ background: c.colour }} />
                 {c.emoji} <b>{c.name}</b>

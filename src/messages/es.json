@@ -69,6 +69,7 @@
     "previousMonth": "Mes anterior",
     "nextMonth": "Mes siguiente",
     "today": "Hoy",
+    "openDay": "Abrir la planificación del {date}",
     "searchEyebrow": "Todo Planora",
     "searchTitle": "Buscar",
     "searchPlaceholder": "Busca tareas, eventos, categorías u horarios…",

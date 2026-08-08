@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useLocale, useTranslations } from "next-intl";
 import { addDays } from "date-fns";
@@ -38,6 +39,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { SortableResourceList } from "@/components/sortable-resource-list";
 import { enqueueCompletion } from "@/lib/offline/queue";
 import { filterTasks, type TaskVisibility } from "@/lib/workspace/visibility";
+import { normalizeTaskSearch } from "@/lib/workspace/task-search";
 import {
   formatCategoryMetadata,
   formatNaturalDate,
@@ -599,6 +601,7 @@ export function TodayView({
 export function WeekView({ data }: { data: WorkspaceData }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
+    searchParams = useSearchParams(),
     router = useRouter(),
     focusCtx = useOptionalFocusSessionContext(),
     liveFocus = focusCtx?.engine.session,
@@ -609,7 +612,12 @@ export function WeekView({ data }: { data: WorkspaceData }) {
         liveFocus?.status === "on_break"),
     focusActionLabel = hasActiveFocus ? t("continueFocus") : t("startFocus"),
     today = localDate(data.profile.timezone),
-    [viewDate, setViewDate] = useState(today),
+    requestedDate = searchParams.get("date"),
+    initialDate =
+      requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)
+        ? requestedDate
+        : today,
+    [viewDate, setViewDate] = useState(initialDate),
     week = localWeek(
       data.profile.timezone,
       zonedDate(viewDate, data.profile.timezone),
@@ -622,7 +630,7 @@ export function WeekView({ data }: { data: WorkspaceData }) {
     ),
     active = data.profile.active_schedule_id,
     [selectedDay, setSelectedDay] = useState(
-      week.days.includes(today) ? today : week.start,
+      week.days.includes(initialDate) ? initialDate : week.start,
     );
   const moveWeek = (amount: number) => {
     const next = localDate(
@@ -826,9 +834,10 @@ export function TasksView({
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
+    searchParams = useSearchParams(),
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Task | null>(null),
-    [search, setSearch] = useState(""),
+    [search, setSearch] = useState(searchParams.get("q") ?? ""),
     [category, setCategory] = useState("all"),
     [status, setStatus] = useState<TaskVisibility>("active"),
     [sort, setSort] = useState("manual"),
@@ -841,7 +850,9 @@ export function TasksView({
         (task.scope === "global" ||
           task.schedule_id === data.profile.active_schedule_id) &&
         (category === "all" || task.category_id === category) &&
-        task.title.toLowerCase().includes(search.toLowerCase()),
+        normalizeTaskSearch(`${task.title} ${task.description ?? ""}`).includes(
+          normalizeTaskSearch(search),
+        ),
     );
     if (sort === "manual") return filtered;
     const categoryName = (task: Task) =>
@@ -988,6 +999,7 @@ export function TasksView({
           return (
             <article
               className="task surface"
+              id={`task-${task.id}`}
               key={task.id}
               style={
                 {

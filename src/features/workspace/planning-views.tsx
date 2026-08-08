@@ -117,12 +117,14 @@ export function MonthView({ data }: { data: WorkspaceData }) {
               (!event.schedule_id || event.schedule_id === activeSchedule),
           );
           return (
-            <article
+            <Link
               className="month-day surface"
               data-outside={day.slice(0, 7) !== anchor.slice(0, 7)}
               data-today={day === today}
               key={day}
               role="gridcell"
+              href={`/week?date=${day}`}
+              aria-label={t("openDay", { date: day })}
             >
               <time dateTime={day}>{Number(day.slice(8))}</time>
               <div className="month-items">
@@ -140,7 +142,7 @@ export function MonthView({ data }: { data: WorkspaceData }) {
                   <small>+{tasks.length + events.length - 5}</small>
                 )}
               </div>
-            </article>
+            </Link>
           );
         })}
       </div>
@@ -164,7 +166,7 @@ export function GlobalSearchView({ data }: { data: WorkspaceData }) {
           type: t("task"),
           title: item.title,
           meta: item.description,
-          href: "/tasks" as const,
+          href: `/tasks?q=${encodeURIComponent(item.title)}#task-${item.id}`,
         })),
       ...data.events
         .filter((item) => matches(`${item.title} ${item.description ?? ""}`))
@@ -173,7 +175,7 @@ export function GlobalSearchView({ data }: { data: WorkspaceData }) {
           type: t("event"),
           title: item.title,
           meta: item.event_date,
-          href: "/events" as const,
+          href: `/events?q=${encodeURIComponent(item.title)}#event-${item.id}`,
         })),
       ...data.categories
         .filter((item) => matches(item.name))
@@ -182,7 +184,7 @@ export function GlobalSearchView({ data }: { data: WorkspaceData }) {
           type: t("category"),
           title: item.name,
           meta: null,
-          href: "/categories" as const,
+          href: `/categories#category-${item.id}`,
         })),
       ...data.schedules
         .filter((item) => matches(`${item.name} ${item.description ?? ""}`))
@@ -191,7 +193,7 @@ export function GlobalSearchView({ data }: { data: WorkspaceData }) {
           type: t("schedule"),
           title: item.name,
           meta: item.description,
-          href: "/schedules" as const,
+          href: `/schedules#schedule-${item.id}`,
         })),
     ].slice(0, 50);
   }, [data, query, t]);

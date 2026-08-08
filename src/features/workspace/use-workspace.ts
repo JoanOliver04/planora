@@ -34,24 +34,29 @@ export function useWorkspace(mode: WorkspaceMode) {
     const {
       data: { session },
     } = await db.auth.getSession();
+    const cached = session?.user?.id
+      ? loadCachedWorkspace(session.user.id, mode)
+      : null;
+    if (cached) {
+      setData(cached);
+      setLoading(false);
+    }
+    if (!navigator.onLine && cached) return;
     if (!navigator.onLine && session?.user?.id) {
-      const cached = loadCachedWorkspace(session.user.id, mode);
-      if (cached) {
-        setData(cached);
-        setLoading(false);
-        return;
-      }
+      setLoading(false);
+      setError("offline");
+      return;
     }
     const {
       data: { user },
       error: authError,
     } = await db.auth.getUser();
     if (authError || !user) {
-      const cached = session?.user?.id
+      const authCache = session?.user?.id
         ? loadCachedWorkspace(session.user.id, mode)
         : null;
-      if (cached) {
-        setData(cached);
+      if (authCache) {
+        setData(authCache);
         setLoading(false);
         setError(null);
         return;
@@ -66,9 +71,9 @@ export function useWorkspace(mode: WorkspaceMode) {
       .eq("id", user.id)
       .single();
     if (profileError || !profile) {
-      const cached = loadCachedWorkspace(user.id, mode);
-      if (cached) {
-        setData(cached);
+      const profileCache = loadCachedWorkspace(user.id, mode);
+      if (profileCache) {
+        setData(profileCache);
         setLoading(false);
         return;
       }
@@ -120,9 +125,9 @@ export function useWorkspace(mode: WorkspaceMode) {
       Boolean,
     );
     if (firstError) {
-      const cached = loadCachedWorkspace(user.id, mode);
-      if (cached) {
-        setData(cached);
+      const queryCache = loadCachedWorkspace(user.id, mode);
+      if (queryCache) {
+        setData(queryCache);
         setLoading(false);
         return;
       }
