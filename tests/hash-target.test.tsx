@@ -18,10 +18,9 @@ describe("useHashTarget", () => {
     target.scrollIntoView = scrollIntoView;
     document.body.append(target);
 
-    const { rerender } = renderHook(
-      ({ readyKey }) => useHashTarget(readyKey),
-      { initialProps: { readyKey: 0 } },
-    );
+    const { rerender } = renderHook(({ readyKey }) => useHashTarget(readyKey), {
+      initialProps: { readyKey: 0 },
+    });
 
     act(() => rerender({ readyKey: 1 }));
 
