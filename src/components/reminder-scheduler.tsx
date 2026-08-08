@@ -117,6 +117,10 @@ export function ReminderScheduler({ locale }: { locale: string }) {
         if (event) body = ((event.emoji ?? "") + " " + event.title).trim();
       } else {
         title = locale === "es" ? "Tu resumen diario" : "Your daily summary";
+        body =
+          locale === "es"
+            ? "Consulta lo que has completado, lo pendiente y tus eventos de hoy."
+            : "Review what you completed, what remains and today's events.";
       }
 
       try {
@@ -126,9 +130,21 @@ export function ReminderScheduler({ locale }: { locale: string }) {
             description: body,
             duration: reminder.kind === "alarm" ? 12_000 : 7_000,
             action: {
-              label: locale === "es" ? "Abrir" : "Open",
+              label:
+                reminder.kind === "daily_summary"
+                  ? locale === "es"
+                    ? "Ver resumen"
+                    : "View summary"
+                  : locale === "es"
+                    ? "Abrir"
+                    : "Open",
               onClick: () => {
-                location.href = "/" + locale + "/reminders";
+                location.href =
+                  "/" +
+                  locale +
+                  (reminder.kind === "daily_summary"
+                    ? "/summary"
+                    : "/reminders");
               },
             },
           });
@@ -147,7 +163,12 @@ export function ReminderScheduler({ locale }: { locale: string }) {
             tag: "planora-reminder-" + reminder.id,
             requireInteraction: reminder.kind === "alarm",
             silent: !preferences.sound,
-            data: { url: "/" + locale + "/reminders" },
+            data: {
+              url:
+                "/" +
+                locale +
+                (reminder.kind === "daily_summary" ? "/summary" : "/reminders"),
+            },
           });
           delivered = true;
         }

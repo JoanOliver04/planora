@@ -25,6 +25,11 @@ const GlobalSearchView = dynamic(() =>
     (module) => module.GlobalSearchView,
   ),
 );
+const DailySummaryView = dynamic(() =>
+  import("@/features/workspace/planning-views").then(
+    (module) => module.DailySummaryView,
+  ),
+);
 const TasksView = dynamic(() =>
   import("@/features/workspace/task-views").then((module) => module.TasksView),
 );
@@ -146,6 +151,8 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
       <MonthView data={data} />
     ) : mode === "search" ? (
       <GlobalSearchView data={data} />
+    ) : mode === "summary" ? (
+      <DailySummaryView data={data} />
     ) : mode === "tasks" ? (
       <TasksView data={data} reload={reload} />
     ) : mode === "events" ? (

@@ -81,6 +81,20 @@
     "category": "Category",
     "schedule": "Schedule"
   },
+  "DailySummary": {
+    "eyebrow": "Your day at a glance",
+    "title": "Daily summary",
+    "openToday": "Open Today",
+    "progressLabel": "Today's progress",
+    "completedCount": "{done} of {total} tasks completed",
+    "pending": "Pending ({count})",
+    "completed": "Completed ({count})",
+    "events": "Events ({count})",
+    "nothingPending": "There are no tasks left for today.",
+    "nothingCompleted": "You have not completed any tasks today yet.",
+    "noEvents": "You have no events today.",
+    "allDay": "All day"
+  },
   "Focus": {
     "eyebrow": "Concentration",
     "title": "Focus",

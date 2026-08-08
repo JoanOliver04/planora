@@ -87,6 +87,7 @@ test("mobile More navigation reaches every secondary area naturally", async ({
       "week",
       "month",
       "search",
+      "summary",
       "tasks",
       "focus",
       "events",

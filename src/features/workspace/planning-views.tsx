@@ -2,7 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { addDays, addMonths } from "date-fns";
-import { CalendarDays, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
+  Search,
+} from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { localDate } from "@/lib/dates/timezone";
@@ -234,6 +241,136 @@ export function GlobalSearchView({ data }: { data: WorkspaceData }) {
           <p>{t("noResultsHint")}</p>
         </div>
       )}
+    </section>
+  );
+}
+
+export function DailySummaryView({ data }: { data: WorkspaceData }) {
+  const t = useTranslations("DailySummary"),
+    locale = useLocale(),
+    today = localDate(data.profile.timezone),
+    activeSchedule = data.profile.active_schedule_id,
+    tasks = data.tasks.filter(
+      (task) =>
+        !task.archived_at &&
+        task.is_active &&
+        (task.scope === "global" || task.schedule_id === activeSchedule) &&
+        isTaskExpectedOnDate(taskAdapter(task), today),
+    ),
+    completedIds = new Set(
+      data.completions
+        .filter((completion) => completion.occurrence_date === today)
+        .map((completion) => completion.task_id),
+    ),
+    completed = tasks.filter((task) => completedIds.has(task.id)),
+    pending = tasks.filter((task) => !completedIds.has(task.id)),
+    events = data.events.filter(
+      (event) =>
+        event.event_date === today &&
+        (!event.schedule_id || event.schedule_id === activeSchedule),
+    ),
+    progress = tasks.length
+      ? Math.round((completed.length / tasks.length) * 100)
+      : 0,
+    formattedDate = new Intl.DateTimeFormat(
+      locale === "es" ? "es-ES" : "en-GB",
+      { dateStyle: "full", timeZone: "UTC" },
+    ).format(new Date(`${today}T12:00:00Z`));
+
+  return (
+    <section
+      className="daily-summary-page"
+      aria-labelledby="daily-summary-title"
+    >
+      <header className="topbar">
+        <div>
+          <div className="eyebrow">{t("eyebrow")}</div>
+          <h1 className="title" id="daily-summary-title">
+            {t("title")}
+          </h1>
+          <p className="muted">{formattedDate}</p>
+        </div>
+        <Link className="pill" href="/today">
+          {t("openToday")}
+        </Link>
+      </header>
+      <section
+        className="summary-progress surface"
+        aria-label={t("progressLabel")}
+      >
+        <div>
+          <strong>{progress}%</strong>
+          <span>
+            {t("completedCount", {
+              done: completed.length,
+              total: tasks.length,
+            })}
+          </span>
+        </div>
+        <div className="progress-track" aria-hidden="true">
+          <span style={{ width: `${progress}%` }} />
+        </div>
+      </section>
+      <div className="summary-columns">
+        <section className="surface summary-section">
+          <h2>
+            <Circle size={19} /> {t("pending", { count: pending.length })}
+          </h2>
+          {pending.length ? (
+            pending.map((task) => (
+              <article className="summary-item" key={task.id}>
+                <span>{task.emoji}</span>
+                <div>
+                  <strong>{task.title}</strong>
+                  {task.start_time && (
+                    <small>{task.start_time.slice(0, 5)}</small>
+                  )}
+                </div>
+              </article>
+            ))
+          ) : (
+            <p className="muted">{t("nothingPending")}</p>
+          )}
+        </section>
+        <section className="surface summary-section">
+          <h2>
+            <CheckCircle2 size={19} />{" "}
+            {t("completed", { count: completed.length })}
+          </h2>
+          {completed.length ? (
+            completed.map((task) => (
+              <article className="summary-item" key={task.id}>
+                <span>{task.emoji}</span>
+                <strong>{task.title}</strong>
+              </article>
+            ))
+          ) : (
+            <p className="muted">{t("nothingCompleted")}</p>
+          )}
+        </section>
+        <section className="surface summary-section">
+          <h2>
+            <CalendarDays size={19} /> {t("events", { count: events.length })}
+          </h2>
+          {events.length ? (
+            events.map((event) => (
+              <article className="summary-item" key={event.id}>
+                <span>{event.emoji}</span>
+                <div>
+                  <strong>{event.title}</strong>
+                  <small>
+                    {event.all_day
+                      ? t("allDay")
+                      : event.start_time?.slice(0, 5)}
+                  </small>
+                </div>
+              </article>
+            ))
+          ) : (
+            <p className="muted">{t("noEvents")}</p>
+          )}
+        </section>
+      </div>
     </section>
   );
 }

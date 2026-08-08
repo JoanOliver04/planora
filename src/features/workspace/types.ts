@@ -20,6 +20,7 @@ export type WorkspaceMode =
   | "week"
   | "month"
   | "search"
+  | "summary"
   | "tasks"
   | "events"
   | "history"

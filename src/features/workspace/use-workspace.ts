@@ -14,6 +14,7 @@ const requirements: Record<
   week: new Set(["categories", "tasks", "events"]),
   month: new Set(["categories", "tasks", "events"]),
   search: new Set(["categories", "tasks", "events"]),
+  summary: new Set(["categories", "tasks", "events", "completions"]),
   tasks: new Set(["categories", "tasks", "completions"]),
   events: new Set(["categories", "events"]),
   history: new Set(["completions"]),
@@ -86,7 +87,8 @@ export function useWorkspace(mode: WorkspaceMode) {
     const needed = requirements[mode];
     const empty = Promise.resolve({ data: [], error: null });
     const eventsQuery = db.from("events").select("*").order("event_date");
-    if (mode === "today")
+    if (mode === "summary") eventsQuery.eq("event_date", today);
+    else if (mode === "today")
       eventsQuery
         .gte("event_date", historyFrom.toISOString().slice(0, 10))
         .lte("event_date", today);
@@ -96,7 +98,9 @@ export function useWorkspace(mode: WorkspaceMode) {
       .from("task_completions")
       .select("*")
       .order("completed_at", { ascending: false });
-    if (mode !== "tasks" && mode !== "today")
+    if (mode === "summary")
+      completionsQuery = completionsQuery.eq("occurrence_date", today);
+    else if (mode !== "tasks" && mode !== "today")
       completionsQuery = completionsQuery.gte(
         "occurrence_date",
         historyFrom.toISOString().slice(0, 10),

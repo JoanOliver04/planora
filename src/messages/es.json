@@ -81,6 +81,20 @@
     "category": "Categoría",
     "schedule": "Horario"
   },
+  "DailySummary": {
+    "eyebrow": "Tu día de un vistazo",
+    "title": "Resumen diario",
+    "openToday": "Abrir Hoy",
+    "progressLabel": "Progreso de hoy",
+    "completedCount": "{done} de {total} tareas completadas",
+    "pending": "Pendientes ({count})",
+    "completed": "Completadas ({count})",
+    "events": "Eventos ({count})",
+    "nothingPending": "No queda ninguna tarea pendiente para hoy.",
+    "nothingCompleted": "Todavía no has completado tareas hoy.",
+    "noEvents": "No tienes eventos para hoy.",
+    "allDay": "Todo el día"
+  },
   "Focus": {
     "eyebrow": "Concentración",
     "title": "Enfoque",

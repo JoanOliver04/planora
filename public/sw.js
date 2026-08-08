@@ -97,7 +97,8 @@ self.addEventListener("fetch", (event) => {
 });
 
 // Allow only known in-app routes from notification payloads (reminders + Focus).
-const NOTIFICATION_PATH = /^\/(?:es|en)\/(?:reminders|focus)(?:\?[^#]*)?$/;
+const NOTIFICATION_PATH =
+  /^\/(?:es|en)\/(?:reminders|focus|summary)(?:\?[^#]*)?$/;
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
