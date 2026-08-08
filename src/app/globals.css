@@ -2139,6 +2139,8 @@ select:disabled,
 }
 .day {
   min-height: 220px;
+  min-width: 0;
+  max-width: 100%;
   padding: 0.8rem;
   border-radius: 1rem;
 }
@@ -2167,6 +2169,8 @@ select:disabled,
 }
 .day-agenda {
   display: grid;
+  min-width: 0;
+  max-width: 100%;
   gap: 0.45rem;
   margin-top: 0.65rem;
 }
@@ -4782,6 +4786,9 @@ button.mini-task {
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   min-height: 40px;
 }
 .mini-task-with-focus .mini-task-title {

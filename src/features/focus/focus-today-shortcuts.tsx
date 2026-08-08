@@ -13,7 +13,6 @@ import {
   emptyFocusRecents,
   FOCUS_RECENTS_STORAGE_KEY,
   readFocusRecents,
-  type FocusRecents,
 } from "./focus-recents";
 import { useOptionalFocusSessionContext } from "./focus-session-context";
 
@@ -36,12 +35,17 @@ function subscribeRecents(onStoreChange: () => void) {
   return () => window.removeEventListener("storage", handler);
 }
 
-function getRecentsSnapshot(): FocusRecents {
-  return readFocusRecents();
+function getRecentsSnapshot(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(FOCUS_RECENTS_STORAGE_KEY);
+  } catch {
+    return null;
+  }
 }
 
-function getServerRecentsSnapshot(): FocusRecents {
-  return emptyFocusRecents();
+function getServerRecentsSnapshot(): null {
+  return null;
 }
 
 export function FocusTodayShortcuts({
@@ -62,10 +66,14 @@ export function FocusTodayShortcuts({
       session?.status === "paused" ||
       session?.status === "on_break");
 
-  const recents = useSyncExternalStore(
+  const recentsSnapshot = useSyncExternalStore(
     subscribeRecents,
     getRecentsSnapshot,
     getServerRecentsSnapshot,
+  );
+  const recents = useMemo(
+    () => (recentsSnapshot === null ? emptyFocusRecents() : readFocusRecents()),
+    [recentsSnapshot],
   );
 
   const nextTask = useMemo(
