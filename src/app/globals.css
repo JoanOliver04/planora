@@ -5013,6 +5013,7 @@ select:disabled,
 .focus-stats-panel {
   display: grid;
   gap: 1rem;
+  padding: 1rem;
 }
 .focus-stats-filters {
   display: flex;
