@@ -467,15 +467,31 @@ textarea:focus-visible {
     position: sticky;
     top: 0;
     height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
     padding: 1.4rem;
     flex-direction: column;
     border-right: 1px solid var(--border);
     background: color-mix(in srgb, var(--surface) 85%, transparent);
   }
+  .sidebar > .brand,
+  .sidebar-footer {
+    flex: none;
+  }
   .side-links {
     display: grid;
+    flex: 1 1 auto;
+    min-height: 0;
+    align-content: start;
     gap: 0.25rem;
     margin-top: 2rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .sidebar-footer {
+    padding-top: 0.75rem;
+    font-size: 0.75rem;
   }
   .sidebar .nav-link {
     flex-direction: row;

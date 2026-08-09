@@ -83,4 +83,23 @@ describe("responsive navigation architecture", () => {
     );
     expect(css).toMatch(/\.main \{[\s\S]*?padding:[^;]*safe-area-inset-bottom/);
   });
+
+  it("contains desktop navigation in a viewport-height sidebar", () => {
+    const shell = readFileSync(
+      join(process.cwd(), "src/components/app-shell.tsx"),
+      "utf8",
+    );
+    const css = readFileSync(
+      join(process.cwd(), "src/app/globals.css"),
+      "utf8",
+    );
+
+    expect(shell).toContain('<footer className="sidebar-footer muted">');
+    expect(css).toMatch(
+      /\.sidebar \{[\s\S]*?height: 100dvh;[\s\S]*?overflow: hidden;/,
+    );
+    expect(css).toMatch(
+      /\.side-links \{[\s\S]*?flex: 1 1 auto;[\s\S]*?min-height: 0;[\s\S]*?overflow-y: auto;/,
+    );
+  });
 });

@@ -28,9 +28,9 @@ export function AppShell({
           <nav className="side-links" aria-label={copy.nav}>
             <AppNavigation variant="desktop" />
           </nav>
-          <p className="muted" style={{ marginTop: "auto", fontSize: 12 }}>
+          <footer className="sidebar-footer muted">
             Planora · v{siteConfig.version}
-          </p>
+          </footer>
         </aside>
         <main className="main" id="main-content" tabIndex={-1}>
           {children}
