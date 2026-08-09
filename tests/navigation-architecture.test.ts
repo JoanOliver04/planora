@@ -101,5 +101,9 @@ describe("responsive navigation architecture", () => {
     expect(css).toMatch(
       /\.side-links \{[\s\S]*?flex: 1 1 auto;[\s\S]*?min-height: 0;[\s\S]*?overflow-y: auto;/,
     );
+    expect(css).toMatch(/\.side-links \{[\s\S]*?scrollbar-width: none;/);
+    expect(css).toMatch(
+      /\.side-links::\-webkit-scrollbar \{[\s\S]*?display: none;/,
+    );
   });
 });
