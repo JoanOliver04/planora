@@ -107,5 +107,5 @@ begin
     'category_colour', current_category.colour
   );
   return new;
-end
+end;
 $$;
