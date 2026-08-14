@@ -4,16 +4,19 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ListPlus, Play, Timer } from "lucide-react";
-import type { FocusGoal, FocusMode, FocusPreset, FocusSession } from "./types";
+import type {
+  FocusGoal,
+  FocusMode,
+  FocusPreset,
+  FocusSession,
+  FocusTaskOption,
+  SessionStartDraft,
+} from "./types";
 import { FocusGoalsPanel } from "./focus-goals-panel";
 import { FocusStatisticsPanel } from "./focus-statistics";
 import { deriveSessionClock, sessionSummary } from "./time";
 import { formatFocusDuration } from "./defaults";
-import {
-  SessionStartDialog,
-  type FocusTaskOption,
-  type SessionStartDraft,
-} from "./session-start-dialog";
+import { SessionStartDialog } from "./session-start-dialog";
 import { useFocusSession } from "./use-focus-session";
 import { useOptionalFocusSessionContext } from "./focus-session-context";
 import { ActiveSessionView } from "./active-session-view";

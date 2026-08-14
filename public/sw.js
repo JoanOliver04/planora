@@ -4,9 +4,9 @@ const SHELL = [
   "/es",
   "/en",
   "/manifest.webmanifest",
-  "/assets/logo.png",
-  "/assets/logo_modo_claro.png",
-  "/assets/logo_modo_oscuro.png",
+  "/assets/logo.webp",
+  "/assets/logo_modo_claro.webp",
+  "/assets/logo_modo_oscuro.webp",
 ];
 const PUBLIC_NAVIGATION = new Set([
   "/",

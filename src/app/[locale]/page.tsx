@@ -122,7 +122,7 @@ export default async function LandingPage({
           className="landing-brand"
           aria-label="Planora"
         >
-          <Image src="/assets/logo.png" width={38} height={38} alt="" />
+          <Image src="/assets/logo.webp" width={38} height={38} alt="" />
           <span>Planora</span>
         </Link>
         <nav aria-label="Principal">
@@ -162,7 +162,7 @@ export default async function LandingPage({
           <div className="landing-orbit orbit-one" />
           <div className="landing-orbit orbit-two" />
           <Image
-            src="/assets/logo.png"
+            src="/assets/logo.webp"
             width={220}
             height={220}
             alt=""

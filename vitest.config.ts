@@ -7,6 +7,14 @@ export default defineConfig({
     environment: "jsdom",
     include: ["tests/**/*.test.{ts,tsx}"],
     setupFiles: ["./tests/setup.ts"],
-    coverage: { reporter: ["text", "html"] },
+    coverage: {
+      reporter: ["text", "html"],
+      thresholds: {
+        statements: 50,
+        branches: 43,
+        functions: 44,
+        lines: 52,
+      },
+    },
   },
 });

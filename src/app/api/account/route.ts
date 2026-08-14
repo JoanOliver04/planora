@@ -2,7 +2,7 @@ import "server-only";
 import { createClient as createAdmin } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { rateLimit } from "@/lib/security/rate-limit";
+import { distributedRateLimit } from "@/lib/security/distributed-rate-limit";
 import { isSameOriginRequest } from "@/lib/security/request";
 
 const noStore = { "Cache-Control": "no-store" };
@@ -27,7 +27,11 @@ export async function DELETE(request: Request) {
       { status: 401, headers: noStore },
     );
 
-  const attempt = rateLimit(`account-delete:${user.id}`, 3, 60 * 60_000);
+  const attempt = await distributedRateLimit(
+    `account-delete:${user.id}`,
+    3,
+    60 * 60_000,
+  );
   if (!attempt.allowed)
     return NextResponse.json(
       { error: "Too many requests" },

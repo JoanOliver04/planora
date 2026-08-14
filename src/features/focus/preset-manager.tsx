@@ -13,7 +13,7 @@ import {
   Star,
   Trash2,
 } from "lucide-react";
-import type { FocusPreset, FocusSession } from "./types";
+import type { FocusPreset, FocusSession, SessionStartDraft } from "./types";
 import {
   deleteFocusPresetAction,
   duplicateFocusPresetAction,
@@ -32,7 +32,6 @@ import {
 import { formatFocusDuration } from "./defaults";
 import { SortableResourceList } from "@/components/sortable-resource-list";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import type { SessionStartDraft } from "./session-start-dialog";
 import { draftFromPreset } from "./focus-deep-link";
 
 type CategoryOption = { id: string; name: string; emoji: string | null };

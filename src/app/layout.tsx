@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description.es,
     url: siteConfig.url,
-    images: [{ url: "/assets/logo.png", width: 1024, height: 1024 }],
+    images: [{ url: "/assets/logo.webp", width: 1024, height: 1024 }],
   },
   manifest: "/manifest.webmanifest",
   icons: { icon: "/assets/logo.ico" },

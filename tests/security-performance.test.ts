@@ -8,6 +8,10 @@ const scheduler = readFileSync(
   "utf8",
 );
 const headers = readFileSync(join(process.cwd(), "next.config.ts"), "utf8");
+const csp = readFileSync(
+  join(process.cwd(), "src/lib/security/csp.ts"),
+  "utf8",
+);
 const rlsMigration = readFileSync(
   join(
     process.cwd(),
@@ -19,6 +23,13 @@ const onboardingMigration = readFileSync(
   join(
     process.cwd(),
     "supabase/migrations/20260802204000_onboarding_function_lint.sql",
+  ),
+  "utf8",
+);
+const rateLimitMigration = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260814223000_distributed_rate_limits.sql",
   ),
   "utf8",
 );
@@ -60,8 +71,18 @@ describe("security and performance architecture", () => {
     expect(onboardingMigration).not.toContain("i integer");
   });
   it("enables defense-in-depth browser headers", () => {
-    expect(headers).toContain("\"script-src-attr 'none'\"");
+    expect(csp).toContain("\"script-src-attr 'none'\"");
+    expect(csp).toContain("`script-src 'self'");
     expect(headers).toContain('key: "Cross-Origin-Resource-Policy"');
     expect(headers).toContain('key: "X-DNS-Prefetch-Control"');
+  });
+
+  it("stores rate limits outside serverless process memory", () => {
+    expect(rateLimitMigration).toContain(
+      "create table public.request_rate_limits",
+    );
+    expect(rateLimitMigration).toContain("security definer");
+    expect(rateLimitMigration).toContain("to service_role");
+    expect(rateLimitMigration).toContain("on conflict (key_hash) do update");
   });
 });

@@ -73,8 +73,10 @@ export async function flushCompletionQueue(
     if (
       existing?.completed_at &&
       new Date(existing.completed_at) > new Date(item.queuedAt)
-    )
+    ) {
       conflicts += 1;
+      continue;
+    }
     const result = item.completed
       ? await db.from("task_completions").insert({
           user_id: userId,

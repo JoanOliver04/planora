@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { addDays } from "date-fns";
 import {
@@ -31,7 +31,7 @@ import {
   reorderResources,
   setTaskArchived,
 } from "@/app/actions/domain";
-import type { Category, Completion, Task, WorkspaceData } from "./types";
+import type { Task, WorkspaceData } from "./types";
 import { recurrenceFromJson } from "./types";
 import { TaskForm } from "./task-form";
 import { normalizePreferences } from "@/lib/preferences";
@@ -41,12 +41,7 @@ import { enqueueCompletion } from "@/lib/offline/queue";
 import { filterTasks, type TaskVisibility } from "@/lib/workspace/visibility";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
 import { useHashTarget } from "@/lib/workspace/use-hash-target";
-import {
-  formatCategoryMetadata,
-  formatNaturalDate,
-  greetingKey,
-  uniqueMetadata,
-} from "./presentation";
+import { formatNaturalDate, greetingKey, uniqueMetadata } from "./presentation";
 import { categoriesForSchedule } from "./categories";
 import { FocusTodayShortcuts } from "@/features/focus/focus-today-shortcuts";
 import { buildFocusHref } from "@/features/focus/focus-deep-link";
@@ -58,164 +53,14 @@ import {
   shouldShowOccurrence,
   tasksForDay,
 } from "./daily-occurrences";
+import { TaskCard } from "./task-card";
+export { TaskCard } from "./task-card";
 const adapter = (task: Task) => ({
   startDate: task.start_date,
   endDate: task.end_date,
   archivedAt: task.archived_at?.slice(0, 10),
   recurrence: recurrenceFromJson(task.recurrence_config, task.recurrence_type),
 });
-export function TaskCard({
-  task,
-  categories,
-  completion,
-  occurrenceDate,
-  onToggle,
-  onEdit,
-  onStartFocus,
-  focusActionLabel,
-  progress,
-}: {
-  task: Task;
-  categories: Category[];
-  completion?: Completion;
-  occurrenceDate?: string;
-  onToggle?: (completed: boolean) => Promise<boolean>;
-  onEdit?: () => void;
-  onStartFocus?: () => void;
-  /** Overrides the default "Start focus" aria/title when a session is already live. */
-  focusActionLabel?: string;
-  progress?: string;
-}) {
-  const t = useTranslations("Workspace"),
-    locale = useLocale() as "es" | "en",
-    cat = categories.find((c) => c.id === task.category_id),
-    [optimisticCompletion, setOptimisticCompletion] = useState<{
-      occurrenceDate?: string;
-      done: boolean;
-    } | null>(null),
-    [noteOpen, setNoteOpen] = useState(false),
-    [togglePending, setTogglePending] = useState(false),
-    done =
-      optimisticCompletion &&
-      optimisticCompletion.occurrenceDate === occurrenceDate
-        ? optimisticCompletion.done
-        : Boolean(completion),
-    focusLabel = focusActionLabel ?? t("startFocus"),
-    timing =
-      task.start_time?.slice(0, 5) ??
-      (task.time_mode === "day_part"
-        ? t(task.day_part ?? "anytime")
-        : t("anytime")),
-    metadata = uniqueMetadata([
-      cat ? formatCategoryMetadata(cat.name, cat.emoji) : null,
-      timing,
-      formatRecurrenceDescription(
-        recurrenceFromJson(task.recurrence_config, task.recurrence_type),
-        locale,
-      ),
-      progress,
-      task.scope === "global" ? t("global") : null,
-    ]);
-  return (
-    <article
-      className="task surface"
-      data-completed={done}
-      style={
-        { "--accent": cat?.colour ?? "var(--primary)" } as React.CSSProperties
-      }
-    >
-      {onToggle ? (
-        <button
-          className="task-check"
-          data-done={done}
-          aria-pressed={done}
-          aria-busy={togglePending}
-          disabled={togglePending}
-          aria-label={`${done ? t("completed") : t("markComplete")}: ${task.title}`}
-          onClick={async () => {
-            const previous = done;
-            setOptimisticCompletion({ occurrenceDate, done: !previous });
-            setTogglePending(true);
-            try {
-              const success = await onToggle(!previous);
-              setOptimisticCompletion({
-                occurrenceDate,
-                done: success ? !previous : previous,
-              });
-            } finally {
-              setTogglePending(false);
-            }
-          }}
-        >
-          {done && <Check size={19} />}
-        </button>
-      ) : (
-        <span className="task-emoji">{task.emoji || "?"}</span>
-      )}
-      <div className="task-body">
-        <div className="task-title" data-done={done}>
-          <span className="task-emoji-inline">{task.emoji}</span>
-          {task.title}
-        </div>
-        <div className="task-metadata">
-          {metadata.map((item, index) => (
-            <span
-              className={index === 0 && cat ? "category-badge" : ""}
-              key={item}
-            >
-              {item}
-            </span>
-          ))}
-        </div>
-      </div>
-      {onStartFocus && !task.archived_at ? (
-        <button
-          className="icon-button"
-          type="button"
-          onClick={onStartFocus}
-          aria-label={`${focusLabel}: ${task.title}`}
-          title={focusLabel}
-        >
-          <Timer size={17} />
-        </button>
-      ) : null}
-      {onEdit && (
-        <button
-          className="icon-button"
-          onClick={onEdit}
-          aria-label={`${t("edit")} ${task.title}`}
-        >
-          <Edit3 size={17} />
-        </button>
-      )}
-      {task.description && (
-        <>
-          <button
-            className="pill note-button"
-            type="button"
-            onClick={() => setNoteOpen(true)}
-          >
-            <StickyNote size={16} /> {t("viewNote")}
-          </button>
-          <Dialog.Root open={noteOpen} onOpenChange={setNoteOpen}>
-            <Dialog.Portal>
-              <Dialog.Overlay className="dialog-overlay" />
-              <Dialog.Content className="dialog-content note-dialog">
-                <Dialog.Title>
-                  {t("note")} · {task.title}
-                </Dialog.Title>
-                <p className="task-note">{task.description}</p>
-                <div className="dialog-actions">
-                  <Dialog.Close className="pill">{t("close")}</Dialog.Close>
-                </div>
-              </Dialog.Content>
-            </Dialog.Portal>
-          </Dialog.Root>
-        </>
-      )}
-    </article>
-  );
-}
 async function toggle(
   db: ReturnType<typeof import("@/lib/supabase/client").createClient>,
   data: WorkspaceData,
@@ -270,10 +115,12 @@ export function TodayView({
   data,
   db,
   reload,
+  loadDate,
 }: {
   data: WorkspaceData;
   db: ReturnType<typeof import("@/lib/supabase/client").createClient>;
   reload: () => Promise<void>;
+  loadDate: (day: string) => Promise<boolean>;
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
@@ -287,6 +134,7 @@ export function TodayView({
         liveFocus?.status === "on_break"),
     focusActionLabel = hasActiveFocus ? t("continueFocus") : t("startFocus"),
     [open, setOpen] = useState(false),
+    [datePending, setDatePending] = useState(false),
     [viewDate, setViewDate] = useState(() => localDate(data.profile.timezone)),
     [, setClock] = useState(0),
     today = localDate(data.profile.timezone),
@@ -365,12 +213,27 @@ export function TodayView({
     return () => clearInterval(timer);
   }, []);
   const groups = ["morning", "afternoon", "night", "anytime"] as const;
+  const selectDay = async (next: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(next) || next > today || next === day)
+      return;
+    setDatePending(true);
+    try {
+      if (await loadDate(next)) setViewDate(next);
+      else toast.error(t("error"));
+    } finally {
+      setDatePending(false);
+    }
+  };
   const moveDay = (amount: number) => {
     const next = localDate(
       data.profile.timezone,
       addDays(zonedDate(day, data.profile.timezone), amount),
     );
-    if (next <= today) setViewDate(next);
+    void selectDay(next);
+  };
+  const reloadSelected = async () => {
+    await reload();
+    if (!isToday) await loadDate(day);
   };
   return (
     <>
@@ -392,6 +255,7 @@ export function TodayView({
               className="pill"
               type="button"
               onClick={() => moveDay(-1)}
+              disabled={datePending}
               aria-label={t("previousDay")}
             >
               ←
@@ -401,17 +265,15 @@ export function TodayView({
               type="date"
               max={today}
               value={day}
-              onChange={(event) => {
-                if (event.target.value && event.target.value <= today)
-                  setViewDate(event.target.value);
-              }}
+              disabled={datePending}
+              onChange={(event) => void selectDay(event.target.value)}
               aria-label={t("chooseDay")}
             />
             <button
               className="pill"
               type="button"
               onClick={() => moveDay(1)}
-              disabled={isToday}
+              disabled={isToday || datePending}
               aria-label={t("nextDay")}
             >
               →
@@ -421,7 +283,8 @@ export function TodayView({
             <button
               className="pill go-today-button"
               type="button"
-              onClick={() => setViewDate(today)}
+              disabled={datePending}
+              onClick={() => void selectDay(today)}
             >
               <RotateCcw size={16} aria-hidden="true" />
               {t("goToday")}
@@ -512,7 +375,7 @@ export function TodayView({
                       task,
                       task.start_date,
                       completed,
-                      reload,
+                      reloadSelected,
                       t("error"),
                     )
                   }
@@ -593,7 +456,15 @@ export function TodayView({
                     occurrenceDate={day}
                     progress={weekly}
                     onToggle={(completed) =>
-                      toggle(db, data, task, day, completed, reload, t("error"))
+                      toggle(
+                        db,
+                        data,
+                        task,
+                        day,
+                        completed,
+                        reloadSelected,
+                        t("error"),
+                      )
                     }
                     focusActionLabel={focusActionLabel}
                     onStartFocus={

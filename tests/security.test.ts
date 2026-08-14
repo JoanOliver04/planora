@@ -6,6 +6,7 @@ import {
   isSameOriginRequest,
 } from "@/lib/security/request";
 import { isPrivateAppPath } from "@/lib/security/routes";
+import { contentSecurityPolicy } from "@/lib/security/csp";
 
 describe("security boundaries", () => {
   it("allows internal redirect paths with query strings", () => {
@@ -53,5 +54,12 @@ describe("security boundaries", () => {
     expect(isPrivateAppPath("/en/focus")).toBe(true);
     expect(isPrivateAppPath("/es/privacy")).toBe(false);
     expect(isPrivateAppPath("/en/demo/today")).toBe(false);
+  });
+
+  it("blocks script attributes and limits executable scripts to the app", () => {
+    const policy = contentSecurityPolicy();
+    expect(policy).toContain("script-src 'self'");
+    expect(policy).toContain("script-src-attr 'none'");
+    expect(policy).not.toContain("https: 'unsafe-inline'");
   });
 });

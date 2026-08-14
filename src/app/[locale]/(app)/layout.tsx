@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { GuidedOnboarding } from "@/features/onboarding/onboarding";
 import { mapSessionRow } from "@/features/focus/mappers";
 import type { FocusSession } from "@/features/focus/types";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
 
 export default async function PrivateLayout({
   children,
@@ -21,7 +23,7 @@ export default async function PrivateLayout({
   if (!user) redirect(`/${locale}/login`);
   const { data: profile } = await supabase
     .from("profiles")
-    .select("onboarding_completed")
+    .select("onboarding_completed,timezone")
     .eq("id", user.id)
     .single();
 
@@ -54,8 +56,13 @@ export default async function PrivateLayout({
     );
   }
 
+  const messages = await getMessages();
   return (
-    <>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={messages}
+      timeZone={profile?.timezone ?? "Europe/Madrid"}
+    >
       {!profile?.onboarding_completed && (
         <GuidedOnboarding locale={locale as "es" | "en"} />
       )}
@@ -65,6 +72,6 @@ export default async function PrivateLayout({
       >
         {children}
       </AppShell>
-    </>
+    </NextIntlClientProvider>
   );
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { rateLimit, requestKey } from "@/lib/security/rate-limit";
+import { requestKey } from "@/lib/security/rate-limit";
+import { distributedRateLimit } from "@/lib/security/distributed-rate-limit";
 import {
   exceedsContentLength,
   hasJsonContentType,
@@ -33,7 +34,10 @@ export async function POST(request: Request) {
       { status: 413, headers: noStore },
     );
 
-  const result = rateLimit(requestKey(request, "telemetry"), 30);
+  const result = await distributedRateLimit(
+    requestKey(request, "telemetry"),
+    30,
+  );
   if (!result.allowed)
     return NextResponse.json(
       { error: "Too many requests" },

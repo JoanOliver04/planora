@@ -16,7 +16,8 @@ function database(existing: { id: string; completed_at: string } | null) {
   const remove = vi.fn();
   const builder: Record<string, unknown> = {};
   builder.select = vi.fn(() => builder);
-  builder.delete = vi.fn(() => builder);
+  remove.mockReturnValue(builder);
+  builder.delete = remove;
   builder.eq = vi.fn(() => builder);
   builder.maybeSingle = vi
     .fn()
@@ -56,12 +57,13 @@ describe("offline queue", () => {
       completed: false,
       snapshot: {},
     });
-    const { db } = database({
+    const { db, remove } = database({
       id: "completion",
       completed_at: "2999-01-01T00:00:00Z",
     });
     const result = await flushCompletionQueue(db, "user");
-    expect(result).toEqual({ synced: 1, conflicts: 1, remaining: 0 });
+    expect(result).toEqual({ synced: 0, conflicts: 1, remaining: 0 });
+    expect(remove).not.toHaveBeenCalled();
     expect(getQueuedCompletions("user")).toHaveLength(0);
   });
 

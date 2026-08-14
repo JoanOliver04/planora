@@ -2,97 +2,20 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { taskSchema } from "@/lib/validation/task";
-import { preferencesSchema } from "@/lib/validation/preferences";
 import { z } from "zod";
 import { getTemplate } from "@/features/templates/catalog";
 import type { Json } from "@/types/database";
 import { nextDailyTrigger } from "@/features/reminders/schedule";
 import { parseBackup, prepareRestorePayload } from "@/features/backup/format";
-const id = z.string().uuid();
-const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
-const dayPartSettingsSchema = z.object({
-  morning: z.object({ start: time, end: time }),
-  afternoon: z.object({ start: time, end: time }),
-  night: z.object({ start: time, end: time }),
-});
-const scheduleSchema = z.object({
-  id: id.optional(),
-  name: z.string().trim().min(1).max(80),
-  description: z.string().trim().max(500).optional().nullable(),
-  emoji: z.string().max(16).optional().nullable(),
-});
-const categorySchema = z.object({
-  id: id.optional(),
-  name: z.string().trim().min(1).max(60),
-  colour: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-  emoji: z.string().max(16).optional().nullable(),
-  scheduleId: id.optional().nullable(),
-});
-const eventSchema = z
-  .object({
-    id: id.optional(),
-    title: z.string().trim().min(1).max(140),
-    description: z.string().max(2000).optional().nullable(),
-    emoji: z.string().max(16).optional().nullable(),
-    categoryId: id.optional().nullable(),
-    scheduleId: id.optional().nullable(),
-    eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    allDay: z.boolean(),
-    startTime: z
-      .string()
-      .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
-      .optional()
-      .nullable(),
-    endTime: z
-      .string()
-      .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
-      .optional()
-      .nullable(),
-  })
-  .superRefine((v, c) => {
-    if (!v.allDay && !v.startTime)
-      c.addIssue({
-        code: "custom",
-        path: ["startTime"],
-        message: "Start time is required",
-      });
-    if (v.startTime && v.endTime && v.startTime >= v.endTime)
-      c.addIssue({
-        code: "custom",
-        path: ["endTime"],
-        message: "End time must be later",
-      });
-  });
-const profileSchema = z.object({
-  locale: z.enum(["es", "en"]).optional(),
-  timezone: z
-    .string()
-    .min(1)
-    .max(100)
-    .refine((v) => {
-      try {
-        Intl.DateTimeFormat(undefined, { timeZone: v });
-        return true;
-      } catch {
-        return false;
-      }
-    }, "Invalid timezone")
-    .optional(),
-  theme: z.enum(["light", "dark", "system"]).optional(),
-  week_starts_on: z.number().int().min(0).max(6).optional(),
-  day_part_settings: dayPartSettingsSchema.optional(),
-  onboarding_completed: z.boolean().optional(),
-  active_schedule_id: id.optional(),
-  preferences: preferencesSchema.optional(),
-});
-const guidedOnboardingSchema = z.object({
-  goal: z.enum(["studies", "work", "habits", "personal"]),
-  scheduleName: z.string().trim().min(1).max(80),
-  timezone: z.string().min(1).max(100),
-  weekStart: z.union([z.literal(0), z.literal(1)]),
-  accent: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-  skip: z.boolean().default(false),
-});
+import {
+  categorySchema,
+  eventSchema,
+  guidedOnboardingSchema,
+  id,
+  profileSchema,
+  scheduleSchema,
+  time,
+} from "./domain-validation";
 async function auth() {
   const db = await createClient(),
     {

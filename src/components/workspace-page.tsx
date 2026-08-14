@@ -66,7 +66,7 @@ const SettingsView = dynamic(() =>
 
 export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
   const t = useTranslations("Workspace"),
-    { db, data, loading, error, reload } = useWorkspace(mode),
+    { db, data, loading, error, reload, loadDate } = useWorkspace(mode),
     [starters, setStarters] = useState(true),
     [starting, setStarting] = useState(false),
     [switchingSchedule, startScheduleTransition] = useTransition();
@@ -144,7 +144,7 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
   );
   const content =
     mode === "today" ? (
-      <TodayView data={data} db={db} reload={reload} />
+      <TodayView data={data} db={db} reload={reload} loadDate={loadDate} />
     ) : mode === "week" ? (
       <WeekView data={data} />
     ) : mode === "month" ? (

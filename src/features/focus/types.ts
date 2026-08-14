@@ -69,6 +69,46 @@ export type FocusLinkSnapshot = {
   nextStep?: string | null;
 };
 
+export type FocusTaskOption = {
+  id: string;
+  title: string;
+  emoji: string | null;
+  taskKind: "one_time" | "habit";
+  categoryId: string | null;
+  scheduleId: string | null;
+};
+
+export type SessionStartDraft = {
+  mode?: FocusMode;
+  focusDurationSec?: number | null;
+  shortBreakSec?: number | null;
+  longBreakSec?: number | null;
+  cyclesBeforeLongBreak?: number | null;
+  targetCycles?: number | null;
+  title?: string | null;
+  presetId?: string | null;
+  quickKey?: string | null;
+  taskId?: string | null;
+  occurrenceDate?: string | null;
+  linkSnapshot?: {
+    taskTitle?: string;
+    taskEmoji?: string | null;
+    taskKind?: "one_time" | "habit";
+    categoryName?: string | null;
+    categoryColour?: string | null;
+    scheduleName?: string | null;
+  };
+  autoStartBreaks?: boolean;
+  autoStartFocus?: boolean;
+  soundEnabled?: boolean;
+  vibrationEnabled?: boolean;
+  notifyOnPhaseEnd?: boolean;
+  completeTaskOnEnd?: boolean;
+  keepScreenAwake?: boolean;
+  preferFullscreen?: boolean;
+  segments?: FocusSegment[];
+};
+
 export type FocusInterval = {
   id: string;
   kind: FocusPhaseKind;

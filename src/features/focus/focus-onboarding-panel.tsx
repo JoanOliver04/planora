@@ -13,7 +13,7 @@ import {
   Timer,
   X,
 } from "lucide-react";
-import type { SessionStartDraft } from "./session-start-dialog";
+import type { SessionStartDraft } from "./types";
 import { SESSION_PLAN_TEMPLATES } from "./session-plan";
 import {
   defaultFocusOnboardingState,

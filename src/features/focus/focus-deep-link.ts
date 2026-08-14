@@ -1,6 +1,5 @@
 import { QUICK_FOCUS_PRESETS } from "./defaults";
-import type { FocusPreset } from "./types";
-import type { SessionStartDraft } from "./session-start-dialog";
+import type { FocusPreset, SessionStartDraft } from "./types";
 import { buildFocusDraftFromTask, type FocusTaskSource } from "./task-link";
 
 export type FocusDeepLinkParams = {

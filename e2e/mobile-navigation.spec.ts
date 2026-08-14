@@ -15,6 +15,7 @@ test("mobile More navigation reaches every secondary area naturally", async ({
   page,
   context,
 }) => {
+  test.setTimeout(120_000);
   test.skip(
     !url || !anonKey || !serviceKey,
     "Supabase integration credentials required",

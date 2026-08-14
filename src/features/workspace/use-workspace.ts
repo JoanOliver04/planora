@@ -5,6 +5,7 @@ import type { WorkspaceData } from "./types";
 import type { WorkspaceMode } from "./types";
 import { localDate, localWeek } from "@/lib/dates/timezone";
 import { cacheWorkspace, loadCachedWorkspace } from "@/lib/offline/queue";
+import { mergeRowsById } from "./workspace-data";
 
 const requirements: Record<
   WorkspaceMode,
@@ -29,6 +30,31 @@ export function useWorkspace(mode: WorkspaceMode) {
     [data, setData] = useState<WorkspaceData | null>(null),
     [loading, setLoading] = useState(true),
     [error, setError] = useState<string | null>(null);
+  const loadDate = useCallback(
+    async (day: string) => {
+      if (mode !== "today") return true;
+      const [events, completions] = await Promise.all([
+        db.from("events").select("*").eq("event_date", day),
+        db.from("task_completions").select("*").eq("occurrence_date", day),
+      ]);
+      if (events.error || completions.error) return false;
+      setData((current) => {
+        if (!current) return current;
+        const next = {
+          ...current,
+          events: mergeRowsById(current.events, events.data ?? []),
+          completions: mergeRowsById(
+            current.completions,
+            completions.data ?? [],
+          ),
+        };
+        cacheWorkspace(mode, next);
+        return next;
+      });
+      return true;
+    },
+    [db, mode],
+  );
   const load = useCallback(async () => {
     setError(null);
     const {
@@ -105,7 +131,7 @@ export function useWorkspace(mode: WorkspaceMode) {
       .order("completed_at", { ascending: false });
     if (mode === "summary")
       completionsQuery = completionsQuery.eq("occurrence_date", today);
-    else if (mode !== "tasks" && mode !== "today")
+    else if (mode !== "tasks")
       completionsQuery = completionsQuery.gte(
         "occurrence_date",
         historyFrom.toISOString().slice(0, 10),
@@ -135,6 +161,26 @@ export function useWorkspace(mode: WorkspaceMode) {
       setLoading(false);
       return;
     }
+    let completions = h.data ?? [];
+    if (mode === "today") {
+      const onceTaskIds = (t.data ?? [])
+        .filter((task) => task.recurrence_type === "once")
+        .map((task) => task.id);
+      for (let offset = 0; offset < onceTaskIds.length; offset += 100) {
+        const { data: onceCompletions, error: onceError } = await db
+          .from("task_completions")
+          .select("*")
+          .in("task_id", onceTaskIds.slice(offset, offset + 100));
+        if (onceError) {
+          setError(onceError.message);
+          setLoading(false);
+          return;
+        }
+        const byId = new Map(completions.map((item) => [item.id, item]));
+        (onceCompletions ?? []).forEach((item) => byId.set(item.id, item));
+        completions = [...byId.values()];
+      }
+    }
     const workspace: WorkspaceData = {
       user: {
         id: user.id,
@@ -145,7 +191,7 @@ export function useWorkspace(mode: WorkspaceMode) {
       categories: c.data ?? [],
       tasks: t.data ?? [],
       events: e.data ?? [],
-      completions: h.data ?? [],
+      completions,
     };
     setData(workspace);
     cacheWorkspace(mode, workspace);
@@ -157,5 +203,5 @@ export function useWorkspace(mode: WorkspaceMode) {
     window.addEventListener("planora-sync-complete", synced);
     return () => window.removeEventListener("planora-sync-complete", synced);
   }, [load]);
-  return { db, data, loading, error, reload: load };
+  return { db, data, loading, error, reload: load, loadDate };
 }

@@ -1,8 +1,7 @@
 import { isTaskExpectedOnDate } from "@/lib/recurrence";
 import { recurrenceFromJson } from "@/features/workspace/types";
 import type { Category, Schedule, Task } from "@/features/workspace/types";
-import type { FocusLinkSnapshot } from "./types";
-import type { SessionStartDraft } from "./session-start-dialog";
+import type { FocusLinkSnapshot, SessionStartDraft } from "./types";
 
 export type FocusTaskSource = Pick<
   Task,

@@ -13,7 +13,7 @@ describe("platform integration", () => {
       start_url: "/es/today",
     });
     expect(value.icons).toContainEqual(
-      expect.objectContaining({ src: "/assets/logo.png", type: "image/png" }),
+      expect.objectContaining({ src: "/icon-512.png", type: "image/png" }),
     );
   });
 

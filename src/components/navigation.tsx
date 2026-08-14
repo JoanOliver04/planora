@@ -54,7 +54,7 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
       <div className="brand">
         <Image
           className="brand-logo"
-          src="/assets/logo.png"
+          src="/assets/logo.webp"
           alt="Planora"
           width={1024}
           height={1024}
@@ -68,7 +68,7 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
     <div className="brand">
       <Image
         className="brand-logo brand-logo-light"
-        src="/assets/logo_modo_claro.png"
+        src="/assets/logo_modo_claro.webp"
         alt="Planora"
         width={1024}
         height={1024}
@@ -76,7 +76,7 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
       />
       <Image
         className="brand-logo brand-logo-dark"
-        src="/assets/logo_modo_oscuro.png"
+        src="/assets/logo_modo_oscuro.webp"
         alt="Planora"
         width={1024}
         height={1024}

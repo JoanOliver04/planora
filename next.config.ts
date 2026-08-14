@@ -1,27 +1,9 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { contentSecurityPolicy } from "./src/lib/security/csp";
 const isDevelopment = process.env.NODE_ENV === "development";
 const enforcesHttps =
   process.env.VERCEL === "1" || process.env.PLANORA_FORCE_HTTPS === "true";
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "frame-ancestors 'none'",
-  "object-src 'none'",
-  "frame-src 'none'",
-  "script-src-attr 'none'",
-  "form-action 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
-  `connect-src 'self' https://*.supabase.co wss://*.supabase.co${isDevelopment ? " ws://localhost:*" : ""}`,
-  "manifest-src 'self'",
-  "media-src 'self'",
-  "worker-src 'self' blob:",
-  ...(enforcesHttps ? ["upgrade-insecure-requests"] : []),
-].join("; ");
-
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   experimental: { serverActions: { bodySizeLimit: "6mb" } },
@@ -42,7 +24,10 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: contentSecurityPolicy,
+            value: contentSecurityPolicy({
+              development: isDevelopment,
+              enforceHttps: enforcesHttps,
+            }),
           },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Origin-Agent-Cluster", value: "?1" },

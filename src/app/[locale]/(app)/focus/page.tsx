@@ -6,10 +6,9 @@ import {
   mapSessionRow,
 } from "@/features/focus/mappers";
 import { localWeek, localDate } from "@/lib/dates/timezone";
-import type { FocusSession } from "@/features/focus/types";
+import type { FocusSession, SessionStartDraft } from "@/features/focus/types";
 import { resolveDeepLinkDraft } from "@/features/focus/focus-deep-link";
 import type { FocusTaskSource } from "@/features/focus/task-link";
-import type { SessionStartDraft } from "@/features/focus/session-start-dialog";
 import { readFocusAccountFromProfilePreferences } from "@/features/focus/focus-preferences";
 
 export default async function FocusPage({
