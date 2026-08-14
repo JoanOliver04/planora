@@ -66,7 +66,7 @@ begin
       - extract(month from current_task.start_date)::integer;
 
     if interval_every is null or interval_every < 1
-      or case interval_unit
+      or (case interval_unit
         when 'day' then
           (new.occurrence_date - current_task.start_date) % interval_every <> 0
         when 'week' then
@@ -84,7 +84,7 @@ begin
               ))::integer
             )
         else true
-      end
+      end)
     then raise exception 'Invalid interval occurrence'; end if;
   end if;
 
