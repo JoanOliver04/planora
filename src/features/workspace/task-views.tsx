@@ -416,16 +416,17 @@ export function TodayView({
             >
               →
             </button>
-            {!isToday && (
-              <button
-                className="pill"
-                type="button"
-                onClick={() => setViewDate(today)}
-              >
-                {t("goToday")}
-              </button>
-            )}
           </div>
+          {!isToday && (
+            <button
+              className="pill go-today-button"
+              type="button"
+              onClick={() => setViewDate(today)}
+            >
+              <RotateCcw size={16} aria-hidden="true" />
+              {t("goToday")}
+            </button>
+          )}
           {isToday && (
             <button className="primary" onClick={() => setOpen(true)}>
               <Plus size={18} />
@@ -486,10 +487,10 @@ export function TodayView({
             </div>
             <span className="count-badge">{overdueTasks.length}</span>
           </div>
-          <div className="task-list">
+          <div className="task-list overdue-list">
             {overdueTasks.map((task) => (
-              <div key={task.id}>
-                <p className="overdue-date">
+              <div className="overdue-item" key={task.id}>
+                <p className="overdue-date" title={task.start_date}>
                   {t("pendingSince", {
                     date: new Intl.DateTimeFormat(locale, {
                       day: "numeric",
