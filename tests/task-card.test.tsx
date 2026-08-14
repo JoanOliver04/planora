@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -130,5 +130,41 @@ describe("TaskCard completion", () => {
     expect(button).toHaveAttribute("aria-busy", "true");
     expect(onToggle).toHaveBeenCalledOnce();
     resolve(true);
+  });
+
+  it("resets optimistic completion when navigating to another day", async () => {
+    const user = userEvent.setup();
+    const onToggle = vi.fn().mockResolvedValue(true);
+    const view = render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <TaskCard
+          task={task}
+          categories={[]}
+          occurrenceDate="2026-08-13"
+          onToggle={onToggle}
+        />
+      </NextIntlClientProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: /mark as complete/i }));
+    expect(screen.getByRole("button")).toHaveAttribute("aria-pressed", "true");
+
+    view.rerender(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <TaskCard
+          task={task}
+          categories={[]}
+          occurrenceDate="2026-08-14"
+          onToggle={onToggle}
+        />
+      </NextIntlClientProvider>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("button")).toHaveAttribute(
+        "aria-pressed",
+        "false",
+      ),
+    );
   });
 });

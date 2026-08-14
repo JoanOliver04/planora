@@ -68,6 +68,7 @@ export function TaskCard({
   task,
   categories,
   completion,
+  occurrenceDate,
   onToggle,
   onEdit,
   onStartFocus,
@@ -77,6 +78,7 @@ export function TaskCard({
   task: Task;
   categories: Category[];
   completion?: Completion;
+  occurrenceDate?: string;
   onToggle?: (completed: boolean) => Promise<boolean>;
   onEdit?: () => void;
   onStartFocus?: () => void;
@@ -87,10 +89,17 @@ export function TaskCard({
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
     cat = categories.find((c) => c.id === task.category_id),
-    [optimisticDone, setOptimisticDone] = useState<boolean | null>(null),
+    [optimisticCompletion, setOptimisticCompletion] = useState<{
+      occurrenceDate?: string;
+      done: boolean;
+    } | null>(null),
     [noteOpen, setNoteOpen] = useState(false),
     [togglePending, setTogglePending] = useState(false),
-    done = optimisticDone ?? Boolean(completion),
+    done =
+      optimisticCompletion &&
+      optimisticCompletion.occurrenceDate === occurrenceDate
+        ? optimisticCompletion.done
+        : Boolean(completion),
     focusLabel = focusActionLabel ?? t("startFocus"),
     timing =
       task.start_time?.slice(0, 5) ??
@@ -125,11 +134,14 @@ export function TaskCard({
           aria-label={`${done ? t("completed") : t("markComplete")}: ${task.title}`}
           onClick={async () => {
             const previous = done;
-            setOptimisticDone(!previous);
+            setOptimisticCompletion({ occurrenceDate, done: !previous });
             setTogglePending(true);
             try {
               const success = await onToggle(!previous);
-              setOptimisticDone(success ? !previous : previous);
+              setOptimisticCompletion({
+                occurrenceDate,
+                done: success ? !previous : previous,
+              });
             } finally {
               setTogglePending(false);
             }
@@ -491,6 +503,7 @@ export function TodayView({
                 <TaskCard
                   task={task}
                   categories={data.categories}
+                  occurrenceDate={task.start_date}
                   onToggle={(completed) =>
                     toggle(
                       db,
@@ -576,6 +589,7 @@ export function TodayView({
                     task={task}
                     categories={data.categories}
                     completion={completion}
+                    occurrenceDate={day}
                     progress={weekly}
                     onToggle={(completed) =>
                       toggle(db, data, task, day, completed, reload, t("error"))
