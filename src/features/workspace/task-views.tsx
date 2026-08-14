@@ -52,6 +52,12 @@ import { FocusTodayShortcuts } from "@/features/focus/focus-today-shortcuts";
 import { buildFocusHref } from "@/features/focus/focus-deep-link";
 import { isTaskFocusActionAvailable } from "@/features/focus/task-link";
 import { useOptionalFocusSessionContext } from "@/features/focus/focus-session-context";
+import {
+  canToggleOccurrence,
+  overdueOneTimeTasks,
+  shouldShowOccurrence,
+  tasksForDay,
+} from "./daily-occurrences";
 const adapter = (task: Task) => ({
   startDate: task.start_date,
   endDate: task.end_date,
@@ -207,6 +213,10 @@ async function toggle(
   reload: () => Promise<void>,
   errorMessage: string,
 ) {
+  if (!canToggleOccurrence(task, day, localDate(data.profile.timezone))) {
+    toast.error(errorMessage);
+    return false;
+  }
   const old = data.completions.find(
       (c) => c.task_id === task.id && c.occurrence_date === day,
     ),
@@ -278,14 +288,7 @@ export function TodayView({
     active = data.profile.active_schedule_id,
     activeSchedule = data.schedules.find((item) => item.id === active),
     preferences = normalizePreferences(data.profile.preferences),
-    tasks = data.tasks
-      .filter(
-        (task) =>
-          (task.scope === "global" || task.schedule_id === active) &&
-          !task.archived_at &&
-          task.is_active &&
-          isTaskExpectedOnDate(adapter(task), day),
-      )
+    tasks = tasksForDay(data.tasks, day, active)
       .filter((task) => {
         const recurrence = recurrenceFromJson(
           task.recurrence_config,
@@ -305,13 +308,18 @@ export function TodayView({
           )
         );
       })
-      .filter(
-        (task) =>
-          preferences.showCompleted ||
-          !data.completions.some(
+      .filter((task) =>
+        shouldShowOccurrence(
+          isToday,
+          preferences.showCompleted,
+          data.completions.some(
             (item) => item.task_id === task.id && item.occurrence_date === day,
           ),
+        ),
       ),
+    overdueTasks = isToday
+      ? overdueOneTimeTasks(data.tasks, data.completions, today, active)
+      : [],
     events = data.events.filter(
       (event) =>
         event.event_date === day &&
@@ -363,6 +371,7 @@ export function TodayView({
           <p className="header-context">
             <span>{activeSchedule?.emoji || "🌿"}</span>
             {activeSchedule?.name}
+            {!isToday && ` · ${t("viewingPastDay")}`}
           </p>
         </div>
         <div className="today-actions">
@@ -395,11 +404,22 @@ export function TodayView({
             >
               →
             </button>
+            {!isToday && (
+              <button
+                className="pill"
+                type="button"
+                onClick={() => setViewDate(today)}
+              >
+                {t("goToday")}
+              </button>
+            )}
           </div>
-          <button className="primary" onClick={() => setOpen(true)}>
-            <Plus size={18} />
-            {t("add")}
-          </button>
+          {isToday && (
+            <button className="primary" onClick={() => setOpen(true)}>
+              <Plus size={18} />
+              {t("add")}
+            </button>
+          )}
         </div>
       </header>
       <section
@@ -445,6 +465,49 @@ export function TodayView({
           )
         }
       />
+      {overdueTasks.length > 0 && (
+        <section className="section task-group overdue-group">
+          <div className="section-head">
+            <div>
+              <h2>{t("overdue")}</h2>
+              <p className="muted">{t("overdueHint")}</p>
+            </div>
+            <span className="count-badge">{overdueTasks.length}</span>
+          </div>
+          <div className="task-list">
+            {overdueTasks.map((task) => (
+              <div key={task.id}>
+                <p className="overdue-date">
+                  {t("pendingSince", {
+                    date: new Intl.DateTimeFormat(locale, {
+                      day: "numeric",
+                      month: "short",
+                      timeZone: data.profile.timezone,
+                    }).format(
+                      zonedDate(task.start_date, data.profile.timezone),
+                    ),
+                  })}
+                </p>
+                <TaskCard
+                  task={task}
+                  categories={data.categories}
+                  onToggle={(completed) =>
+                    toggle(
+                      db,
+                      data,
+                      task,
+                      task.start_date,
+                      completed,
+                      reload,
+                      t("error"),
+                    )
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       {groups.map((group) => {
         const list = tasks.filter(
           (task) =>
@@ -542,14 +605,16 @@ export function TodayView({
           </section>
         ) : null;
       })}
-      {!tasks.length && (
+      {!tasks.length && !overdueTasks.length && (
         <div className="empty empty-compact surface">
           <span className="empty-icon">🌱</span>
           <h2>{t("clearDay")}</h2>
           <p>{t("noTasksToday")}</p>
-          <button className="pill" onClick={() => setOpen(true)}>
-            {t("add")}
-          </button>
+          {isToday && (
+            <button className="pill" onClick={() => setOpen(true)}>
+              {t("add")}
+            </button>
+          )}
         </div>
       )}
       {events.length > 0 && (
