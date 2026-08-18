@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-359%20unit%20%2B%2040%20E2E-brightgreen?style=flat-square" alt="359 unit tests and 40 Playwright E2E tests" />
+  <img src="https://img.shields.io/badge/tests-363%20unit%20%2B%2040%20E2E-brightgreen?style=flat-square" alt="363 unit tests and 40 Playwright E2E tests" />
 </p>
 
 ---
@@ -80,7 +80,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Complete or undo tasks for a specific occurrence date.
 - Immutable history snapshots preserve the original task and category details.
 - Weekly completion targets and progress percentage.
-- Date calculations respect the user's timezone and preferred first day of the week.
+- Date calculations, weekly targets and statistics follow the user's timezone and preferred first day of the week (Sunday or Monday).
 
 ### Notifications and alarms
 
@@ -101,13 +101,15 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Confirmation dialogs for permanent deletion, archiving, account deletion and sign-out.
 - Accessible navigation, keyboard focus states and reduced-motion support.
 - Mobile-first touch targets and responsive layouts.
-- Google OAuth only; Planora stores no passwords.
-- Public no-registration demo, guided onboarding and reusable schedule templates.
-- Offline mutation queue, installable PWA and a customizable notification and alarm center.
-- Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports (including Focus entities in backup v4).
+- Google OAuth only; Planora stores no passwords. After sign-in the app returns to Today in the active language.
+- Public no-registration demo in Spanish and English, guided onboarding and reusable schedule templates.
+- Offline mutation queue that keeps the latest intent per day and will not resurrect a completion after a newer undo on another device.
+- Installable PWA and a customizable notification and alarm center.
+- Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports (including Focus entities in backup v4). Atomic restore cancels live Focus timers in the database.
 - Archived tasks act as a recoverable trash area, with explicit permanent deletion for the task, its completion history and reminders.
 - Privacy-focused Vercel Web Analytics for anonymous, aggregate page-view metrics without tracking cookies or custom product events.
-- Sanitized error telemetry and rate-limited sensitive endpoints.
+- Sanitized error telemetry. Account deletion is same-origin, confirmed and fail-closed if the rate limiter is unavailable.
+- Authenticated pages are `private, no-store`. Scripts use a per-request CSP nonce.
 
 ## Product preview
 
