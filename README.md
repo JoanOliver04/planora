@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-363%20unit%20%2B%2040%20E2E-brightgreen?style=flat-square" alt="363 unit tests and 40 Playwright E2E tests" />
+  <img src="https://img.shields.io/badge/tests-364%20unit%20%2B%2033%20E2E-brightgreen?style=flat-square" alt="364 unit tests and 33 Playwright E2E tests" />
 </p>
 
 ---
@@ -109,7 +109,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Archived tasks act as a recoverable trash area, with explicit permanent deletion for the task, its completion history and reminders.
 - Privacy-focused Vercel Web Analytics for anonymous, aggregate page-view metrics without tracking cookies or custom product events.
 - Sanitized error telemetry. Account deletion is same-origin, confirmed and fail-closed if the rate limiter is unavailable.
-- Authenticated pages are `private, no-store`. Scripts use a per-request CSP nonce.
+- Authenticated pages are `private, no-store`. Pages ship a Content-Security-Policy that still allows Next's inline hydration scripts.
 
 ## Product preview
 
@@ -318,18 +318,18 @@ npm run build
 npm audit
 ```
 
-CI runs lint, Prettier (`format:check`), typecheck, unit tests and production build on every push to `main`, plus Playwright e2e and Lighthouse on the live site.
+CI runs lint, Prettier (`format:check`), typecheck, unit tests and production build on every push to `main`, plus Playwright e2e and Lighthouse against that same CI build.
 
 The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync, backup v4), forms, loading states, protected navigation, platform metadata, mobile authentication and the single-instance, automatic-only Analytics integration.
 
-Last verified on 2026-08-18: 61 Vitest files with 363 passing tests, 40 passing Playwright scenarios (with the authenticated Focus lifecycle intentionally run once on Chromium), a successful Next.js 16.3.1 production build and 0 known npm vulnerabilities.
+Last verified on 2026-08-18: 61 Vitest files with 364 passing tests, 33 passing Playwright scenarios (9 skipped; the authenticated Focus lifecycle runs once on Chromium), a successful Next.js 16.3.1 production build and 0 known npm vulnerabilities.
 
-Focus portfolio screenshots (light theme) live under `docs/images/13–17-*.png`. To regenerate them against a local production server with Supabase credentials in `.env.local`:
+Product screenshots live under `docs/images/01–17-*.png` (about 80% light theme, desktop and mobile). To regenerate them against a local production server with Supabase credentials in `.env.local`, signed in as the secondary account:
 
 ```bash
 npm run build
-npm start -- --hostname 127.0.0.1 --port 3000
-node scripts/capture-focus-screenshots.mjs
+npm start
+node scripts/capture-docs-screenshots.mjs
 ```
 
 ## Deployment
