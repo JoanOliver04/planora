@@ -1,3 +1,5 @@
 ﻿# Testing
 
 Vitest covers recurrence bounds, weekdays, intervals, month ends, formatting, day parts, timezone week boundaries, validation, task-form progressive disclosure, and the Focus domain (timer engine, cycles, plans, goals, analytics, offline queue, multi-tab sync, keyboard a11y, onboarding, backup v4). React Testing Library is configured for client components. Playwright covers protected-route redirects (including `/focus` → login), language switching, mobile login, backup restore when credentials exist, and `e2e/focus-session.spec.ts` for the authenticated Focus lifecycle (preset, task link, pause/reload/resume, distraction, complete, export/restore) when `SUPABASE_SERVICE_ROLE_KEY` is available. Never add an auth bypass to production code; use a dedicated Supabase test project for authenticated journeys.
+
+Programmatic file downloads are intercepted in `tests/data-tools.test.tsx`. JSDOM does not implement document navigation, so download tests must assert the generated object URL and anchor click without invoking its native navigation behavior.

@@ -49,6 +49,8 @@ async function selectValidBackup() {
 }
 
 describe("DataTools", () => {
+  let downloadClick: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.stubGlobal(
       "URL",
@@ -57,6 +59,12 @@ describe("DataTools", () => {
         revokeObjectURL: vi.fn(),
       }),
     );
+    // JSDOM does not implement navigation triggered by programmatic download
+    // links. Intercept every download in this suite so it cannot enqueue a
+    // navigation after the test has finished.
+    downloadClick = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
     vi.mocked(restoreBackup).mockResolvedValue({});
   });
 
@@ -118,9 +126,6 @@ describe("DataTools", () => {
 
   it("downloads a safety copy and restores exactly once on a double click", async () => {
     const user = userEvent.setup();
-    const click = vi
-      .spyOn(HTMLAnchorElement.prototype, "click")
-      .mockImplementation(() => undefined);
     renderTools();
     await selectValidBackup();
     await user.click(screen.getByRole("button", { name: "Restore backup" }));
@@ -132,7 +137,7 @@ describe("DataTools", () => {
     );
     await user.dblClick(confirm);
     await waitFor(() => expect(restoreBackup).toHaveBeenCalledOnce());
-    expect(click).toHaveBeenCalledOnce();
+    expect(downloadClick).toHaveBeenCalledOnce();
     expect(
       await screen.findByText(/previous data was replaced/i),
     ).toBeVisible();
@@ -156,13 +161,10 @@ describe("DataTools", () => {
 
   it("downloads the full JSON backup in version three format", async () => {
     const user = userEvent.setup();
-    const click = vi
-      .spyOn(HTMLAnchorElement.prototype, "click")
-      .mockImplementation(() => undefined);
     renderTools();
     await user.click(screen.getByRole("button", { name: "Download JSON" }));
     await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalledOnce());
-    expect(click).toHaveBeenCalledOnce();
+    expect(downloadClick).toHaveBeenCalledOnce();
     expect(await screen.findByText("Your download is ready.")).toBeVisible();
   });
 });

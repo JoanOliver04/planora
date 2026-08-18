@@ -1,11 +1,14 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { contentSecurityPolicy } from "./src/lib/security/csp";
+
 const isDevelopment = process.env.NODE_ENV === "development";
 const enforcesHttps =
   process.env.VERCEL === "1" || process.env.PLANORA_FORCE_HTTPS === "true";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Restore accepts validated backups up to 5 MiB. Next.js counts the raw
+  // action body too, so 1 MiB of headroom covers serialization overhead.
   experimental: { serverActions: { bodySizeLimit: "6mb" } },
   async headers() {
     return [

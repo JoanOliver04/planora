@@ -15,3 +15,12 @@ Vercel project `planora` is linked and `NEXT_PUBLIC_SITE_URL` is configured for 
 ## Residual risks
 
 The in-process limiter is deliberately lightweight and applies per serverless instance; platform/WAF rate limits should supplement it under sustained abuse. Automated accessibility does not replace keyboard and screen-reader checks. Telemetry retention depends on the hosting log policy described in `operations.md`.
+
+## Revalidation — 2026-08-18
+
+- ESLint, strict TypeScript, Prettier and the Next.js 16.2.12 production build pass.
+- Vitest: 61 files and 351 tests pass.
+- Playwright: 40 scenarios pass; the two reported skips are the authenticated Focus lifecycle intentionally limited to Chromium after passing there.
+- `npm audit`, including development dependencies: 0 known vulnerabilities.
+- The authenticated Supabase Focus lifecycle and atomic backup restore passed with the configured integration credentials.
+- The working tree remained clean before this maintenance patch. Remote uptime, OAuth provider configuration, Vercel project settings and Supabase advisors still require the operational checks in `operations.md`; repository tests cannot prove third-party control-plane state.
