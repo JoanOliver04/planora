@@ -37,6 +37,8 @@ export async function POST(request: Request) {
   const result = await distributedRateLimit(
     requestKey(request, "telemetry"),
     30,
+    60_000,
+    { fallback: "memory" },
   );
   if (!result.allowed)
     return NextResponse.json(

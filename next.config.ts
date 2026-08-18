@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
-import { contentSecurityPolicy } from "./src/lib/security/csp";
 
-const isDevelopment = process.env.NODE_ENV === "development";
 const enforcesHttps =
   process.env.VERCEL === "1" || process.env.PLANORA_FORCE_HTTPS === "true";
 const nextConfig: NextConfig = {
@@ -24,13 +22,6 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value:
               "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()",
-          },
-          {
-            key: "Content-Security-Policy",
-            value: contentSecurityPolicy({
-              development: isDevelopment,
-              enforceHttps: enforcesHttps,
-            }),
           },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Origin-Agent-Cluster", value: "?1" },

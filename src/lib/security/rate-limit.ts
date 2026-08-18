@@ -13,6 +13,19 @@ function prune(now: number) {
   }
 }
 
+export function unavailableLimit(
+  fallback: "memory" | "deny",
+  key: string,
+  limit: number,
+  windowMs: number,
+) {
+  if (fallback === "memory") return rateLimit(key, limit, windowMs);
+  return {
+    allowed: false,
+    retryAfter: Math.max(1, Math.ceil(windowMs / 1000)),
+  };
+}
+
 export function rateLimit(key: string, limit = 10, windowMs = 60_000) {
   const now = Date.now();
   const current = buckets.get(key);

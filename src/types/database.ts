@@ -104,6 +104,18 @@ export type Database = {
         Update: Record<string, unknown>;
         Relationships: [];
       };
+      task_occurrence_state: {
+        Row: {
+          task_id: string;
+          user_id: string;
+          occurrence_date: string;
+          last_action: "complete" | "uncomplete";
+          changed_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
       events: {
         Row: {
           id: string;

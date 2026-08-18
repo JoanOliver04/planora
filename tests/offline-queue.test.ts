@@ -11,7 +11,13 @@ import type { WorkspaceData } from "@/features/workspace/types";
 import type { Database } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-function database(existing: { id: string; completed_at: string } | null) {
+function database(
+  existing: { id: string; completed_at: string } | null,
+  observed: {
+    last_action: "complete" | "uncomplete";
+    changed_at: string;
+  } | null = null,
+) {
   const insert = vi.fn().mockResolvedValue({ error: null });
   const remove = vi.fn();
   const builder: Record<string, unknown> = {};
@@ -24,9 +30,19 @@ function database(existing: { id: string; completed_at: string } | null) {
     .mockResolvedValue({ data: existing, error: null });
   builder.then = (resolve: (value: unknown) => void) =>
     Promise.resolve({ error: null }).then(resolve);
+  const stateBuilder: Record<string, unknown> = {};
+  stateBuilder.select = vi.fn(() => stateBuilder);
+  stateBuilder.eq = vi.fn(() => stateBuilder);
+  stateBuilder.maybeSingle = vi
+    .fn()
+    .mockResolvedValue({ data: observed, error: null });
   return {
     db: {
-      from: vi.fn(() => ({ ...builder, insert })),
+      from: vi.fn((table: string) =>
+        table === "task_occurrence_state"
+          ? stateBuilder
+          : { ...builder, insert },
+      ),
     } as unknown as SupabaseClient<Database>,
     insert,
     remove,
@@ -134,6 +150,24 @@ describe("offline queue", () => {
     const result = await flushCompletionQueue(db, "user");
     expect(result.conflicts).toBe(1);
     expect(result.remaining).toBe(0);
+    expect(getQueuedCompletions("user")).toHaveLength(0);
+  });
+
+  it("does not resurrect a completion after a newer remote uncomplete", async () => {
+    enqueueCompletion({
+      userId: "user",
+      taskId: "task",
+      occurrenceDate: "2026-08-01",
+      completed: true,
+      snapshot: {},
+    });
+    const { db, insert } = database(null, {
+      last_action: "uncomplete",
+      changed_at: "2999-01-01T00:00:00Z",
+    });
+    const result = await flushCompletionQueue(db, "user");
+    expect(result).toEqual({ synced: 0, conflicts: 1, remaining: 0 });
+    expect(insert).not.toHaveBeenCalled();
     expect(getQueuedCompletions("user")).toHaveLength(0);
   });
 });

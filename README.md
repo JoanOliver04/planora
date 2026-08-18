@@ -320,7 +320,7 @@ CI runs lint, Prettier (`format:check`), typecheck, unit tests and production bu
 
 The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync, backup v4), forms, loading states, protected navigation, platform metadata, mobile authentication and the single-instance, automatic-only Analytics integration.
 
-Last verified on 2026-08-18: 61 Vitest files with 359 passing tests, 40 passing Playwright scenarios (with the authenticated Focus lifecycle intentionally run once on Chromium), a successful Next.js 16.3.1 production build and 0 known npm vulnerabilities.
+Last verified on 2026-08-18: 61 Vitest files with 363 passing tests, 40 passing Playwright scenarios (with the authenticated Focus lifecycle intentionally run once on Chromium), a successful Next.js 16.3.1 production build and 0 known npm vulnerabilities.
 
 Focus portfolio screenshots (light theme) live under `docs/images/13–17-*.png`. To regenerate them against a local production server with Supabase credentials in `.env.local`:
 

@@ -90,4 +90,10 @@ describe("security boundaries", () => {
     expect(policy).toContain("script-src-attr 'none'");
     expect(policy).not.toContain("https: 'unsafe-inline'");
   });
+
+  it("uses a per-request nonce instead of script unsafe-inline when provided", () => {
+    const policy = contentSecurityPolicy({ nonce: "abc123" });
+    expect(policy).toContain("'nonce-abc123'");
+    expect(policy).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+  });
 });

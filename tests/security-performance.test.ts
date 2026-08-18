@@ -80,8 +80,10 @@ describe("security and performance architecture", () => {
   it("enables defense-in-depth browser headers", () => {
     expect(csp).toContain("\"script-src-attr 'none'\"");
     expect(csp).toContain("`script-src 'self'");
+    expect(csp).toContain("nonce");
     expect(headers).toContain('key: "Cross-Origin-Resource-Policy"');
     expect(headers).toContain('key: "X-DNS-Prefetch-Control"');
+    expect(headers).not.toContain('key: "Content-Security-Policy"');
   });
 
   it("stores rate limits outside serverless process memory", () => {
@@ -98,5 +100,18 @@ describe("security and performance architecture", () => {
     expect(restoreWeekMigration).toContain("week_starts_on");
     expect(restoreWeekMigration).toContain("status = 'cancelled'");
     expect(restoreWeekMigration).toContain("ended_at is null");
+  });
+
+  it("records completion authority so offline replay cannot resurrect work", () => {
+    const migration = readFileSync(
+      join(
+        process.cwd(),
+        "supabase/migrations/20260818210000_completion_occurrence_state.sql",
+      ),
+      "utf8",
+    );
+    expect(migration).toContain("create table public.task_occurrence_state");
+    expect(migration).toContain("last_action");
+    expect(migration).toContain("record_completion_occurrence_state");
   });
 });

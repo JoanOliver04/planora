@@ -31,6 +31,7 @@ export async function DELETE(request: Request) {
     `account-delete:${user.id}`,
     3,
     60 * 60_000,
+    { fallback: "deny" },
   );
   if (!attempt.allowed)
     return NextResponse.json(

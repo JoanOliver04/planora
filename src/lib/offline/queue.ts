@@ -82,6 +82,21 @@ export async function flushCompletionQueue(
       conflicts += 1;
       continue;
     }
+    const { data: observed } = await db
+      .from("task_occurrence_state")
+      .select("last_action, changed_at")
+      .eq("task_id", item.taskId)
+      .eq("occurrence_date", item.occurrenceDate)
+      .maybeSingle();
+    if (
+      observed?.changed_at &&
+      new Date(observed.changed_at) > new Date(item.queuedAt) &&
+      ((item.completed && observed.last_action === "uncomplete") ||
+        (!item.completed && observed.last_action === "complete"))
+    ) {
+      conflicts += 1;
+      continue;
+    }
     const result = item.completed
       ? await db.from("task_completions").insert({
           user_id: userId,
