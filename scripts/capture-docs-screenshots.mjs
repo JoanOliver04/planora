@@ -189,7 +189,8 @@ async function ensureOne(admin, table, match, row) {
   }
   if (existing.data) return existing.data;
   const inserted = await admin.from(table).insert(row).select("*").single();
-  if (inserted.error) throw new Error(`${table} insert: ${inserted.error.message}`);
+  if (inserted.error)
+    throw new Error(`${table} insert: ${inserted.error.message}`);
   return inserted.data;
 }
 
@@ -513,18 +514,16 @@ async function seedWorkspace(admin, userId) {
   }
   const leftover = taskByTitle["Enviar resumen de la reunión"];
   if (leftover) {
-    await admin
-      .from("task_completions")
-      .upsert(
-        {
-          user_id: userId,
-          task_id: leftover.id,
-          occurrence_date: leftover.start_date ?? "2026-08-02",
-          completed_at: "2026-08-03T16:40:00.000Z",
-          task_snapshot: { title: leftover.title },
-        },
-        { onConflict: "task_id,occurrence_date" },
-      );
+    await admin.from("task_completions").upsert(
+      {
+        user_id: userId,
+        task_id: leftover.id,
+        occurrence_date: leftover.start_date ?? "2026-08-02",
+        completed_at: "2026-08-03T16:40:00.000Z",
+        task_snapshot: { title: leftover.title },
+      },
+      { onConflict: "task_id,occurrence_date" },
+    );
   }
 
   const completionPlan = [
@@ -794,25 +793,27 @@ async function seedWorkspace(admin, userId) {
       const started = isoAt(addDays(today, sample.dayOffset), 10, 0);
       const ended = isoAt(addDays(today, sample.dayOffset), 10, sample.minutes);
       const sessionId = crypto.randomUUID();
-      const { error: sessionError } = await admin.from("focus_sessions").insert({
-        id: sessionId,
-        user_id: userId,
-        status: "completed",
-        mode: sample.mode,
-        title: sample.title,
-        preset_id: sample.preset_id ?? null,
-        planned_focus_sec: sample.minutes * 60,
-        focus_sec: sample.minutes * 60,
-        paused_sec: 0,
-        break_sec: 0,
-        config: {
+      const { error: sessionError } = await admin
+        .from("focus_sessions")
+        .insert({
+          id: sessionId,
+          user_id: userId,
+          status: "completed",
           mode: sample.mode,
-          focus_duration_sec: sample.minutes * 60,
-        },
-        started_at: started,
-        ended_at: ended,
-        revision: 2,
-      });
+          title: sample.title,
+          preset_id: sample.preset_id ?? null,
+          planned_focus_sec: sample.minutes * 60,
+          focus_sec: sample.minutes * 60,
+          paused_sec: 0,
+          break_sec: 0,
+          config: {
+            mode: sample.mode,
+            focus_duration_sec: sample.minutes * 60,
+          },
+          started_at: started,
+          ended_at: ended,
+          revision: 2,
+        });
       if (sessionError) {
         console.warn(`focus session: ${sessionError.message}`);
         continue;
@@ -1010,12 +1011,18 @@ async function main() {
       page,
       "/es/today",
       async (p) => {
-        await p.getByRole("button", { name: /Añadir/i }).first().waitFor({
-          timeout: 30_000,
-        });
-        await p.getByText(/Progreso semanal|Pendientes|En cualquier momento/i).first().waitFor({
-          timeout: 15_000,
-        });
+        await p
+          .getByRole("button", { name: /Añadir/i })
+          .first()
+          .waitFor({
+            timeout: 30_000,
+          });
+        await p
+          .getByText(/Progreso semanal|Pendientes|En cualquier momento/i)
+          .first()
+          .waitFor({
+            timeout: 15_000,
+          });
       },
       "light",
     );
@@ -1054,7 +1061,10 @@ async function main() {
     );
     const darkPage = await darkDesk.context.newPage();
     await gotoReady(darkPage, "/es/settings", heading(/Ajustes/i), "dark");
-    await darkPage.getByText(/Personalización|Tema/i).first().waitFor();
+    await darkPage
+      .getByText(/Personalización|Tema/i)
+      .first()
+      .waitFor();
     await shot(darkPage, "09-settings.png", "dark");
     await darkDesk.context.close();
 
@@ -1139,11 +1149,19 @@ async function main() {
     );
     const livePage = await focusLive.context.newPage();
     await livePage.setViewportSize({ width: 1440, height: 960 });
-    await gotoReady(livePage, "/es/focus", async (p) => {
-      await p.getByText(/Sesión activa|restante|Pausar/i).first().waitFor({
-        timeout: 20_000,
-      });
-    }, "light");
+    await gotoReady(
+      livePage,
+      "/es/focus",
+      async (p) => {
+        await p
+          .getByText(/Sesión activa|restante|Pausar/i)
+          .first()
+          .waitFor({
+            timeout: 20_000,
+          });
+      },
+      "light",
+    );
     await shot(livePage, "16-focus-active.png", "light");
     await focusLive.context.close();
 
@@ -1166,9 +1184,12 @@ async function main() {
       mobile,
       "/es/today",
       (p) =>
-        p.getByRole("button", { name: /Añadir/i }).first().waitFor({
-          timeout: 30_000,
-        }),
+        p
+          .getByRole("button", { name: /Añadir/i })
+          .first()
+          .waitFor({
+            timeout: 30_000,
+          }),
       "light",
     );
     await shot(mobile, "11-mobile-today.png", "light");
@@ -1211,11 +1232,19 @@ async function main() {
       false,
     );
     const mobileFocus = await focusLiveMobile.context.newPage();
-    await gotoReady(mobileFocus, "/es/focus", async (p) => {
-      await p.getByText(/Sesión activa|restante|Pausar/i).first().waitFor({
-        timeout: 20_000,
-      });
-    }, "light");
+    await gotoReady(
+      mobileFocus,
+      "/es/focus",
+      async (p) => {
+        await p
+          .getByText(/Sesión activa|restante|Pausar/i)
+          .first()
+          .waitFor({
+            timeout: 20_000,
+          });
+      },
+      "light",
+    );
     await shot(mobileFocus, "17-mobile-focus.png", "light");
     await focusLiveMobile.context.close();
   } finally {
