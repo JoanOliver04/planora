@@ -81,10 +81,15 @@ export function FocusSessionProvider({
 
   const busRef = useRef<FocusSyncBus | null>(null);
   const seedRef = useRef(seed);
+  const controlModeRef = useRef(controlMode);
 
   useEffect(() => {
     seedRef.current = seed;
   }, [seed]);
+
+  useEffect(() => {
+    controlModeRef.current = controlMode;
+  }, [controlMode]);
 
   // Sync server-provided initial session without an effect.
   const incomingKey = sessionKey(initialSession);
@@ -129,12 +134,17 @@ export function FocusSessionProvider({
       }
 
       if (source === "broadcast" || source === "poll") {
-        setControlMode("follower");
-        if (source === "broadcast") {
-          toast.message(t("sync.updatedElsewhere"));
-        } else if (source === "poll") {
-          toast.message(t("sync.updatedElsewhere"));
+        const local = seedRef.current;
+        const sameOrOlder =
+          local &&
+          remote.id === local.id &&
+          remote.revision <= local.revision &&
+          controlModeRef.current === "controller";
+        if (sameOrOlder) {
+          return;
         }
+        setControlMode("follower");
+        toast.message(t("sync.updatedElsewhere"));
       }
     },
     [t],
@@ -286,6 +296,7 @@ export function FocusSessionProvider({
   useEffect(() => {
     const bus = createFocusSyncBus((event: FocusSyncEvent) => {
       if (event.type === "request_sync") {
+        if (controlModeRef.current !== "controller") return;
         const current = seedRef.current ?? engine.session;
         if (current && isActiveStatus(current.status)) {
           bus.publishSession(current, "session_updated");

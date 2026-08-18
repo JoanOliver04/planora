@@ -4,6 +4,7 @@ import {
   classifyDayPart,
   formatRecurrenceDescription,
   getExpectedTaskOccurrences,
+  getWeekRange,
   isTaskExpectedOnDate,
 } from "@/lib/recurrence";
 import { recurrenceConfigSchema } from "@/lib/validation/task";
@@ -70,6 +71,12 @@ describe("recurrence", () => {
       ),
     ).toBe(true);
   });
+  it("honours a Sunday week start", () => {
+    const week = getWeekRange("2026-08-12", 0);
+    expect(week.start.getDay()).toBe(0);
+    expect(week.end.getDay()).toBe(6);
+  });
+
   it("formats both locales", () => {
     expect(
       formatRecurrenceDescription({ type: "times_per_week", target: 3 }, "es"),

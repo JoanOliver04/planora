@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-351%20unit%20%2B%2040%20E2E-brightgreen?style=flat-square" alt="351 unit tests and 40 Playwright E2E tests" />
+  <img src="https://img.shields.io/badge/tests-359%20unit%20%2B%2040%20E2E-brightgreen?style=flat-square" alt="359 unit tests and 40 Playwright E2E tests" />
 </p>
 
 ---
@@ -320,7 +320,7 @@ CI runs lint, Prettier (`format:check`), typecheck, unit tests and production bu
 
 The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync, backup v4), forms, loading states, protected navigation, platform metadata, mobile authentication and the single-instance, automatic-only Analytics integration.
 
-Last verified on 2026-08-18: 61 Vitest files with 351 passing tests, 40 passing Playwright scenarios (with the authenticated Focus lifecycle intentionally run once on Chromium), a successful Next.js 16.3.1 production build and 0 known npm vulnerabilities.
+Last verified on 2026-08-18: 61 Vitest files with 359 passing tests, 40 passing Playwright scenarios (with the authenticated Focus lifecycle intentionally run once on Chromium), a successful Next.js 16.3.1 production build and 0 known npm vulnerabilities.
 
 Focus portfolio screenshots (light theme) live under `docs/images/13–17-*.png`. To regenerate them against a local production server with Supabase credentials in `.env.local`:
 

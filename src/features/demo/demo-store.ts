@@ -21,6 +21,7 @@ export type DemoEvent = {
 };
 export type DemoState = {
   version: 1;
+  locale?: "es" | "en";
   expiresAt: number;
   activeScheduleId: string;
   schedules: Array<{ id: string; name: string; emoji: string }>;
@@ -33,26 +34,66 @@ export type DemoState = {
 const day = (date: Date, offset: number) =>
   format(addDays(date, offset), "yyyy-MM-dd");
 
-export function createDemoState(now = new Date()): DemoState {
+const copy = {
+  es: {
+    scheduleNormal: "Normal",
+    scheduleFocus: "Semana de enfoque",
+    health: "Bienestar",
+    study: "Estudios",
+    work: "Trabajo",
+    personal: "Personal",
+    water: "Beber agua al despertar",
+    plan: "Revisar prioridades del día",
+    focus: "Sesión de trabajo profundo",
+    read: "Leer 20 minutos",
+    walk: "Paseo sin móvil",
+    review: "Revisión semanal",
+    presentation: "Presentación del proyecto",
+    dentist: "Dentista",
+  },
+  en: {
+    scheduleNormal: "Regular",
+    scheduleFocus: "Focus week",
+    health: "Wellbeing",
+    study: "Studies",
+    work: "Work",
+    personal: "Personal",
+    water: "Drink water after waking up",
+    plan: "Review today's priorities",
+    focus: "Deep work session",
+    read: "Read for 20 minutes",
+    walk: "Walk without a phone",
+    review: "Weekly review",
+    presentation: "Project presentation",
+    dentist: "Dentist",
+  },
+} as const;
+
+export function createDemoState(
+  now = new Date(),
+  locale: "es" | "en" = "es",
+): DemoState {
   const today = day(now, 0);
+  const text = copy[locale];
   return {
     version: 1,
+    locale,
     expiresAt: now.getTime() + DEMO_TTL,
     activeScheduleId: "schedule-normal",
     schedules: [
-      { id: "schedule-normal", name: "Normal", emoji: "🌿" },
-      { id: "schedule-focus", name: "Semana de enfoque", emoji: "🎯" },
+      { id: "schedule-normal", name: text.scheduleNormal, emoji: "🌿" },
+      { id: "schedule-focus", name: text.scheduleFocus, emoji: "🎯" },
     ],
     categories: [
-      { id: "health", name: "Bienestar", emoji: "🌱", color: "#4f6b45" },
-      { id: "study", name: "Estudios", emoji: "📚", color: "#2563eb" },
-      { id: "work", name: "Trabajo", emoji: "💼", color: "#7c3aed" },
-      { id: "personal", name: "Personal", emoji: "✨", color: "#c2410c" },
+      { id: "health", name: text.health, emoji: "🌱", color: "#4f6b45" },
+      { id: "study", name: text.study, emoji: "📚", color: "#2563eb" },
+      { id: "work", name: text.work, emoji: "💼", color: "#7c3aed" },
+      { id: "personal", name: text.personal, emoji: "✨", color: "#c2410c" },
     ],
     tasks: [
       {
         id: "water",
-        title: "Beber agua al despertar",
+        title: text.water,
         emoji: "💧",
         categoryId: "health",
         scheduleId: "schedule-normal",
@@ -61,7 +102,7 @@ export function createDemoState(now = new Date()): DemoState {
       },
       {
         id: "plan",
-        title: "Revisar prioridades del día",
+        title: text.plan,
         emoji: "🧭",
         categoryId: "work",
         scheduleId: "schedule-normal",
@@ -70,7 +111,7 @@ export function createDemoState(now = new Date()): DemoState {
       },
       {
         id: "focus",
-        title: "Sesión de trabajo profundo",
+        title: text.focus,
         emoji: "🎯",
         categoryId: "work",
         scheduleId: "schedule-normal",
@@ -79,7 +120,7 @@ export function createDemoState(now = new Date()): DemoState {
       },
       {
         id: "read",
-        title: "Leer 20 minutos",
+        title: text.read,
         emoji: "📖",
         categoryId: "study",
         scheduleId: "schedule-normal",
@@ -88,7 +129,7 @@ export function createDemoState(now = new Date()): DemoState {
       },
       {
         id: "walk",
-        title: "Paseo sin móvil",
+        title: text.walk,
         emoji: "🚶",
         categoryId: "health",
         scheduleId: "schedule-focus",
@@ -99,21 +140,21 @@ export function createDemoState(now = new Date()): DemoState {
     events: [
       {
         id: "review",
-        title: "Revisión semanal",
+        title: text.review,
         emoji: "📊",
         date: today,
         time: "17:30",
       },
       {
         id: "presentation",
-        title: "Presentación del proyecto",
+        title: text.presentation,
         emoji: "🚀",
         date: day(now, 2),
         time: "10:00",
       },
       {
         id: "dentist",
-        title: "Dentista",
+        title: text.dentist,
         emoji: "🦷",
         date: day(now, 4),
         time: "16:15",
@@ -139,7 +180,11 @@ export function createDemoState(now = new Date()): DemoState {
   };
 }
 
-export function parseDemoState(raw: string | null, now = Date.now()) {
+export function parseDemoState(
+  raw: string | null,
+  now = Date.now(),
+  locale?: "es" | "en",
+) {
   if (!raw) return null;
   try {
     const value = JSON.parse(raw) as Partial<DemoState>;
@@ -151,6 +196,7 @@ export function parseDemoState(raw: string | null, now = Date.now()) {
       !Array.isArray(value.events)
     )
       return null;
+    if (locale && value.locale && value.locale !== locale) return null;
     return value as DemoState;
   } catch {
     return null;

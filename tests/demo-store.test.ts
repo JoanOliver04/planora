@@ -19,11 +19,25 @@ describe("demo store", () => {
     expect(state.completions.length).toBeGreaterThanOrEqual(3);
   });
 
+  it("creates English sample copy when asked", () => {
+    const state = createDemoState(now, "en");
+    expect(state.locale).toBe("en");
+    expect(state.tasks[0].title).toBe("Drink water after waking up");
+    expect(state.schedules[1].name).toBe("Focus week");
+  });
+
   it("rejects expired and malformed persisted demos", () => {
     const state = createDemoState(now);
     expect(parseDemoState(JSON.stringify(state), now.getTime())).toEqual(state);
     expect(parseDemoState(JSON.stringify(state), state.expiresAt)).toBeNull();
     expect(parseDemoState("{broken", now.getTime())).toBeNull();
+    expect(
+      parseDemoState(
+        JSON.stringify({ ...state, locale: "es" }),
+        now.getTime(),
+        "en",
+      ),
+    ).toBeNull();
   });
 
   it("toggles completion without mutating the input state", () => {

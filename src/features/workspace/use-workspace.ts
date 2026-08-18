@@ -113,8 +113,8 @@ export function useWorkspace(mode: WorkspaceMode) {
       new Date(),
       profile.week_starts_on === 0 ? 0 : 1,
     );
-    const historyFrom = new Date(`${week.start}T00:00:00`);
-    historyFrom.setDate(historyFrom.getDate() - 90);
+    const historyFrom = new Date(`${week.start}T00:00:00Z`);
+    historyFrom.setUTCDate(historyFrom.getUTCDate() - 90);
     const needed = requirements[mode];
     const empty = Promise.resolve({ data: [], error: null });
     const eventsQuery = db.from("events").select("*").order("event_date");

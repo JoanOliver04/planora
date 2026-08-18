@@ -12,7 +12,12 @@ export type QueuedCompletion = {
   completed: boolean;
   snapshot: Json;
   queuedAt: string;
+  attempts?: number;
 };
+
+const MAX_FLUSH_ATTEMPTS = 8;
+const PERMANENT_ERROR =
+  /weekly target|invalid |not found|future occurrence|archived|check violation|23514|23505/i;
 const parseQueue = (): QueuedCompletion[] => {
   try {
     const value = JSON.parse(localStorage.getItem(queueKey) ?? "[]");
@@ -89,8 +94,17 @@ export async function flushCompletionQueue(
           .delete()
           .eq("task_id", item.taskId)
           .eq("occurrence_date", item.occurrenceDate);
-    if (result.error) remaining.push(item);
-    else synced += 1;
+    if (!result.error) {
+      synced += 1;
+      continue;
+    }
+    const message = `${result.error.code ?? ""} ${result.error.message ?? ""}`;
+    const attempts = (item.attempts ?? 0) + 1;
+    if (PERMANENT_ERROR.test(message) || attempts >= MAX_FLUSH_ATTEMPTS) {
+      conflicts += 1;
+      continue;
+    }
+    remaining.push({ ...item, attempts });
   }
   localStorage.setItem(queueKey, JSON.stringify(remaining));
   notify();

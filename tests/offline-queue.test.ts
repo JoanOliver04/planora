@@ -110,4 +110,30 @@ describe("offline queue", () => {
     expect(loadCachedWorkspace("other", "today")).toBeNull();
     expect(loadCachedWorkspace("user", "week")).toBeNull();
   });
+
+  it("drops permanently rejected completions instead of looping them", async () => {
+    enqueueCompletion({
+      userId: "user",
+      taskId: "task",
+      occurrenceDate: "2026-08-01",
+      completed: true,
+      snapshot: {},
+    });
+    const insert = vi.fn().mockResolvedValue({
+      error: { code: "23514", message: "Weekly target already reached" },
+    });
+    const builder: Record<string, unknown> = {};
+    builder.select = vi.fn(() => builder);
+    builder.eq = vi.fn(() => builder);
+    builder.maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: null, error: null });
+    const db = {
+      from: vi.fn(() => ({ ...builder, insert })),
+    } as unknown as SupabaseClient<Database>;
+    const result = await flushCompletionQueue(db, "user");
+    expect(result.conflicts).toBe(1);
+    expect(result.remaining).toBe(0);
+    expect(getQueuedCompletions("user")).toHaveLength(0);
+  });
 });

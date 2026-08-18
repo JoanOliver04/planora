@@ -6,7 +6,11 @@ import { z } from "zod";
 import { getTemplate } from "@/features/templates/catalog";
 import type { Json } from "@/types/database";
 import { nextDailyTrigger } from "@/features/reminders/schedule";
-import { parseBackup, prepareRestorePayload } from "@/features/backup/format";
+import {
+  MAX_BACKUP_BYTES,
+  parseBackup,
+  prepareRestorePayload,
+} from "@/features/backup/format";
 import {
   categorySchema,
   eventSchema,
@@ -734,6 +738,56 @@ export async function duplicateSchedule(value: string, includeTasks: boolean) {
     .single();
   if (createError) throw new Error("Unable to duplicate schedule");
   if (shouldIncludeTasks) {
+    const { data: scopedCategories, error: categoryError } = await db
+      .from("categories")
+      .select("*")
+      .eq("schedule_id", scheduleId)
+      .eq("user_id", user.id);
+    if (categoryError) {
+      await db
+        .from("schedules")
+        .delete()
+        .eq("id", copy.id)
+        .eq("user_id", user.id);
+      throw new Error("Unable to copy tasks");
+    }
+    const categoryMap = new Map<string, string>();
+    if (scopedCategories?.length) {
+      const { data: copiedCategories, error: copyCategoriesError } = await db
+        .from("categories")
+        .insert(
+          scopedCategories.map(
+            ({
+              id: _id,
+              created_at: _created,
+              updated_at: _updated,
+              ...category
+            }) => {
+              void _id;
+              void _created;
+              void _updated;
+              return {
+                ...category,
+                user_id: user.id,
+                schedule_id: copy.id,
+              };
+            },
+          ),
+        )
+        .select("id, name, colour, emoji");
+      if (copyCategoriesError || !copiedCategories) {
+        await db
+          .from("schedules")
+          .delete()
+          .eq("id", copy.id)
+          .eq("user_id", user.id);
+        throw new Error("Unable to copy tasks");
+      }
+      scopedCategories.forEach((source, index) => {
+        const replica = copiedCategories[index];
+        if (replica) categoryMap.set(source.id, replica.id);
+      });
+    }
     const { data: tasks, error: tasksError } = await db
       .from("tasks")
       .select("*")
@@ -762,6 +816,9 @@ export async function duplicateSchedule(value: string, includeTasks: boolean) {
               ...task,
               user_id: user.id,
               schedule_id: copy.id,
+              category_id: task.category_id
+                ? (categoryMap.get(task.category_id) ?? task.category_id)
+                : task.category_id,
               archived_at: null,
               is_active: true,
             };
@@ -797,6 +854,12 @@ export async function deleteEmptySchedule(value: string) {
 }
 
 export async function restoreBackup(input: unknown) {
+  if (
+    typeof input === "string" &&
+    new TextEncoder().encode(input).length > MAX_BACKUP_BYTES
+  ) {
+    throw new Error("Invalid or incompatible backup");
+  }
   const parsed = parseBackup(input);
   if (!parsed.success) throw new Error("Invalid or incompatible backup");
   const { db } = await auth();

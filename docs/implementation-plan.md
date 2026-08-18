@@ -7,4 +7,4 @@
 5. Polish mobile Today, responsive Week, settings, themes and accessibility.
 6. Verify with lint, type checking, Vitest, Playwright and production build.
 
-Assumptions: Monday weeks; Europe/Madrid fallback; intervals preserve their local anchor; monthly intervals clamp to the last day; cross-midnight task ranges are rejected in MVP; events are one-time; tasks with history archive instead of hard-delete.
+Assumptions: weeks follow the user's week_starts_on (Sunday or Monday); Europe/Madrid fallback; intervals preserve their local anchor; monthly intervals clamp to the last day; cross-midnight task ranges are rejected in MVP; events are one-time; tasks with history archive instead of hard-delete.

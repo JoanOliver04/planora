@@ -91,27 +91,47 @@ export async function persistFocusSession(
       }
       throw new FocusError("DATABASE_ERROR", "Unable to create focus session");
     }
-  } else {
-    const { data, error } = await db
-      .from("focus_sessions")
-      .update(payload)
-      .eq("id", next.id)
-      .eq("user_id", next.userId)
-      .eq("revision", previous.revision)
-      .select("id")
-      .maybeSingle();
-    if (error) {
-      throw new FocusError("DATABASE_ERROR", "Unable to update focus session");
+    try {
+      await syncIntervals(db, previous, next);
+    } catch (error) {
+      await db
+        .from("focus_sessions")
+        .delete()
+        .eq("id", next.id)
+        .eq("user_id", next.userId);
+      throw error;
     }
-    if (!data) {
-      throw new FocusError(
-        "REVISION_CONFLICT",
-        "This focus session was updated elsewhere. Reload and try again.",
-      );
-    }
+    return;
   }
 
-  await syncIntervals(db, previous, next);
+  const { data, error } = await db
+    .from("focus_sessions")
+    .update(payload)
+    .eq("id", next.id)
+    .eq("user_id", next.userId)
+    .eq("revision", previous.revision)
+    .select("id")
+    .maybeSingle();
+  if (error) {
+    throw new FocusError("DATABASE_ERROR", "Unable to update focus session");
+  }
+  if (!data) {
+    throw new FocusError(
+      "REVISION_CONFLICT",
+      "This focus session was updated elsewhere. Reload and try again.",
+    );
+  }
+
+  try {
+    await syncIntervals(db, previous, next);
+  } catch (error) {
+    await db
+      .from("focus_sessions")
+      .update(sessionToRowPayload(previous))
+      .eq("id", previous.id)
+      .eq("user_id", previous.userId);
+    throw error;
+  }
 }
 
 async function syncIntervals(

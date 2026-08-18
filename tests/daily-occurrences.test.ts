@@ -146,6 +146,39 @@ describe("daily occurrences", () => {
     );
   });
 
+  it("blocks extra times-per-week toggles after the weekly target", () => {
+    const weekly = task({
+      id: "weekly",
+      recurrence_type: "times_per_week",
+      recurrence_config: { type: "times_per_week", target: 2 },
+      start_date: "2026-08-10",
+    });
+    const completions = [
+      {
+        id: "1",
+        user_id: "user",
+        task_id: "weekly",
+        occurrence_date: "2026-08-10",
+        completed_at: "2026-08-10T10:00:00Z",
+        task_snapshot: {},
+      },
+      {
+        id: "2",
+        user_id: "user",
+        task_id: "weekly",
+        occurrence_date: "2026-08-11",
+        completed_at: "2026-08-11T10:00:00Z",
+        task_snapshot: {},
+      },
+    ];
+    expect(
+      canToggleOccurrence(weekly, "2026-08-12", "2026-08-14", completions, 1),
+    ).toBe(false);
+    expect(
+      canToggleOccurrence(weekly, "2026-08-11", "2026-08-14", completions, 1),
+    ).toBe(true);
+  });
+
   it("keeps historical and current completion progress independent", () => {
     const recurring = {
       startDate: "2026-08-01",

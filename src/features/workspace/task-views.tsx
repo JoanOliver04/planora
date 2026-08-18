@@ -70,7 +70,15 @@ async function toggle(
   reload: () => Promise<void>,
   errorMessage: string,
 ) {
-  if (!canToggleOccurrence(task, day, localDate(data.profile.timezone))) {
+  if (
+    !canToggleOccurrence(
+      task,
+      day,
+      localDate(data.profile.timezone),
+      data.completions,
+      data.profile.week_starts_on === 0 ? 0 : 1,
+    )
+  ) {
     toast.error(errorMessage);
     return false;
   }
@@ -200,7 +208,12 @@ export function TodayView({
           .map((item) => item.occurrence_date),
       ]),
     ),
-    stats = calculateWeeklyProgress(recurring, completionMap, day),
+    stats = calculateWeeklyProgress(
+      recurring,
+      completionMap,
+      day,
+      data.profile.week_starts_on === 0 ? 0 : 1,
+    ),
     remaining = Math.max(stats.expected - stats.completed, 0),
     progressCopy =
       stats.expected === 0

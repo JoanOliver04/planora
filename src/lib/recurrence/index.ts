@@ -59,13 +59,17 @@ export function getExpectedTaskOccurrences(
     isTaskExpectedOnDate(task, d),
   );
 }
-export function getWeekRange(on: string | Date) {
-  const start = startOfWeek(date(on), { weekStartsOn: 1 });
-  return { start, end: endOfWeek(start, { weekStartsOn: 1 }) };
+export function getWeekRange(on: string | Date, weekStartsOn: 0 | 1 = 1) {
+  const start = startOfWeek(date(on), { weekStartsOn });
+  return { start, end: endOfWeek(start, { weekStartsOn }) };
 }
-export function getWeeklyTarget(task: RecurringTask, week: string | Date) {
+export function getWeeklyTarget(
+  task: RecurringTask,
+  week: string | Date,
+  weekStartsOn: 0 | 1 = 1,
+) {
   if (task.recurrence.type === "times_per_week") return task.recurrence.target;
-  const w = getWeekRange(week);
+  const w = getWeekRange(week, weekStartsOn);
   return getExpectedTaskOccurrences(task, w.start, w.end).length;
 }
 export function calculateWeeklyProgress(
@@ -74,6 +78,7 @@ export function calculateWeeklyProgress(
     | Map<RecurringTask, string[]>
     | Array<{ task: RecurringTask; dates: string[] }>,
   week: string | Date,
+  weekStartsOn: 0 | 1 = 1,
 ) {
   const entries =
     completionDates instanceof Map
@@ -82,10 +87,10 @@ export function calculateWeeklyProgress(
   let expected = 0,
     completed = 0;
   for (const task of tasks) {
-    const target = getWeeklyTarget(task, week);
+    const target = getWeeklyTarget(task, week, weekStartsOn);
     expected += target;
     const record = entries.find(([t]) => t === task);
-    const w = getWeekRange(week);
+    const w = getWeekRange(week, weekStartsOn);
     const count = new Set(
       (record?.[1] ?? []).filter((x) => {
         const d = date(x);

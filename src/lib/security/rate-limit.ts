@@ -29,9 +29,11 @@ export function rateLimit(key: string, limit = 10, windowMs = 60_000) {
 }
 
 export function requestKey(request: Request, scope: string) {
+  // Prefer the platform-controlled forwarded list. x-real-ip is easy to spoof
+  // when the edge does not overwrite it.
   const candidate =
-    request.headers.get("x-real-ip") ??
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
     "unknown";
   const normalized = /^[0-9a-f:.]{1,64}$/i.test(candidate)
     ? candidate.toLowerCase()

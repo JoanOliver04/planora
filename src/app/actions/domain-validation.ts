@@ -53,21 +53,22 @@ export const eventSchema = z
       });
   });
 
+const timezoneSchema = z
+  .string()
+  .min(1)
+  .max(100)
+  .refine((value) => {
+    try {
+      Intl.DateTimeFormat(undefined, { timeZone: value });
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Invalid timezone");
+
 export const profileSchema = z.object({
   locale: z.enum(["es", "en"]).optional(),
-  timezone: z
-    .string()
-    .min(1)
-    .max(100)
-    .refine((value) => {
-      try {
-        Intl.DateTimeFormat(undefined, { timeZone: value });
-        return true;
-      } catch {
-        return false;
-      }
-    }, "Invalid timezone")
-    .optional(),
+  timezone: timezoneSchema.optional(),
   theme: z.enum(["light", "dark", "system"]).optional(),
   week_starts_on: z.number().int().min(0).max(6).optional(),
   day_part_settings: dayPartSettingsSchema.optional(),
@@ -79,7 +80,7 @@ export const profileSchema = z.object({
 export const guidedOnboardingSchema = z.object({
   goal: z.enum(["studies", "work", "habits", "personal"]),
   scheduleName: z.string().trim().min(1).max(80),
-  timezone: z.string().min(1).max(100),
+  timezone: timezoneSchema,
   weekStart: z.union([z.literal(0), z.literal(1)]),
   accent: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   skip: z.boolean().default(false),

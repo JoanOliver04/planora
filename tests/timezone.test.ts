@@ -12,6 +12,11 @@ describe("timezone dates", () => {
     expect(w.end).toBe("2026-08-02");
     expect(w.days).toHaveLength(7);
   });
+  it("uses Sunday week boundaries when requested", () => {
+    const w = localWeek("Europe/Madrid", new Date("2026-07-29T12:00:00Z"), 0);
+    expect(w.start).toBe("2026-07-26");
+    expect(w.end).toBe("2026-08-01");
+  });
   it("handles winter offset", () =>
     expect(localDate("Europe/Madrid", new Date("2026-01-01T23:30:00Z"))).toBe(
       "2026-01-02",

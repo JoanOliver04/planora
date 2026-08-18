@@ -1,14 +1,6 @@
-import {
-  addDays,
-  differenceInCalendarDays,
-  format,
-  parseISO,
-  startOfMonth,
-  subDays,
-} from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import type { WorkspaceData } from "@/features/workspace/types";
-import { localDate } from "@/lib/dates/timezone";
+import { localDate, localWeek } from "@/lib/dates/timezone";
 
 export type ActivityDay = { date: string; count: number; level: number };
 export type Statistics = {
@@ -29,7 +21,12 @@ export type Statistics = {
   }>;
   heatmap: ActivityDay[];
 };
-const iso = (date: Date) => format(date, "yyyy-MM-dd");
+function addCalendarDays(value: string, days: number) {
+  const [year, month, day] = value.split("-").map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + days));
+  return next.toISOString().slice(0, 10);
+}
+
 const change = (current: number, previous: number) =>
   previous
     ? Math.round(((current - previous) / previous) * 100)
@@ -42,7 +39,13 @@ export function calculateStatistics(
   now = new Date(),
 ): Statistics {
   const today = localDate(data.profile.timezone, now);
-  const todayDate = parseISO(today);
+  const weekStartsOn = data.profile.week_starts_on === 0 ? 0 : 1;
+  const week = localWeek(data.profile.timezone, now, weekStartsOn);
+  const previousWeekEnd = addCalendarDays(week.start, -1);
+  const previousWeekStart = addCalendarDays(previousWeekEnd, -6);
+  const monthStart = `${today.slice(0, 8)}01`;
+  const previousMonthEnd = addCalendarDays(monthStart, -1);
+  const previousMonthStart = `${previousMonthEnd.slice(0, 8)}01`;
   const completions = [
     ...new Map(
       data.completions.map((item) => [
@@ -51,20 +54,13 @@ export function calculateStatistics(
       ]),
     ).values(),
   ];
-  const weekday = (todayDate.getDay() + 6) % 7;
-  const weekStart = subDays(todayDate, weekday);
-  const previousWeekStart = subDays(weekStart, 7);
-  const monthStart = startOfMonth(todayDate);
-  const previousMonthEnd = subDays(monthStart, 1);
-  const previousMonthStart = startOfMonth(previousMonthEnd);
-  const between = (from: Date, to: Date) =>
+  const between = (from: string, to: string) =>
     completions.filter(
-      (item) =>
-        item.occurrence_date >= iso(from) && item.occurrence_date <= iso(to),
+      (item) => item.occurrence_date >= from && item.occurrence_date <= to,
     ).length;
-  const weekCurrent = between(weekStart, todayDate);
-  const weekPrevious = between(previousWeekStart, subDays(weekStart, 1));
-  const monthCurrent = between(monthStart, todayDate);
+  const weekCurrent = between(week.start, today);
+  const weekPrevious = between(previousWeekStart, previousWeekEnd);
+  const monthCurrent = between(monthStart, today);
   const monthPrevious = between(previousMonthStart, previousMonthEnd);
   const counts = new Map<string, number>();
   completions.forEach((item) =>
@@ -78,25 +74,22 @@ export function calculateStatistics(
     run = 0,
     prior = "";
   for (const date of activeDates) {
-    run =
-      prior && differenceInCalendarDays(parseISO(date), parseISO(prior)) === 1
-        ? run + 1
-        : 1;
+    run = prior && addCalendarDays(prior, 1) === date ? run + 1 : 1;
     bestStreak = Math.max(bestStreak, run);
     prior = date;
   }
   let streak = 0;
   for (
-    let cursor = todayDate;
-    counts.has(iso(cursor));
-    cursor = subDays(cursor, 1)
+    let cursor = today;
+    counts.has(cursor);
+    cursor = addCalendarDays(cursor, -1)
   )
     streak += 1;
-  if (!streak && counts.has(iso(subDays(todayDate, 1)))) {
+  if (!streak && counts.has(addCalendarDays(today, -1))) {
     for (
-      let cursor = subDays(todayDate, 1);
-      counts.has(iso(cursor));
-      cursor = subDays(cursor, 1)
+      let cursor = addCalendarDays(today, -1);
+      counts.has(cursor);
+      cursor = addCalendarDays(cursor, -1)
     )
       streak += 1;
   }
@@ -150,7 +143,7 @@ export function calculateStatistics(
     percentage: Math.round((dayPartCounts[key] / total) * 100),
   }));
   const heatmap = Array.from({ length: 91 }, (_, index) => {
-    const date = iso(addDays(subDays(todayDate, 90), index));
+    const date = addCalendarDays(today, index - 90);
     const count = counts.get(date) ?? 0;
     return {
       date,

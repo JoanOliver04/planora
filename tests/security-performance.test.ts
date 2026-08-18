@@ -33,6 +33,13 @@ const rateLimitMigration = readFileSync(
   ),
   "utf8",
 );
+const restoreWeekMigration = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260818190000_restore_week_start_and_focus.sql",
+  ),
+  "utf8",
+);
 
 describe("security and performance architecture", () => {
   it("never stores authenticated navigations in the service-worker cache", () => {
@@ -84,5 +91,12 @@ describe("security and performance architecture", () => {
     expect(rateLimitMigration).toContain("security definer");
     expect(rateLimitMigration).toContain("to service_role");
     expect(rateLimitMigration).toContain("on conflict (key_hash) do update");
+  });
+
+  it("terminalizes live Focus sessions and respects week start on restore", () => {
+    expect(restoreWeekMigration).toContain("planora.restoring");
+    expect(restoreWeekMigration).toContain("week_starts_on");
+    expect(restoreWeekMigration).toContain("status = 'cancelled'");
+    expect(restoreWeekMigration).toContain("ended_at is null");
   });
 });

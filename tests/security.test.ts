@@ -7,6 +7,8 @@ import {
 } from "@/lib/security/request";
 import { isPrivateAppPath } from "@/lib/security/routes";
 import { contentSecurityPolicy } from "@/lib/security/csp";
+import { requestKey } from "@/lib/security/rate-limit";
+import { guidedOnboardingSchema } from "@/app/actions/domain-validation";
 
 describe("security boundaries", () => {
   it("allows internal redirect paths with query strings", () => {
@@ -52,8 +54,34 @@ describe("security boundaries", () => {
     expect(isPrivateAppPath("/es/tasks/new")).toBe(true);
     expect(isPrivateAppPath("/es/focus")).toBe(true);
     expect(isPrivateAppPath("/en/focus")).toBe(true);
+    expect(isPrivateAppPath("/es/month")).toBe(true);
+    expect(isPrivateAppPath("/en/search")).toBe(true);
+    expect(isPrivateAppPath("/es/summary")).toBe(true);
     expect(isPrivateAppPath("/es/privacy")).toBe(false);
     expect(isPrivateAppPath("/en/demo/today")).toBe(false);
+  });
+
+  it("prefers the forwarded client address over a spoofable real-ip header", () => {
+    const request = new Request("https://planora.app/api/telemetry", {
+      headers: {
+        "x-real-ip": "1.2.3.4",
+        "x-forwarded-for": "9.9.9.9, 10.0.0.1",
+      },
+    });
+    expect(requestKey(request, "telemetry")).toBe("telemetry:9.9.9.9");
+  });
+
+  it("rejects an invalid onboarding timezone before it reaches SQL", () => {
+    expect(() =>
+      guidedOnboardingSchema.parse({
+        goal: "habits",
+        scheduleName: "Rutina",
+        timezone: "Not/AZone",
+        weekStart: 1,
+        accent: "#4f6b45",
+        skip: false,
+      }),
+    ).toThrow();
   });
 
   it("blocks script attributes and limits executable scripts to the app", () => {

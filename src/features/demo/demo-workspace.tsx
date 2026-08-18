@@ -126,24 +126,27 @@ export function DemoWorkspace({
   view: View;
 }) {
   const copy = labels[locale],
-    [state, setState] = useState(() => createDemoState()),
+    [state, setState] = useState(() => createDemoState(new Date(), locale)),
     [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     queueMicrotask(() => {
       setState(
-        parseDemoState(localStorage.getItem(DEMO_STORAGE_KEY)) ??
-          createDemoState(),
+        parseDemoState(
+          localStorage.getItem(DEMO_STORAGE_KEY),
+          Date.now(),
+          locale,
+        ) ?? createDemoState(new Date(), locale),
       );
       setHydrated(true);
     });
-  }, []);
+  }, [locale]);
   useEffect(() => {
     if (hydrated) localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state));
   }, [hydrated, state]);
   useEffect(() => {
     const remaining = state.expiresAt - Date.now();
     const timer = window.setTimeout(
-      () => setState(createDemoState()),
+      () => setState(createDemoState(new Date(), locale)),
       Math.max(0, Math.min(remaining, 2_147_483_647)),
     );
     return () => window.clearTimeout(timer);
@@ -163,7 +166,7 @@ export function DemoWorkspace({
       (item) => item.date === today,
     ).length;
   function reset() {
-    const fresh = createDemoState();
+    const fresh = createDemoState(new Date(), locale);
     setState(fresh);
     localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(fresh));
   }

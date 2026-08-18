@@ -213,7 +213,12 @@ export function useFocusSession(
           }
           // Network-ish failure while browser still thinks it is online:
           // queue for later instead of losing the transition.
-          if (code === "DATABASE_ERROR" || code === "UNAUTHORIZED") {
+          if (code === "UNAUTHORIZED") {
+            toast.error(t("engine.persistError"));
+            router.refresh();
+            return;
+          }
+          if (code === "DATABASE_ERROR") {
             enqueueFocusTransition({
               userId: current.userId,
               actionId,
@@ -318,11 +323,15 @@ export function useFocusSession(
       });
       if (cancelled) return;
       if (!result?.ok) {
-        // Network loss: still project recovered state locally for display.
-        setSession(prep.session);
-        sessionRef.current = prep.session;
+        const code = result && !result.ok ? result.error.code : null;
+        if (code === "REVISION_CONFLICT" || code === "UNAUTHORIZED") {
+          router.refresh();
+          return;
+        }
+        // Keep the last server snapshot. Projecting a recovered revision
+        // locally would poison the next write.
         setRecoveredNotice(true);
-        optionsRef.current.onRecovered?.(prep.session);
+        optionsRef.current.onRecovered?.(current);
         setNow(Date.now());
         return;
       }
