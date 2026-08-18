@@ -150,7 +150,7 @@ export function DemoWorkspace({
       Math.max(0, Math.min(remaining, 2_147_483_647)),
     );
     return () => window.clearTimeout(timer);
-  }, [state.expiresAt]);
+  }, [locale, state.expiresAt]);
   if (!hydrated)
     return (
       <main className="main">

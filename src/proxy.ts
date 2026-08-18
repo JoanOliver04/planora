@@ -8,14 +8,9 @@ import { NextRequest } from "next/server";
 const intl = createMiddleware(routing);
 
 export async function proxy(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
-  const forwarded = new NextRequest(request, { headers: requestHeaders });
-
   const privatePath = isPrivateAppPath(request.nextUrl.pathname);
   const auth = await updateSession(request);
-  const localized = intl(forwarded);
+  const localized = intl(request);
   if (auth)
     auth.cookies.getAll().forEach((cookie) => localized.cookies.set(cookie));
   if (privatePath) {
@@ -23,6 +18,9 @@ export async function proxy(request: NextRequest) {
     localized.headers.set("CDN-Cache-Control", "no-store");
     localized.headers.set("Vercel-CDN-Cache-Control", "no-store");
   }
+  // Next 16 does not stamp a per-request nonce onto its inline hydration
+  // scripts (__next_f), so a nonce-only script-src blocks the app. Keep
+  // the rest of the policy; allow those framework scripts to run.
   localized.headers.set(
     "Content-Security-Policy",
     contentSecurityPolicy({
@@ -30,7 +28,6 @@ export async function proxy(request: NextRequest) {
       enforceHttps:
         process.env.VERCEL === "1" ||
         process.env.PLANORA_FORCE_HTTPS === "true",
-      nonce,
     }),
   );
   return localized;

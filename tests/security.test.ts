@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { safeRedirectPath } from "@/lib/security/redirect";
 import {
@@ -95,5 +97,12 @@ describe("security boundaries", () => {
     const policy = contentSecurityPolicy({ nonce: "abc123" });
     expect(policy).toContain("'nonce-abc123'");
     expect(policy).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+  });
+
+  it("serves a hydratable CSP because Next 16 does not stamp script nonces", () => {
+    const proxy = readFileSync(join(process.cwd(), "src/proxy.ts"), "utf8");
+    expect(proxy).toContain("contentSecurityPolicy({");
+    expect(proxy).not.toMatch(/contentSecurityPolicy\(\{[\s\S]*nonce,/);
+    expect(contentSecurityPolicy()).toMatch(/script-src[^;]*'unsafe-inline'/);
   });
 });
