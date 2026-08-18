@@ -18,7 +18,7 @@ The in-process limiter is deliberately lightweight and applies per serverless in
 
 ## Revalidation — 2026-08-18
 
-- ESLint, strict TypeScript, Prettier and the Next.js 16.2.12 production build pass.
+- ESLint, strict TypeScript, Prettier and the Next.js 16.3.1 production build pass.
 - Vitest: 61 files and 351 tests pass.
 - Playwright: 40 scenarios pass; the two reported skips are the authenticated Focus lifecycle intentionally limited to Chromium after passing there.
 - `npm audit`, including development dependencies: 0 known vulnerabilities.

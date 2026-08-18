@@ -1049,7 +1049,7 @@ export function SettingsView({
             return;
           }
           await clearPrivateOfflineData(data.user.id);
-          location.href = `/${locale}/login`;
+          router.replace("/login", { locale });
         }}
       />
       <Alert.Root open={danger} onOpenChange={setDanger}>
@@ -1077,7 +1077,7 @@ export function SettingsView({
                   });
                   if (r.ok) {
                     await clearPrivateOfflineData(data.user.id);
-                    location.href = `/${locale}/login`;
+                    router.replace("/login", { locale });
                   } else toast.error(t("error"));
                 }}
               >

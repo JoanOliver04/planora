@@ -2,6 +2,7 @@
 import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "@/i18n/routing";
 import { advanceTrigger } from "@/features/reminders/schedule";
 import { loadNotificationPreferences } from "@/features/reminders/preferences";
 import type { Database } from "@/types/database";
@@ -51,6 +52,7 @@ function playAlarmSound() {
 }
 
 export function ReminderScheduler({ locale }: { locale: string }) {
+  const router = useRouter();
   const check = useCallback(async () => {
     if (!navigator.onLine) return;
     const db = createClient();
@@ -139,12 +141,9 @@ export function ReminderScheduler({ locale }: { locale: string }) {
                     ? "Abrir"
                     : "Open",
               onClick: () => {
-                location.href =
-                  "/" +
-                  locale +
-                  (reminder.kind === "daily_summary"
-                    ? "/summary"
-                    : "/reminders");
+                router.push(
+                  reminder.kind === "daily_summary" ? "/summary" : "/reminders",
+                );
               },
             },
           });
@@ -204,7 +203,7 @@ export function ReminderScheduler({ locale }: { locale: string }) {
       }
     }
     window.dispatchEvent(new CustomEvent("planora-reminders-updated"));
-  }, [locale]);
+  }, [locale, router]);
 
   useEffect(() => {
     const run = () => void check();
