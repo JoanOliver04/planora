@@ -6,6 +6,7 @@ import { mapSessionRow } from "@/features/focus/mappers";
 import type { FocusSession } from "@/features/focus/types";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
+import { ReminderScheduler } from "@/components/reminder-scheduler";
 
 export default async function PrivateLayout({
   children,
@@ -63,6 +64,7 @@ export default async function PrivateLayout({
       messages={messages}
       timeZone={profile?.timezone ?? "Europe/Madrid"}
     >
+      <ReminderScheduler locale={locale} />
       {!profile?.onboarding_completed && (
         <GuidedOnboarding locale={locale as "es" | "en"} />
       )}
