@@ -114,6 +114,7 @@ test("mobile More navigation reaches every secondary area naturally", async ({
     await page.setViewportSize({ width: 320, height: 700 });
     for (const route of authenticatedRoutes) {
       await page.goto(`/es/${route}`);
+      await expect(page).toHaveURL(new RegExp(`/es/${route}(?:[/?#]|$)`));
       await expect(page.locator("#main-content")).toBeVisible();
       await expect(page.getByText("Algo no ha salido bien.")).toHaveCount(0);
       expect(
@@ -126,6 +127,9 @@ test("mobile More navigation reaches every secondary area naturally", async ({
       ).toBe(true);
 
       if (route === "today") {
+        await expect(page.locator(".today-header")).toBeVisible({
+          timeout: 15_000,
+        });
         const heading = await page
           .locator(".today-header > div")
           .first()

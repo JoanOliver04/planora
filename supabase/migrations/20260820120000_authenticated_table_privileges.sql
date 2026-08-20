@@ -19,5 +19,9 @@ to authenticated;
 
 grant select on table public.template_imports to authenticated;
 
-grant select, insert, update on table public.task_occurrence_state
+grant select, insert, update, delete on table public.task_occurrence_state
 to authenticated;
+
+create policy occurrence_state_delete on public.task_occurrence_state
+  for delete to authenticated
+  using ((select auth.uid()) = user_id);

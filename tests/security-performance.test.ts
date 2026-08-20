@@ -130,6 +130,9 @@ describe("security and performance architecture", () => {
     expect(authenticatedPrivilegesMigration).toContain(
       "public.task_occurrence_state",
     );
+    expect(authenticatedPrivilegesMigration).toContain(
+      "create policy occurrence_state_delete",
+    );
     expect(authenticatedPrivilegesMigration).not.toContain(
       "public.request_rate_limits",
     );
