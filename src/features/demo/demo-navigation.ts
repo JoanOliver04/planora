@@ -1,0 +1,38 @@
+import {
+  BarChart3,
+  BellRing,
+  CalendarDays,
+  CalendarRange,
+  Clock3,
+  DatabaseBackup,
+  FolderKanban,
+  History,
+  LayoutList,
+  LibraryBig,
+  MoreHorizontal,
+  Search,
+  Settings,
+  Tags,
+  Timer,
+  type LucideIcon,
+} from "lucide-react";
+import type { DemoView } from "./demo-views";
+
+export const demoIcons: Record<DemoView, LucideIcon> = {
+  today: Clock3,
+  week: CalendarDays,
+  month: CalendarRange,
+  search: Search,
+  tasks: LayoutList,
+  focus: Timer,
+  events: CalendarDays,
+  history: History,
+  statistics: BarChart3,
+  reminders: BellRing,
+  schedules: FolderKanban,
+  categories: Tags,
+  templates: LibraryBig,
+  settings: Settings,
+  data: DatabaseBackup,
+  more: MoreHorizontal,
+};

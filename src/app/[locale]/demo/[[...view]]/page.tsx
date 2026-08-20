@@ -1,24 +1,7 @@
 import { notFound } from "next/navigation";
 import { DemoWorkspace } from "@/features/demo/demo-workspace";
-
-const views = [
-  "today",
-  "week",
-  "month",
-  "search",
-  "tasks",
-  "focus",
-  "events",
-  "history",
-  "statistics",
-  "reminders",
-  "schedules",
-  "categories",
-  "templates",
-  "settings",
-  "data",
-  "more",
-] as const;
+import { createDemoState } from "@/features/demo/demo-store";
+import { isDemoView } from "@/features/demo/demo-views";
 
 export default async function DemoPage({
   params,
@@ -27,12 +10,12 @@ export default async function DemoPage({
 }) {
   const { locale, view } = await params;
   const selected = view?.[0] ?? "today";
-  if (
-    (locale !== "es" && locale !== "en") ||
-    !views.includes(selected as (typeof views)[number])
-  )
-    notFound();
+  if ((locale !== "es" && locale !== "en") || !isDemoView(selected)) notFound();
   return (
-    <DemoWorkspace locale={locale} view={selected as (typeof views)[number]} />
+    <DemoWorkspace
+      initialState={createDemoState(new Date(), locale)}
+      locale={locale}
+      view={selected}
+    />
   );
 }

@@ -5,6 +5,7 @@ import {
   parseDemoState,
   toggleDemoCompletion,
 } from "@/features/demo/demo-store";
+import { getMonthGridCellCount, isDemoView } from "@/features/demo/demo-views";
 
 describe("demo store", () => {
   const now = new Date("2026-08-01T10:00:00.000Z");
@@ -30,7 +31,26 @@ describe("demo store", () => {
     const state = createDemoState(now);
     expect(parseDemoState(JSON.stringify(state), now.getTime())).toEqual(state);
     expect(parseDemoState(JSON.stringify(state), state.expiresAt)).toBeNull();
+    expect(
+      parseDemoState(
+        JSON.stringify({ ...state, expiresAt: now.getTime() + DEMO_TTL + 1 }),
+        now.getTime(),
+      ),
+    ).toBeNull();
     expect(parseDemoState("{broken", now.getTime())).toBeNull();
+    expect(
+      parseDemoState(
+        JSON.stringify({ ...state, completions: "invalid" }),
+        now.getTime(),
+      ),
+    ).toBeNull();
+    expect(
+      parseDemoState(
+        JSON.stringify({ ...state, categories: [{ name: "Incomplete" }] }),
+        now.getTime(),
+      ),
+    ).toBeNull();
+    expect(parseDemoState("x".repeat(250_001), now.getTime())).toBeNull();
     expect(
       parseDemoState(
         JSON.stringify({ ...state, locale: "es" }),
@@ -38,6 +58,13 @@ describe("demo store", () => {
         "en",
       ),
     ).toBeNull();
+  });
+
+  it("keeps demo routing and six-week months complete", () => {
+    expect(isDemoView("focus")).toBe(true);
+    expect(isDemoView("unknown")).toBe(false);
+    expect(getMonthGridCellCount(5, 31)).toBe(42);
+    expect(getMonthGridCellCount(0, 28)).toBe(28);
   });
 
   it("toggles completion without mutating the input state", () => {

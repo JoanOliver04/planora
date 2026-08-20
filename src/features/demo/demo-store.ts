@@ -2,6 +2,8 @@ import { addDays, format } from "date-fns";
 
 export const DEMO_TTL = 24 * 60 * 60 * 1000;
 export const DEMO_STORAGE_KEY = "planora-demo-v1";
+const MAX_DEMO_STORAGE_BYTES = 250_000;
+const MAX_DEMO_ITEMS = 2_000;
 
 export type DemoTask = {
   id: string;
@@ -185,15 +187,24 @@ export function parseDemoState(
   now = Date.now(),
   locale?: "es" | "en",
 ) {
-  if (!raw) return null;
+  if (!raw || raw.length > MAX_DEMO_STORAGE_BYTES) return null;
   try {
-    const value = JSON.parse(raw) as Partial<DemoState>;
+    const value: unknown = JSON.parse(raw);
     if (
+      !isRecord(value) ||
       value.version !== 1 ||
-      typeof value.expiresAt !== "number" ||
+      !isFiniteNumber(value.expiresAt) ||
       value.expiresAt <= now ||
-      !Array.isArray(value.tasks) ||
-      !Array.isArray(value.events)
+      value.expiresAt > now + DEMO_TTL ||
+      !isText(value.activeScheduleId) ||
+      (value.locale !== undefined &&
+        value.locale !== "es" &&
+        value.locale !== "en") ||
+      !isArrayOf(value.schedules, isSchedule) ||
+      !isArrayOf(value.categories, isCategory) ||
+      !isArrayOf(value.tasks, isTask) ||
+      !isArrayOf(value.events, isEvent) ||
+      !isArrayOf(value.completions, isCompletion)
     )
       return null;
     if (locale && value.locale && value.locale !== locale) return null;
@@ -201,6 +212,85 @@ export function parseDemoState(
   } catch {
     return null;
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isText(value: unknown, maxLength = 500): value is string {
+  return typeof value === "string" && value.length <= maxLength;
+}
+
+function isArrayOf<T>(
+  value: unknown,
+  predicate: (item: unknown) => item is T,
+): value is T[] {
+  return (
+    Array.isArray(value) &&
+    value.length <= MAX_DEMO_ITEMS &&
+    value.every(predicate)
+  );
+}
+
+function isSchedule(value: unknown): value is DemoState["schedules"][number] {
+  return (
+    isRecord(value) &&
+    isText(value.id, 100) &&
+    isText(value.name) &&
+    isText(value.emoji, 32)
+  );
+}
+
+function isCategory(value: unknown): value is DemoState["categories"][number] {
+  return (
+    isRecord(value) &&
+    isText(value.id, 100) &&
+    isText(value.name) &&
+    isText(value.emoji, 32) &&
+    isText(value.color, 32)
+  );
+}
+
+function isTask(value: unknown): value is DemoTask {
+  return (
+    isRecord(value) &&
+    isText(value.id, 100) &&
+    isText(value.title) &&
+    isText(value.emoji, 32) &&
+    isText(value.categoryId, 100) &&
+    isText(value.scheduleId, 100) &&
+    ["morning", "afternoon", "night", "anytime"].includes(
+      String(value.dayPart),
+    ) &&
+    typeof value.archived === "boolean"
+  );
+}
+
+function isEvent(value: unknown): value is DemoEvent {
+  return (
+    isRecord(value) &&
+    isText(value.id, 100) &&
+    isText(value.title) &&
+    isText(value.emoji, 32) &&
+    isText(value.date, 32) &&
+    (value.time === undefined || isText(value.time, 16))
+  );
+}
+
+function isCompletion(
+  value: unknown,
+): value is DemoState["completions"][number] {
+  return (
+    isRecord(value) &&
+    isText(value.taskId, 100) &&
+    isText(value.date, 32) &&
+    isText(value.completedAt, 64)
+  );
 }
 
 export function toggleDemoCompletion(

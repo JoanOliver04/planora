@@ -114,6 +114,37 @@ test("demo mobile navigation routes extra tools through More", async ({
   ).toBeVisible();
 });
 
+test("current demo areas remain responsive on narrow screens", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  for (const area of [
+    "month",
+    "search",
+    "focus",
+    "statistics",
+    "reminders",
+    "templates",
+    "data",
+    "more",
+  ]) {
+    await page.goto(`/es/demo/${area}`);
+    await expect(page.locator("#main-content")).toBeVisible();
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+      `Document overflow in demo/${area}`,
+    ).toBe(true);
+  }
+  const monthCells = await page
+    .goto("/es/demo/month")
+    .then(() => page.locator(".demo-month-day").count());
+  expect([28, 35, 42]).toContain(monthCells);
+});
+
 test("mobile navigation stays pinned above scrollable content", async ({
   page,
 }) => {
