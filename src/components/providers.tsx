@@ -3,7 +3,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { NextIntlClientProvider } from "next-intl";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
-import { OfflineStatus } from "@/components/offline-status";
+import { PublicConnectivityStatus } from "@/components/public-connectivity-status";
 
 export function Providers({
   children,
@@ -28,8 +28,7 @@ export function Providers({
     >
       <ThemeProvider>
         <Toaster richColors position="top-center" />
-        <OfflineStatus locale={locale} />
-
+        <PublicConnectivityStatus locale={locale} />
         {children}
       </ThemeProvider>
     </NextIntlClientProvider>

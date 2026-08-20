@@ -40,6 +40,13 @@ const restoreWeekMigration = readFileSync(
   ),
   "utf8",
 );
+const duplicateScheduleMigration = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260820110000_atomic_schedule_duplicate.sql",
+  ),
+  "utf8",
+);
 
 describe("security and performance architecture", () => {
   it("never stores authenticated navigations in the service-worker cache", () => {
@@ -93,6 +100,22 @@ describe("security and performance architecture", () => {
     expect(rateLimitMigration).toContain("security definer");
     expect(rateLimitMigration).toContain("to service_role");
     expect(rateLimitMigration).toContain("on conflict (key_hash) do update");
+  });
+
+  it("duplicates schedules atomically under authenticated ownership", () => {
+    expect(duplicateScheduleMigration).toContain(
+      "create or replace function public.duplicate_schedule",
+    );
+    expect(duplicateScheduleMigration).toContain(
+      "current_user_id uuid := auth.uid()",
+    );
+    expect(duplicateScheduleMigration).toContain("security invoker");
+    expect(duplicateScheduleMigration).toContain("set search_path = ''");
+    expect(duplicateScheduleMigration).toContain("else task.category_id");
+    expect(duplicateScheduleMigration).toContain(
+      "revoke all on function public.duplicate_schedule(uuid, boolean) from anon",
+    );
+    expect(duplicateScheduleMigration).not.toMatch(/\bcommit\b|\brollback\b/i);
   });
 
   it("terminalizes live Focus sessions and respects week start on restore", () => {

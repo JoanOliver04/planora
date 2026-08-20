@@ -564,7 +564,13 @@ export function TodayView({
     </>
   );
 }
-export function WeekView({ data }: { data: WorkspaceData }) {
+export function WeekView({
+  data,
+  loadEventRange,
+}: {
+  data: WorkspaceData;
+  loadEventRange: (start: string, end: string) => Promise<boolean>;
+}) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
     searchParams = useSearchParams(),
@@ -598,6 +604,9 @@ export function WeekView({ data }: { data: WorkspaceData }) {
     [selectedDay, setSelectedDay] = useState(
       week.days.includes(initialDate) ? initialDate : week.start,
     );
+  useEffect(() => {
+    void loadEventRange(week.start, week.end);
+  }, [loadEventRange, week.end, week.start]);
   const moveWeek = (amount: number) => {
     const next = localDate(
       data.profile.timezone,

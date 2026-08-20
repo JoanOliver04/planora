@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { addDays, addMonths } from "date-fns";
 import {
   CalendarDays,
@@ -25,7 +25,13 @@ const taskAdapter = (task: WorkspaceData["tasks"][number]) => ({
   recurrence: recurrenceFromJson(task.recurrence_config, task.recurrence_type),
 });
 
-export function MonthView({ data }: { data: WorkspaceData }) {
+export function MonthView({
+  data,
+  loadEventRange,
+}: {
+  data: WorkspaceData;
+  loadEventRange: (start: string, end: string) => Promise<boolean>;
+}) {
   const t = useTranslations("Planning"),
     locale = useLocale(),
     today = localDate(data.profile.timezone),
@@ -37,7 +43,12 @@ export function MonthView({ data }: { data: WorkspaceData }) {
     days = Array.from({ length: 42 }, (_, index) =>
       iso(addDays(gridStart, index)),
     ),
-    activeSchedule = data.profile.active_schedule_id;
+    activeSchedule = data.profile.active_schedule_id,
+    rangeStart = days[0],
+    rangeEnd = days[days.length - 1];
+  useEffect(() => {
+    void loadEventRange(rangeStart, rangeEnd);
+  }, [loadEventRange, rangeEnd, rangeStart]);
   const formatter = new Intl.DateTimeFormat(
     locale === "es" ? "es-ES" : "en-GB",
     {

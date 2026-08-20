@@ -180,7 +180,9 @@ test("narrow mobile layouts keep public content readable", async ({ page }) => {
   expect(demoCta?.height).toBeGreaterThanOrEqual(44);
 
   await page.goto("/es/demo/week");
-  const firstDay = await page.locator(".week-grid .day").first().boundingBox();
+  const firstDayCell = page.locator(".week-grid .day").first();
+  await expect(firstDayCell).toBeVisible();
+  const firstDay = await firstDayCell.boundingBox();
   expect(firstDay?.width).toBeGreaterThanOrEqual(140);
   expect(
     await page.evaluate(

@@ -70,9 +70,21 @@ test("restoring the same backup replaces data without duplicates", async () => {
       .select("*")
       .single();
     expect(scheduleError).toBeNull();
+    const { data: category, error: categoryError } = await db
+      .from("categories")
+      .insert({
+        user_id: createdUsers[0],
+        schedule_id: schedule!.id,
+        name: "Scoped category",
+        colour: "#4f6b45",
+      })
+      .select("id")
+      .single();
+    expect(categoryError).toBeNull();
     const { error: taskError } = await db.from("tasks").insert({
       user_id: createdUsers[0],
       schedule_id: schedule!.id,
+      category_id: category!.id,
       title: "Single backup task",
       task_kind: "one_time",
       recurrence_type: "once",
@@ -176,6 +188,35 @@ test("restoring the same backup replaces data without duplicates", async () => {
     expect(otherSchedules.data?.map((item) => item.name)).toEqual([
       "Other user's schedule",
     ]);
+
+    const restoredSchedule = await db
+      .from("schedules")
+      .select("id")
+      .eq("name", "Backup schedule")
+      .single();
+    expect(restoredSchedule.error).toBeNull();
+    const duplicated = await db.rpc("duplicate_schedule", {
+      source_schedule_id: restoredSchedule.data!.id,
+      include_tasks: true,
+    });
+    expect(duplicated.error).toBeNull();
+    const [duplicatedCategories, duplicatedTasks] = await Promise.all([
+      db
+        .from("categories")
+        .select("id,schedule_id")
+        .eq("schedule_id", duplicated.data!),
+      db
+        .from("tasks")
+        .select("title,schedule_id,category_id")
+        .eq("schedule_id", duplicated.data!),
+    ]);
+    expect(duplicatedCategories.data).toHaveLength(1);
+    expect(duplicatedTasks.data).toHaveLength(1);
+    expect(duplicatedTasks.data?.[0]).toMatchObject({
+      title: "Single backup task",
+      schedule_id: duplicated.data,
+      category_id: duplicatedCategories.data?.[0]?.id,
+    });
   } finally {
     for (const userId of createdUsers)
       await admin.auth.admin.deleteUser(userId);

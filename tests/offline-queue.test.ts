@@ -170,4 +170,27 @@ describe("offline queue", () => {
     expect(insert).not.toHaveBeenCalled();
     expect(getQueuedCompletions("user")).toHaveLength(0);
   });
+
+  it("rejects malformed and oversized browser state", () => {
+    localStorage.setItem(
+      "planora-offline-completions-v1",
+      JSON.stringify([{ userId: "user", completed: "yes" }]),
+    );
+    expect(getQueuedCompletions()).toEqual([]);
+
+    localStorage.setItem(
+      "planora-workspace-cache-v1:user:today",
+      JSON.stringify({
+        savedAt: Date.now(),
+        data: { user: { id: "other" }, tasks: [] },
+      }),
+    );
+    expect(loadCachedWorkspace("user", "today")).toBeNull();
+
+    localStorage.setItem(
+      "planora-workspace-cache-v1:user:today",
+      "x".repeat(500_001),
+    );
+    expect(loadCachedWorkspace("user", "today")).toBeNull();
+  });
 });

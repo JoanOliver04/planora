@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { mergeRowsById } from "@/features/workspace/workspace-data";
+import {
+  getMonthEventRange,
+  mergeRowsById,
+} from "@/features/workspace/workspace-data";
 
 describe("workspace historical loading", () => {
   it("merges a fetched historical day without duplicating existing rows", () => {
@@ -31,5 +34,16 @@ describe("workspace historical loading", () => {
     expect(source).toContain('.eq("event_date", day)');
     expect(source).toContain('else if (mode !== "tasks")');
     expect(source).toContain('task.recurrence_type === "once"');
+  });
+
+  it("bounds month events to the visible six-week grid", () => {
+    expect(getMonthEventRange("2026-08-20", 1)).toEqual({
+      start: "2026-07-27",
+      end: "2026-09-06",
+    });
+    expect(getMonthEventRange("2026-08-20", 0)).toEqual({
+      start: "2026-07-26",
+      end: "2026-09-05",
+    });
   });
 });

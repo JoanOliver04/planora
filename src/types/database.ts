@@ -325,6 +325,10 @@ export type Database = {
         Args: { target_schedule_id: string };
         Returns: string | null;
       };
+      duplicate_schedule: {
+        Args: { source_schedule_id: string; include_tasks: boolean };
+        Returns: string;
+      };
       delete_archived_task: {
         Args: { target_task_id: string };
         Returns: boolean;

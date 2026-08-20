@@ -4,6 +4,8 @@ import type { WorkspaceData } from "@/features/workspace/types";
 
 const queueKey = "planora-offline-completions-v1";
 const cachePrefix = "planora-workspace-cache-v1:";
+const MAX_OFFLINE_STORAGE_BYTES = 500_000;
+const MAX_OFFLINE_ITEMS = 2_000;
 export type QueuedCompletion = {
   id: string;
   userId: string;
@@ -18,10 +20,35 @@ export type QueuedCompletion = {
 const MAX_FLUSH_ATTEMPTS = 8;
 const PERMANENT_ERROR =
   /weekly target|invalid |not found|future occurrence|archived|check violation|23514|23505/i;
+function isQueuedCompletion(value: unknown): value is QueuedCompletion {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return (
+    typeof item.id === "string" &&
+    item.id.length <= 100 &&
+    typeof item.userId === "string" &&
+    item.userId.length <= 100 &&
+    typeof item.taskId === "string" &&
+    item.taskId.length <= 100 &&
+    typeof item.occurrenceDate === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(item.occurrenceDate) &&
+    typeof item.completed === "boolean" &&
+    typeof item.queuedAt === "string" &&
+    !Number.isNaN(Date.parse(item.queuedAt)) &&
+    (item.attempts === undefined ||
+      (Number.isInteger(item.attempts) &&
+        Number(item.attempts) >= 0 &&
+        Number(item.attempts) <= MAX_FLUSH_ATTEMPTS))
+  );
+}
 const parseQueue = (): QueuedCompletion[] => {
   try {
-    const value = JSON.parse(localStorage.getItem(queueKey) ?? "[]");
-    return Array.isArray(value) ? value : [];
+    const raw = localStorage.getItem(queueKey) ?? "[]";
+    if (raw.length > MAX_OFFLINE_STORAGE_BYTES) return [];
+    const value: unknown = JSON.parse(raw);
+    return Array.isArray(value)
+      ? value.slice(0, MAX_OFFLINE_ITEMS).filter(isQueuedCompletion)
+      : [];
   } catch {
     return [];
   }
@@ -132,10 +159,12 @@ export async function flushCompletionQueue(
 export function cacheWorkspace(scope: string, data: WorkspaceData) {
   try {
     const safeData = { ...data, user: { id: data.user.id } };
-    localStorage.setItem(
-      cachePrefix + data.user.id + ":" + scope,
-      JSON.stringify({ savedAt: Date.now(), data: safeData }),
-    );
+    const serialized = JSON.stringify({ savedAt: Date.now(), data: safeData });
+    if (serialized.length <= MAX_OFFLINE_STORAGE_BYTES)
+      localStorage.setItem(
+        cachePrefix + data.user.id + ":" + scope,
+        serialized,
+      );
   } catch {}
 }
 export function loadCachedWorkspace(
@@ -143,12 +172,32 @@ export function loadCachedWorkspace(
   scope: string,
 ): WorkspaceData | null {
   try {
-    const parsed = JSON.parse(
-      localStorage.getItem(cachePrefix + userId + ":" + scope) ?? "null",
-    ) as { savedAt: number; data: WorkspaceData } | null;
-    if (!parsed || Date.now() - parsed.savedAt > 7 * 24 * 60 * 60 * 1000)
+    const raw =
+      localStorage.getItem(cachePrefix + userId + ":" + scope) ?? "null";
+    if (raw.length > MAX_OFFLINE_STORAGE_BYTES) return null;
+    const parsed = JSON.parse(raw) as {
+      savedAt?: unknown;
+      data?: unknown;
+    } | null;
+    if (
+      !parsed ||
+      typeof parsed.savedAt !== "number" ||
+      Date.now() - parsed.savedAt > 7 * 24 * 60 * 60 * 1000 ||
+      !parsed.data ||
+      typeof parsed.data !== "object"
+    )
       return null;
-    return parsed.data;
+    const data = parsed.data as Partial<WorkspaceData>;
+    if (
+      data.user?.id !== userId ||
+      !Array.isArray(data.schedules) ||
+      !Array.isArray(data.categories) ||
+      !Array.isArray(data.tasks) ||
+      !Array.isArray(data.events) ||
+      !Array.isArray(data.completions)
+    )
+      return null;
+    return data as WorkspaceData;
   } catch {
     return null;
   }

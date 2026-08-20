@@ -45,7 +45,7 @@ async function assertCategoryScope(
   if (data.schedule_id && data.schedule_id !== scheduleId)
     throw new Error("Category is not available in this schedule");
 }
-const refresh = () => revalidatePath("/", "layout");
+const refresh = () => revalidatePath("/[locale]/(app)", "layout");
 export type SaveTaskResult =
   | { ok: true; taskId: string }
   | {
@@ -735,123 +735,12 @@ export async function updateProfile(input: unknown) {
 export async function duplicateSchedule(value: string, includeTasks: boolean) {
   const scheduleId = id.parse(value),
     shouldIncludeTasks = z.boolean().parse(includeTasks),
-    { db, user } = await auth(),
-    { data: s, error } = await db
-      .from("schedules")
-      .select("*")
-      .eq("id", scheduleId)
-      .eq("user_id", user.id)
-      .single();
-  if (error || !s) throw new Error("Schedule not found");
-  const { data: copy, error: createError } = await db
-    .from("schedules")
-    .insert({
-      user_id: user.id,
-      name: `${s.name} (copy)`,
-      description: s.description,
-      emoji: s.emoji,
-    })
-    .select("id")
-    .single();
-  if (createError) throw new Error("Unable to duplicate schedule");
-  if (shouldIncludeTasks) {
-    const { data: scopedCategories, error: categoryError } = await db
-      .from("categories")
-      .select("*")
-      .eq("schedule_id", scheduleId)
-      .eq("user_id", user.id);
-    if (categoryError) {
-      await db
-        .from("schedules")
-        .delete()
-        .eq("id", copy.id)
-        .eq("user_id", user.id);
-      throw new Error("Unable to copy tasks");
-    }
-    const categoryMap = new Map<string, string>();
-    if (scopedCategories?.length) {
-      const { data: copiedCategories, error: copyCategoriesError } = await db
-        .from("categories")
-        .insert(
-          scopedCategories.map(
-            ({
-              id: _id,
-              created_at: _created,
-              updated_at: _updated,
-              ...category
-            }) => {
-              void _id;
-              void _created;
-              void _updated;
-              return {
-                ...category,
-                user_id: user.id,
-                schedule_id: copy.id,
-              };
-            },
-          ),
-        )
-        .select("id, name, colour, emoji");
-      if (copyCategoriesError || !copiedCategories) {
-        await db
-          .from("schedules")
-          .delete()
-          .eq("id", copy.id)
-          .eq("user_id", user.id);
-        throw new Error("Unable to copy tasks");
-      }
-      scopedCategories.forEach((source, index) => {
-        const replica = copiedCategories[index];
-        if (replica) categoryMap.set(source.id, replica.id);
-      });
-    }
-    const { data: tasks, error: tasksError } = await db
-      .from("tasks")
-      .select("*")
-      .eq("schedule_id", scheduleId)
-      .eq("user_id", user.id);
-    if (tasksError) {
-      await db
-        .from("schedules")
-        .delete()
-        .eq("id", copy.id)
-        .eq("user_id", user.id);
-      throw new Error("Unable to copy tasks");
-    }
-    if (tasks?.length) {
-      const payload = tasks.map(
-          ({
-            id: _id,
-            created_at: _created,
-            updated_at: _updated,
-            ...task
-          }) => {
-            void _id;
-            void _created;
-            void _updated;
-            return {
-              ...task,
-              user_id: user.id,
-              schedule_id: copy.id,
-              category_id: task.category_id
-                ? (categoryMap.get(task.category_id) ?? task.category_id)
-                : task.category_id,
-              archived_at: null,
-              is_active: true,
-            };
-          },
-        ),
-        { error: insertError } = await db.from("tasks").insert(payload);
-      if (insertError) {
-        await db
-          .from("schedules")
-          .delete()
-          .eq("id", copy.id)
-          .eq("user_id", user.id);
-        throw new Error("Unable to copy tasks");
-      }
-    }
-  }
+    { db } = await auth();
+  const { error } = await db.rpc("duplicate_schedule", {
+    source_schedule_id: scheduleId,
+    include_tasks: shouldIncludeTasks,
+  });
+  if (error) throw new Error("Unable to duplicate schedule");
   refresh();
 }
 export async function deleteEmptySchedule(value: string) {
@@ -871,6 +760,10 @@ export async function deleteEmptySchedule(value: string) {
 }
 
 export async function restoreBackup(input: unknown) {
+  const { db, user } = await auth();
+  const { assertRestoreAllowed } =
+    await import("@/features/backup/restore-security");
+  await assertRestoreAllowed(user.id);
   if (
     typeof input === "string" &&
     new TextEncoder().encode(input).length > MAX_BACKUP_BYTES
@@ -879,7 +772,6 @@ export async function restoreBackup(input: unknown) {
   }
   const parsed = parseBackup(input);
   if (!parsed.success) throw new Error("Invalid or incompatible backup");
-  const { db } = await auth();
   const payload = prepareRestorePayload(parsed.data);
   const { data, error } = await db.rpc("restore_planora_backup", {
     backup_data: payload as unknown as Json,

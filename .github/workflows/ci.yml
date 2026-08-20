@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-node@v5
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
@@ -29,12 +30,22 @@ jobs:
       - uses: actions/setup-node@v5
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - name: Start isolated Supabase
+        run: npx --yes supabase@2.115.0 start
+      - name: Export integration environment
+        run: |
+          npx --yes supabase@2.115.0 status -o env > /tmp/supabase.env
+          cat /tmp/supabase.env >> "$GITHUB_ENV"
+          source /tmp/supabase.env
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000" >> "$GITHUB_ENV"
       - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:e2e
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-key
-          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+      - name: Stop isolated Supabase
+        if: always()
+        run: npx --yes supabase@2.115.0 stop --no-backup
   lighthouse:
     runs-on: ubuntu-latest
     steps:
@@ -64,3 +75,16 @@ jobs:
             http://127.0.0.1:3000/es/demo/today
           uploadArtifacts: true
           temporaryPublicStorage: true
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      packages: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - uses: github/codeql-action/analyze@v3

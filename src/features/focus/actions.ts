@@ -81,7 +81,7 @@ function fail(error: unknown): FocusActionResult<never> {
   };
 }
 
-const refresh = () => revalidatePath("/", "layout");
+const refresh = () => revalidatePath("/[locale]/(app)", "layout");
 
 export async function startFocusSessionAction(
   input: unknown,

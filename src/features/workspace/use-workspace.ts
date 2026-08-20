@@ -1,11 +1,11 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { WorkspaceData } from "./types";
 import type { WorkspaceMode } from "./types";
 import { localDate, localWeek } from "@/lib/dates/timezone";
 import { cacheWorkspace, loadCachedWorkspace } from "@/lib/offline/queue";
-import { mergeRowsById } from "./workspace-data";
+import { getMonthEventRange, mergeRowsById } from "./workspace-data";
 
 const requirements: Record<
   WorkspaceMode,
@@ -29,7 +29,37 @@ export function useWorkspace(mode: WorkspaceMode) {
   const [db] = useState(createClient),
     [data, setData] = useState<WorkspaceData | null>(null),
     [loading, setLoading] = useState(true),
-    [error, setError] = useState<string | null>(null);
+    [error, setError] = useState<string | null>(null),
+    pendingEventRanges = useRef(new Set<string>());
+  const loadEventRange = useCallback(
+    async (start: string, end: string) => {
+      const range = `${start}:${end}`;
+      if (pendingEventRanges.current.has(range)) return true;
+      pendingEventRanges.current.add(range);
+      const { data: events, error: rangeError } = await db
+        .from("events")
+        .select("*")
+        .gte("event_date", start)
+        .lte("event_date", end)
+        .order("event_date");
+      if (rangeError) {
+        pendingEventRanges.current.delete(range);
+        return false;
+      }
+      pendingEventRanges.current.delete(range);
+      setData((current) => {
+        if (!current) return current;
+        const next = {
+          ...current,
+          events: mergeRowsById(current.events, events ?? []),
+        };
+        cacheWorkspace(mode, next);
+        return next;
+      });
+      return true;
+    },
+    [db, mode],
+  );
   const loadDate = useCallback(
     async (day: string) => {
       if (mode !== "today") return true;
@@ -115,6 +145,10 @@ export function useWorkspace(mode: WorkspaceMode) {
     );
     const historyFrom = new Date(`${week.start}T00:00:00Z`);
     historyFrom.setUTCDate(historyFrom.getUTCDate() - 90);
+    const monthRange = getMonthEventRange(
+      today,
+      profile.week_starts_on === 0 ? 0 : 1,
+    );
     const needed = requirements[mode];
     const empty = Promise.resolve({ data: [], error: null });
     const eventsQuery = db.from("events").select("*").order("event_date");
@@ -123,8 +157,12 @@ export function useWorkspace(mode: WorkspaceMode) {
       eventsQuery
         .gte("event_date", historyFrom.toISOString().slice(0, 10))
         .lte("event_date", today);
-    else if (mode === "week" || mode === "month")
-      eventsQuery.gte("event_date", historyFrom.toISOString().slice(0, 10));
+    else if (mode === "week")
+      eventsQuery.gte("event_date", week.start).lte("event_date", week.end);
+    else if (mode === "month")
+      eventsQuery
+        .gte("event_date", monthRange.start)
+        .lte("event_date", monthRange.end);
     let completionsQuery = db
       .from("task_completions")
       .select("*")
@@ -216,5 +254,13 @@ export function useWorkspace(mode: WorkspaceMode) {
     window.addEventListener("planora-sync-complete", synced);
     return () => window.removeEventListener("planora-sync-complete", synced);
   }, [load]);
-  return { db, data, loading, error, reload: load, loadDate };
+  return {
+    db,
+    data,
+    loading,
+    error,
+    reload: load,
+    loadDate,
+    loadEventRange,
+  };
 }
