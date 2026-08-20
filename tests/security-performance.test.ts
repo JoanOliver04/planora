@@ -47,6 +47,13 @@ const duplicateScheduleMigration = readFileSync(
   ),
   "utf8",
 );
+const authenticatedPrivilegesMigration = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260820120000_authenticated_table_privileges.sql",
+  ),
+  "utf8",
+);
 
 describe("security and performance architecture", () => {
   it("never stores authenticated navigations in the service-worker cache", () => {
@@ -116,6 +123,17 @@ describe("security and performance architecture", () => {
       "revoke all on function public.duplicate_schedule(uuid, boolean) from anon",
     );
     expect(duplicateScheduleMigration).not.toMatch(/\bcommit\b|\brollback\b/i);
+  });
+
+  it("reproduces authenticated table privileges without exposing internals", () => {
+    expect(authenticatedPrivilegesMigration).toContain("public.focus_sessions");
+    expect(authenticatedPrivilegesMigration).toContain(
+      "public.task_occurrence_state",
+    );
+    expect(authenticatedPrivilegesMigration).not.toContain(
+      "public.request_rate_limits",
+    );
+    expect(authenticatedPrivilegesMigration).not.toMatch(/\bto anon\b/);
   });
 
   it("terminalizes live Focus sessions and respects week start on restore", () => {
