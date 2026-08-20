@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-364%20unit%20%2B%2033%20E2E-brightgreen?style=flat-square" alt="364 unit tests and 33 Playwright E2E tests" />
+  <img src="https://img.shields.io/badge/tests-377%20unit%20%2B%2052%20E2E-brightgreen?style=flat-square" alt="377 unit tests and 52 Playwright E2E tests" />
 </p>
 
 ---
@@ -105,7 +105,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Public no-registration demo in Spanish and English, guided onboarding and reusable schedule templates.
 - Offline mutation queue that keeps the latest intent per day and will not resurrect a completion after a newer undo on another device.
 - Installable PWA and a customizable notification and alarm center.
-- Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports (including Focus entities in backup v4). Atomic restore cancels live Focus timers in the database.
+- Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports (including Focus entities in backup v5; v4 remains importable). Atomic restore cancels live Focus timers in the database.
 - Archived tasks act as a recoverable trash area, with explicit permanent deletion for the task, its completion history and reminders.
 - Privacy-focused Vercel Web Analytics for anonymous, aggregate page-view metrics without tracking cookies or custom product events.
 - Sanitized error telemetry. Account deletion is same-origin, confirmed and fail-closed if the rate limiter is unavailable.
@@ -190,6 +190,8 @@ flowchart LR
 Next.js App Router provides Server Components by default and Client Components only where interaction is required. Server Actions validate every mutation with Zod. Supabase manages Google sessions, PostgreSQL persistence and row-level access policies. Vercel Web Analytics is mounted once in the shared root layout and records automatic page views only on Vercel deployments.
 
 Recurring occurrences are calculated on demand instead of generating unlimited future database rows. Due reminders resolve their task and event copy in two batched lookups instead of issuing one query per notification. This keeps storage predictable, removes the need for scheduled jobs and keeps background refreshes lightweight.
+
+Schedule duplication and backup restoration execute as ownership-checked PostgreSQL functions, so multi-table changes commit atomically. Calendar reads are bounded to the visible week or month, private layouts parallelise independent queries, and public routes avoid loading authenticated offline and Focus clients.
 
 ## Technology stack
 
@@ -297,7 +299,10 @@ Open [http://localhost:3000](http://localhost:3000). Web Analytics is only mount
 - Google OAuth requests only identity, email and profile information.
 - Security headers include CSP, frame denial, MIME sniffing protection, cross-origin resource isolation and a restrictive permissions policy.
 - Account deletion requires a valid session, same-origin request, explicit typed confirmation and a per-user rate limit.
+- Backup restoration is authenticated and protected by a distributed fail-closed rate limit before payload parsing.
+- Schedule duplication and backup restoration are atomic, ownership-scoped database operations.
 - Authenticated pages use private, no-store responses and are never written to the service-worker cache.
+- Offline browser records are size-bounded, structurally validated and checked against the authenticated owner before use.
 - Local workspace snapshots and pending offline changes are cleared after sign-out or account deletion.
 - Internal telemetry accepts only small same-origin JSON payloads and sanitizes technical metadata before logging.
 - User content is rendered as text and never injected as HTML.
@@ -318,11 +323,11 @@ npm run build
 npm audit
 ```
 
-CI runs lint, Prettier (`format:check`), typecheck, unit tests and production build on every push to `main`, plus Playwright e2e and Lighthouse against that same CI build.
+CI runs npm audit, lint, Prettier (`format:check`), typecheck, coverage and a production build on every push to `main`. It also runs CodeQL, Lighthouse and the complete Playwright suite against an isolated Supabase instance built from the committed migrations, so authenticated scenarios cannot silently skip because credentials are missing.
 
 The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync, backup v4), forms, loading states, protected navigation, platform metadata, mobile authentication and the single-instance, automatic-only Analytics integration.
 
-Last verified on 2026-08-18: 61 Vitest files with 364 passing tests, 33 passing Playwright scenarios (9 skipped; the authenticated Focus lifecycle runs once on Chromium), a successful Next.js 16.3.1 production build and 0 known npm vulnerabilities.
+Last verified on 2026-08-20: 63 Vitest files with 377 passing tests, 52 passing Playwright scenarios (2 intentionally skipped because the authenticated Focus lifecycle runs once on Chromium), a successful Next.js 16.3.1 production build, green CodeQL and Lighthouse jobs, and 0 known npm vulnerabilities.
 
 Product screenshots live under `docs/images/01–17-*.png` (about 80% light theme, desktop and mobile). To regenerate them against a local production server with Supabase credentials in `.env.local`, signed in as the secondary account:
 
