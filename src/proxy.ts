@@ -25,6 +25,7 @@ export async function proxy(request: NextRequest) {
     "Content-Security-Policy",
     contentSecurityPolicy({
       development: process.env.NODE_ENV === "development",
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
       enforceHttps:
         process.env.VERCEL === "1" ||
         process.env.PLANORA_FORCE_HTTPS === "true",

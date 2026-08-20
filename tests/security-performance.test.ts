@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { contentSecurityPolicy } from "@/lib/security/csp";
 
 const worker = readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
 const scheduler = readFileSync(
@@ -98,6 +99,18 @@ describe("security and performance architecture", () => {
     expect(headers).toContain('key: "Cross-Origin-Resource-Policy"');
     expect(headers).toContain('key: "X-DNS-Prefetch-Control"');
     expect(headers).not.toContain('key: "Content-Security-Policy"');
+  });
+
+  it("allows only the configured safe Supabase origin in browser requests", () => {
+    expect(
+      contentSecurityPolicy({ supabaseUrl: "http://127.0.0.1:54321" }),
+    ).toContain("http://127.0.0.1:54321 ws://127.0.0.1:54321");
+    expect(
+      contentSecurityPolicy({ supabaseUrl: "https://db.example.com" }),
+    ).toContain("https://db.example.com wss://db.example.com");
+    expect(
+      contentSecurityPolicy({ supabaseUrl: "http://db.example.com" }),
+    ).not.toContain("http://db.example.com");
   });
 
   it("stores rate limits outside serverless process memory", () => {
