@@ -33,10 +33,10 @@ test("mobile More navigation reaches every secondary area naturally", async ({
   expect(created.error).toBeNull();
   const userId = created.data.user!.id;
   const apiFailures: string[] = [];
-  page.on("response", async (response) => {
+  page.on("response", (response) => {
     if (response.url().startsWith(url!) && response.status() >= 400) {
       apiFailures.push(
-        `${response.status()} ${new URL(response.url()).pathname}: ${await response.text()}`,
+        `${response.status()} ${new URL(response.url()).pathname}`,
       );
     }
   });
@@ -140,18 +140,14 @@ test("mobile More navigation reaches every secondary area naturally", async ({
       ).toBe(true);
 
       if (route === "today") {
-        const renderedState = page
-          .locator(
-            ".today-header, .onboarding, .empty[role='alert'], .workspace-skeleton",
-          )
-          .first();
-        await expect(renderedState).toBeVisible({
-          timeout: 15_000,
-        });
-        expect(
-          await renderedState.getAttribute("class"),
-          `${await page.locator("body").innerText()}\n${apiFailures.join("\n")}`,
-        ).toContain("today-header");
+        const todayHeader = page.locator(".today-header");
+        try {
+          await todayHeader.waitFor({ state: "visible", timeout: 15_000 });
+        } catch {
+          throw new Error(
+            `${await page.locator("body").innerText()}\n${apiFailures.join("\n")}`,
+          );
+        }
         const heading = await page
           .locator(".today-header > div")
           .first()
