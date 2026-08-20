@@ -8,6 +8,16 @@ export function formatCategoryMetadata(name: string, emoji?: string | null) {
   return `${emoji ?? ""} ${name}`.trim();
 }
 
+export function formatTaskTime(
+  startTime: string | null,
+  endTime?: string | null,
+) {
+  if (!startTime) return null;
+  const start = startTime.slice(0, 5);
+  const end = endTime?.slice(0, 5);
+  return end ? `${start}–${end}` : start;
+}
+
 export function formatNaturalDate(
   day: string,
   locale: "es" | "en",

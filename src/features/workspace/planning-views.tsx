@@ -15,6 +15,7 @@ import { Link } from "@/i18n/routing";
 import { localDate } from "@/lib/dates/timezone";
 import { isTaskExpectedOnDate } from "@/lib/recurrence";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
+import { formatTaskTime } from "./presentation";
 import { recurrenceFromJson, type WorkspaceData } from "./types";
 
 const iso = (date: Date) => date.toISOString().slice(0, 10);
@@ -336,7 +337,12 @@ export function DailySummaryView({ data }: { data: WorkspaceData }) {
                 <div>
                   <strong>{task.title}</strong>
                   {task.start_time && (
-                    <small>{task.start_time.slice(0, 5)}</small>
+                    <small>
+                      {formatTaskTime(
+                        task.start_time,
+                        task.time_mode === "time_range" ? task.end_time : null,
+                      )}
+                    </small>
                   )}
                 </div>
               </article>
@@ -354,7 +360,17 @@ export function DailySummaryView({ data }: { data: WorkspaceData }) {
             completed.map((task) => (
               <article className="summary-item" key={task.id}>
                 <span>{task.emoji}</span>
-                <strong>{task.title}</strong>
+                <div>
+                  <strong>{task.title}</strong>
+                  {task.start_time && (
+                    <small>
+                      {formatTaskTime(
+                        task.start_time,
+                        task.time_mode === "time_range" ? task.end_time : null,
+                      )}
+                    </small>
+                  )}
+                </div>
               </article>
             ))
           ) : (

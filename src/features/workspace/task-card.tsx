@@ -7,7 +7,11 @@ import { Check, Edit3, StickyNote, Timer } from "lucide-react";
 import { formatRecurrenceDescription } from "@/lib/recurrence";
 import type { Category, Completion, Task } from "./types";
 import { recurrenceFromJson } from "./types";
-import { formatCategoryMetadata, uniqueMetadata } from "./presentation";
+import {
+  formatCategoryMetadata,
+  formatTaskTime,
+  uniqueMetadata,
+} from "./presentation";
 
 export function TaskCard({
   task,
@@ -46,7 +50,10 @@ export function TaskCard({
         : Boolean(completion),
     focusLabel = focusActionLabel ?? t("startFocus"),
     timing =
-      task.start_time?.slice(0, 5) ??
+      formatTaskTime(
+        task.start_time,
+        task.time_mode === "time_range" ? task.end_time : null,
+      ) ??
       (task.time_mode === "day_part"
         ? t(task.day_part ?? "anytime")
         : t("anytime")),

@@ -72,6 +72,53 @@ function renderCard(onToggle: () => Promise<boolean>) {
   );
 }
 
+function renderTask(overrides: Partial<Task>, completed = false) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      <TaskCard
+        task={{ ...task, ...overrides }}
+        categories={[]}
+        completion={
+          completed
+            ? ({ id: "22222222-2222-4222-8222-222222222222" } as never)
+            : undefined
+        }
+      />
+    </NextIntlClientProvider>,
+  );
+}
+
+describe("TaskCard timing", () => {
+  it("shows only the start for an exact time", () => {
+    renderTask({ time_mode: "specific_time", start_time: "07:30:00" });
+
+    expect(screen.getByText("07:30")).toBeVisible();
+  });
+
+  it("shows the full time range, including on completed tasks", () => {
+    renderTask(
+      {
+        time_mode: "time_range",
+        start_time: "08:30:00",
+        end_time: "10:30:00",
+      },
+      true,
+    );
+
+    expect(screen.getByText("08:30–10:30")).toBeVisible();
+  });
+
+  it("falls back to the start when a time range has no end", () => {
+    renderTask({
+      time_mode: "time_range",
+      start_time: "08:30:00",
+      end_time: null,
+    });
+
+    expect(screen.getByText("08:30")).toBeVisible();
+  });
+});
+
 describe("TaskCard completion", () => {
   it("exposes a start-focus action when provided", async () => {
     const user = userEvent.setup();

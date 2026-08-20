@@ -41,7 +41,12 @@ import { enqueueCompletion } from "@/lib/offline/queue";
 import { filterTasks, type TaskVisibility } from "@/lib/workspace/visibility";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
 import { useHashTarget } from "@/lib/workspace/use-hash-target";
-import { formatNaturalDate, greetingKey, uniqueMetadata } from "./presentation";
+import {
+  formatNaturalDate,
+  formatTaskTime,
+  greetingKey,
+  uniqueMetadata,
+} from "./presentation";
 import { categoriesForSchedule } from "./categories";
 import { FocusTodayShortcuts } from "@/features/focus/focus-today-shortcuts";
 import { buildFocusHref } from "@/features/focus/focus-deep-link";
@@ -955,7 +960,10 @@ export function TasksView({
               (item) => item.id === task.category_id,
             ),
             timing =
-              task.start_time?.slice(0, 5) ??
+              formatTaskTime(
+                task.start_time,
+                task.time_mode === "time_range" ? task.end_time : null,
+              ) ??
               (task.time_mode === "day_part"
                 ? t(task.day_part ?? "anytime")
                 : t("anytime")),
