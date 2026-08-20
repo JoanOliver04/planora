@@ -49,7 +49,7 @@ test("mobile More navigation reaches every secondary area naturally", async ({
     expect(verified.error).toBeNull();
     expect(verified.data.session).not.toBeNull();
     const preparedProfile = await authClient.rpc("complete_onboarding", {
-      include_starters: false,
+      include_starters: true,
       detected_timezone: "Europe/Madrid",
     });
     expect(preparedProfile.error).toBeNull();

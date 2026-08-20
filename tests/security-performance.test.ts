@@ -133,6 +133,12 @@ describe("security and performance architecture", () => {
     expect(authenticatedPrivilegesMigration).toContain(
       "create policy occurrence_state_delete",
     );
+    expect(authenticatedPrivilegesMigration).toContain(
+      "create policy template_imports_insert",
+    );
+    expect(authenticatedPrivilegesMigration).toContain(
+      "create policy template_imports_delete",
+    );
     expect(authenticatedPrivilegesMigration).not.toContain(
       "public.request_rate_limits",
     );

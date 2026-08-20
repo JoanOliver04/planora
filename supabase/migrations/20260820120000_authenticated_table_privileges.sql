@@ -17,7 +17,15 @@ grant select, insert, update, delete on table
   public.focus_goals
 to authenticated;
 
-grant select on table public.template_imports to authenticated;
+grant select, insert, delete on table public.template_imports to authenticated;
+
+create policy template_imports_insert on public.template_imports
+  for insert to authenticated
+  with check ((select auth.uid()) = user_id);
+
+create policy template_imports_delete on public.template_imports
+  for delete to authenticated
+  using ((select auth.uid()) = user_id);
 
 grant select, insert, update, delete on table public.task_occurrence_state
 to authenticated;
