@@ -15,7 +15,12 @@ export const FOCUS_MAX_EXTEND_BREAK_SEC = 60 * 60;
 const uuid = z.string().uuid();
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
-export const focusModeSchema = z.enum(["countdown", "stopwatch", "cycles"]);
+export const focusModeSchema = z.enum([
+  "countdown",
+  "stopwatch",
+  "cycles",
+  "structured_plan",
+]);
 export const focusStatusSchema = z.enum([
   "running",
   "paused",
@@ -50,8 +55,7 @@ export const focusSegmentSchema = z.preprocess(
         : typeof item.duration_sec === "number"
           ? item.duration_sec
           : null;
-    const durationSec =
-      durationRaw == null ? null : durationRaw <= 0 ? null : durationRaw;
+    const durationSec = durationRaw;
     const name =
       typeof item.name === "string" && item.name.trim()
         ? item.name
@@ -202,6 +206,31 @@ export const startFocusSessionSchema = z
   })
   .superRefine((value, ctx) => {
     const hasPlan = (value.segments?.length ?? 0) > 0;
+    if (value.mode === "structured_plan") {
+      if (!hasPlan) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["segments"],
+          message: "A structured plan requires blocks",
+        });
+      }
+      if (!value.segments?.some((segment) => segment.kind === "focus")) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["segments"],
+          message: "A structured plan requires at least one focus block",
+        });
+      }
+      value.segments?.forEach((segment, index) => {
+        if (segment.kind === "break" && segment.durationSec == null) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["segments", index, "durationSec"],
+            message: "Break blocks must be timed",
+          });
+        }
+      });
+    }
     if (!hasPlan && (value.mode === "countdown" || value.mode === "cycles")) {
       if (value.focusDurationSec == null) {
         ctx.addIssue({
@@ -435,6 +464,28 @@ export const focusPresetInputSchema = z
     defaultCategoryId: uuid.optional().nullable(),
   })
   .superRefine((value, ctx) => {
+    if (value.mode === "structured_plan") {
+      if (value.segments.length === 0)
+        ctx.addIssue({
+          code: "custom",
+          path: ["segments"],
+          message: "A structured plan requires blocks",
+        });
+      if (!value.segments.some((segment) => segment.kind === "focus"))
+        ctx.addIssue({
+          code: "custom",
+          path: ["segments"],
+          message: "A structured plan requires at least one focus block",
+        });
+      value.segments.forEach((segment, index) => {
+        if (segment.kind === "break" && segment.durationSec == null)
+          ctx.addIssue({
+            code: "custom",
+            path: ["segments", index, "durationSec"],
+            message: "Break blocks must be timed",
+          });
+      });
+    }
     if (
       (value.mode === "countdown" || value.mode === "cycles") &&
       value.focusDurationSec == null

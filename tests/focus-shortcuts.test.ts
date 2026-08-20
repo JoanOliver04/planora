@@ -92,30 +92,43 @@ describe("focus deep links", () => {
     ).toEqual({ draft: null, autoOpen: false });
   });
 
-  it("resolves a task without category", () => {
+  it("preselects a task recommendation and falls back when it was deleted", () => {
+    const linkedTask = {
+      id: "task-1",
+      title: "No category",
+      emoji: null,
+      task_kind: "one_time" as const,
+      category_id: null,
+      schedule_id: "sched-1",
+      start_date: "2026-08-01",
+      end_date: null,
+      archived_at: null,
+      recurrence_type: "once" as const,
+      recurrence_config: {},
+      recommended_focus_preset_id: preset.id,
+    };
     const resolved = resolveDeepLinkDraft({
       params: { taskId: "task-1", date: "2026-08-07" },
       today: "2026-08-07",
-      presets: [],
-      task: {
-        id: "task-1",
-        title: "No category",
-        emoji: null,
-        task_kind: "one_time",
-        category_id: null,
-        schedule_id: "sched-1",
-        start_date: "2026-08-01",
-        end_date: null,
-        archived_at: null,
-        recurrence_type: "once",
-        recurrence_config: {},
-      },
+      presets: [preset],
+      task: linkedTask,
       category: null,
       schedule: { name: "Main" },
     });
     expect(resolved.autoOpen).toBe(true);
     expect(resolved.draft?.taskId).toBe("task-1");
     expect(resolved.draft?.linkSnapshot?.categoryName).toBeNull();
+    expect(resolved.draft?.presetId).toBe(preset.id);
+
+    const deleted = resolveDeepLinkDraft({
+      params: { taskId: "task-1", date: "2026-08-07" },
+      today: "2026-08-07",
+      presets: [],
+      task: linkedTask,
+    });
+    expect(deleted.autoOpen).toBe(true);
+    expect(deleted.draft?.presetId).toBeNull();
+    expect(deleted.draft?.mode).toBe("countdown");
   });
 
   it("picks the next incomplete task including those without category", () => {

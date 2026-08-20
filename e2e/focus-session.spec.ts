@@ -76,8 +76,8 @@ test("Focus session lifecycle, stats and restore without duplicates", async ({
         name: "E2E Deep work",
         emoji: "🎯",
         intention: "Ship Focus",
-        mode: "countdown",
-        focus_duration_sec: 25 * 60,
+        mode: "structured_plan",
+        focus_duration_sec: null,
         short_break_sec: null,
         long_break_sec: null,
         cycles_before_long_break: null,
@@ -90,7 +90,11 @@ test("Focus session lifecycle, stats and restore without duplicates", async ({
         complete_task_on_session_end: false,
         keep_screen_awake: false,
         prefer_fullscreen: false,
-        segments: [],
+        segments: [
+          { name: "Build", kind: "focus", durationSec: 60, autoAdvance: true },
+          { name: "Break", kind: "break", durationSec: 60, autoAdvance: true },
+          { name: "Review", kind: "focus", durationSec: 60, autoAdvance: true },
+        ],
         is_favorite: true,
         sort_order: 0,
       })
@@ -115,14 +119,16 @@ test("Focus session lifecycle, stats and restore without duplicates", async ({
         recurrence_config: {},
         time_mode: "anytime",
         start_date: "2026-08-07",
+        focus_enabled: true,
+        recommended_focus_preset_id: preset!.id,
       })
       .select("*")
       .single();
 
     const started = createStartedSession(
       {
-        mode: "countdown",
-        focusDurationSec: 25 * 60,
+        mode: "structured_plan",
+        focusDurationSec: null,
         presetId: preset!.id,
         taskId: task!.id,
         title: "Linked Focus task",
@@ -131,6 +137,8 @@ test("Focus session lifecycle, stats and restore without duplicates", async ({
           taskKind: "one_time",
         },
         completeTaskOnEnd: false,
+        segments: preset!
+          .segments as unknown as import("@/features/focus/types").FocusSegment[],
       },
       userId,
       {
@@ -283,13 +291,19 @@ test("Focus session lifecycle, stats and restore without duplicates", async ({
       const restoredSessions = await db
         .from("focus_sessions")
         .select("status,notes");
-      const restoredTasks = await db.from("tasks").select("title");
+      const restoredTasks = await db
+        .from("tasks")
+        .select("title,recommended_focus_preset_id");
       expect(restoredPresets.data).toHaveLength(1);
       expect(restoredSessions.data).toHaveLength(1);
       expect(restoredSessions.data?.[0]?.status).toBe("completed");
       expect(restoredTasks.data?.map((item) => item.title).sort()).toEqual(
         ["Linked Focus task", "Reply to email"].sort(),
       );
+      expect(
+        restoredTasks.data?.find((item) => item.title === "Linked Focus task")
+          ?.recommended_focus_preset_id,
+      ).toBe(restoredPresets.data?.[0] ? payload.focus_presets[0].id : null);
     }
 
     // One-active guarantee still holds after restore of completed history

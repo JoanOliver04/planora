@@ -75,12 +75,18 @@ export function resolveDeepLinkDraft(input: {
       : today;
 
   if (params.taskId && input.task && !input.task.archived_at) {
+    const recommendedPreset = input.task.recommended_focus_preset_id
+      ? presets.find(
+          (preset) => preset.id === input.task?.recommended_focus_preset_id,
+        )
+      : null;
     return {
       draft: buildFocusDraftFromTask({
         task: input.task,
         occurrenceDate: date,
         category: input.category,
         schedule: input.schedule,
+        preset: recommendedPreset,
       }),
       autoOpen: true,
     };

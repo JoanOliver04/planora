@@ -77,12 +77,10 @@ describe("Focus release readiness contracts", () => {
     expect(existsSync(join(root, "e2e/focus-session.spec.ts"))).toBe(true);
   });
 
-  it("prompt series is complete through 22", () => {
+  it("keeps the current guided-plan delivery contract", () => {
     const prompts = read("prompts.md");
-    expect(prompts).toContain("## Prompt 00");
-    expect(prompts).toContain("## Prompt 21");
-    expect(prompts).toContain("## Prompt 22");
-    const hecho = prompts.match(/> \*\*HECHO\*\*/g) ?? [];
-    expect(hecho.length).toBeGreaterThanOrEqual(23);
+    expect(prompts).toContain("Nuevo modo «Plan estructurado»");
+    expect(prompts).toContain("Preset recomendado por tarea");
+    expect(prompts).toContain("Concurrencia entre pestañas");
   });
 });

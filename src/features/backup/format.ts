@@ -7,8 +7,9 @@ export const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
  * - v2 portable JSON without Focus
  * - v3 Focus entities (presets, sessions, intervals, goals)
  * - v4 flexible goals + orphan Focus FK sanitization + privacy-oriented CSV helpers
+ * - v5 guided-plan mode + optional task recommended Focus preset
  */
-export const BACKUP_SCHEMA_VERSION = 4;
+export const BACKUP_SCHEMA_VERSION = 5;
 
 const uuid = z.string().uuid();
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -56,6 +57,7 @@ const taskSchema = z.object({
   description: z.string().max(2000).nullable(),
   emoji: z.string().max(16).nullable(),
   focus_enabled: z.boolean().default(false),
+  recommended_focus_preset_id: nullableUuid.optional().default(null),
   task_kind: z.enum(["one_time", "habit"]),
   recurrence_type: z.enum([
     "once",
@@ -122,7 +124,7 @@ const focusPresetSchema = z.object({
   name: z.string().min(1).max(80),
   emoji: z.string().min(1).max(16).nullable().optional().default(null),
   intention: z.string().min(1).max(140).nullable().optional().default(null),
-  mode: z.enum(["countdown", "stopwatch", "cycles"]),
+  mode: z.enum(["countdown", "stopwatch", "cycles", "structured_plan"]),
   focus_duration_sec: z
     .number()
     .int()
@@ -161,7 +163,7 @@ const focusPresetSchema = z.object({
 const focusSessionSchema = z.object({
   id: uuid,
   status: z.enum(["running", "paused", "on_break", "completed", "cancelled"]),
-  mode: z.enum(["countdown", "stopwatch", "cycles"]),
+  mode: z.enum(["countdown", "stopwatch", "cycles", "structured_plan"]),
   title: z.string().min(1).max(140).nullable(),
   preset_id: nullableUuid,
   task_id: nullableUuid,
@@ -436,6 +438,7 @@ const backupDataSchema = z
     for (const item of data.focus_presets) {
       if (
         item.mode !== "stopwatch" &&
+        item.mode !== "structured_plan" &&
         (item.focus_duration_sec == null || item.focus_duration_sec < 60)
       )
         invalid("Focus preset duration is invalid");
@@ -627,6 +630,21 @@ export function sanitizeFocusReferences<T extends Record<string, unknown>>(
       })
     : data.focus_presets;
 
+  const tasksWithRecommendedPreset = Array.isArray(data.tasks)
+    ? data.tasks.map((item) => {
+        if (!item || typeof item !== "object") return item;
+        const row = item as Record<string, unknown>;
+        return {
+          ...row,
+          recommended_focus_preset_id:
+            typeof row.recommended_focus_preset_id === "string" &&
+            presets.has(row.recommended_focus_preset_id)
+              ? row.recommended_focus_preset_id
+              : null,
+        };
+      })
+    : data.tasks;
+
   const focus_sessions = Array.isArray(data.focus_sessions)
     ? data.focus_sessions.map((item) => {
         if (!item || typeof item !== "object") return item;
@@ -697,6 +715,7 @@ export function sanitizeFocusReferences<T extends Record<string, unknown>>(
 
   return {
     ...data,
+    tasks: tasksWithRecommendedPreset,
     focus_presets,
     focus_sessions,
     focus_goals,
@@ -826,6 +845,10 @@ export function prepareRestorePayload(backup: PlanoraBackup) {
             ? scheduleIds.get(item.schedule_id)!
             : null,
       category_id: mapped(categoryIds, item.category_id),
+      recommended_focus_preset_id: mapped(
+        focusPresetIds,
+        item.recommended_focus_preset_id ?? null,
+      ),
     })),
     events: backup.data.events.map((item) => ({
       ...item,

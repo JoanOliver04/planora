@@ -119,7 +119,8 @@
     "modes": {
       "countdown": "Cuenta atrás",
       "stopwatch": "Cronómetro",
-      "cycles": "Ciclos"
+      "cycles": "Ciclos",
+      "structured_plan": "Plan estructurado"
     },
     "phases": {
       "focus": "Enfoque",
@@ -270,6 +271,44 @@
       "stopwatch": {
         "name": "Cronómetro libre",
         "hint": "Enfoque sin límite fijo"
+      },
+      "programming120": {
+        "name": "Roadmap programación · 2 h",
+        "hint": "110 min enfoque · 10 min descanso",
+        "blocks": {
+          "1": "Teoría activa y práctica",
+          "2": "Descanso",
+          "3": "Código propio y casos límite",
+          "4": "Explicar, registrar errores y preparar mañana"
+        }
+      },
+      "programming60": {
+        "name": "Roadmap programación · 1 h",
+        "hint": "60 min de enfoque",
+        "blocks": {
+          "1": "Continuar el objetivo del roadmap",
+          "2": "Comprobar, explicar y registrar errores"
+        }
+      },
+      "english90": {
+        "name": "Roadmap inglés · 90 min",
+        "hint": "80 min enfoque · 10 min descanso",
+        "blocks": {
+          "1": "Comprensión y vocabulario",
+          "2": "Descanso",
+          "3": "Gramática y ejercicios",
+          "4": "Descanso",
+          "5": "Producción oral o escrita",
+          "6": "Corregir y anotar errores"
+        }
+      },
+      "noAi30": {
+        "name": "Programación sin IA · 30 min",
+        "hint": "30 min de enfoque",
+        "blocks": {
+          "1": "Resolver sin asistentes de IA",
+          "2": "Probar y explicar la solución"
+        }
       }
     },
     "quickPresets": {
@@ -472,6 +511,7 @@
       "kindBreak": "Descanso",
       "minutes": "Minutos (vacío = abierto)",
       "openDuration": "Abierto",
+      "breakDurationRequired": "El descanso necesita duración",
       "description": "Descripción breve",
       "autoAdvance": "Avanzar solo cuando acabe el temporizador",
       "moveUp": "Subir bloque",
@@ -481,6 +521,10 @@
       "defaultBlockName": "Bloque {n}",
       "totalTimed": "{count} bloques · {time} planificados",
       "totalOpen": "Incluye bloques abiertos sin total fijo",
+      "totals": "Enfoque {focus} · Descanso {rest} · Total {total}",
+      "indeterminate": "indeterminada",
+      "progress": "Progreso del plan",
+      "actualTotal": "Duración real transcurrida: {time}",
       "blockOf": "Bloque {current} de {total}",
       "nextBlock": "Siguiente",
       "lastBlock": "Último bloque del plan",
@@ -503,7 +547,10 @@
       "errors": {
         "tooMany": "Demasiados bloques en el plan.",
         "nameRequired": "Cada bloque del plan necesita un nombre.",
-        "durationInvalid": "Los bloques con tiempo necesitan al menos 1 minuto."
+        "durationInvalid": "Los bloques con tiempo necesitan al menos 1 minuto.",
+        "breakDurationRequired": "Los descansos deben tener una duración.",
+        "planRequired": "Añade al menos un bloque al plan.",
+        "focusBlockRequired": "El plan necesita al menos un bloque de enfoque."
       }
     },
     "settings": {
@@ -985,6 +1032,9 @@
     "startFocus": "Iniciar enfoque",
     "focusEnabled": "Permitir sesiones de Enfoque",
     "focusEnabledHint": "Muestra la acción de Enfoque para esta tarea. Déjalo desactivado para hábitos breves o rutinarios.",
+    "recommendedFocusPreset": "Preset de Enfoque recomendado",
+    "noRecommendedFocusPreset": "Sin preset recomendado",
+    "recommendedFocusPresetHint": "Aparecerá preseleccionado al iniciar Enfoque desde esta tarea.",
     "focusEnabledBadge": "Enfoque disponible",
     "continueFocus": "Continuar enfoque",
     "noWeekGoals": "Una semana ligera, sin tareas previstas",

@@ -17,7 +17,7 @@ import {
   FOCUS_MIN_DURATION_SEC,
 } from "./validation";
 import { SessionPlanEditor } from "./session-plan-editor";
-import { validatePlanSegments } from "./session-plan";
+import { validatePlanSegments, validateStructuredPlan } from "./session-plan";
 
 type CategoryOption = { id: string; name: string; emoji: string | null };
 
@@ -190,11 +190,19 @@ export function PresetEditorDialog({
         return t("presets.errors.cyclesBeforeLong");
       }
     }
-    const planError = validatePlanSegments(form.segments);
+    const planError =
+      form.mode === "structured_plan"
+        ? validateStructuredPlan(form.segments)
+        : validatePlanSegments(form.segments);
     if (planError === "too_many") return t("plan.errors.tooMany");
     if (planError === "name_required") return t("plan.errors.nameRequired");
     if (planError === "duration_invalid")
       return t("plan.errors.durationInvalid");
+    if (planError === "break_duration_required")
+      return t("plan.errors.breakDurationRequired");
+    if (planError === "plan_required") return t("plan.errors.planRequired");
+    if (planError === "focus_block_required")
+      return t("plan.errors.focusBlockRequired");
     return null;
   }
 
@@ -208,7 +216,8 @@ export function PresetEditorDialog({
     setFieldError(null);
     startTransition(async () => {
       const focusDurationSec =
-        form.mode === "stopwatch" && !form.focusMinutes.trim()
+        form.mode === "structured_plan" ||
+        (form.mode === "stopwatch" && !form.focusMinutes.trim())
           ? null
           : secFromMinutes(form.focusMinutes);
       const segments = form.segments.map((segment) => ({
@@ -324,7 +333,14 @@ export function PresetEditorDialog({
             <fieldset className="focus-mode-fieldset">
               <legend>{t("config.mode")}</legend>
               <div className="focus-rating-row">
-                {(["countdown", "stopwatch", "cycles"] as const).map((mode) => (
+                {(
+                  [
+                    "countdown",
+                    "stopwatch",
+                    "cycles",
+                    "structured_plan",
+                  ] as const
+                ).map((mode) => (
                   <button
                     key={mode}
                     type="button"
@@ -339,7 +355,8 @@ export function PresetEditorDialog({
               </div>
             </fieldset>
 
-            {form.mode !== "stopwatch" ? (
+            {form.mode === "structured_plan" ? null : form.mode !==
+              "stopwatch" ? (
               <label>
                 {t("config.focusMinutes")}
                 <input
@@ -444,8 +461,15 @@ export function PresetEditorDialog({
               </label>
             ) : null}
 
-            <details className="focus-review-optional">
-              <summary>{t("presets.advanced")}</summary>
+            <details
+              className="focus-review-optional"
+              open={form.mode === "structured_plan" || undefined}
+            >
+              <summary>
+                {form.mode === "structured_plan"
+                  ? t("plan.title")
+                  : t("presets.advanced")}
+              </summary>
               <div className="focus-preset-toggles">
                 {(
                   [

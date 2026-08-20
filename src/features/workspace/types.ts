@@ -3,6 +3,10 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Schedule = Database["public"]["Tables"]["schedules"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
+export type FocusPresetOption = Pick<
+  Database["public"]["Tables"]["focus_presets"]["Row"],
+  "id" | "name" | "emoji" | "archived_at"
+>;
 export type Completion =
   Database["public"]["Tables"]["task_completions"]["Row"];
 export type Event = Database["public"]["Tables"]["events"]["Row"];
@@ -14,6 +18,7 @@ export type WorkspaceData = {
   tasks: Task[];
   events: Event[];
   completions: Completion[];
+  focusPresets?: FocusPresetOption[];
 };
 export type WorkspaceMode =
   | "today"

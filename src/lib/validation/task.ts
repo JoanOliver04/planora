@@ -22,6 +22,7 @@ export const taskSchema = z
     description: z.string().max(2000).optional().nullable(),
     emoji: z.string().max(16).optional().nullable(),
     focusEnabled: z.boolean().default(false),
+    recommendedFocusPresetId: z.string().uuid().optional().nullable(),
     scope: z.enum(["schedule", "global"]).default("schedule"),
     scheduleId: z.string().uuid().optional().nullable(),
     categoryId: z.string().uuid().optional().nullable(),

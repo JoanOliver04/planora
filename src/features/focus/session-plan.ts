@@ -203,6 +203,33 @@ export function totalPlannedSec(segments: FocusSegment[]): number | null {
   return total;
 }
 
+export type PlanTotals = {
+  focusSec: number;
+  breakSec: number;
+  totalSec: number;
+  hasOpenFocus: boolean;
+};
+
+export function calculatePlanTotals(segments: FocusSegment[]): PlanTotals {
+  let focusSec = 0;
+  let breakSec = 0;
+  let hasOpenFocus = false;
+  for (const segment of segments) {
+    if (segment.durationSec == null) {
+      if (segment.kind === "focus") hasOpenFocus = true;
+      continue;
+    }
+    if (segment.kind === "focus") focusSec += segment.durationSec;
+    else breakSec += segment.durationSec;
+  }
+  return {
+    focusSec,
+    breakSec,
+    totalSec: focusSec + breakSec,
+    hasOpenFocus,
+  };
+}
+
 export type SegmentRuntimeSummary = {
   index: number;
   segment: FocusSegment;
@@ -298,6 +325,21 @@ export function validatePlanSegments(segments: FocusSegment[]): string | null {
     ) {
       return "duration_invalid";
     }
+    if (segment.kind === "break" && segment.durationSec == null) {
+      return "break_duration_required";
+    }
+  }
+  return null;
+}
+
+export function validateStructuredPlan(
+  segments: FocusSegment[],
+): string | null {
+  if (segments.length === 0) return "plan_required";
+  const error = validatePlanSegments(segments);
+  if (error) return error;
+  if (!segments.some((segment) => segment.kind === "focus")) {
+    return "focus_block_required";
   }
   return null;
 }

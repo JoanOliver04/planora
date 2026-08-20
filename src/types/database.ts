@@ -71,6 +71,7 @@ export type Database = {
           description: string | null;
           emoji: string | null;
           focus_enabled: boolean;
+          recommended_focus_preset_id?: string | null;
           task_kind: "one_time" | "habit";
           recurrence_type:
             "once" | "daily" | "weekdays" | "times_per_week" | "interval";

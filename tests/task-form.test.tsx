@@ -73,4 +73,44 @@ describe("TaskForm", () => {
     expect(screen.getByLabelText("Start time")).toBeInTheDocument();
     expect(screen.getByLabelText("End time")).toBeInTheDocument();
   });
+
+  it("reveals an accessible recommended preset selector only for Focus tasks", async () => {
+    const user = userEvent.setup();
+    render(
+      <NextIntlClientProvider
+        locale="en"
+        messages={messages}
+        timeZone="Europe/Madrid"
+      >
+        <TaskForm
+          open
+          onOpenChange={() => {}}
+          schedules={schedules}
+          categories={[]}
+          focusPresets={[
+            {
+              id: "22222222-2222-4222-8222-222222222222",
+              name: "Roadmap",
+              emoji: "💻",
+              archived_at: null,
+            },
+          ]}
+          timezone="Europe/Madrid"
+          onSaved={async () => {}}
+        />
+      </NextIntlClientProvider>,
+    );
+    expect(
+      screen.queryByRole("combobox", { name: /recommended focus preset/i }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("checkbox", { name: /allow focus sessions/i }),
+    );
+    const selector = screen.getByRole("combobox", {
+      name: /recommended focus preset/i,
+    });
+    expect(selector).toHaveValue("");
+    await user.selectOptions(selector, "22222222-2222-4222-8222-222222222222");
+    expect(selector).toHaveValue("22222222-2222-4222-8222-222222222222");
+  });
 });

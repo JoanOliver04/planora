@@ -77,7 +77,10 @@ export function normalizeFocusAccountPreferences(
         ? input.defaultPresetId
         : null,
     defaultMode:
-      mode === "countdown" || mode === "stopwatch" || mode === "cycles"
+      mode === "countdown" ||
+      mode === "stopwatch" ||
+      mode === "cycles" ||
+      mode === "structured_plan"
         ? mode
         : defaultFocusAccountPreferences.defaultMode,
     askIntentionOnStart:

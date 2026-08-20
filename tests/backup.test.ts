@@ -25,7 +25,7 @@ describe("portable backups", () => {
       timezone: "Europe/Madrid",
     });
     expect(backup.backupId).toMatch(/^[0-9a-f-]{36}$/i);
-    expect(BACKUP_SCHEMA_VERSION).toBe(4);
+    expect(BACKUP_SCHEMA_VERSION).toBe(5);
     expect(parseBackup(backup).success).toBe(true);
     expect(summarizeBackup(backup)).toMatchObject({
       tasks: 1,
@@ -62,11 +62,11 @@ describe("portable backups", () => {
     if (first.success && second.success) {
       expect(first.data.backupId).toBe(second.data.backupId);
       expect(first.data.data.focus_presets).toEqual([]);
-      expect(first.data.schemaVersion).toBe(4);
+      expect(first.data.schemaVersion).toBe(5);
     }
   });
 
-  it("upgrades version two and three backups to v4", () => {
+  it("upgrades older portable backups to v5", () => {
     const current = createBackup(backupFixture());
     const v2 = {
       ...current,
@@ -85,7 +85,7 @@ describe("portable backups", () => {
     const parsedV2 = parseBackup(v2);
     expect(parsedV2.success).toBe(true);
     if (parsedV2.success) {
-      expect(parsedV2.data.schemaVersion).toBe(4);
+      expect(parsedV2.data.schemaVersion).toBe(5);
       expect(parsedV2.data.data.focus_sessions).toEqual([]);
       expect(parsedV2.data.data.focus_goals).toEqual([]);
     }
@@ -94,7 +94,7 @@ describe("portable backups", () => {
     const parsedV3 = parseBackup(v3);
     expect(parsedV3.success).toBe(true);
     if (parsedV3.success) {
-      expect(parsedV3.data.schemaVersion).toBe(4);
+      expect(parsedV3.data.schemaVersion).toBe(5);
       expect(parsedV3.data.data.focus_sessions).toHaveLength(1);
     }
   });
@@ -146,12 +146,17 @@ describe("portable backups", () => {
   });
 
   it("remaps every relationship without trusting exported ownership", () => {
-    const backup = createBackup(backupFixture());
+    const data = backupFixture();
+    data.tasks[0].recommended_focus_preset_id = backupIds.focusPreset;
+    const backup = createBackup(data);
     const payload = prepareRestorePayload(backup);
     expect(payload.schedules[0].id).not.toBe(backupIds.schedule);
     expect(payload.tasks[0].schedule_id).toBe(payload.schedules[0].id);
     expect(payload.tasks[0].category_id).toBe(payload.categories[0].id);
     expect(payload.tasks[0].focus_enabled).toBe(true);
+    expect(payload.tasks[0].recommended_focus_preset_id).toBe(
+      payload.focus_presets[0].id,
+    );
     expect(payload.completions[0].task_id).toBe(payload.tasks[0].id);
     expect(payload.reminders[0].task_id).toBe(payload.tasks[0].id);
     expect(payload.focus_presets[0].id).not.toBe(backupIds.focusPreset);

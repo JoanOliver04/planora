@@ -8,6 +8,13 @@ const sql = readFileSync(
   "utf8",
 );
 const executableSql = sql.replace(/^--.*$/gm, "");
+const guidedPlanSql = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260820090000_guided_plan_sessions.sql",
+  ),
+  "utf8",
+);
 
 type FocusPreset = Database["public"]["Tables"]["focus_presets"]["Row"];
 type FocusSession = Database["public"]["Tables"]["focus_sessions"]["Row"];
@@ -15,6 +22,21 @@ type FocusInterval = Database["public"]["Tables"]["focus_intervals"]["Row"];
 type FocusGoal = Database["public"]["Tables"]["focus_goals"]["Row"];
 
 describe("focus schema migration contracts", () => {
+  it("expands modes and adds an ownership-safe nullable task recommendation", () => {
+    expect(guidedPlanSql).toContain("'structured_plan'");
+    expect(guidedPlanSql).toContain("recommended_focus_preset_id uuid");
+    expect(guidedPlanSql).toContain(
+      "foreign key (recommended_focus_preset_id, user_id)",
+    );
+    expect(guidedPlanSql).toContain(
+      "on delete set null (recommended_focus_preset_id)",
+    );
+    expect(guidedPlanSql).toContain("deferrable initially deferred");
+    expect(guidedPlanSql).toContain(
+      "create or replace function public.restore_planora_backup",
+    );
+  });
+
   it("creates the four ownership-safe focus tables", () => {
     expect(sql).toContain("create table public.focus_presets");
     expect(sql).toContain("create table public.focus_sessions");

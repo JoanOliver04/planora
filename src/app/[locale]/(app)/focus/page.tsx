@@ -89,7 +89,9 @@ export default async function FocusPage({
       .limit(10),
     db
       .from("tasks")
-      .select("id,title,emoji,task_kind,category_id,schedule_id")
+      .select(
+        "id,title,emoji,task_kind,category_id,schedule_id,recommended_focus_preset_id",
+      )
       .eq("user_id", user.id)
       .eq("focus_enabled", true)
       .is("archived_at", null)
@@ -165,6 +167,7 @@ export default async function FocusPage({
     taskKind: task.task_kind,
     categoryId: task.category_id,
     scheduleId: task.schedule_id,
+    recommendedFocusPresetId: task.recommended_focus_preset_id,
   }));
 
   const presets = (presetRows ?? []).map(mapPresetRow);
@@ -180,7 +183,7 @@ export default async function FocusPage({
     const { data: task } = await db
       .from("tasks")
       .select(
-        "id,title,emoji,task_kind,category_id,schedule_id,start_date,end_date,archived_at,recurrence_type,recurrence_config,focus_enabled",
+        "id,title,emoji,task_kind,category_id,schedule_id,start_date,end_date,archived_at,recurrence_type,recurrence_config,focus_enabled,recommended_focus_preset_id",
       )
       .eq("id", params.taskId)
       .eq("user_id", user.id)
@@ -215,6 +218,7 @@ export default async function FocusPage({
           taskKind: task.task_kind,
           categoryId: task.category_id,
           scheduleId: task.schedule_id,
+          recommendedFocusPresetId: task.recommended_focus_preset_id,
         });
       }
     }

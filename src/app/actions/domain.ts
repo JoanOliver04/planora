@@ -566,6 +566,20 @@ export async function saveTask(
       },
     };
   }
+  if (v.focusEnabled && v.recommendedFocusPresetId) {
+    const { data: preset, error: presetError } = await db
+      .from("focus_presets")
+      .select("id")
+      .eq("id", v.recommendedFocusPresetId)
+      .eq("user_id", user.id)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (presetError || !preset)
+      return {
+        ok: false,
+        error: { code: "FORBIDDEN", message: "Focus preset is not available" },
+      };
+  }
   const r = v.recurrence,
     t = v.timing;
   const payload = {
@@ -576,6 +590,9 @@ export async function saveTask(
     description: v.description ?? null,
     emoji: v.emoji ?? null,
     focus_enabled: v.focusEnabled,
+    recommended_focus_preset_id: v.focusEnabled
+      ? (v.recommendedFocusPresetId ?? null)
+      : null,
     task_kind: r.type === "once" ? ("one_time" as const) : ("habit" as const),
     recurrence_type: r.type,
     recurrence_config: r,

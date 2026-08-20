@@ -49,7 +49,12 @@ import {
   loadFocusDevicePreferences,
   subscribeFocusDevicePreferences,
 } from "./focus-preferences";
-import { currentSegment, hasStructuredPlan, nextSegment } from "./session-plan";
+import {
+  calculatePlanTotals,
+  currentSegment,
+  hasStructuredPlan,
+  nextSegment,
+} from "./session-plan";
 import {
   FOCUS_SHORTCUT_LIST,
   isDesktopPointer,
@@ -74,7 +79,8 @@ function modeLabel(
 ) {
   if (mode === "countdown") return t("modes.countdown");
   if (mode === "stopwatch") return t("modes.stopwatch");
-  return t("modes.cycles");
+  if (mode === "cycles") return t("modes.cycles");
+  return t("modes.structured_plan");
 }
 
 function nextPhaseHint(
@@ -678,6 +684,42 @@ export function ActiveSessionView({
             {planCurrent.description ? (
               <p className="muted">{planCurrent.description}</p>
             ) : null}
+            <p className="muted">
+              {(() => {
+                const totals = calculatePlanTotals(session.config.segments);
+                return t("plan.totals", {
+                  focus: formatFocusDuration(totals.focusSec, "compact"),
+                  rest: formatFocusDuration(totals.breakSec, "compact"),
+                  total: totals.hasOpenFocus
+                    ? t("plan.indeterminate")
+                    : formatFocusDuration(totals.totalSec, "compact"),
+                });
+              })()}
+            </p>
+            <p className="muted">
+              {t("plan.actualTotal", {
+                time: formatFocusDuration(
+                  clock.focusElapsedSec +
+                    clock.breakElapsedSec +
+                    clock.pausedElapsedSec,
+                  "compact",
+                ),
+              })}
+            </p>
+            <div
+              className="focus-progress"
+              role="progressbar"
+              aria-label={t("plan.progress")}
+              aria-valuemin={0}
+              aria-valuemax={session.config.segments.length}
+              aria-valuenow={Math.max(0, session.currentCycle - 1)}
+            >
+              <span
+                style={{
+                  width: `${Math.max(0, ((session.currentCycle - 1) / session.config.segments.length) * 100)}%`,
+                }}
+              />
+            </div>
             {planNext ? (
               <p className="muted">
                 {t("plan.nextBlock")}:{" "}

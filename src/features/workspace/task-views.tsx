@@ -557,6 +557,7 @@ export function TodayView({
         onOpenChange={setOpen}
         schedules={data.schedules}
         categories={data.categories}
+        focusPresets={data.focusPresets ?? []}
         timezone={data.profile.timezone}
         onSaved={reload}
       />
@@ -1052,6 +1053,7 @@ export function TasksView({
         onOpenChange={setOpen}
         schedules={data.schedules}
         categories={data.categories}
+        focusPresets={data.focusPresets ?? []}
         timezone={data.profile.timezone}
         task={editing}
         onSaved={reload}

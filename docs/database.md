@@ -1,3 +1,5 @@
 ﻿# Database
 
 The migrations define profiles, schedules, categories, tasks, completions, events, reminders, templates and focus entities (`focus_presets`, `focus_sessions`, `focus_intervals`, `focus_goals`). Composite foreign keys `(resource_id, user_id)` prevent cross-account schedule/category/task/focus references. UUIDs, constraints, partial indexes (including one active focus session per user), immutable JSON completion snapshots, focus link snapshots and automatic `updated_at` triggers are included. A completion guard enforces date bounds, selected weekdays, one-time dates, archive dates, and weekly targets. Apply migrations with the Supabase CLI (`supabase db push`) or SQL Editor. Regenerate TypeScript with `npm run db:types`.
+
+`tasks.recommended_focus_preset_id` is nullable and uses a composite ownership FK to `focus_presets`; deleting a preset clears only that column. Focus mode checks include the optional `structured_plan` mode. Existing rows are not rewritten.

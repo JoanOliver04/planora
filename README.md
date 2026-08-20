@@ -55,7 +55,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 
 ### Focus (Enfoque)
 
-- Flexible concentration sessions: countdown, free stopwatch, or work/break cycles — Pomodoro is optional, not mandatory.
+- Flexible concentration sessions: countdown, free stopwatch, work/break cycles, or a structured plan whose blocks drive the timer.
 - Fully customizable Focus presets (emoji, intention, durations, cycles, behaviour, structured plan, favourites, archive and reorder) plus optional starter templates.
 - Structured session plans with named blocks (timed or open), editable starter ideas for programming, English and piano, live current/next block UI, skip/advance, and planned-vs-actual summary.
 - Flexible weekly Focus goals (minutes, sessions or active days; global, category or preset scope) with a primary goal on home, neutral pace hints and recent-week history — no streaks or guilt.
@@ -66,13 +66,13 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Focus accessibility: desktop keyboard shortcuts (optional), screen-reader phase/status announcements without per-second chatter, on-demand time readout, 44px targets, small-screen and landscape safe areas, reduced-motion respect.
 - Focus first-visit intro (skip anytime), quick paths (25/50/stopwatch/custom preset) and editable practice suggestions, plus discrete contextual help and clearer empty states.
 - Focus preferences split by scope: account-synced options (default mode/preset, review, goal visibility) and device-local options (sound volume, vibration, notifications, Wake Lock, compact bar).
-- Optional link to a task or habit; finishing a session never auto-completes work unless the user chose that explicitly.
+- Optional link to a task or habit, including a user-owned recommended preset per Focus-enabled task; finishing a session never auto-completes work unless the user chose that explicitly.
 - Quick starts from Today (continue / quick session / next task / last preset) and a secondary timer action in Week and Tasks.
 - Robust timer based on timestamps (not per-second DB writes), recovery after reload, and a compact bar while browsing other views.
 - Optional end-of-session reflection: private notes, concentration and energy ratings, result label, next step, and parked distractions.
 - Park distractions mid-session without pausing; convert one into a Planora task or dismiss it after the session.
 - Clear endings: finish and save, cancel and keep partial time, or discard the session permanently with confirmation.
-- Focus data is included in portable JSON backup schema v4 (export and atomic restore): presets, sessions, intervals, flexible goals, notes; live sessions restore as cancelled; analysis CSV omits notes (optional PRIVATE notes file).
+- Focus data is included in portable JSON backup schema v5 (export and atomic restore): presets, sessions, intervals, flexible goals, notes and task preset recommendations; v4 remains importable; live sessions restore as cancelled; analysis CSV omits notes (optional PRIVATE notes file).
 - Release readiness notes: `docs/focus-release-readiness-2026-08-07.md` (security, performance, e2e matrix, residual risks).
 
 ### Progress and history

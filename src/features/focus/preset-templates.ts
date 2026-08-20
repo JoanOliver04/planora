@@ -3,7 +3,14 @@ import type { FocusPresetInput } from "./validation";
 
 /** Localized template keys. Labels live in next-intl (`Focus.templates.*`). */
 export type FocusPresetTemplateKey =
-  "pomodoro" | "focus50" | "deep90" | "stopwatch";
+  | "pomodoro"
+  | "focus50"
+  | "deep90"
+  | "stopwatch"
+  | "programming120"
+  | "programming60"
+  | "english90"
+  | "noAi30";
 
 export type FocusPresetTemplate = {
   key: FocusPresetTemplateKey;
@@ -72,6 +79,131 @@ export const FOCUS_PRESET_TEMPLATES: readonly FocusPresetTemplate[] = [
     autoStartBreaks: false,
     autoStartFocus: false,
     segments: [],
+  },
+  {
+    key: "programming120",
+    emoji: "💻",
+    mode: "structured_plan",
+    focusDurationSec: null,
+    shortBreakSec: null,
+    longBreakSec: null,
+    cyclesBeforeLongBreak: null,
+    targetCycles: null,
+    autoStartBreaks: true,
+    autoStartFocus: true,
+    segments: [
+      {
+        name: "Active theory and practice",
+        kind: "focus",
+        durationSec: 50 * 60,
+        autoAdvance: true,
+      },
+      { name: "Break", kind: "break", durationSec: 10 * 60, autoAdvance: true },
+      {
+        name: "Own code and edge cases",
+        kind: "focus",
+        durationSec: 50 * 60,
+        autoAdvance: true,
+      },
+      {
+        name: "Explain, log errors and prepare tomorrow",
+        kind: "focus",
+        durationSec: 10 * 60,
+        autoAdvance: true,
+      },
+    ],
+  },
+  {
+    key: "programming60",
+    emoji: "💻",
+    mode: "structured_plan",
+    focusDurationSec: null,
+    shortBreakSec: null,
+    longBreakSec: null,
+    cyclesBeforeLongBreak: null,
+    targetCycles: null,
+    autoStartBreaks: true,
+    autoStartFocus: true,
+    segments: [
+      {
+        name: "Continue the roadmap objective",
+        kind: "focus",
+        durationSec: 50 * 60,
+        autoAdvance: true,
+      },
+      {
+        name: "Check, explain and log errors",
+        kind: "focus",
+        durationSec: 10 * 60,
+        autoAdvance: true,
+      },
+    ],
+  },
+  {
+    key: "english90",
+    emoji: "🗣️",
+    mode: "structured_plan",
+    focusDurationSec: null,
+    shortBreakSec: null,
+    longBreakSec: null,
+    cyclesBeforeLongBreak: null,
+    targetCycles: null,
+    autoStartBreaks: true,
+    autoStartFocus: true,
+    segments: [
+      {
+        name: "Comprehension and vocabulary",
+        kind: "focus",
+        durationSec: 25 * 60,
+        autoAdvance: true,
+      },
+      { name: "Break", kind: "break", durationSec: 5 * 60, autoAdvance: true },
+      {
+        name: "Grammar and exercises",
+        kind: "focus",
+        durationSec: 25 * 60,
+        autoAdvance: true,
+      },
+      { name: "Break", kind: "break", durationSec: 5 * 60, autoAdvance: true },
+      {
+        name: "Spoken or written production",
+        kind: "focus",
+        durationSec: 25 * 60,
+        autoAdvance: true,
+      },
+      {
+        name: "Correct and record errors",
+        kind: "focus",
+        durationSec: 5 * 60,
+        autoAdvance: true,
+      },
+    ],
+  },
+  {
+    key: "noAi30",
+    emoji: "🧠",
+    mode: "structured_plan",
+    focusDurationSec: null,
+    shortBreakSec: null,
+    longBreakSec: null,
+    cyclesBeforeLongBreak: null,
+    targetCycles: null,
+    autoStartBreaks: true,
+    autoStartFocus: true,
+    segments: [
+      {
+        name: "Solve without AI assistants",
+        kind: "focus",
+        durationSec: 25 * 60,
+        autoAdvance: true,
+      },
+      {
+        name: "Test and explain the solution",
+        kind: "focus",
+        durationSec: 5 * 60,
+        autoAdvance: true,
+      },
+    ],
   },
 ] as const;
 

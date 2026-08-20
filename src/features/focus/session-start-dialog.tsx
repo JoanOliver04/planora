@@ -34,6 +34,7 @@ import {
   FOCUS_MAX_SHORT_BREAK_SEC,
   FOCUS_MIN_DURATION_SEC,
 } from "./validation";
+import { validateStructuredPlan } from "./session-plan";
 import { FocusHelpTip } from "./focus-help-tip";
 
 type FormState = {
@@ -288,6 +289,15 @@ export function SessionStartDialog({
     ) {
       return t("config.errors.completeNeedsTask");
     }
+    if (form.mode === "structured_plan") {
+      const planError = validateStructuredPlan(form.segments);
+      if (planError === "plan_required") return t("plan.errors.planRequired");
+      if (planError === "focus_block_required")
+        return t("plan.errors.focusBlockRequired");
+      if (planError === "break_duration_required")
+        return t("plan.errors.breakDurationRequired");
+      if (planError) return t("plan.errors.durationInvalid");
+    }
     if (
       form.segments.length === 0 &&
       (form.mode === "countdown" || form.mode === "cycles")
@@ -350,7 +360,8 @@ export function SessionStartDialog({
 
   function buildPayload() {
     const focusDurationSec =
-      form.mode === "stopwatch" && !form.focusMinutes.trim()
+      form.mode === "structured_plan" ||
+      (form.mode === "stopwatch" && !form.focusMinutes.trim())
         ? null
         : secFromMinutes(form.focusMinutes);
     return {
@@ -545,24 +556,30 @@ export function SessionStartDialog({
                 <fieldset className="focus-mode-fieldset">
                   <legend>{t("config.mode")}</legend>
                   <div className="focus-mode-grid" role="radiogroup">
-                    {(["countdown", "stopwatch", "cycles"] as const).map(
-                      (mode) => (
-                        <label key={mode} className="focus-mode-option">
-                          <input
-                            type="radio"
-                            name="mode"
-                            value={mode}
-                            checked={form.mode === mode}
-                            onChange={() => update("mode", mode)}
-                          />
-                          <span>{t(`modes.${mode}`)}</span>
-                        </label>
-                      ),
-                    )}
+                    {(
+                      [
+                        "countdown",
+                        "stopwatch",
+                        "cycles",
+                        "structured_plan",
+                      ] as const
+                    ).map((mode) => (
+                      <label key={mode} className="focus-mode-option">
+                        <input
+                          type="radio"
+                          name="mode"
+                          value={mode}
+                          checked={form.mode === mode}
+                          onChange={() => update("mode", mode)}
+                        />
+                        <span>{t(`modes.${mode}`)}</span>
+                      </label>
+                    ))}
                   </div>
                 </fieldset>
 
-                {form.mode !== "stopwatch" ? (
+                {form.mode === "structured_plan" ? null : form.mode !==
+                  "stopwatch" ? (
                   <label>
                     {t("config.focusMinutes")}
                     <input
@@ -666,6 +683,23 @@ export function SessionStartDialog({
                         if (!form.occurrenceDate && defaultOccurrenceDate) {
                           update("occurrenceDate", defaultOccurrenceDate);
                         }
+                        const task = tasks.find((item) => item.id === nextId);
+                        const recommended = task?.recommendedFocusPresetId
+                          ? presets.find(
+                              (preset) =>
+                                preset.id === task.recommendedFocusPresetId,
+                            )
+                          : null;
+                        if (recommended) {
+                          setForm((current) => ({
+                            ...applyPresetToForm(recommended),
+                            taskId: nextId,
+                            occurrenceDate:
+                              current.occurrenceDate ||
+                              defaultOccurrenceDate ||
+                              "",
+                          }));
+                        }
                       }}
                     >
                       <option value="">{t("config.noTask")}</option>
@@ -705,7 +739,12 @@ export function SessionStartDialog({
                           return;
                         }
                         const preset = presets.find((item) => item.id === id);
-                        if (preset) setForm(applyPresetToForm(preset));
+                        if (preset)
+                          setForm((current) => ({
+                            ...applyPresetToForm(preset),
+                            taskId: current.taskId,
+                            occurrenceDate: current.occurrenceDate,
+                          }));
                         else update("presetId", id);
                       }}
                     >

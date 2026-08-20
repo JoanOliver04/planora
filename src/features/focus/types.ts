@@ -1,4 +1,9 @@
-export const FOCUS_MODES = ["countdown", "stopwatch", "cycles"] as const;
+export const FOCUS_MODES = [
+  "countdown",
+  "stopwatch",
+  "cycles",
+  "structured_plan",
+] as const;
 export type FocusMode = (typeof FOCUS_MODES)[number];
 
 export const FOCUS_SESSION_STATUSES = [
@@ -76,6 +81,7 @@ export type FocusTaskOption = {
   taskKind: "one_time" | "habit";
   categoryId: string | null;
   scheduleId: string | null;
+  recommendedFocusPresetId?: string | null;
 };
 
 export type SessionStartDraft = {

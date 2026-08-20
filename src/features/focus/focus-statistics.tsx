@@ -253,6 +253,9 @@ export function FocusStatisticsPanel({
             <option value="countdown">{t("modes.countdown")}</option>
             <option value="stopwatch">{t("modes.stopwatch")}</option>
             <option value="cycles">{t("modes.cycles")}</option>
+            <option value="structured_plan">
+              {t("modes.structured_plan")}
+            </option>
           </select>
         </label>
         <label>

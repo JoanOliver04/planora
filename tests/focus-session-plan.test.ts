@@ -10,6 +10,8 @@ import {
   SESSION_PLAN_TEMPLATES,
   summarizePlanRuntime,
   totalPlannedSec,
+  calculatePlanTotals,
+  validateStructuredPlan,
 } from "@/features/focus/session-plan";
 import { shouldAutoStartNextPhase } from "@/features/focus/engine";
 import { focusSegmentSchema } from "@/features/focus/validation";
@@ -48,6 +50,27 @@ const samplePlan: FocusSegment[] = [
 ];
 
 describe("structured session plans", () => {
+  it("validates plan invariants and separates focus from break totals", () => {
+    expect(calculatePlanTotals(samplePlan)).toEqual({
+      focusSec: 600,
+      breakSec: 300,
+      totalSec: 900,
+      hasOpenFocus: true,
+    });
+    expect(validateStructuredPlan(samplePlan)).toBeNull();
+    expect(validateStructuredPlan([])).toBe("plan_required");
+    expect(
+      validateStructuredPlan([
+        { name: "Break", kind: "break", durationSec: 300, autoAdvance: true },
+      ]),
+    ).toBe("focus_block_required");
+    expect(
+      validateStructuredPlan([
+        { name: "Break", kind: "break", durationSec: null, autoAdvance: false },
+      ]),
+    ).toBe("break_duration_required");
+  });
+
   it("normalizes legacy segment shapes", () => {
     const parsed = focusSegmentSchema.parse({
       kind: "short_break",
@@ -66,7 +89,7 @@ describe("structured session plans", () => {
     const createId = idFactory("p");
     const started = createStartedSession(
       {
-        mode: "countdown",
+        mode: "structured_plan",
         focusDurationSec: 25 * 60,
         segments: samplePlan,
         title: "Practice",
@@ -83,6 +106,7 @@ describe("structured session plans", () => {
     expect(currentSegment(started)?.name).toBe("Warm-up");
     expect(started.currentPhaseKind).toBe("focus");
     expect(started.intervals[0]?.plannedDurationSec).toBe(10 * 60);
+    expect(shouldAutoStartNextPhase(started)).toBe(false);
 
     const advanced = applyFocusAction(
       started,

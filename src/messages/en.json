@@ -119,7 +119,8 @@
     "modes": {
       "countdown": "Countdown",
       "stopwatch": "Stopwatch",
-      "cycles": "Cycles"
+      "cycles": "Cycles",
+      "structured_plan": "Structured plan"
     },
     "phases": {
       "focus": "Focus",
@@ -270,6 +271,44 @@
       "stopwatch": {
         "name": "Free stopwatch",
         "hint": "Open-ended focus"
+      },
+      "programming120": {
+        "name": "Programming roadmap · 2 h",
+        "hint": "110 min focus · 10 min break",
+        "blocks": {
+          "1": "Active theory and practice",
+          "2": "Break",
+          "3": "Own code and edge cases",
+          "4": "Explain, log errors and prepare tomorrow"
+        }
+      },
+      "programming60": {
+        "name": "Programming roadmap · 1 h",
+        "hint": "60 min focus",
+        "blocks": {
+          "1": "Continue the roadmap objective",
+          "2": "Check, explain and log errors"
+        }
+      },
+      "english90": {
+        "name": "English roadmap · 90 min",
+        "hint": "80 min focus · 10 min break",
+        "blocks": {
+          "1": "Comprehension and vocabulary",
+          "2": "Break",
+          "3": "Grammar and exercises",
+          "4": "Break",
+          "5": "Spoken or written production",
+          "6": "Correct and record errors"
+        }
+      },
+      "noAi30": {
+        "name": "Programming without AI · 30 min",
+        "hint": "30 min focus",
+        "blocks": {
+          "1": "Solve without AI assistants",
+          "2": "Test and explain the solution"
+        }
       }
     },
     "quickPresets": {
@@ -472,6 +511,7 @@
       "kindBreak": "Break",
       "minutes": "Minutes (empty = open)",
       "openDuration": "Open",
+      "breakDurationRequired": "A break needs a duration",
       "description": "Short description",
       "autoAdvance": "Auto-advance when the timer ends",
       "moveUp": "Move block up",
@@ -481,6 +521,10 @@
       "defaultBlockName": "Block {n}",
       "totalTimed": "{count} blocks · {time} planned",
       "totalOpen": "Includes open blocks without a fixed total",
+      "totals": "Focus {focus} · Break {rest} · Total {total}",
+      "indeterminate": "indeterminate",
+      "progress": "Plan progress",
+      "actualTotal": "Actual elapsed duration: {time}",
       "blockOf": "Block {current} of {total}",
       "nextBlock": "Next",
       "lastBlock": "Last block of the plan",
@@ -503,7 +547,10 @@
       "errors": {
         "tooMany": "Too many plan blocks.",
         "nameRequired": "Every plan block needs a name.",
-        "durationInvalid": "Timed blocks need a valid duration of at least 1 minute."
+        "durationInvalid": "Timed blocks need a valid duration of at least 1 minute.",
+        "breakDurationRequired": "Break blocks must have a duration.",
+        "planRequired": "Add at least one block to the plan.",
+        "focusBlockRequired": "The plan needs at least one focus block."
       }
     },
     "settings": {
@@ -985,6 +1032,9 @@
     "startFocus": "Start focus",
     "focusEnabled": "Allow Focus sessions",
     "focusEnabledHint": "Shows the Focus action for this task. Leave it off for quick or routine habits.",
+    "recommendedFocusPreset": "Recommended Focus preset",
+    "noRecommendedFocusPreset": "No recommended preset",
+    "recommendedFocusPresetHint": "It will be preselected when Focus starts from this task.",
     "focusEnabledBadge": "Focus available",
     "continueFocus": "Continue focus",
     "noWeekGoals": "A light week with no planned tasks",

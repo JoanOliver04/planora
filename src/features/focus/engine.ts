@@ -221,7 +221,12 @@ export function shouldAutoStartNextPhase(session: FocusSession): boolean {
     if (!current) return false;
     // Open segments never auto-advance; timed ones honour autoAdvance.
     if (current.durationSec == null) return false;
-    return current.autoAdvance;
+    if (!current.autoAdvance) return false;
+    const next = session.config.segments[finished + 1];
+    if (!next) return true;
+    return next.kind === "break"
+      ? session.config.autoStartBreaks
+      : session.config.autoStartFocus;
   }
   if (session.mode === "countdown") return true;
   if (session.mode === "stopwatch") return false;

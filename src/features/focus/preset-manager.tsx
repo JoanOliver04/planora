@@ -100,9 +100,14 @@ export function FocusPresetManager({
     const template = FOCUS_PRESET_TEMPLATES.find((item) => item.key === key);
     if (!template || pending) return;
     startTransition(async () => {
-      const result = await saveFocusPresetAction(
-        templateToPresetInput(template, t(`templates.${key}.name`)),
-      );
+      const input = templateToPresetInput(template, t(`templates.${key}.name`));
+      if (template.mode === "structured_plan") {
+        input.segments = template.segments.map((segment, index) => ({
+          ...segment,
+          name: t(`templates.${key}.blocks.${index + 1}`),
+        }));
+      }
+      const result = await saveFocusPresetAction(input);
       if (!result.ok) {
         toast.error(result.error.message || t("presets.errors.generic"));
         return;

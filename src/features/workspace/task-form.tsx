@@ -3,7 +3,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useMemo, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { saveTask } from "@/app/actions/domain";
-import type { Category, Schedule, Task } from "./types";
+import type { Category, FocusPresetOption, Schedule, Task } from "./types";
 import { recurrenceFromJson } from "./types";
 import { localDate } from "@/lib/dates/timezone";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ export function TaskForm({
   onOpenChange,
   schedules,
   categories,
+  focusPresets = [],
   timezone,
   task,
   defaultTitle,
@@ -23,6 +24,7 @@ export function TaskForm({
   onOpenChange: (v: boolean) => void;
   schedules: Schedule[];
   categories: Category[];
+  focusPresets?: FocusPresetOption[];
   timezone: string;
   task?: Task | null;
   /** Prefill title when creating a new task (e.g. from a parked distraction). */
@@ -45,6 +47,7 @@ export function TaskForm({
         "",
     ),
     [categoryId, setCategoryId] = useState(task?.category_id ?? ""),
+    [focusEnabled, setFocusEnabled] = useState(task?.focus_enabled ?? false),
     [pending, startTransition] = useTransition();
 
   const weekdays = existing?.type === "weekdays" ? existing.weekdays : [];
@@ -89,6 +92,10 @@ export function TaskForm({
       description: String(fd.get("description") || "") || null,
       emoji: String(fd.get("emoji") || "") || null,
       focusEnabled: fd.get("focusEnabled") === "on",
+      recommendedFocusPresetId:
+        fd.get("focusEnabled") === "on"
+          ? String(fd.get("recommendedFocusPresetId") || "") || null
+          : null,
       scope,
       scheduleId: scope === "global" ? null : String(fd.get("scheduleId")),
       categoryId: String(fd.get("categoryId") || "") || null,
@@ -225,13 +232,34 @@ export function TaskForm({
               <input
                 type="checkbox"
                 name="focusEnabled"
-                defaultChecked={task?.focus_enabled ?? false}
+                checked={focusEnabled}
+                onChange={(event) => setFocusEnabled(event.target.checked)}
               />
               <span>
                 <b>{t("focusEnabled")}</b>
                 <small>{t("focusEnabledHint")}</small>
               </span>
             </label>
+            {focusEnabled ? (
+              <label>
+                {t("recommendedFocusPreset")}
+                <select
+                  name="recommendedFocusPresetId"
+                  defaultValue={task?.recommended_focus_preset_id ?? ""}
+                >
+                  <option value="">{t("noRecommendedFocusPreset")}</option>
+                  {focusPresets.map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.emoji ? `${preset.emoji} ` : ""}
+                      {preset.name}
+                    </option>
+                  ))}
+                </select>
+                <small className="muted">
+                  {t("recommendedFocusPresetHint")}
+                </small>
+              </label>
+            ) : null}
             <label>
               {t("recurrence")}
               <select

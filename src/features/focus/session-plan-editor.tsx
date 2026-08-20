@@ -8,7 +8,7 @@ import {
   emptySegment,
   moveSegment,
   SESSION_PLAN_TEMPLATES,
-  totalPlannedSec,
+  calculatePlanTotals,
   type SessionPlanTemplateKey,
 } from "./session-plan";
 import { formatFocusDuration } from "./defaults";
@@ -22,7 +22,7 @@ export function SessionPlanEditor({
   onChange: (segments: FocusSegment[]) => void;
 }) {
   const t = useTranslations("Focus");
-  const total = totalPlannedSec(segments);
+  const totals = calculatePlanTotals(segments);
 
   function updateAt(index: number, patch: Partial<FocusSegment>) {
     onChange(
@@ -158,6 +158,10 @@ export function SessionPlanEditor({
                     onChange={(event) =>
                       updateAt(index, {
                         kind: event.target.value as FocusSegment["kind"],
+                        ...(event.target.value === "break" &&
+                        segment.durationSec == null
+                          ? { durationSec: 5 * 60, autoAdvance: true }
+                          : {}),
                       })
                     }
                   >
@@ -168,16 +172,25 @@ export function SessionPlanEditor({
                 <label>
                   {t("plan.minutes")}
                   <input
+                    type="number"
                     inputMode="numeric"
+                    min={1}
+                    max={480}
+                    step={1}
                     value={
                       segment.durationSec == null
                         ? ""
                         : String(Math.round(segment.durationSec / 60))
                     }
-                    placeholder={t("plan.openDuration")}
+                    placeholder={
+                      segment.kind === "break"
+                        ? t("plan.breakDurationRequired")
+                        : t("plan.openDuration")
+                    }
                     onChange={(event) => {
                       const raw = event.target.value.trim();
                       if (!raw) {
+                        if (segment.kind === "break") return;
                         updateAt(index, {
                           durationSec: null,
                           autoAdvance: false,
@@ -187,7 +200,7 @@ export function SessionPlanEditor({
                       const minutes = Number(raw);
                       if (!Number.isFinite(minutes)) return;
                       updateAt(index, {
-                        durationSec: Math.max(1, Math.round(minutes)) * 60,
+                        durationSec: Math.round(minutes) * 60,
                       });
                     }}
                   />
@@ -241,12 +254,12 @@ export function SessionPlanEditor({
           {t("plan.add")}
         </button>
         <p className="muted">
-          {total == null
-            ? t("plan.totalOpen")
-            : t("plan.totalTimed", {
-                time: formatFocusDuration(total, "compact"),
-                count: segments.length,
-              })}
+          {t("plan.totals", {
+            focus: formatFocusDuration(totals.focusSec, "compact"),
+            rest: formatFocusDuration(totals.breakSec, "compact"),
+            total: formatFocusDuration(totals.totalSec, "compact"),
+          })}
+          {totals.hasOpenFocus ? ` · ${t("plan.totalOpen")}` : ""}
         </p>
       </div>
     </div>

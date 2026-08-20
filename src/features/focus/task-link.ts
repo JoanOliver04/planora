@@ -16,7 +16,7 @@ export type FocusTaskSource = Pick<
   | "archived_at"
   | "recurrence_type"
   | "recurrence_config"
->;
+> & { recommended_focus_preset_id?: string | null };
 
 export function buildLinkSnapshot(
   task: FocusTaskSource,
@@ -61,17 +61,33 @@ export function buildFocusDraftFromTask(input: {
   category?: Pick<Category, "name" | "colour" | "emoji"> | null;
   schedule?: Pick<Schedule, "name"> | null;
   focusDurationSec?: number;
+  preset?: import("./types").FocusPreset | null;
 }): SessionStartDraft {
   const { task, occurrenceDate, category, schedule } = input;
+  const preset = input.preset;
   return {
-    mode: "countdown",
-    focusDurationSec: input.focusDurationSec ?? 25 * 60,
-    title: task.title,
+    mode: preset?.mode ?? "countdown",
+    focusDurationSec:
+      preset?.focusDurationSec ?? input.focusDurationSec ?? 25 * 60,
+    shortBreakSec: preset?.shortBreakSec,
+    longBreakSec: preset?.longBreakSec,
+    cyclesBeforeLongBreak: preset?.cyclesBeforeLongBreak,
+    targetCycles: preset?.targetCycles,
+    presetId: preset?.id ?? null,
+    title: preset?.intention ?? task.title,
     taskId: task.id,
     // category/schedule go through dialog task selection + snapshot
     occurrenceDate,
     linkSnapshot: buildLinkSnapshot(task, category, schedule),
     completeTaskOnEnd: false,
+    autoStartBreaks: preset?.autoStartBreaks,
+    autoStartFocus: preset?.autoStartFocus,
+    soundEnabled: preset?.soundEnabled,
+    vibrationEnabled: preset?.vibrationEnabled,
+    notifyOnPhaseEnd: preset?.notifyOnPhaseEnd,
+    keepScreenAwake: preset?.keepScreenAwake,
+    preferFullscreen: preset?.preferFullscreen,
+    segments: preset?.segments,
   };
 }
 

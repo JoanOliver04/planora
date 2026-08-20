@@ -58,7 +58,8 @@ function modeLabel(
 ) {
   if (mode === "countdown") return t("modes.countdown");
   if (mode === "stopwatch") return t("modes.stopwatch");
-  return t("modes.cycles");
+  if (mode === "cycles") return t("modes.cycles");
+  return t("modes.structured_plan");
 }
 
 export function FocusHome({

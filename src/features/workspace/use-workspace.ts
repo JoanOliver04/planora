@@ -136,7 +136,7 @@ export function useWorkspace(mode: WorkspaceMode) {
         "occurrence_date",
         historyFrom.toISOString().slice(0, 10),
       );
-    const [s, c, t, e, h] = await Promise.all([
+    const [s, c, t, e, h, p] = await Promise.all([
       db.from("schedules").select("*").order("sort_order").order("created_at"),
       needed.has("categories")
         ? db.from("categories").select("*").order("sort_order")
@@ -146,10 +146,22 @@ export function useWorkspace(mode: WorkspaceMode) {
         : empty,
       needed.has("events") ? eventsQuery : empty,
       needed.has("completions") ? completionsQuery : empty,
+      needed.has("tasks")
+        ? db
+            .from("focus_presets")
+            .select("id,name,emoji,archived_at")
+            .is("archived_at", null)
+            .order("sort_order")
+        : empty,
     ]);
-    const firstError = [s.error, c.error, t.error, e.error, h.error].find(
-      Boolean,
-    );
+    const firstError = [
+      s.error,
+      c.error,
+      t.error,
+      e.error,
+      h.error,
+      p.error,
+    ].find(Boolean);
     if (firstError) {
       const queryCache = loadCachedWorkspace(user.id, mode);
       if (queryCache) {
@@ -192,6 +204,7 @@ export function useWorkspace(mode: WorkspaceMode) {
       tasks: t.data ?? [],
       events: e.data ?? [],
       completions,
+      focusPresets: p.data ?? [],
     };
     setData(workspace);
     cacheWorkspace(mode, workspace);
