@@ -78,6 +78,42 @@ test("demo disables real account actions", async ({ page }) => {
   ).toHaveCount(0);
 });
 
+test("demo exposes the current product areas without registration", async ({
+  page,
+}) => {
+  await page.goto("/es/demo/more");
+  const main = page.locator("#main-content");
+  for (const area of [
+    "Mes",
+    "Buscar",
+    "Enfoque",
+    "Estadísticas",
+    "Recordatorios",
+    "Plantillas",
+    "Datos",
+  ]) {
+    await expect(main.getByRole("link", { name: area })).toBeVisible();
+  }
+  await main.getByRole("link", { name: "Enfoque" }).click();
+  await expect(page).toHaveURL(/\/es\/demo\/focus/);
+  await expect(page.getByText("25:00")).toBeVisible();
+  await page.getByRole("button", { name: "Iniciar", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Pausar" })).toBeVisible();
+  await expect(page.getByText("24:59")).toBeVisible({ timeout: 2_500 });
+});
+
+test("demo mobile navigation routes extra tools through More", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/es/demo/today");
+  await page.locator(".mobile-nav").getByRole("link", { name: "Más" }).click();
+  await expect(page).toHaveURL(/\/es\/demo\/more/);
+  await expect(
+    page.locator("#main-content").getByRole("link", { name: "Enfoque" }),
+  ).toBeVisible();
+});
+
 test("mobile navigation stays pinned above scrollable content", async ({
   page,
 }) => {

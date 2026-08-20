@@ -4,12 +4,20 @@ import { DemoWorkspace } from "@/features/demo/demo-workspace";
 const views = [
   "today",
   "week",
+  "month",
+  "search",
   "tasks",
+  "focus",
   "events",
   "history",
+  "statistics",
+  "reminders",
   "schedules",
   "categories",
+  "templates",
   "settings",
+  "data",
+  "more",
 ] as const;
 
 export default async function DemoPage({
