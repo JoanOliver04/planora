@@ -78,9 +78,13 @@ describe("Focus release readiness contracts", () => {
   });
 
   it("keeps the current guided-plan delivery contract", () => {
-    const prompts = read("prompts.md");
-    expect(prompts).toContain("Nuevo modo «Plan estructurado»");
-    expect(prompts).toContain("Preset recomendado por tarea");
-    expect(prompts).toContain("Concurrencia entre pestañas");
+    const migration = read(
+      "supabase/migrations/20260820090000_guided_plan_sessions.sql",
+    );
+    expect(migration).toContain("'structured_plan'");
+    expect(migration).toContain("recommended_focus_preset_id");
+    expect(migration).toContain(
+      "create or replace function public.restore_planora_backup",
+    );
   });
 });
