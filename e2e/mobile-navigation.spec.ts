@@ -90,6 +90,11 @@ test("mobile More navigation reaches every secondary area naturally", async ({
         url: "http://127.0.0.1:3000",
       })),
     );
+    await context.addInitScript((cookies) => {
+      for (const cookie of cookies) {
+        document.cookie = `${cookie.name}=${cookie.value}; path=/; SameSite=Lax`;
+      }
+    }, cookieJar);
 
     const authenticatedRoutes = [
       "today",
