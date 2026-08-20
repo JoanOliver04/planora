@@ -32,6 +32,14 @@ test("mobile More navigation reaches every secondary area naturally", async ({
   });
   expect(created.error).toBeNull();
   const userId = created.data.user!.id;
+  const apiFailures: string[] = [];
+  page.on("response", async (response) => {
+    if (response.url().startsWith(url!) && response.status() >= 400) {
+      apiFailures.push(
+        `${response.status()} ${new URL(response.url()).pathname}: ${await response.text()}`,
+      );
+    }
+  });
 
   try {
     const authClient = createClient<Database>(url!, anonKey!, {
@@ -137,7 +145,7 @@ test("mobile More navigation reaches every secondary area naturally", async ({
         });
         expect(
           await renderedState.getAttribute("class"),
-          await page.locator("body").innerText(),
+          `${await page.locator("body").innerText()}\n${apiFailures.join("\n")}`,
         ).toContain("today-header");
         const heading = await page
           .locator(".today-header > div")
