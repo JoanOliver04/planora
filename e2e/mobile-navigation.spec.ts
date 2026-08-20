@@ -127,9 +127,18 @@ test("mobile More navigation reaches every secondary area naturally", async ({
       ).toBe(true);
 
       if (route === "today") {
-        await expect(page.locator(".today-header")).toBeVisible({
+        const renderedState = page
+          .locator(
+            ".today-header, .onboarding, .empty[role='alert'], .workspace-skeleton",
+          )
+          .first();
+        await expect(renderedState).toBeVisible({
           timeout: 15_000,
         });
+        expect(
+          await renderedState.getAttribute("class"),
+          await page.locator("body").innerText(),
+        ).toContain("today-header");
         const heading = await page
           .locator(".today-header > div")
           .first()
