@@ -15,7 +15,7 @@ export function GoogleButton() {
     const redirectTo = `${window.location.origin}/auth/callback?next=/${locale}/today`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo, scopes: "openid email profile" },
+      options: { redirectTo, scopes: "openid email" },
     });
     if (error) toast.error(error.message);
   }

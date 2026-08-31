@@ -17,7 +17,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Restore accepts validated backups up to 5 MiB. Next.js counts the raw
   // action body too, so 1 MiB of headroom covers serialization overhead.
-  experimental: { serverActions: { bodySizeLimit: "6mb" } },
+  experimental: {
+    serverActions: { bodySizeLimit: "6mb" },
+    optimizePackageImports: ["lucide-react", "date-fns", "date-fns-tz"],
+  },
   async headers() {
     return [
       {
@@ -41,7 +44,7 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value:
-              "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()",
+              "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), display-capture=()",
           },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Origin-Agent-Cluster", value: "?1" },

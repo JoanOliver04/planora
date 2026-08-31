@@ -27,15 +27,9 @@ export async function PrivateSession({
   let user: { id: string } | null = null;
   try {
     const {
-      data: { session },
-    } = await withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT_MS);
-    user = session?.user ?? null;
-    if (!user) {
-      const {
-        data: { user: sessionUser },
-      } = await withTimeout(supabase.auth.getUser(), AUTH_TIMEOUT_MS);
-      user = sessionUser;
-    }
+      data: { user: sessionUser },
+    } = await withTimeout(supabase.auth.getUser(), AUTH_TIMEOUT_MS);
+    user = sessionUser;
   } catch (error) {
     logBootstrap({
       phase: "auth",

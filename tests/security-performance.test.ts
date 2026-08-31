@@ -57,6 +57,15 @@ const authenticatedPrivilegesMigration = readFileSync(
 );
 
 describe("security and performance architecture", () => {
+  it("requests only identity scopes from Google", () => {
+    const google = readFileSync(
+      join(process.cwd(), "src/features/auth/google-button.tsx"),
+      "utf8",
+    );
+    expect(google).toContain('scopes: "openid email"');
+    expect(google).not.toContain("profile");
+  });
+
   it("never stores authenticated navigations in the service-worker cache", () => {
     expect(worker).toContain("planora-assets-");
     expect(worker).toContain('searchParams.get("v")');

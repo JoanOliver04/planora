@@ -25,7 +25,7 @@ export function contentSecurityPolicy(options?: {
     "form-action 'self'",
     scriptSource,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https:",
+    "img-src 'self' data: blob:",
     "font-src 'self' data:",
     `connect-src 'self' https://*.supabase.co wss://*.supabase.co ${configuredSupabaseSources.join(" ")} https://vitals.vercel-insights.com https://va.vercel-scripts.com${
       options?.development ? " ws://localhost:*" : ""

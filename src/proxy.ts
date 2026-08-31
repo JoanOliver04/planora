@@ -13,7 +13,7 @@ export async function proxy(request: NextRequest) {
   const localized = intl(request);
   if (auth)
     auth.cookies.getAll().forEach((cookie) => localized.cookies.set(cookie));
-  if (privatePath) {
+  if (privatePath || request.nextUrl.pathname.includes("/login")) {
     localized.headers.set("Cache-Control", "private, no-store, max-age=0");
     localized.headers.set("CDN-Cache-Control", "no-store");
     localized.headers.set("Vercel-CDN-Cache-Control", "no-store");

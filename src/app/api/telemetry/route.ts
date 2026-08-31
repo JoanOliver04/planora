@@ -14,7 +14,12 @@ const payload = z.object({
   type: z.literal("error"),
   path: z.string().startsWith("/").max(160),
   message: z.string().max(300).optional(),
-  context: z.record(z.string(), z.unknown()).optional(),
+  context: z
+    .record(
+      z.string().max(40),
+      z.union([z.string().max(200), z.number(), z.boolean(), z.null()]),
+    )
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -49,7 +54,21 @@ export async function POST(request: Request) {
       },
     );
 
-  const parsed = payload.safeParse(await request.json().catch(() => null));
+  const raw = await request.text().catch(() => "");
+  if (raw.length > 4_096)
+    return NextResponse.json(
+      { error: "Payload too large" },
+      { status: 413, headers: noStore },
+    );
+  const parsed = payload.safeParse(
+    (() => {
+      try {
+        return JSON.parse(raw) as unknown;
+      } catch {
+        return null;
+      }
+    })(),
+  );
   if (!parsed.success)
     return NextResponse.json(
       { error: "Invalid event" },

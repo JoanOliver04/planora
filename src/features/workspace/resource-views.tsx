@@ -1073,6 +1073,7 @@ export function SettingsView({
                 onClick={async () => {
                   const r = await fetch("/api/account", {
                     method: "DELETE",
+                    credentials: "same-origin",
                     headers: { "x-planora-confirm": "delete-account" },
                   });
                   if (r.ok) {

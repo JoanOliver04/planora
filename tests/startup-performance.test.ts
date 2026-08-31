@@ -60,11 +60,9 @@ describe("desktop and mobile startup performance", () => {
     expect(page).not.toContain("const TodayView = dynamic");
   });
 
-  it("reads the cookie session before calling Auth again", () => {
-    expect(session).toContain("getSession()");
+  it("authorizes the private shell with getUser, not cookie session alone", () => {
+    expect(session).toContain("getUser()");
+    expect(session).not.toContain("getSession()");
     expect(login).toContain("getSession()");
-    expect(session.indexOf("getSession()")).toBeLessThan(
-      session.indexOf("getUser()"),
-    );
   });
 });

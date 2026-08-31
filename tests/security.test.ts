@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { safeRedirectPath } from "@/lib/security/redirect";
+import { safePostAuthPath, safeRedirectPath } from "@/lib/security/redirect";
 import {
   exceedsContentLength,
   hasJsonContentType,
@@ -71,6 +71,20 @@ describe("security boundaries", () => {
       },
     });
     expect(requestKey(request, "telemetry")).toBe("telemetry:9.9.9.9");
+  });
+
+  it("does not allow arbitrary HTTPS images in the CSP", () => {
+    expect(contentSecurityPolicy()).toContain("img-src 'self' data: blob:");
+    expect(contentSecurityPolicy()).not.toContain("blob: https:");
+  });
+
+  it("only returns the user to a private app path after OAuth", () => {
+    expect(safePostAuthPath("/en/today?tab=week", "en")).toBe(
+      "/en/today?tab=week",
+    );
+    expect(safePostAuthPath("/es/login", "es")).toBe("/es/today");
+    expect(safePostAuthPath("/en/privacy", "en")).toBe("/en/today");
+    expect(safePostAuthPath("https://evil.example", "es")).toBe("/es/today");
   });
 
   it("rejects an invalid onboarding timezone before it reaches SQL", () => {

@@ -1,3 +1,5 @@
+import { isPrivateAppPath } from "@/lib/security/routes";
+
 const INTERNAL_ORIGIN = "https://internal.invalid";
 
 export function safeRedirectPath(value: string | null, fallback: string) {
@@ -17,4 +19,11 @@ export function safeRedirectPath(value: string | null, fallback: string) {
   } catch {
     return fallback;
   }
+}
+
+export function safePostAuthPath(value: string | null, locale: string) {
+  const fallback = `/${locale === "en" ? "en" : "es"}/today`;
+  const path = safeRedirectPath(value, fallback);
+  const pathname = path.split("?")[0]?.split("#")[0] ?? fallback;
+  return isPrivateAppPath(pathname) ? path : fallback;
 }

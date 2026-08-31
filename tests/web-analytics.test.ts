@@ -25,6 +25,7 @@ describe("Vercel Web Analytics", () => {
     expect(providers).not.toContain("PrivacyAnalytics");
     expect(telemetryRoute).toContain('type: z.literal("error")');
     expect(telemetryRoute).not.toContain('"pageview"');
+    expect(telemetryRoute).toContain("raw.length > 4_096");
   });
 
   it("documents the privacy behavior in both languages", () => {
