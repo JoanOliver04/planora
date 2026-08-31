@@ -88,7 +88,7 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
       applyPreferences(normalizePreferences(data.profile.preferences));
   }, [data?.profile.preferences]);
 
-  if (loading || phase === "loading") return <WorkspaceSkeleton />;
+  if ((loading || phase === "loading") && !data) return <WorkspaceSkeleton />;
   if (!data)
     return (
       <BootstrapRecovery

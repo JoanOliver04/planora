@@ -5,7 +5,11 @@ import {
   fetchWithTimeout,
   withTimeout,
 } from "@/lib/bootstrap/timeout";
+import { isPrivateAppPath } from "@/lib/security/routes";
+
 export async function updateSession(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  if (!isPrivateAppPath(path) && !path.includes("/login")) return null;
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY

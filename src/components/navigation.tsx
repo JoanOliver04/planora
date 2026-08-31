@@ -76,7 +76,6 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
         height={140}
         sizes="140px"
         style={{ width: 140, height: "auto" }}
-        priority
       />
       <Image
         className="brand-logo brand-logo-dark"
@@ -86,7 +85,6 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
         height={140}
         sizes="140px"
         style={{ width: 140, height: "auto" }}
-        priority
       />
     </div>
   );

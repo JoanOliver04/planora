@@ -63,6 +63,7 @@ describe("security and performance architecture", () => {
     expect(worker).toContain("PUBLIC_NAVIGATION.has(url.pathname)");
     expect(worker).toContain("private|no-store");
     expect(worker).toContain("networkFirstAsset");
+    expect(worker).toContain("cacheFirstImmutable");
     expect(worker).not.toMatch(/cache\.put\(request[\s\S]*\/today/);
   });
 

@@ -216,13 +216,14 @@ export function ReminderScheduler({ locale }: { locale: string }) {
     window.addEventListener("focus", run);
     window.addEventListener("planora-notification-preferences", run);
     document.addEventListener("visibilitychange", run);
-    queueMicrotask(run);
+    const startup = window.setTimeout(run, 2_500);
     const timer = window.setInterval(run, 30_000);
     return () => {
       window.removeEventListener("online", run);
       window.removeEventListener("focus", run);
       window.removeEventListener("planora-notification-preferences", run);
       document.removeEventListener("visibilitychange", run);
+      window.clearTimeout(startup);
       window.clearInterval(timer);
     };
   }, [check]);

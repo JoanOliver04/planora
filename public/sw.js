@@ -98,6 +98,23 @@ function networkFirstAsset(event, request) {
     .catch(async () => (await caches.match(request)) || Response.error());
 }
 
+function cacheFirstImmutable(event, request) {
+  return caches.match(request).then((cached) => {
+    if (cached) return cached;
+    return fetch(request)
+      .then((response) => {
+        if (response.ok)
+          event.waitUntil(
+            caches
+              .open(VERSION)
+              .then((cache) => cache.put(request, response.clone())),
+          );
+        return response;
+      })
+      .catch(async () => (await caches.match(request)) || Response.error());
+  });
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(PRECACHE)));
   self.skipWaiting();
@@ -131,8 +148,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (url.pathname.startsWith("/_next/static/")) {
+    event.respondWith(cacheFirstImmutable(event, request));
+    return;
+  }
+
   if (
-    url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/assets/") ||
     url.pathname === "/icon-192.png" ||
     url.pathname === "/icon-512.png" ||

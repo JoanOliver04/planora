@@ -42,7 +42,8 @@ export function useWorkspace(mode: WorkspaceMode) {
     [loading, setLoading] = useState(true),
     [error, setError] = useState<string | null>(null),
     [phase, setPhase] = useState<BootstrapPhase>("loading"),
-    pendingEventRanges = useRef(new Set<string>());
+    pendingEventRanges = useRef(new Set<string>()),
+    presentedRef = useRef(false);
   const finish = useCallback(
     (next: {
       timedOut?: boolean;
@@ -67,7 +68,10 @@ export function useWorkspace(mode: WorkspaceMode) {
         requestFailed: Boolean(next.requestFailed),
         fatal: next.fatal,
       });
-      if (next.workspace) setData(next.workspace);
+      if (next.workspace) {
+        setData(next.workspace);
+        presentedRef.current = true;
+      }
       setPhase(decided);
       setLoading(false);
       setError(
@@ -141,14 +145,14 @@ export function useWorkspace(mode: WorkspaceMode) {
   );
   const load = useCallback(async () => {
     setError(null);
-    setPhase("loading");
-    setLoading(true);
-    let sessionUserId: string | undefined;
+    if (!presentedRef.current) {
+      setPhase("loading");
+      setLoading(true);
+    }
+    let session: { user?: { id: string; email?: string } | null } | null = null;
     try {
-      const {
-        data: { session },
-      } = await withTimeout(db.auth.getSession(), AUTH_TIMEOUT_MS);
-      sessionUserId = session?.user?.id;
+      const result = await withTimeout(db.auth.getSession(), AUTH_TIMEOUT_MS);
+      session = result.data.session;
     } catch (error) {
       finish({
         timedOut: isTimeoutError(error),
@@ -158,47 +162,55 @@ export function useWorkspace(mode: WorkspaceMode) {
       });
       return;
     }
+    const sessionUserId = session?.user?.id;
     const cached = sessionUserId
       ? loadCachedWorkspace(sessionUserId, mode)
       : null;
-    if (cached) setData(cached);
-    if (!navigator.onLine) {
+    if (cached)
       finish({
-        online: false,
-        hasSession: Boolean(sessionUserId),
-        hasCache: Boolean(cached),
+        hasSession: true,
+        hasCache: true,
         workspace: cached,
-        errorCode: "offline",
       });
+    if (!navigator.onLine) {
+      if (!cached)
+        finish({
+          online: false,
+          hasSession: Boolean(sessionUserId),
+          hasCache: false,
+          errorCode: "offline",
+        });
       return;
     }
-    let user: { id: string; email?: string } | null = null;
-    try {
-      const {
-        data: { user: nextUser },
-        error: authError,
-      } = await withTimeout(db.auth.getUser(), AUTH_TIMEOUT_MS);
-      if (authError || !nextUser) {
+    let user: { id: string; email?: string } | null = session?.user ?? null;
+    if (!user) {
+      try {
+        const {
+          data: { user: nextUser },
+          error: authError,
+        } = await withTimeout(db.auth.getUser(), AUTH_TIMEOUT_MS);
+        if (authError || !nextUser) {
+          finish({
+            hasSession: Boolean(sessionUserId),
+            authError: true,
+            hasCache: Boolean(cached),
+            workspace: cached,
+            errorCode: "auth",
+          });
+          return;
+        }
+        user = nextUser;
+      } catch (error) {
         finish({
+          timedOut: isTimeoutError(error),
           hasSession: Boolean(sessionUserId),
           authError: true,
           hasCache: Boolean(cached),
           workspace: cached,
-          errorCode: "auth",
+          errorCode: isTimeoutError(error) ? "timeout" : "auth",
         });
         return;
       }
-      user = nextUser;
-    } catch (error) {
-      finish({
-        timedOut: isTimeoutError(error),
-        hasSession: Boolean(sessionUserId),
-        authError: true,
-        hasCache: Boolean(cached),
-        workspace: cached,
-        errorCode: isTimeoutError(error) ? "timeout" : "auth",
-      });
-      return;
     }
     let profile;
     try {

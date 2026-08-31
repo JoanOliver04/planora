@@ -37,6 +37,8 @@ describe("workspace historical loading", () => {
     expect(source).toContain("decideBootstrapPhase");
     expect(source).toContain("withTimeout");
     expect(source).toContain('window.addEventListener("online"');
+    expect(source).toContain("presentedRef");
+    expect(source).toContain("loadCachedWorkspace(sessionUserId, mode)");
   });
 
   it("bounds month events to the visible six-week grid", () => {

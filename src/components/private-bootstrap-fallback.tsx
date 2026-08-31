@@ -43,7 +43,7 @@ export function PrivateBootstrapFallback({
     >
       {/* Native img so a missing next/image chunk cannot pin this fallback. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/assets/logo.webp" width={72} height={72} alt="" />
+      <img src="/icon-192.png" width={72} height={72} alt="" />
       <p className="muted">{t("loading")}</p>
     </div>
   );

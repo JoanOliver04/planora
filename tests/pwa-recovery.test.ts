@@ -40,6 +40,7 @@ describe("service worker update safety", () => {
     expect(worker).not.toContain('const VERSION = "planora-shell-v2"');
     expect(worker).not.toMatch(/cache\.addAll\(\s*SHELL/);
     expect(worker).toContain("networkFirstAsset");
+    expect(worker).toContain("cacheFirstImmutable");
     expect(worker).toContain("networkFirstPublicNavigation");
   });
 

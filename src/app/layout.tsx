@@ -4,8 +4,26 @@ import "./globals.css";
 import { siteConfig } from "@/config/site";
 import { Analytics } from "@vercel/analytics/next";
 
-const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const mono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const geist = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+  display: "swap",
+});
+const mono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+});
+const supabaseOrigin = (() => {
+  try {
+    return process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
+      : null;
+  } catch {
+    return null;
+  }
+})();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -42,6 +60,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning>
+      {supabaseOrigin ? (
+        <head>
+          <link
+            rel="preconnect"
+            href={supabaseOrigin}
+            crossOrigin="anonymous"
+          />
+          <link rel="dns-prefetch" href={supabaseOrigin} />
+        </head>
+      ) : null}
       <body className={`${geist.variable} ${mono.variable}`}>
         <style
           dangerouslySetInnerHTML={{
