@@ -19,7 +19,7 @@ The database replacement runs through `public.restore_planora_backup(jsonb)`. Th
 - disables restored reminders and alarms;
 - never rehydrates a live Focus timer: the app layer cancels active sessions and closes open intervals before the RPC runs;
 - runs as one PostgreSQL statement, so any validation, deletion or insertion error rolls back the entire replacement;
-- cannot affect another user's rows because every delete and insert is bound to the authenticated user and RLS remains active.
+- cannot affect another user's rows because every delete and insert is bound to `auth.uid()`. The wrapper runs as `SECURITY DEFINER` only so it can call `restore_planora_backup_core`, which authenticated clients cannot execute through PostgREST.
 
 Restoring the same file repeatedly is idempotent at the product level: every run replaces the workspace and therefore leaves one functional copy of each exported entity. `backupId` remains stable within the file and legacy v1 files receive a deterministic migrated identifier.
 

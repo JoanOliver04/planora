@@ -19,7 +19,13 @@ const nextConfig: NextConfig = {
   // action body too, so 1 MiB of headroom covers serialization overhead.
   experimental: {
     serverActions: { bodySizeLimit: "6mb" },
-    optimizePackageImports: ["lucide-react", "date-fns", "date-fns-tz"],
+    optimizePackageImports: [
+      "lucide-react",
+      "date-fns",
+      "date-fns-tz",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-alert-dialog",
+    ],
   },
   async headers() {
     return [

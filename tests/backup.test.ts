@@ -220,6 +220,8 @@ describe("portable backups", () => {
     const csv = toCsv([{ title: '=HYPERLINK("https://evil","x")' }]);
     expect(csv).toContain('"\'=HYPERLINK(""https://evil"",""x"")"');
     expect(csv).not.toMatch(/(^|,)=HYPERLINK/m);
+    expect(toCsv([{ title: "|cmd" }])).toContain("'|cmd");
+    expect(toCsv([{ title: "%cmd" }])).toContain("'%cmd");
   });
 
   it("exports focus CSV without notes and puts notes in a PRIVATE file", () => {

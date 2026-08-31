@@ -180,6 +180,26 @@ describe("security and performance architecture", () => {
     expect(restoreWeekMigration).toContain("ended_at is null");
   });
 
+  it("hides restore internals and anonymous RPC entry points", () => {
+    const migration = readFileSync(
+      join(
+        process.cwd(),
+        "supabase/migrations/20260831200000_restore_wrapper_definer.sql",
+      ),
+      "utf8",
+    );
+    expect(migration).toContain("security definer");
+    expect(migration).toContain(
+      "revoke all on function public.restore_category_scope(jsonb, uuid)",
+    );
+    expect(migration).toContain(
+      "revoke all on function public.complete_guided_onboarding",
+    );
+    expect(migration).toMatch(
+      /grant execute on function public\.restore_planora_backup_core\(jsonb\)\s+to service_role;/,
+    );
+  });
+
   it("records completion authority so offline replay cannot resurrect work", () => {
     const migration = readFileSync(
       join(

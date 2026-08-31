@@ -23,4 +23,17 @@ describe("backup export paging", () => {
     }));
     expect(rows).toEqual([{ id: "only" }]);
   });
+
+  it("refuses an export that would exceed the safety cap", async () => {
+    const loadPage = vi.fn(async (from: number) => ({
+      data: Array.from({ length: 1000 }, (_, index) => ({
+        id: from + index,
+      })),
+      error: null,
+    }));
+    await expect(fetchAllRows(loadPage)).rejects.toThrow(
+      "Export is too large to complete safely",
+    );
+    expect(loadPage.mock.calls.length).toBe(101);
+  });
 });

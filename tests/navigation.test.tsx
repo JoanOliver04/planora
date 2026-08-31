@@ -17,13 +17,15 @@ vi.mock("@/i18n/routing", () => ({
   Link: ({
     href,
     children,
-    prefetch: _prefetch,
     ...props
-  }: React.ComponentProps<"a"> & { prefetch?: boolean }) => (
-    <a href={String(href)} {...props}>
-      {children}
-    </a>
-  ),
+  }: React.ComponentProps<"a"> & { prefetch?: boolean }) => {
+    delete props.prefetch;
+    return (
+      <a href={String(href)} {...props}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 afterEach(() => {

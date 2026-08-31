@@ -13,10 +13,10 @@ export async function fetchAllRows<Row>(
     const { data, error } = await loadPage(from, from + PAGE_SIZE - 1);
     if (error) throw new Error(error.message);
     const chunk = data ?? [];
+    if (rows.length + chunk.length > MAX_EXPORT_ROWS)
+      throw new Error("Export is too large to complete safely");
     rows.push(...chunk);
     if (chunk.length < PAGE_SIZE) return rows;
-    if (rows.length >= MAX_EXPORT_ROWS)
-      throw new Error("Export is too large to complete safely");
     from += PAGE_SIZE;
   }
 }

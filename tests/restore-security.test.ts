@@ -50,4 +50,31 @@ describe("backup restore abuse protection", () => {
     expect(sql).toContain("octet_length");
     expect(sql).toContain("to service_role");
   });
+
+  it("runs the restore wrapper as definer so core stays hidden from PostgREST", () => {
+    const sql = readFileSync(
+      join(
+        process.cwd(),
+        "supabase/migrations/20260831200000_restore_wrapper_definer.sql",
+      ),
+      "utf8",
+    );
+    expect(sql).toMatch(
+      /create or replace function public\.restore_planora_backup\([\s\S]*?security definer/,
+    );
+    expect(sql).toContain("current_user_id uuid := auth.uid()");
+    expect(sql).toContain("from public, anon, authenticated");
+    expect(sql).toContain("restore_planora_backup_core");
+    expect(sql).toContain("restore_category_scope");
+    expect(sql).toContain("assert_restore_rate_limit");
+    expect(sql).toMatch(
+      /grant execute on function public\.restore_planora_backup_core\(jsonb\)\s+to service_role;/,
+    );
+    expect(sql).not.toMatch(
+      /grant execute on function public\.restore_category_scope/,
+    );
+    expect(sql).not.toMatch(
+      /grant execute on function public\.assert_restore_rate_limit/,
+    );
+  });
 });

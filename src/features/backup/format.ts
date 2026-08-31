@@ -957,7 +957,7 @@ const csvCell = (value: unknown) => {
       : typeof value === "object"
         ? JSON.stringify(value)
         : String(value);
-  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  if (/^[=+\-@\t\r|%]/.test(text)) text = `'${text}`;
   return /[",\r\n]/.test(text) ? '"' + text.replaceAll('"', '""') + '"' : text;
 };
 
