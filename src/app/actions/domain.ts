@@ -764,10 +764,9 @@ export async function restoreBackup(input: unknown) {
   const { assertRestoreAllowed } =
     await import("@/features/backup/restore-security");
   await assertRestoreAllowed(user.id);
-  if (
-    typeof input === "string" &&
-    new TextEncoder().encode(input).length > MAX_BACKUP_BYTES
-  ) {
+  const encoded =
+    typeof input === "string" ? input : JSON.stringify(input ?? null);
+  if (new TextEncoder().encode(encoded).length > MAX_BACKUP_BYTES) {
     throw new Error("Invalid or incompatible backup");
   }
   const parsed = parseBackup(input);

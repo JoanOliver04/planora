@@ -1,6 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { safePostAuthPath } from "@/lib/security/redirect";
+import { siteConfig } from "@/config/site";
 
 function localeFromRequest(request: Request) {
   const cookie = request.headers.get("cookie") ?? "";
@@ -14,17 +15,18 @@ export async function GET(request: Request) {
   const url = new URL(request.url),
     code = url.searchParams.get("code"),
     locale = localeFromRequest(request),
-    next = safePostAuthPath(url.searchParams.get("next"), locale);
+    next = safePostAuthPath(url.searchParams.get("next"), locale),
+    origin = siteConfig.url.replace(/\/$/, "");
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error)
-      return NextResponse.redirect(new URL(next, url.origin), {
+      return NextResponse.redirect(new URL(next, origin), {
         headers: { "Cache-Control": "no-store" },
       });
   }
   return NextResponse.redirect(
-    new URL(`/${locale}/login?error=oauth`, url.origin),
+    new URL(`/${locale}/login?error=oauth`, origin),
     {
       headers: { "Cache-Control": "no-store" },
     },

@@ -951,13 +951,14 @@ export function summarizeBackup(backup: PlanoraBackup) {
 }
 
 const csvCell = (value: unknown) => {
-  const text =
+  let text =
     value == null
       ? ""
       : typeof value === "object"
         ? JSON.stringify(value)
         : String(value);
-  return /[\",\r\n]/.test(text) ? '"' + text.replaceAll('"', '""') + '"' : text;
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  return /[",\r\n]/.test(text) ? '"' + text.replaceAll('"', '""') + '"' : text;
 };
 
 export function toCsv(rows: Record<string, unknown>[]) {

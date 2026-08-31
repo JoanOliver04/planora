@@ -123,6 +123,9 @@ describe("security and performance architecture", () => {
     expect(
       contentSecurityPolicy({ supabaseUrl: "http://db.example.com" }),
     ).not.toContain("http://db.example.com");
+    expect(
+      contentSecurityPolicy({ supabaseUrl: "https://db.example.com" }),
+    ).not.toContain("*.supabase.co");
   });
 
   it("stores rate limits outside serverless process memory", () => {

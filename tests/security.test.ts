@@ -78,6 +78,15 @@ describe("security boundaries", () => {
     expect(contentSecurityPolicy()).not.toContain("blob: https:");
   });
 
+  it("pins the OAuth callback to the configured site origin", () => {
+    const callback = readFileSync(
+      join(process.cwd(), "src/app/auth/callback/route.ts"),
+      "utf8",
+    );
+    expect(callback).toContain("siteConfig.url");
+    expect(callback).not.toContain("url.origin");
+  });
+
   it("only returns the user to a private app path after OAuth", () => {
     expect(safePostAuthPath("/en/today?tab=week", "en")).toBe(
       "/en/today?tab=week",

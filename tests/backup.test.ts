@@ -216,6 +216,12 @@ describe("portable backups", () => {
     expect(parsed.data.data.focus_sessions[0].notes).toBe("Private reflection");
   });
 
+  it("neutralizes spreadsheet formulas in CSV cells", () => {
+    const csv = toCsv([{ title: '=HYPERLINK("https://evil","x")' }]);
+    expect(csv).toContain('"\'=HYPERLINK(""https://evil"",""x"")"');
+    expect(csv).not.toMatch(/(^|,)=HYPERLINK/m);
+  });
+
   it("exports focus CSV without notes and puts notes in a PRIVATE file", () => {
     const data = backupFixture();
     data.focus_sessions[0] = {

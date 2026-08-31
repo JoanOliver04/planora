@@ -33,7 +33,10 @@ export async function POST(request: Request) {
       { error: "Unsupported media type" },
       { status: 415, headers: noStore },
     );
-  if (exceedsContentLength(request, 4_096))
+  if (
+    !request.headers.get("content-length") ||
+    exceedsContentLength(request, 4_096)
+  )
     return NextResponse.json(
       { error: "Payload too large" },
       { status: 413, headers: noStore },

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { DataTools } from "@/features/backup/data-tools";
 import type { BackupData } from "@/features/backup/format";
+import { fetchAllRows } from "@/lib/backup/fetch-all";
 
 export default async function DataPage({
   params,
@@ -11,45 +12,63 @@ export default async function DataPage({
   const db = await createClient();
   const [
     { data: profile },
-    { data: schedules },
-    { data: categories },
-    { data: tasks },
-    { data: events },
-    { data: completions },
-    { data: templates },
-    { data: reminders },
-    { data: focusPresets },
-    { data: focusSessions },
-    { data: focusIntervals },
-    { data: focusGoals },
+    schedules,
+    categories,
+    tasks,
+    events,
+    completions,
+    templates,
+    reminders,
+    focusPresets,
+    focusSessions,
+    focusIntervals,
+    focusGoals,
   ] = await Promise.all([
     db.from("profiles").select("*").single(),
-    db.from("schedules").select("*"),
-    db.from("categories").select("*"),
-    db.from("tasks").select("*"),
-    db.from("events").select("*"),
-    db.from("task_completions").select("*"),
-    db.from("schedule_templates").select("*"),
-    db.from("reminders").select("*"),
-    db.from("focus_presets").select("*"),
-    db.from("focus_sessions").select("*"),
-    db.from("focus_intervals").select("*"),
-    db.from("focus_goals").select("*"),
+    fetchAllRows((from, to) =>
+      db.from("schedules").select("*").range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      db.from("categories").select("*").range(from, to),
+    ),
+    fetchAllRows((from, to) => db.from("tasks").select("*").range(from, to)),
+    fetchAllRows((from, to) => db.from("events").select("*").range(from, to)),
+    fetchAllRows((from, to) =>
+      db.from("task_completions").select("*").range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      db.from("schedule_templates").select("*").range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      db.from("reminders").select("*").range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      db.from("focus_presets").select("*").range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      db.from("focus_sessions").select("*").range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      db.from("focus_intervals").select("*").range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      db.from("focus_goals").select("*").range(from, to),
+    ),
   ]);
 
   const data = {
     profile,
-    schedules: schedules ?? [],
-    categories: categories ?? [],
-    tasks: tasks ?? [],
-    events: events ?? [],
-    completions: completions ?? [],
-    templates: templates ?? [],
-    reminders: reminders ?? [],
-    focus_presets: focusPresets ?? [],
-    focus_sessions: focusSessions ?? [],
-    focus_intervals: focusIntervals ?? [],
-    focus_goals: focusGoals ?? [],
+    schedules,
+    categories,
+    tasks,
+    events,
+    completions,
+    templates,
+    reminders,
+    focus_presets: focusPresets,
+    focus_sessions: focusSessions,
+    focus_intervals: focusIntervals,
+    focus_goals: focusGoals,
   } as BackupData;
 
   return (
