@@ -6,6 +6,7 @@ import {
   clearPlanoraAssetCaches,
   isAssetLoadError,
   recoverFromStaleAssets,
+  shouldRecoverFromAssetError,
   snapshotOfflineKeys,
 } from "@/lib/pwa/chunk-recovery";
 import { serviceWorkerUrl } from "@/lib/pwa/register-sw";
@@ -73,6 +74,15 @@ describe("stale asset recovery", () => {
       true,
     );
     expect(isAssetLoadError(new Error("network down"))).toBe(false);
+    expect(isAssetLoadError({ name: "AbortError", message: "Aborted" })).toBe(
+      false,
+    );
+    expect(
+      shouldRecoverFromAssetError(
+        { name: "ChunkLoadError", message: "fail" },
+        { unloading: true },
+      ),
+    ).toBe(false);
   });
 
   it("reloads once for a missing chunk without clearing the offline queue", async () => {

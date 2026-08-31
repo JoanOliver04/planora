@@ -30,23 +30,27 @@ function isRscRequest(request, url) {
 }
 
 function clearPlanoraCaches() {
-  return caches.keys().then((keys) =>
-    Promise.all(
-      keys
-        .filter((key) => key.startsWith("planora-") && key !== VERSION)
-        .map((key) => caches.delete(key)),
-    ),
-  );
+  return caches
+    .keys()
+    .then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key.startsWith("planora-") && key !== VERSION)
+          .map((key) => caches.delete(key)),
+      ),
+    );
 }
 
 function clearAllPlanoraCaches() {
-  return caches.keys().then((keys) =>
-    Promise.all(
-      keys
-        .filter((key) => key.startsWith("planora-"))
-        .map((key) => caches.delete(key)),
-    ),
-  );
+  return caches
+    .keys()
+    .then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key.startsWith("planora-"))
+          .map((key) => caches.delete(key)),
+      ),
+    );
 }
 
 function notifyClients() {
@@ -95,9 +99,7 @@ function networkFirstAsset(event, request) {
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(VERSION).then((cache) => cache.addAll(PRECACHE)),
-  );
+  event.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(PRECACHE)));
   self.skipWaiting();
 });
 

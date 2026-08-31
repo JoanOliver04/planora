@@ -21,6 +21,7 @@ function errorField(error: unknown, key: "name" | "message") {
 export function isAssetLoadError(error: unknown) {
   const name = errorField(error, "name");
   const message = errorField(error, "message");
+  if (name === "AbortError") return false;
   const target =
     error && typeof error === "object" && "target" in error
       ? (error as { target?: EventTarget | null }).target
@@ -31,6 +32,7 @@ export function isAssetLoadError(error: unknown) {
       : target instanceof HTMLLinkElement
         ? target.href
         : "";
+  const hashedStaticAsset = /\/_next\/static\/.+[.-][a-f0-9]{8,}\./i.test(url);
   return (
     name === "ChunkLoadError" ||
     /Loading chunk [\w-]+ failed/i.test(message) ||
@@ -38,8 +40,16 @@ export function isAssetLoadError(error: unknown) {
     /Failed to fetch dynamically imported module/i.test(message) ||
     /error loading dynamically imported module/i.test(message) ||
     /Importing a module script failed/i.test(message) ||
-    /\/_next\/static\//.test(url)
+    hashedStaticAsset
   );
+}
+
+export function shouldRecoverFromAssetError(
+  error: unknown,
+  options?: { unloading?: boolean },
+) {
+  if (options?.unloading) return false;
+  return isAssetLoadError(error);
 }
 
 export function snapshotOfflineKeys(storage: Storage = window.localStorage) {
@@ -105,18 +115,32 @@ export async function recoverFromStaleAssets(options?: {
 }
 
 export function bindAssetLoadRecovery() {
+  let unloading = false;
+  const markUnloading = () => {
+    unloading = true;
+  };
+  const recoverLater = (error: unknown) => {
+    window.setTimeout(() => {
+      if (!shouldRecoverFromAssetError(error, { unloading })) return;
+      void recoverFromStaleAssets();
+    }, 50);
+  };
   const onError = (event: ErrorEvent) => {
     if (!isAssetLoadError(event.error ?? event)) return;
-    void recoverFromStaleAssets();
+    recoverLater(event.error ?? event);
   };
   const onRejection = (event: PromiseRejectionEvent) => {
     if (!isAssetLoadError(event.reason)) return;
     event.preventDefault();
-    void recoverFromStaleAssets();
+    recoverLater(event.reason);
   };
+  window.addEventListener("pagehide", markUnloading);
+  window.addEventListener("beforeunload", markUnloading);
   window.addEventListener("error", onError, true);
   window.addEventListener("unhandledrejection", onRejection);
   return () => {
+    window.removeEventListener("pagehide", markUnloading);
+    window.removeEventListener("beforeunload", markUnloading);
     window.removeEventListener("error", onError, true);
     window.removeEventListener("unhandledrejection", onRejection);
   };

@@ -128,7 +128,8 @@ test("current demo areas remain responsive on narrow screens", async ({
     "data",
     "more",
   ]) {
-    await page.goto(`/es/demo/${area}`);
+    await page.goto(`/es/demo/${area}`, { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(new RegExp(`/es/demo/${area}(?:[/?#]|$)`));
     await expect(page.locator("#main-content")).toBeVisible();
     expect(
       await page.evaluate(
