@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { PublicConnectivityStatus } from "@/components/public-connectivity-status";
+import { registerPlanoraServiceWorker } from "@/lib/pwa/register-sw";
 
 export function Providers({
   children,
@@ -16,8 +17,7 @@ export function Providers({
 }) {
   useEffect(() => {
     document.documentElement.lang = locale;
-    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator)
-      void navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    void registerPlanoraServiceWorker();
   }, [locale]);
 
   return (

@@ -5,6 +5,7 @@ import { GoogleButton } from "@/features/auth/google-button";
 import { Languages, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { AUTH_TIMEOUT_MS, withTimeout } from "@/lib/bootstrap/timeout";
 export default async function Login({
   params,
 }: {
@@ -12,11 +13,15 @@ export default async function Login({
 }) {
   const { locale } = await params;
   if (isSupabaseConfigured()) {
-    const db = await createClient(),
-      {
+    try {
+      const db = await createClient();
+      const {
         data: { user },
-      } = await db.auth.getUser();
-    if (user) redirect(`/${locale}/today`);
+      } = await withTimeout(db.auth.getUser(), AUTH_TIMEOUT_MS);
+      if (user) redirect(`/${locale}/today`);
+    } catch {
+      // Fail open to the login form so a hung auth call cannot pin the splash.
+    }
   }
   const t = await getTranslations("Auth");
   return (

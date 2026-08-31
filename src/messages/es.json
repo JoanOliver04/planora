@@ -831,7 +831,19 @@
   "Errors": {
     "generic": "Algo no ha salido bien.",
     "notFound": "No encontramos esta página.",
-    "backHome": "Volver al inicio"
+    "backHome": "Volver al inicio",
+    "bootstrap": {
+      "title": "No se pudo abrir Planora",
+      "body": "La aplicación no ha terminado de arrancar. Tus datos locales se conservan.",
+      "loading": "Cargando Planora…",
+      "retry": "Reintentar",
+      "reload": "Recargar aplicación",
+      "offline": "Estás sin conexión. Reintenta cuando vuelva la red.",
+      "timeout": "La conexión está tardando demasiado.",
+      "auth": "No se pudo comprobar la sesión.",
+      "assets": "Esta versión de Planora está incompleta. Recarga para actualizar.",
+      "generic": "Ha ocurrido un error al iniciar."
+    }
   },
   "Data": {
     "title": "Tus datos",

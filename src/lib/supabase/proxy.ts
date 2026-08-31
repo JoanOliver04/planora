@@ -1,5 +1,10 @@
-﻿import { createServerClient } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  AUTH_TIMEOUT_MS,
+  fetchWithTimeout,
+  withTimeout,
+} from "@/lib/bootstrap/timeout";
 export async function updateSession(request: NextRequest) {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -11,6 +16,9 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
+      global: {
+        fetch: (url, init) => fetchWithTimeout(url, init, AUTH_TIMEOUT_MS),
+      },
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll(values) {
@@ -23,6 +31,10 @@ export async function updateSession(request: NextRequest) {
       },
     },
   );
-  await client.auth.getClaims();
+  try {
+    await withTimeout(client.auth.getClaims(), AUTH_TIMEOUT_MS);
+  } catch {
+    return response;
+  }
   return response;
 }

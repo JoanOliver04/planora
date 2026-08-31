@@ -56,8 +56,10 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
           className="brand-logo"
           src="/assets/logo.webp"
           alt="Planora"
-          width={1024}
-          height={1024}
+          width={180}
+          height={180}
+          sizes="180px"
+          style={{ width: 180, height: "auto" }}
           priority
         />
       </div>
@@ -70,16 +72,20 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
         className="brand-logo brand-logo-light"
         src="/assets/logo_modo_claro.webp"
         alt="Planora"
-        width={1024}
-        height={1024}
+        width={140}
+        height={140}
+        sizes="140px"
+        style={{ width: 140, height: "auto" }}
         priority
       />
       <Image
         className="brand-logo brand-logo-dark"
         src="/assets/logo_modo_oscuro.webp"
         alt="Planora"
-        width={1024}
-        height={1024}
+        width={140}
+        height={140}
+        sizes="140px"
+        style={{ width: 140, height: "auto" }}
         priority
       />
     </div>

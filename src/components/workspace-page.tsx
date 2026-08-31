@@ -2,12 +2,13 @@
 import { useEffect, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { WorkspaceSkeleton } from "@/components/workspace-skeleton";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { setActiveSchedule } from "@/app/actions/domain";
 import { useWorkspace } from "@/features/workspace/use-workspace";
 import type { WorkspaceMode } from "@/features/workspace/types";
 import { applyPreferences, normalizePreferences } from "@/lib/preferences";
+import { BootstrapRecovery } from "@/components/bootstrap-recovery";
 
 const TodayView = dynamic(() =>
   import("@/features/workspace/task-views").then((module) => module.TodayView),
@@ -66,7 +67,8 @@ const SettingsView = dynamic(() =>
 
 export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
   const t = useTranslations("Workspace"),
-    { db, data, loading, error, reload, loadDate, loadEventRange } =
+    locale = useLocale(),
+    { db, data, loading, error, phase, reload, loadDate, loadEventRange } =
       useWorkspace(mode),
     [starters, setStarters] = useState(true),
     [starting, setStarting] = useState(false),
@@ -86,15 +88,15 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
       applyPreferences(normalizePreferences(data.profile.preferences));
   }, [data?.profile.preferences]);
 
-  if (loading) return <WorkspaceSkeleton />;
-  if (error || !data)
+  if (loading || phase === "loading") return <WorkspaceSkeleton />;
+  if (!data)
     return (
-      <div className="empty surface" role="alert">
-        <h1>{t("loadError")}</h1>
-        <button className="primary" onClick={() => void reload()}>
-          {t("retry")}
-        </button>
-      </div>
+      <BootstrapRecovery
+        locale={locale}
+        phase={phase === "authenticated" ? "recoverable_error" : phase}
+        code={error ?? "generic"}
+        onRetry={() => void reload()}
+      />
     );
   async function onboard() {
     setStarting(true);

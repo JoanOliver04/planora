@@ -128,7 +128,9 @@ async function tryNotifyPhase(
     // Never put task titles or private notes in the payload.
     if ("serviceWorker" in navigator) {
       try {
-        const registration = await navigator.serviceWorker.ready;
+        const { readyServiceWorker } = await import("@/lib/pwa/register-sw");
+        const registration = await readyServiceWorker();
+        if (!registration) throw new Error("service-worker-unavailable");
         await registration.showNotification(title, {
           body,
           icon: "/icon-192.png",

@@ -432,6 +432,28 @@ textarea:focus-visible {
 .login-copy .brand-logo {
   width: 180px;
 }
+.bootstrap-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+.bootstrap-recovery img {
+  margin: 0 auto 1rem;
+  width: 72px;
+  height: 72px;
+}
+.bootstrap-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
 
 .login-form {
   padding: clamp(2rem, 6vw, 4rem);

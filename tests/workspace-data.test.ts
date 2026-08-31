@@ -34,6 +34,9 @@ describe("workspace historical loading", () => {
     expect(source).toContain('.eq("event_date", day)');
     expect(source).toContain('else if (mode !== "tasks")');
     expect(source).toContain('task.recurrence_type === "once"');
+    expect(source).toContain("decideBootstrapPhase");
+    expect(source).toContain("withTimeout");
+    expect(source).toContain('window.addEventListener("online"');
   });
 
   it("bounds month events to the visible six-week grid", () => {

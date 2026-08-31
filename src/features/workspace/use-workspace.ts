@@ -6,6 +6,17 @@ import type { WorkspaceMode } from "./types";
 import { localDate, localWeek } from "@/lib/dates/timezone";
 import { cacheWorkspace, loadCachedWorkspace } from "@/lib/offline/queue";
 import { getMonthEventRange, mergeRowsById } from "./workspace-data";
+import {
+  decideBootstrapPhase,
+  type BootstrapPhase,
+} from "@/lib/bootstrap/phase";
+import { logBootstrap } from "@/lib/bootstrap/log";
+import {
+  AUTH_TIMEOUT_MS,
+  QUERY_TIMEOUT_MS,
+  isTimeoutError,
+  withTimeout,
+} from "@/lib/bootstrap/timeout";
 
 const requirements: Record<
   WorkspaceMode,
@@ -30,7 +41,50 @@ export function useWorkspace(mode: WorkspaceMode) {
     [data, setData] = useState<WorkspaceData | null>(null),
     [loading, setLoading] = useState(true),
     [error, setError] = useState<string | null>(null),
+    [phase, setPhase] = useState<BootstrapPhase>("loading"),
     pendingEventRanges = useRef(new Set<string>());
+  const finish = useCallback(
+    (next: {
+      timedOut?: boolean;
+      online?: boolean;
+      hasSession?: boolean;
+      authError?: boolean;
+      hasFreshData?: boolean;
+      hasCache?: boolean;
+      requestFailed?: boolean;
+      fatal?: boolean;
+      errorCode?: string | null;
+      workspace?: WorkspaceData | null;
+    }) => {
+      const decided = decideBootstrapPhase({
+        settled: true,
+        timedOut: Boolean(next.timedOut),
+        online: next.online ?? navigator.onLine,
+        hasSession: Boolean(next.hasSession),
+        authError: Boolean(next.authError),
+        hasFreshData: Boolean(next.hasFreshData),
+        hasCache: Boolean(next.hasCache),
+        requestFailed: Boolean(next.requestFailed),
+        fatal: next.fatal,
+      });
+      if (next.workspace) setData(next.workspace);
+      setPhase(decided);
+      setLoading(false);
+      setError(
+        decided === "authenticated" || decided === "loading"
+          ? null
+          : (next.errorCode ?? decided),
+      );
+      if (decided !== "authenticated")
+        logBootstrap({
+          phase: decided,
+          errorType: next.errorCode ?? decided,
+          code: next.errorCode ?? decided,
+          online: next.online ?? navigator.onLine,
+        });
+    },
+    [],
+  );
   const loadEventRange = useCallback(
     async (start: string, end: string) => {
       const range = `${start}:${end}`;
@@ -87,54 +141,93 @@ export function useWorkspace(mode: WorkspaceMode) {
   );
   const load = useCallback(async () => {
     setError(null);
-    const {
-      data: { session },
-    } = await db.auth.getSession();
-    const cached = session?.user?.id
-      ? loadCachedWorkspace(session.user.id, mode)
+    setPhase("loading");
+    setLoading(true);
+    let sessionUserId: string | undefined;
+    try {
+      const {
+        data: { session },
+      } = await withTimeout(db.auth.getSession(), AUTH_TIMEOUT_MS);
+      sessionUserId = session?.user?.id;
+    } catch (error) {
+      finish({
+        timedOut: isTimeoutError(error),
+        requestFailed: !isTimeoutError(error),
+        online: navigator.onLine,
+        errorCode: isTimeoutError(error) ? "timeout" : "session",
+      });
+      return;
+    }
+    const cached = sessionUserId
+      ? loadCachedWorkspace(sessionUserId, mode)
       : null;
-    if (cached) {
-      setData(cached);
-      setLoading(false);
-    }
-    if (!navigator.onLine && cached) return;
-    if (!navigator.onLine && session?.user?.id) {
-      setLoading(false);
-      setError("offline");
+    if (cached) setData(cached);
+    if (!navigator.onLine) {
+      finish({
+        online: false,
+        hasSession: Boolean(sessionUserId),
+        hasCache: Boolean(cached),
+        workspace: cached,
+        errorCode: "offline",
+      });
       return;
     }
-    const {
-      data: { user },
-      error: authError,
-    } = await db.auth.getUser();
-    if (authError || !user) {
-      const authCache = session?.user?.id
-        ? loadCachedWorkspace(session.user.id, mode)
-        : null;
-      if (authCache) {
-        setData(authCache);
-        setLoading(false);
-        setError(null);
+    let user: { id: string; email?: string } | null = null;
+    try {
+      const {
+        data: { user: nextUser },
+        error: authError,
+      } = await withTimeout(db.auth.getUser(), AUTH_TIMEOUT_MS);
+      if (authError || !nextUser) {
+        finish({
+          hasSession: Boolean(sessionUserId),
+          authError: true,
+          hasCache: Boolean(cached),
+          workspace: cached,
+          errorCode: "auth",
+        });
         return;
       }
-      setLoading(false);
-      setError("auth");
+      user = nextUser;
+    } catch (error) {
+      finish({
+        timedOut: isTimeoutError(error),
+        hasSession: Boolean(sessionUserId),
+        authError: true,
+        hasCache: Boolean(cached),
+        workspace: cached,
+        errorCode: isTimeoutError(error) ? "timeout" : "auth",
+      });
       return;
     }
-    const { data: profile, error: profileError } = await db
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-    if (profileError || !profile) {
+    let profile;
+    try {
+      const result = await withTimeout(
+        db.from("profiles").select("*").eq("id", user.id).single(),
+        QUERY_TIMEOUT_MS,
+      );
+      profile = result.data;
+      if (result.error || !profile) {
+        const profileCache = loadCachedWorkspace(user.id, mode);
+        finish({
+          hasSession: true,
+          hasCache: Boolean(profileCache),
+          requestFailed: true,
+          workspace: profileCache,
+          errorCode: result.error?.message ?? "profile",
+        });
+        return;
+      }
+    } catch (error) {
       const profileCache = loadCachedWorkspace(user.id, mode);
-      if (profileCache) {
-        setData(profileCache);
-        setLoading(false);
-        return;
-      }
-      setLoading(false);
-      setError(profileError?.message ?? "profile");
+      finish({
+        timedOut: isTimeoutError(error),
+        hasSession: true,
+        hasCache: Boolean(profileCache),
+        requestFailed: true,
+        workspace: profileCache,
+        errorCode: isTimeoutError(error) ? "timeout" : "profile",
+      });
       return;
     }
     const today = localDate(profile.timezone);
@@ -174,24 +267,49 @@ export function useWorkspace(mode: WorkspaceMode) {
         "occurrence_date",
         historyFrom.toISOString().slice(0, 10),
       );
-    const [s, c, t, e, h, p] = await Promise.all([
-      db.from("schedules").select("*").order("sort_order").order("created_at"),
-      needed.has("categories")
-        ? db.from("categories").select("*").order("sort_order")
-        : empty,
-      needed.has("tasks")
-        ? db.from("tasks").select("*").order("sort_order").order("created_at")
-        : empty,
-      needed.has("events") ? eventsQuery : empty,
-      needed.has("completions") ? completionsQuery : empty,
-      needed.has("tasks")
-        ? db
-            .from("focus_presets")
-            .select("id,name,emoji,archived_at")
-            .is("archived_at", null)
+    let s, c, t, e, h, p;
+    try {
+      [s, c, t, e, h, p] = await withTimeout(
+        Promise.all([
+          db
+            .from("schedules")
+            .select("*")
             .order("sort_order")
-        : empty,
-    ]);
+            .order("created_at"),
+          needed.has("categories")
+            ? db.from("categories").select("*").order("sort_order")
+            : empty,
+          needed.has("tasks")
+            ? db
+                .from("tasks")
+                .select("*")
+                .order("sort_order")
+                .order("created_at")
+            : empty,
+          needed.has("events") ? eventsQuery : empty,
+          needed.has("completions") ? completionsQuery : empty,
+          needed.has("tasks")
+            ? db
+                .from("focus_presets")
+                .select("id,name,emoji,archived_at")
+                .is("archived_at", null)
+                .order("sort_order")
+            : empty,
+        ]),
+        QUERY_TIMEOUT_MS,
+      );
+    } catch (error) {
+      const queryCache = loadCachedWorkspace(user.id, mode);
+      finish({
+        timedOut: isTimeoutError(error),
+        hasSession: true,
+        hasCache: Boolean(queryCache),
+        requestFailed: true,
+        workspace: queryCache,
+        errorCode: isTimeoutError(error) ? "timeout" : "query",
+      });
+      return;
+    }
     const firstError = [
       s.error,
       c.error,
@@ -202,63 +320,95 @@ export function useWorkspace(mode: WorkspaceMode) {
     ].find(Boolean);
     if (firstError) {
       const queryCache = loadCachedWorkspace(user.id, mode);
-      if (queryCache) {
-        setData(queryCache);
-        setLoading(false);
-        return;
-      }
-      setError(firstError.message);
-      setLoading(false);
+      finish({
+        hasSession: true,
+        hasCache: Boolean(queryCache),
+        requestFailed: true,
+        workspace: queryCache,
+        errorCode: firstError.message,
+      });
       return;
     }
-    let completions = h.data ?? [];
-    if (mode === "today") {
-      const onceTaskIds = (t.data ?? [])
-        .filter((task) => task.recurrence_type === "once")
-        .map((task) => task.id);
-      for (let offset = 0; offset < onceTaskIds.length; offset += 100) {
-        const { data: onceCompletions, error: onceError } = await db
-          .from("task_completions")
-          .select("*")
-          .in("task_id", onceTaskIds.slice(offset, offset + 100));
-        if (onceError) {
-          setError(onceError.message);
-          setLoading(false);
-          return;
+    try {
+      let completions = h.data ?? [];
+      if (mode === "today") {
+        const onceTaskIds = (t.data ?? [])
+          .filter((task) => task.recurrence_type === "once")
+          .map((task) => task.id);
+        for (let offset = 0; offset < onceTaskIds.length; offset += 100) {
+          const { data: onceCompletions, error: onceError } = await withTimeout(
+            db
+              .from("task_completions")
+              .select("*")
+              .in("task_id", onceTaskIds.slice(offset, offset + 100)),
+            QUERY_TIMEOUT_MS,
+          );
+          if (onceError) {
+            const queryCache = loadCachedWorkspace(user.id, mode);
+            finish({
+              hasSession: true,
+              hasCache: Boolean(queryCache),
+              requestFailed: true,
+              workspace: queryCache,
+              errorCode: onceError.message,
+            });
+            return;
+          }
+          const byId = new Map(completions.map((item) => [item.id, item]));
+          (onceCompletions ?? []).forEach((item) => byId.set(item.id, item));
+          completions = [...byId.values()];
         }
-        const byId = new Map(completions.map((item) => [item.id, item]));
-        (onceCompletions ?? []).forEach((item) => byId.set(item.id, item));
-        completions = [...byId.values()];
       }
+      const workspace: WorkspaceData = {
+        user: {
+          id: user.id,
+          email: user.email,
+        },
+        profile,
+        schedules: s.data ?? [],
+        categories: c.data ?? [],
+        tasks: t.data ?? [],
+        events: e.data ?? [],
+        completions,
+        focusPresets: p.data ?? [],
+      };
+      cacheWorkspace(mode, workspace);
+      finish({
+        hasSession: true,
+        hasFreshData: true,
+        workspace,
+      });
+    } catch (error) {
+      const queryCache = loadCachedWorkspace(user.id, mode);
+      finish({
+        timedOut: isTimeoutError(error),
+        hasSession: true,
+        hasCache: Boolean(queryCache),
+        requestFailed: true,
+        workspace: queryCache,
+        errorCode: isTimeoutError(error) ? "timeout" : "query",
+      });
     }
-    const workspace: WorkspaceData = {
-      user: {
-        id: user.id,
-        email: user.email,
-      },
-      profile,
-      schedules: s.data ?? [],
-      categories: c.data ?? [],
-      tasks: t.data ?? [],
-      events: e.data ?? [],
-      completions,
-      focusPresets: p.data ?? [],
-    };
-    setData(workspace);
-    cacheWorkspace(mode, workspace);
-    setLoading(false);
-  }, [db, mode]);
+  }, [db, finish, mode]);
   useEffect(() => {
     queueMicrotask(() => void load());
     const synced = () => void load();
+    const reconnect = () => {
+      if (navigator.onLine) void load();
+    };
     window.addEventListener("planora-sync-complete", synced);
-    return () => window.removeEventListener("planora-sync-complete", synced);
+    window.addEventListener("online", reconnect);
+    return () => {
+      window.removeEventListener("planora-sync-complete", synced);
+      window.removeEventListener("online", reconnect);
+    };
   }, [load]);
   return {
     db,
     data,
     loading,
     error,
+    phase,
     reload: load,
     loadDate,
     loadEventRange,

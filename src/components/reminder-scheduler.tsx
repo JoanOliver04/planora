@@ -154,22 +154,27 @@ export function ReminderScheduler({ locale }: { locale: string }) {
           "Notification" in window &&
           Notification.permission === "granted"
         ) {
-          const registration = await navigator.serviceWorker.ready;
-          await registration.showNotification(title, {
-            body,
-            icon: "/icon-192.png",
-            badge: "/icon-192.png",
-            tag: "planora-reminder-" + reminder.id,
-            requireInteraction: reminder.kind === "alarm",
-            silent: !preferences.sound,
-            data: {
-              url:
-                "/" +
-                locale +
-                (reminder.kind === "daily_summary" ? "/summary" : "/reminders"),
-            },
-          });
-          delivered = true;
+          const { readyServiceWorker } = await import("@/lib/pwa/register-sw");
+          const registration = await readyServiceWorker();
+          if (registration) {
+            await registration.showNotification(title, {
+              body,
+              icon: "/icon-192.png",
+              badge: "/icon-192.png",
+              tag: "planora-reminder-" + reminder.id,
+              requireInteraction: reminder.kind === "alarm",
+              silent: !preferences.sound,
+              data: {
+                url:
+                  "/" +
+                  locale +
+                  (reminder.kind === "daily_summary"
+                    ? "/summary"
+                    : "/reminders"),
+              },
+            });
+            delivered = true;
+          }
         }
         if (preferences.sound && reminder.kind === "alarm") playAlarmSound();
         if (

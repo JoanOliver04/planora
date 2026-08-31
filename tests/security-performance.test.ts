@@ -58,9 +58,11 @@ const authenticatedPrivilegesMigration = readFileSync(
 
 describe("security and performance architecture", () => {
   it("never stores authenticated navigations in the service-worker cache", () => {
-    expect(worker).toContain('const VERSION = "planora-shell-v2"');
+    expect(worker).toContain("planora-assets-");
+    expect(worker).toContain('searchParams.get("v")');
     expect(worker).toContain("PUBLIC_NAVIGATION.has(url.pathname)");
     expect(worker).toContain("private|no-store");
+    expect(worker).toContain("networkFirstAsset");
     expect(worker).not.toMatch(/cache\.put\(request[\s\S]*\/today/);
   });
 

@@ -831,7 +831,19 @@
   "Errors": {
     "generic": "Something went wrong.",
     "notFound": "We could not find this page.",
-    "backHome": "Back home"
+    "backHome": "Back home",
+    "bootstrap": {
+      "title": "Planora could not open",
+      "body": "The app did not finish starting. Your local data is still here.",
+      "loading": "Loading Planora…",
+      "retry": "Try again",
+      "reload": "Reload app",
+      "offline": "You are offline. Try again when the network returns.",
+      "timeout": "The connection is taking too long.",
+      "auth": "The session could not be verified.",
+      "assets": "This version of Planora is incomplete. Reload to update.",
+      "generic": "Something went wrong while starting."
+    }
   },
   "Data": {
     "title": "Your data",

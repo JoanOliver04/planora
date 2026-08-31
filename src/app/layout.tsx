@@ -43,6 +43,12 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${geist.variable} ${mono.variable}`}>
+        <style
+          dangerouslySetInnerHTML={{
+            __html:
+              ".brand-logo{width:140px;height:auto;max-width:min(140px,42vw)}.sidebar{display:none}@media(min-width:860px){.sidebar{display:flex}}",
+          }}
+        />
         {children}
         {process.env.VERCEL_ENV ? <Analytics debug={false} /> : null}
       </body>

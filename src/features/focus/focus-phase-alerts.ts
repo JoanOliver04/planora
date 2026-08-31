@@ -291,7 +291,9 @@ export async function previewFocusNotification(
 
   try {
     if ("serviceWorker" in navigator) {
-      const registration = await navigator.serviceWorker.ready;
+      const { readyServiceWorker } = await import("@/lib/pwa/register-sw");
+      const registration = await readyServiceWorker();
+      if (!registration) throw new Error("service-worker-unavailable");
       await registration.showNotification(title, {
         body,
         icon: "/icon-192.png",
