@@ -31,6 +31,7 @@ export function AppNavigation({
             data-active={active}
             aria-current={active ? "page" : undefined}
             href={item.href}
+            prefetch={false}
             key={item.id}
           >
             {variant === "mobile" && item.id === "tasks" ? (

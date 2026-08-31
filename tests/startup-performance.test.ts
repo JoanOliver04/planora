@@ -11,8 +11,10 @@ const proxy = readFileSync("src/lib/supabase/proxy.ts", "utf8");
 const worker = readFileSync("public/sw.js", "utf8");
 const scheduler = readFileSync("src/components/reminder-scheduler.tsx", "utf8");
 const page = readFileSync("src/components/workspace-page.tsx", "utf8");
+const nav = readFileSync("src/components/navigation.tsx", "utf8");
+const login = readFileSync("src/app/[locale]/login/page.tsx", "utf8");
 
-describe("mobile startup performance", () => {
+describe("desktop and mobile startup performance", () => {
   it("paints cached workspace without waiting for getUser", () => {
     expect(workspace).toContain("presentedRef");
     expect(workspace.indexOf("finish({")).toBeLessThan(
@@ -46,5 +48,23 @@ describe("mobile startup performance", () => {
   it("defers reminder polling so it does not contend with first paint", () => {
     expect(scheduler).toContain("setTimeout(run, 2_500)");
     expect(scheduler).not.toContain("queueMicrotask(run)");
+  });
+
+  it("does not prefetch every sidebar destination on first load", () => {
+    expect(nav).toContain("prefetch={false}");
+  });
+
+  it("keeps Today in the first JS payload on desktop and mobile", () => {
+    expect(page).toContain("TodayView,");
+    expect(page).toContain('from "@/features/workspace/task-views"');
+    expect(page).not.toContain("const TodayView = dynamic");
+  });
+
+  it("reads the cookie session before calling Auth again", () => {
+    expect(session).toContain("getSession()");
+    expect(login).toContain("getSession()");
+    expect(session.indexOf("getSession()")).toBeLessThan(
+      session.indexOf("getUser()"),
+    );
   });
 });

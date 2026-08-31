@@ -205,6 +205,7 @@ function DemoNav({
             data-active={view === item}
             aria-current={view === item ? "page" : undefined}
             href={`/${locale}/demo/${item}`}
+            prefetch={false}
           >
             <Icon size={20} />
             <span>{copy[item]}</span>

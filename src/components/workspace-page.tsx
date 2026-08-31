@@ -9,13 +9,13 @@ import { useWorkspace } from "@/features/workspace/use-workspace";
 import type { WorkspaceMode } from "@/features/workspace/types";
 import { applyPreferences, normalizePreferences } from "@/lib/preferences";
 import { BootstrapRecovery } from "@/components/bootstrap-recovery";
+import {
+  HistoryView,
+  TasksView,
+  TodayView,
+  WeekView,
+} from "@/features/workspace/task-views";
 
-const TodayView = dynamic(() =>
-  import("@/features/workspace/task-views").then((module) => module.TodayView),
-);
-const WeekView = dynamic(() =>
-  import("@/features/workspace/task-views").then((module) => module.WeekView),
-);
 const MonthView = dynamic(() =>
   import("@/features/workspace/planning-views").then(
     (module) => module.MonthView,
@@ -29,14 +29,6 @@ const GlobalSearchView = dynamic(() =>
 const DailySummaryView = dynamic(() =>
   import("@/features/workspace/planning-views").then(
     (module) => module.DailySummaryView,
-  ),
-);
-const TasksView = dynamic(() =>
-  import("@/features/workspace/task-views").then((module) => module.TasksView),
-);
-const HistoryView = dynamic(() =>
-  import("@/features/workspace/task-views").then(
-    (module) => module.HistoryView,
   ),
 );
 const StatisticsView = dynamic(() =>
@@ -75,13 +67,12 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
     [switchingSchedule, startScheduleTransition] = useTransition();
   useEffect(() => {
     if (
-      mode === "today" ||
-      mode === "week" ||
-      mode === "tasks" ||
-      mode === "history"
+      mode !== "today" &&
+      mode !== "week" &&
+      mode !== "tasks" &&
+      mode !== "history"
     )
-      void import("@/features/workspace/task-views");
-    else void import("@/features/workspace/resource-views");
+      void import("@/features/workspace/resource-views");
   }, [mode]);
   useEffect(() => {
     if (data?.profile.preferences)

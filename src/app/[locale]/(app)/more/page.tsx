@@ -28,7 +28,12 @@ export default async function MorePage() {
                 .map((item) => {
                   const Icon = item.icon;
                   return (
-                    <Link className="more-link" href={item.href} key={item.id}>
+                    <Link
+                      className="more-link"
+                      href={item.href}
+                      prefetch={false}
+                      key={item.id}
+                    >
                       <span className="more-link-icon" aria-hidden="true">
                         <Icon size={21} />
                       </span>

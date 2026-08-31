@@ -16,9 +16,9 @@ export default async function Login({
     try {
       const db = await createClient();
       const {
-        data: { user },
-      } = await withTimeout(db.auth.getUser(), AUTH_TIMEOUT_MS);
-      if (user) redirect(`/${locale}/today`);
+        data: { session },
+      } = await withTimeout(db.auth.getSession(), AUTH_TIMEOUT_MS);
+      if (session?.user) redirect(`/${locale}/today`);
     } catch {
       // Fail open to the login form so a hung auth call cannot pin the splash.
     }

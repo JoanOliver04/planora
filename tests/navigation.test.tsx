@@ -14,7 +14,12 @@ const routing = vi.hoisted(() => ({ pathname: "/today" }));
 
 vi.mock("@/i18n/routing", () => ({
   usePathname: () => routing.pathname,
-  Link: ({ href, children, ...props }: React.ComponentProps<"a">) => (
+  Link: ({
+    href,
+    children,
+    prefetch: _prefetch,
+    ...props
+  }: React.ComponentProps<"a"> & { prefetch?: boolean }) => (
     <a href={String(href)} {...props}>
       {children}
     </a>
