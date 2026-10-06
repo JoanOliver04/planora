@@ -371,7 +371,7 @@ async function applyLinkedTaskCompletion(
   const { data: category } = task.category_id
     ? await db
         .from("categories")
-        .select("name,colour")
+        .select("id,name,colour")
         .eq("id", task.category_id)
         .eq("user_id", userId)
         .maybeSingle()
@@ -393,6 +393,7 @@ async function applyLinkedTaskCompletion(
       task_snapshot: {
         title: task.title,
         emoji: task.emoji,
+        category_id: category?.id ?? task.category_id,
         category_name: category?.name ?? null,
         category_colour: category?.colour ?? null,
       },

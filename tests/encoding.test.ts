@@ -40,6 +40,11 @@ describe("translation encoding", () => {
     expect(es.Workspace.morning).toBe("Mañana");
     expect(es.Workspace.wednesday).toBe("Miércoles");
     expect(es.Workspace.last7Days).toBe("Últimos 7 días");
+    expect(es.Workspace.historyRange).toBe("Últimos 90 días");
+    expect(en.Workspace.historyRange).toBe("Last 90 days");
+    expect(es.Focus.settings.previewNotifyFailed).toBe(
+      "No se pudo mostrar la notificación de prueba.",
+    );
     expect(es.Workspace.areYouSure).toBe("¿Estás seguro?");
     expect(es.Workspace.accountDeletion).toBe("Eliminación de cuenta");
   });

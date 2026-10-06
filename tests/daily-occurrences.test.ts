@@ -220,5 +220,10 @@ describe("daily occurrences", () => {
     expect(guard).toContain("new.occurrence_date >");
     expect(guard).toContain("Invalid interval occurrence");
     expect(guard).toContain("new.task_snapshot = jsonb_build_object");
+    const snapshot = readFileSync(
+      "supabase/migrations/20261006180000_completion_snapshot_category_id.sql",
+      "utf8",
+    );
+    expect(snapshot).toContain("'category_id', current_category.id");
   });
 });

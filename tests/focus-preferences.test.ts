@@ -8,6 +8,7 @@ import {
   normalizeFocusDevicePreferences,
   readFocusAccountFromProfilePreferences,
   saveFocusDevicePreferences,
+  subscribeFocusDevicePreferences,
 } from "@/features/focus/focus-preferences";
 import { defaultPreferences, normalizePreferences } from "@/lib/preferences";
 import { preferencesSchema } from "@/lib/validation/preferences";
@@ -147,5 +148,32 @@ describe("focus device preferences", () => {
         keyboardShortcutsEnabled: false,
       }).keyboardShortcutsEnabled,
     ).toBe(false);
+  });
+
+  it("drops the storage listener when the subscription stops", () => {
+    const stopped = vi.fn();
+    const active = vi.fn();
+    const stop = subscribeFocusDevicePreferences(stopped);
+    const keep = subscribeFocusDevicePreferences(active);
+
+    window.dispatchEvent(
+      new StorageEvent("storage", { key: FOCUS_DEVICE_PREFS_KEY }),
+    );
+    expect(stopped).toHaveBeenCalledTimes(1);
+    expect(active).toHaveBeenCalledTimes(1);
+
+    stop();
+    stopped.mockClear();
+    active.mockClear();
+    window.dispatchEvent(new StorageEvent("storage", { key: null }));
+    expect(stopped).not.toHaveBeenCalled();
+    expect(active).toHaveBeenCalledTimes(1);
+
+    keep();
+    active.mockClear();
+    window.dispatchEvent(
+      new StorageEvent("storage", { key: FOCUS_DEVICE_PREFS_KEY }),
+    );
+    expect(active).not.toHaveBeenCalled();
   });
 });

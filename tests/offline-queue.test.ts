@@ -171,6 +171,78 @@ describe("offline queue", () => {
     expect(getQueuedCompletions("user")).toHaveLength(0);
   });
 
+  it("trims an oversized queue instead of wiping it", () => {
+    const items = Array.from({ length: 2_000 }, (_, index) => ({
+      id: String(index).padStart(4, "0"),
+      userId: "user",
+      taskId: "task",
+      occurrenceDate: "2026-08-01",
+      completed: true,
+      snapshot: { title: "T".repeat(140) },
+      queuedAt: new Date(Date.UTC(2026, 0, 1, 0, 0, index)).toISOString(),
+    }));
+    const raw = JSON.stringify(items);
+    expect(raw.length).toBeGreaterThan(500_000);
+    localStorage.setItem("planora-offline-completions-v1", raw);
+
+    const queued = getQueuedCompletions("user");
+    const stored = localStorage.getItem("planora-offline-completions-v1") ?? "";
+    expect(stored.length).toBeLessThanOrEqual(500_000);
+    expect(queued.length).toBeGreaterThan(0);
+    expect(queued.length).toBeLessThan(items.length);
+    expect(queued.at(-1)?.id).toBe("1999");
+    expect(queued.some((item) => item.id === "0000")).toBe(false);
+    expect(JSON.parse(stored)).toHaveLength(queued.length);
+
+    enqueueCompletion({
+      userId: "user",
+      taskId: "fresh",
+      occurrenceDate: "2026-08-02",
+      completed: true,
+      snapshot: { title: "Newest" },
+    });
+    const afterEnqueue =
+      localStorage.getItem("planora-offline-completions-v1") ?? "";
+    const saved = JSON.parse(afterEnqueue) as Array<{ taskId: string }>;
+    expect(afterEnqueue.length).toBeLessThanOrEqual(500_000);
+    expect(saved.some((item) => item.taskId === "fresh")).toBe(true);
+    expect(saved.some((item) => item.taskId === "task")).toBe(true);
+  });
+
+  it("does not overwrite or sync a corrupt queue", async () => {
+    localStorage.setItem("planora-offline-completions-v1", "{");
+    const db = {
+      from: () => {
+        throw new Error("corrupt queue must not be flushed");
+      },
+    } as unknown as SupabaseClient<Database>;
+
+    const result = await flushCompletionQueue(db, "user");
+    expect(result).toEqual({ synced: 0, conflicts: 0, remaining: 0 });
+    expect(localStorage.getItem("planora-offline-completions-v1")).toBe("{");
+    expect(getQueuedCompletions()).toEqual([]);
+    expect(localStorage.getItem("planora-offline-completions-v1")).toBe("{");
+
+    enqueueCompletion({
+      userId: "user",
+      taskId: "task",
+      occurrenceDate: "2026-08-01",
+      completed: true,
+      snapshot: { title: "Recovered" },
+    });
+    const replaced = JSON.parse(
+      localStorage.getItem("planora-offline-completions-v1") ?? "null",
+    ) as Array<{ taskId: string }>;
+    expect(replaced).toHaveLength(1);
+    expect(replaced[0]?.taskId).toBe("task");
+  });
+
+  it("removes an illegible queue on sign-out because it has no owner", async () => {
+    localStorage.setItem("planora-offline-completions-v1", "{");
+    await clearPrivateOfflineData("user");
+    expect(localStorage.getItem("planora-offline-completions-v1")).toBeNull();
+  });
+
   it("rejects malformed and oversized browser state", () => {
     localStorage.setItem(
       "planora-offline-completions-v1",

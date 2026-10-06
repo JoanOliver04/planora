@@ -279,6 +279,10 @@ export function useWorkspace(mode: WorkspaceMode) {
         "occurrence_date",
         historyFrom.toISOString().slice(0, 10),
       );
+    // The task list only uses completions to tell whether a one-time task is
+    // done. Recurring history is unused there; once-tasks are loaded below
+    // with no date cutoff, so this query must not download every row.
+    else completionsQuery = completionsQuery.limit(0);
     let s, c, t, e, h, p;
     try {
       [s, c, t, e, h, p] = await withTimeout(
@@ -343,7 +347,7 @@ export function useWorkspace(mode: WorkspaceMode) {
     }
     try {
       let completions = h.data ?? [];
-      if (mode === "today") {
+      if (mode === "today" || mode === "tasks") {
         const onceTaskIds = (t.data ?? [])
           .filter((task) => task.recurrence_type === "once")
           .map((task) => task.id);

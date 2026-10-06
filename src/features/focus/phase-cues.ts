@@ -1,6 +1,7 @@
 import type { FocusSession } from "./types";
 import { loadFocusDevicePreferences } from "./focus-preferences";
 import { startSoundPreview } from "@/lib/audio/shared-preview";
+import { showPlanoraSystemNotification } from "@/features/reminders/system-notification";
 
 export type PhaseCueKind = "phase_change" | "session_complete" | "soft_goal";
 
@@ -100,35 +101,18 @@ async function tryNotifyPhase(
             ? "Break is over."
             : "El descanso ha terminado.");
 
-    // Prefer the existing service worker path (same as reminders).
+    // Same service-worker path as reminders. Android Chrome ignores
+    // `new Notification()`, so that constructor is not a fallback.
     // Never put task titles or private notes in the payload.
-    if ("serviceWorker" in navigator) {
-      try {
-        const { readyServiceWorker } = await import("@/lib/pwa/register-sw");
-        const registration = await readyServiceWorker();
-        if (!registration) throw new Error("service-worker-unavailable");
-        await registration.showNotification(title, {
-          body,
-          icon: "/icon-192.png",
-          badge: "/icon-192.png",
-          tag: `planora-focus-${session.id}`,
-          // Sound is handled separately via Web Audio when the page is alive.
-          silent: true,
-          data: { url: `/${locale}/focus` },
-        });
-        return true;
-      } catch {
-        // Fall through to the page Notification constructor.
-      }
-    }
-
-    new Notification(title, {
+    const result = await showPlanoraSystemNotification({
+      title,
       body,
-      silent: true,
       tag: `planora-focus-${session.id}`,
-      data: { url: `/${locale}/focus` },
+      url: `/${locale}/focus`,
+      silent: true,
+      requireInteraction: false,
     });
-    return true;
+    return result === "shown";
   } catch {
     return false;
   }

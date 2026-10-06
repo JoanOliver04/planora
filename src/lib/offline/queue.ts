@@ -41,20 +41,66 @@ function isQueuedCompletion(value: unknown): value is QueuedCompletion {
         Number(item.attempts) <= MAX_FLUSH_ATTEMPTS))
   );
 }
-const parseQueue = (): QueuedCompletion[] => {
-  try {
-    const raw = localStorage.getItem(queueKey) ?? "[]";
-    if (raw.length > MAX_OFFLINE_STORAGE_BYTES) return [];
-    const value: unknown = JSON.parse(raw);
-    return Array.isArray(value)
-      ? value.slice(0, MAX_OFFLINE_ITEMS).filter(isQueuedCompletion)
-      : [];
-  } catch {
-    return [];
-  }
+type StoredQueue = {
+  items: QueuedCompletion[];
+  /** JSON that cannot be read. Callers must not replace it with an empty queue. */
+  corrupt: boolean;
+  /** Valid items were trimmed or invalid rows were dropped. */
+  rewrite: boolean;
 };
+
+function trimQueue(items: QueuedCompletion[]): QueuedCompletion[] {
+  const ordered = [...items].sort((left, right) => {
+    if (left.queuedAt === right.queuedAt) return left.id < right.id ? -1 : 1;
+    return left.queuedAt < right.queuedAt ? -1 : 1;
+  });
+  const capped = ordered.slice(-MAX_OFFLINE_ITEMS);
+  if (JSON.stringify(capped).length <= MAX_OFFLINE_STORAGE_BYTES) return capped;
+  let low = 0;
+  let high = capped.length;
+  while (low < high) {
+    const mid = Math.floor((low + high) / 2);
+    const size = JSON.stringify(capped.slice(mid)).length;
+    if (size <= MAX_OFFLINE_STORAGE_BYTES) high = mid;
+    else low = mid + 1;
+  }
+  return capped.slice(low);
+}
+
+function readStoredQueue(): StoredQueue {
+  try {
+    const raw = localStorage.getItem(queueKey);
+    if (!raw) return { items: [], corrupt: false, rewrite: false };
+    const value: unknown = JSON.parse(raw);
+    if (!Array.isArray(value))
+      return { items: [], corrupt: true, rewrite: false };
+    const valid = value.filter(isQueuedCompletion);
+    const items = trimQueue(valid);
+    return {
+      items,
+      corrupt: false,
+      rewrite:
+        raw.length > MAX_OFFLINE_STORAGE_BYTES || items.length !== value.length,
+    };
+  } catch {
+    return { items: [], corrupt: true, rewrite: false };
+  }
+}
+
 const notify = () =>
   window.dispatchEvent(new CustomEvent("planora-offline-queue"));
+
+function persistQueue(items: QueuedCompletion[]) {
+  localStorage.setItem(queueKey, JSON.stringify(items));
+  notify();
+}
+
+const parseQueue = (): QueuedCompletion[] => {
+  const stored = readStoredQueue();
+  if (stored.corrupt) return [];
+  if (stored.rewrite) persistQueue(stored.items);
+  return stored.items;
+};
 export function getQueuedCompletions(userId?: string) {
   const queue = parseQueue();
   return userId ? queue.filter((item) => item.userId === userId) : queue;
@@ -62,7 +108,8 @@ export function getQueuedCompletions(userId?: string) {
 export function enqueueCompletion(
   item: Omit<QueuedCompletion, "id" | "queuedAt">,
 ) {
-  const queue = parseQueue().filter(
+  const stored = readStoredQueue();
+  const queue = (stored.corrupt ? [] : stored.items).filter(
     (queued) =>
       !(
         queued.userId === item.userId &&
@@ -75,14 +122,17 @@ export function enqueueCompletion(
     id: crypto.randomUUID(),
     queuedAt: new Date().toISOString(),
   });
-  localStorage.setItem(queueKey, JSON.stringify(queue));
-  notify();
+  persistQueue(trimQueue(queue));
 }
 export async function flushCompletionQueue(
   db: SupabaseClient<Database>,
   userId: string,
 ) {
-  const all = parseQueue(),
+  const stored = readStoredQueue();
+  if (stored.corrupt) {
+    return { synced: 0, conflicts: 0, remaining: 0 };
+  }
+  const all = stored.items,
     own = all.filter((item) => item.userId === userId);
   const remaining = all.filter((item) => item.userId !== userId);
   let synced = 0,
@@ -148,8 +198,7 @@ export async function flushCompletionQueue(
     }
     remaining.push({ ...item, attempts });
   }
-  localStorage.setItem(queueKey, JSON.stringify(remaining));
-  notify();
+  persistQueue(remaining);
   return {
     synced,
     conflicts,
@@ -203,8 +252,9 @@ export function loadCachedWorkspace(
   }
 }
 export async function clearPrivateOfflineData(userId: string) {
-  const queue = parseQueue().filter((item) => item.userId !== userId);
-  localStorage.setItem(queueKey, JSON.stringify(queue));
+  const stored = readStoredQueue();
+  if (stored.corrupt) localStorage.removeItem(queueKey);
+  else persistQueue(stored.items.filter((item) => item.userId !== userId));
 
   const workspacePrefix = cachePrefix + userId + ":";
   for (let index = localStorage.length - 1; index >= 0; index -= 1) {

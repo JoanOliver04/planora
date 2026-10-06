@@ -225,12 +225,14 @@ export function saveFocusDevicePreferences(value: FocusDevicePreferences) {
 export function subscribeFocusDevicePreferences(onChange: () => void) {
   if (typeof window === "undefined") return () => undefined;
   const handler = () => onChange();
-  window.addEventListener(FOCUS_DEVICE_PREFS_EVENT, handler);
-  window.addEventListener("storage", (event) => {
+  const onStorage = (event: StorageEvent) => {
     if (event.key === FOCUS_DEVICE_PREFS_KEY || event.key === null) handler();
-  });
+  };
+  window.addEventListener(FOCUS_DEVICE_PREFS_EVENT, handler);
+  window.addEventListener("storage", onStorage);
   return () => {
     window.removeEventListener(FOCUS_DEVICE_PREFS_EVENT, handler);
+    window.removeEventListener("storage", onStorage);
   };
 }
 

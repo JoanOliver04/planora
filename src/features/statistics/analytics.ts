@@ -3,12 +3,16 @@ import type { WorkspaceData } from "@/features/workspace/types";
 import { localDate, localWeek } from "@/lib/dates/timezone";
 
 export type ActivityDay = { date: string; count: number; level: number };
+/** Inclusive activity window shown on the statistics page. */
+export const STATISTICS_WINDOW_DAYS = 90;
+
 export type Statistics = {
   week: { current: number; previous: number; change: number };
   month: { current: number; previous: number; change: number };
   streak: number;
   bestStreak: number;
   categories: Array<{
+    id: string;
     name: string;
     colour: string;
     completed: number;
@@ -27,6 +31,16 @@ function addCalendarDays(value: string, days: number) {
   return next.toISOString().slice(0, 10);
 }
 
+function calendarDaysBetween(from: string, to: string) {
+  const [fromYear, fromMonth, fromDay] = from.split("-").map(Number);
+  const [toYear, toMonth, toDay] = to.split("-").map(Number);
+  return Math.round(
+    (Date.UTC(toYear, toMonth - 1, toDay) -
+      Date.UTC(fromYear, fromMonth - 1, fromDay)) /
+      86_400_000,
+  );
+}
+
 const change = (current: number, previous: number) =>
   previous
     ? Math.round(((current - previous) / previous) * 100)
@@ -41,11 +55,11 @@ export function calculateStatistics(
   const today = localDate(data.profile.timezone, now);
   const weekStartsOn = data.profile.week_starts_on === 0 ? 0 : 1;
   const week = localWeek(data.profile.timezone, now, weekStartsOn);
-  const previousWeekEnd = addCalendarDays(week.start, -1);
-  const previousWeekStart = addCalendarDays(previousWeekEnd, -6);
+  const previousWeekStart = addCalendarDays(week.start, -7);
   const monthStart = `${today.slice(0, 8)}01`;
   const previousMonthEnd = addCalendarDays(monthStart, -1);
   const previousMonthStart = `${previousMonthEnd.slice(0, 8)}01`;
+  const windowStart = addCalendarDays(today, 1 - STATISTICS_WINDOW_DAYS);
   const completions = [
     ...new Map(
       data.completions.map((item) => [
@@ -53,15 +67,26 @@ export function calculateStatistics(
         item,
       ]),
     ).values(),
-  ];
+  ].filter(
+    (item) =>
+      item.occurrence_date >= windowStart && item.occurrence_date <= today,
+  );
   const between = (from: string, to: string) =>
     completions.filter(
       (item) => item.occurrence_date >= from && item.occurrence_date <= to,
     ).length;
+  const elapsedWeekDays = calendarDaysBetween(week.start, today);
+  const comparableWeekEnd = addCalendarDays(previousWeekStart, elapsedWeekDays);
+  const previousMonthLength = Number(previousMonthEnd.slice(8, 10));
+  const comparableMonthDay = Math.min(
+    Number(today.slice(8, 10)),
+    previousMonthLength,
+  );
+  const comparableMonthEnd = `${previousMonthStart.slice(0, 8)}${String(comparableMonthDay).padStart(2, "0")}`;
   const weekCurrent = between(week.start, today);
-  const weekPrevious = between(previousWeekStart, previousWeekEnd);
+  const weekPrevious = between(previousWeekStart, comparableWeekEnd);
   const monthCurrent = between(monthStart, today);
-  const monthPrevious = between(previousMonthStart, previousMonthEnd);
+  const monthPrevious = between(previousMonthStart, comparableMonthEnd);
   const counts = new Map<string, number>();
   completions.forEach((item) =>
     counts.set(
@@ -93,16 +118,48 @@ export function calculateStatistics(
     )
       streak += 1;
   }
-  const categoryCounts = new Map<string, number>();
+  const namesByCategory = new Map<string, string[]>();
+  for (const category of data.categories) {
+    const owners = namesByCategory.get(category.name) ?? [];
+    owners.push(category.id);
+    namesByCategory.set(category.name, owners);
+  }
+  const countsById = new Map<string, number>();
+  const orphans = new Map<
+    string,
+    { name: string; colour: string; completed: number }
+  >();
   completions.forEach((item) => {
     const snapshot = item.task_snapshot as Record<string, unknown>;
-    const name = String(snapshot.category_name ?? "");
-    if (name) categoryCounts.set(name, (categoryCounts.get(name) ?? 0) + 1);
+    const categoryId =
+      typeof snapshot.category_id === "string" ? snapshot.category_id : "";
+    const name =
+      typeof snapshot.category_name === "string" ? snapshot.category_name : "";
+    const colour =
+      typeof snapshot.category_colour === "string"
+        ? snapshot.category_colour
+        : "var(--primary)";
+    const current = categoryId
+      ? data.categories.find((category) => category.id === categoryId)
+      : undefined;
+    if (current) {
+      countsById.set(current.id, (countsById.get(current.id) ?? 0) + 1);
+      return;
+    }
+    const owners = name ? (namesByCategory.get(name) ?? []) : [];
+    if (!categoryId && owners.length === 1) {
+      countsById.set(owners[0], (countsById.get(owners[0]) ?? 0) + 1);
+      return;
+    }
+    if (!name) return;
+    const key = categoryId ? `deleted:${categoryId}` : `name:${name}`;
+    const existing = orphans.get(key);
+    if (existing) existing.completed += 1;
+    else orphans.set(key, { name, colour, completed: 1 });
   });
-  const daysInWindow = 30;
-  const categories = data.categories
-    .map((category) => {
-      const completed = categoryCounts.get(category.name) ?? 0;
+  const categories = [
+    ...data.categories.map((category) => {
+      const completed = countsById.get(category.id) ?? 0;
       const taskCount = data.tasks.filter(
         (task) =>
           task.category_id === category.id &&
@@ -110,17 +167,28 @@ export function calculateStatistics(
           !task.archived_at,
       ).length;
       return {
+        id: category.id,
         name: category.name,
         colour: category.colour,
         completed,
         rate: taskCount
           ? Math.min(
               100,
-              Math.round((completed / (taskCount * daysInWindow)) * 100),
+              Math.round(
+                (completed / (taskCount * STATISTICS_WINDOW_DAYS)) * 100,
+              ),
             )
           : 0,
       };
-    })
+    }),
+    ...[...orphans.entries()].map(([id, orphan]) => ({
+      id,
+      name: orphan.name,
+      colour: orphan.colour,
+      completed: orphan.completed,
+      rate: 0,
+    })),
+  ]
     .filter((item) => item.completed > 0 || item.rate > 0)
     .sort((a, b) => b.completed - a.completed);
   const dayPartCounts = { morning: 0, afternoon: 0, night: 0 };
@@ -142,8 +210,8 @@ export function calculateStatistics(
     count: dayPartCounts[key],
     percentage: Math.round((dayPartCounts[key] / total) * 100),
   }));
-  const heatmap = Array.from({ length: 91 }, (_, index) => {
-    const date = addCalendarDays(today, index - 90);
+  const heatmap = Array.from({ length: STATISTICS_WINDOW_DAYS }, (_, index) => {
+    const date = addCalendarDays(today, index - (STATISTICS_WINDOW_DAYS - 1));
     const count = counts.get(date) ?? 0;
     return {
       date,

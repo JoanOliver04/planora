@@ -470,6 +470,8 @@ export function FocusSettingsPanel({
                   toast.error(t("settings.permissionDenied"));
                 } else if (status === "unsupported") {
                   toast.message(t("settings.permissionUnsupported"));
+                } else if (status === "failed") {
+                  toast.error(t("settings.previewNotifyFailed"));
                 } else {
                   toast.message(t("settings.previewNotifyNeedPermission"));
                 }

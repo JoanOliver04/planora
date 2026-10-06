@@ -321,9 +321,11 @@ export function FocusSessionProvider({
         if (event.session) {
           applyRemoteSession(event.session, "broadcast");
         } else if (event.sessionId) {
-          void fetchActiveFocusSessionFull().then((full) => {
-            applyRemoteSession(full, "broadcast");
-          });
+          void fetchActiveFocusSessionFull()
+            .then((full) => {
+              applyRemoteSession(full, "broadcast");
+            })
+            .catch(() => undefined);
         }
       }
     });

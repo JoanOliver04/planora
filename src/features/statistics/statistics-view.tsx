@@ -123,7 +123,7 @@ export function StatisticsView({ data }: { data: WorkspaceData }) {
               <h2>{es ? "Por categoría" : "By category"}</h2>
               {stats.categories.length ? (
                 stats.categories.map((category) => (
-                  <div className="stat-bar" key={category.name}>
+                  <div className="stat-bar" key={category.id}>
                     <div>
                       <span>
                         <i style={{ background: category.colour }} />

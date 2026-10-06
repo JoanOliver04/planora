@@ -10,6 +10,7 @@ import {
   startSoundPreview,
   type SoundPreviewHandle,
 } from "@/lib/audio/shared-preview";
+import { showPlanoraSystemNotification } from "@/features/reminders/system-notification";
 
 export type FocusAlertLocale = "es" | "en";
 
@@ -162,18 +163,37 @@ export function scheduleFocusPhaseAlert(
 
   cancelFocusPhaseAlert();
 
-  const delay = Math.max(0, Math.min(MAX_SCHEDULE_MS, endsAtMs - Date.now()));
   const locale = localeOf(options.locale);
+  armPhaseAlert(next, session, locale);
+  return next;
+}
+
+/**
+ * Browsers clamp very long timers. A phase longer than that cap must wait
+ * again, not announce that it has already ended.
+ */
+function armPhaseAlert(
+  next: FocusPhaseAlertSchedule,
+  session: FocusSession,
+  locale: FocusAlertLocale,
+) {
+  const delay = Math.max(
+    0,
+    Math.min(MAX_SCHEDULE_MS, next.endsAtMs - Date.now()),
+  );
   next.timerId = window.setTimeout(() => {
+    if (!schedule || schedule.timerId !== next.timerId) return;
+    if (schedule.endsAtMs - Date.now() > 1_000) {
+      armPhaseAlert(schedule, session, locale);
+      return;
+    }
     schedule = null;
     void deliverFocusPhaseAlert(session, {
       locale,
       kind: "phase_end",
     });
   }, delay);
-
   schedule = next;
-  return next;
 }
 
 /**
@@ -296,7 +316,7 @@ export function previewFocusSound(volume?: number): SoundPreviewHandle {
 /** Explicit user-triggered notification preview (settings). */
 export async function previewFocusNotification(
   locale: string = "es",
-): Promise<"shown" | "denied" | "unsupported" | "default"> {
+): Promise<"shown" | "denied" | "unsupported" | "default" | "failed"> {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return "unsupported";
   }
@@ -312,30 +332,23 @@ export async function previewFocusNotification(
       ? "Así se verá un aviso de Enfoque en este dispositivo."
       : "This is how a Focus alert looks on this device.";
 
-  try {
-    if ("serviceWorker" in navigator) {
-      const { readyServiceWorker } = await import("@/lib/pwa/register-sw");
-      const registration = await readyServiceWorker();
-      if (!registration) throw new Error("service-worker-unavailable");
-      await registration.showNotification(title, {
-        body,
-        icon: "/icon-192.png",
-        badge: "/icon-192.png",
-        tag: "planora-focus-preview",
-        silent: false,
-        data: { url: `/${loc}/focus` },
-      });
-      return "shown";
-    }
-    new Notification(title, {
-      body,
-      tag: "planora-focus-preview",
-      silent: false,
-    });
-    return "shown";
-  } catch {
-    return "denied";
+  const result = await showPlanoraSystemNotification({
+    title,
+    body,
+    tag: "planora-focus-preview",
+    url: `/${loc}/focus`,
+    silent: false,
+    requireInteraction: false,
+  });
+  if (
+    result === "shown" ||
+    result === "denied" ||
+    result === "unsupported" ||
+    result === "default"
+  ) {
+    return result;
   }
+  return "failed";
 }
 
 /** Test helper. */

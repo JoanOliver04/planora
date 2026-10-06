@@ -1,4 +1,6 @@
+import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { toast } from "sonner";
 import {
   __resetFocusPhaseAlertsForTests,
   cancelFocusPhaseAlert,
@@ -209,6 +211,64 @@ describe("scheduleFocusPhaseAlert", () => {
       now: Date.parse("2026-08-07T10:00:00.400Z"),
     });
     expect(a?.timerId).toBe(b?.timerId);
+  });
+
+  it("waits out the remainder when a phase is longer than the timer cap", async () => {
+    const info = vi
+      .spyOn(toast, "info")
+      .mockImplementation(() => 0 as unknown as ReturnType<typeof toast.info>);
+    const now = Date.parse("2026-08-07T10:00:00.000Z");
+    const durationSec = 8 * 60 * 60 + 120;
+    const session = startCountdown(durationSec, now);
+    const armed = scheduleFocusPhaseAlert(session, { now, locale: "es" });
+    expect(armed?.endsAtMs).toBe(now + durationSec * 1000);
+
+    await vi.advanceTimersByTimeAsync(8 * 60 * 60 * 1000);
+    expect(info).not.toHaveBeenCalled();
+    expect(getActiveFocusPhaseSchedule()).toMatchObject({
+      sessionId: session.id,
+      endsAtMs: now + durationSec * 1000,
+    });
+
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(info).toHaveBeenCalled();
+    expect(getActiveFocusPhaseSchedule()).toBeNull();
+  });
+
+  it("still delivers a phase that lasts exactly 8 hours", async () => {
+    const info = vi
+      .spyOn(toast, "info")
+      .mockImplementation(() => 0 as unknown as ReturnType<typeof toast.info>);
+    const now = Date.parse("2026-08-07T10:00:00.000Z");
+    const session = startCountdown(8 * 60 * 60, now);
+    scheduleFocusPhaseAlert(session, { now, locale: "es" });
+    await vi.advanceTimersByTimeAsync(8 * 60 * 60 * 1000 - 1_000);
+    expect(info).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(info).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("focus notification delivery", () => {
+  it("does not fall back to the page Notification constructor", () => {
+    const executable = (source: string) =>
+      source
+        .split("\n")
+        .filter((line) => {
+          const trimmed = line.trim();
+          return !trimmed.startsWith("//") && !trimmed.startsWith("*");
+        })
+        .join("\n");
+    const phaseCues = readFileSync("src/features/focus/phase-cues.ts", "utf8");
+    const alerts = readFileSync(
+      "src/features/focus/focus-phase-alerts.ts",
+      "utf8",
+    );
+    expect(executable(phaseCues)).not.toMatch(/new Notification\s*\(/);
+    expect(executable(alerts)).not.toMatch(/new Notification\s*\(/);
+    expect(phaseCues).toMatch(/Never put task titles/);
+    expect(phaseCues).toContain("showPlanoraSystemNotification");
+    expect(alerts).toContain("showPlanoraSystemNotification");
   });
 });
 

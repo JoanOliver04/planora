@@ -94,6 +94,7 @@ async function toggle(
   const snapshot = {
     title: task.title,
     emoji: task.emoji,
+    category_id: task.category_id,
     category_name: cat?.name ?? null,
     category_colour: cat?.colour ?? null,
   };
@@ -1163,8 +1164,9 @@ export function HistoryView({ data }: { data: WorkspaceData }) {
     <>
       <header className="topbar">
         <div>
-          <div className="eyebrow">{t("last7Days")}</div>
+          <div className="eyebrow">{t("historyRange")}</div>
           <h1 className="title">{t("history")}</h1>
+          <p className="muted">{t("historyRangeHint")}</p>
         </div>
         <div className="history-summary surface">
           <strong>{thisWeek}</strong>

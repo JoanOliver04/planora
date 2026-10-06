@@ -10,21 +10,34 @@ export type FocusPollSnapshot = {
   updatedAt: string;
 };
 
+/** A failed read. Callers must keep the local session; this is not "no active row". */
+export class FocusPollError extends Error {
+  constructor() {
+    super("focus_poll_failed");
+    this.name = "FocusPollError";
+  }
+}
+
+async function requirePollUser(db: ReturnType<typeof createClient>) {
+  const { data, error } = await db.auth.getUser();
+  if (error) throw new FocusPollError();
+  return data.user;
+}
+
 /** Lightweight active-session probe (no intervals). */
 export async function pollActiveFocusSessionHead(): Promise<FocusPollSnapshot | null> {
   const db = createClient();
-  const {
-    data: { user },
-  } = await db.auth.getUser();
+  const user = await requirePollUser(db);
   if (!user) return null;
 
-  const { data: row } = await db
+  const { data: row, error } = await db
     .from("focus_sessions")
     .select("id,revision,status,updated_at")
     .eq("user_id", user.id)
     .in("status", ["running", "paused", "on_break"])
     .maybeSingle();
 
+  if (error) throw new FocusPollError();
   if (!row) return null;
   return {
     id: row.id,
@@ -36,25 +49,25 @@ export async function pollActiveFocusSessionHead(): Promise<FocusPollSnapshot | 
 
 export async function fetchActiveFocusSessionFull(): Promise<FocusSession | null> {
   const db = createClient();
-  const {
-    data: { user },
-  } = await db.auth.getUser();
+  const user = await requirePollUser(db);
   if (!user) return null;
 
-  const { data: row } = await db
+  const { data: row, error } = await db
     .from("focus_sessions")
     .select("*")
     .eq("user_id", user.id)
     .in("status", ["running", "paused", "on_break"])
     .maybeSingle();
+  if (error) throw new FocusPollError();
   if (!row) return null;
 
-  const { data: intervals } = await db
+  const { data: intervals, error: intervalError } = await db
     .from("focus_intervals")
     .select("*")
     .eq("user_id", user.id)
     .eq("session_id", row.id)
     .order("sequence", { ascending: true });
+  if (intervalError) throw new FocusPollError();
 
   return mapSessionRow(row, intervals ?? []);
 }
@@ -69,7 +82,12 @@ export async function reconcileFocusSessionFromServer(
   session: FocusSession | null;
   reason: "unchanged" | "updated" | "ended" | "started";
 }> {
-  const head = await pollActiveFocusSessionHead();
+  let head: FocusPollSnapshot | null;
+  try {
+    head = await pollActiveFocusSessionHead();
+  } catch {
+    return { changed: false, session: local, reason: "unchanged" };
+  }
   const needsFetch = shouldRefetchFromPoll({
     local,
     remoteId: head?.id ?? null,
@@ -89,7 +107,12 @@ export async function reconcileFocusSessionFromServer(
     };
   }
 
-  const full = await fetchActiveFocusSessionFull();
+  let full: FocusSession | null;
+  try {
+    full = await fetchActiveFocusSessionFull();
+  } catch {
+    return { changed: false, session: local, reason: "unchanged" };
+  }
   if (!full) {
     return {
       changed: Boolean(local),
