@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -15,11 +15,13 @@ import {
   subscribeFocusDevicePreferences,
   type FocusAccountPreferences,
   type FocusDevicePreferences,
+  type FocusPreviewSound,
 } from "./focus-preferences";
 import {
   previewFocusNotification,
   previewFocusSound,
 } from "./focus-phase-alerts";
+import { stopSoundPreview } from "@/lib/audio/shared-preview";
 import { isFocusWakeLockSupported } from "./focus-wake-lock";
 import { FocusHelpTip } from "./focus-help-tip";
 import { mapPresetRow } from "./mappers";
@@ -64,6 +66,40 @@ export function FocusSettingsPanel({
   >(() =>
     typeof window === "undefined" ? "default" : focusNotificationPermission(),
   );
+  const [soundPhase, setSoundPhase] = useState<"idle" | "playing" | "failed">(
+    "idle",
+  );
+  const soundPanelMounted = useRef(true);
+  const soundPreviewRequest = useRef(0);
+
+  useEffect(() => {
+    soundPanelMounted.current = true;
+    return () => {
+      soundPanelMounted.current = false;
+      stopSoundPreview();
+    };
+  }, []);
+
+  function runSoundPreview() {
+    const request = ++soundPreviewRequest.current;
+    let result: ReturnType<typeof previewFocusSound>;
+    try {
+      result = previewFocusSound(device.soundVolume);
+    } catch {
+      if (soundPreviewRequest.current === request) setSoundPhase("failed");
+      return;
+    }
+    if (!result.ok) {
+      setSoundPhase("failed");
+      return;
+    }
+    setSoundPhase("playing");
+    void result.finished.then((outcome) => {
+      if (!soundPanelMounted.current || soundPreviewRequest.current !== request)
+        return;
+      setSoundPhase(outcome === "failed" ? "failed" : "idle");
+    });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -334,6 +370,24 @@ export function FocusSettingsPanel({
             </output>
           </div>
         </div>
+        <div className="settings-row">
+          <label htmlFor="focus-sound-id">{t("settings.soundChoice")}</label>
+          <select
+            id="focus-sound-id"
+            className="pill"
+            disabled={!device.soundEnabled}
+            value={device.soundId}
+            onChange={(event) => {
+              const soundId: FocusPreviewSound =
+                event.target.value === "bell" ? "bell" : "soft";
+              updateDevice("soundId", soundId);
+              if (soundPhase === "playing") runSoundPreview();
+            }}
+          >
+            <option value="soft">{t("settings.soundSoft")}</option>
+            <option value="bell">{t("settings.soundBell")}</option>
+          </select>
+        </div>
         <label className="settings-row check-row">
           <span>{t("settings.vibration")}</span>
           <input
@@ -367,14 +421,21 @@ export function FocusSettingsPanel({
             type="button"
             className="pill"
             disabled={!device.soundEnabled}
-            onClick={() => {
-              const ok = previewFocusSound(device.soundVolume);
-              if (ok) toast.message(t("settings.previewSoundPlayed"));
-              else toast.message(t("settings.previewSoundBlocked"));
-            }}
+            aria-describedby="focus-sound-preview-status"
+            onClick={() => runSoundPreview()}
           >
-            {t("settings.previewSound")}
+            {soundPhase === "playing"
+              ? t("settings.previewSoundPlaying")
+              : t("settings.previewSound")}
           </button>
+          <p
+            id="focus-sound-preview-status"
+            className="muted"
+            role="status"
+            data-preview-status={soundPhase}
+          >
+            {soundPhase === "failed" ? t("settings.previewSoundFailed") : null}
+          </p>
           <button
             type="button"
             className="pill"

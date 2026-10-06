@@ -5,7 +5,11 @@ import {
   loadFocusDevicePreferences,
   focusNotificationPermission,
 } from "./focus-preferences";
-import { playPhaseCue, playSoftChime, type PhaseCueKind } from "./phase-cues";
+import { playPhaseCue, type PhaseCueKind } from "./phase-cues";
+import {
+  startSoundPreview,
+  type SoundPreviewHandle,
+} from "@/lib/audio/shared-preview";
 
 export type FocusAlertLocale = "es" | "en";
 
@@ -263,11 +267,28 @@ export async function clearFocusAppBadge(): Promise<void> {
   }
 }
 
-/** Explicit user-triggered sound preview (settings). */
-export function previewFocusSound(volume?: number): boolean {
+/** Explicit user-triggered sound preview (settings). Never throws. */
+export function previewFocusSound(volume?: number): SoundPreviewHandle {
   const device = loadFocusDevicePreferences();
-  if (!device.soundEnabled && volume == null) return false;
-  return playSoftChime(volume ?? device.soundVolume);
+  if (!device.soundEnabled && volume == null) {
+    return {
+      ok: false,
+      reason: "blocked",
+      finished: Promise.resolve("failed"),
+    };
+  }
+  try {
+    return startSoundPreview({
+      volume: volume ?? device.soundVolume,
+      soundId: device.soundId,
+    });
+  } catch {
+    return {
+      ok: false,
+      reason: "failed",
+      finished: Promise.resolve("failed"),
+    };
+  }
 }
 
 /** Explicit user-triggered notification preview (settings). */

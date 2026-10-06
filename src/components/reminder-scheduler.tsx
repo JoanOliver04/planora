@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "@/i18n/routing";
 import { advanceTrigger } from "@/features/reminders/schedule";
 import { loadNotificationPreferences } from "@/features/reminders/preferences";
+import { startSoundPreview } from "@/lib/audio/shared-preview";
 import type { Database } from "@/types/database";
 
 type Reminder = Database["public"]["Tables"]["reminders"]["Row"];
@@ -29,25 +30,9 @@ function reminderType(reminder: DueReminder) {
 function playAlarmSound() {
   if (document.visibilityState !== "visible") return;
   try {
-    const AudioContextClass =
-      window.AudioContext ??
-      (window as typeof window & { webkitAudioContext?: typeof AudioContext })
-        .webkitAudioContext;
-    if (!AudioContextClass) return;
-    const context = new AudioContextClass();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = 880;
-    gain.gain.setValueAtTime(0.18, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.7);
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.7);
-    oscillator.addEventListener("ended", () => void context.close());
+    startSoundPreview({ volume: 1, soundId: "alarm" });
   } catch {
-    // Browsers can block audio before the user interacts with the page.
+    // A missed alarm tone must not interrupt reminder delivery.
   }
 }
 

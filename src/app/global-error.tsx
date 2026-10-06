@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
+import { recoverClientError } from "@/lib/recover-client-error";
+
 export default function GlobalError({
   error,
   reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  reset?: () => void;
+  retry?: () => void;
 }) {
   useEffect(() => {
     void fetch("/api/telemetry", {
@@ -20,6 +24,16 @@ export default function GlobalError({
       }),
     });
   }, [error]);
+
+  function recover() {
+    // Drop the toast burst and any preview before rendering again.
+    // Neither is stored, so this does not repeat the click that failed.
+    recoverClientError();
+    const retryRender = retry ?? reset;
+    if (retryRender) retryRender();
+    else location.reload();
+  }
+
   return (
     <html lang="es">
       <body>
@@ -27,7 +41,7 @@ export default function GlobalError({
           <section className="surface empty" role="alert">
             <h1>Algo ha salido mal</h1>
             <p className="muted">No se ha perdido ningún cambio guardado.</p>
-            <button className="primary" type="button" onClick={reset}>
+            <button className="primary" type="button" onClick={recover}>
               Volver a intentarlo
             </button>
           </section>

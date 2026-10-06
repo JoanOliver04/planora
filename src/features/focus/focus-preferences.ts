@@ -16,11 +16,16 @@ export type FocusAccountPreferences = {
   goalWeekdaysOnly: boolean;
 };
 
+export const FOCUS_PREVIEW_SOUNDS = ["soft", "bell"] as const;
+export type FocusPreviewSound = (typeof FOCUS_PREVIEW_SOUNDS)[number];
+
 /** Stays on this browser/device only (localStorage). */
 export type FocusDevicePreferences = {
   soundEnabled: boolean;
   /** 0–1 gain for soft phase chimes. */
   soundVolume: number;
+  /** Built-in preview tone. Unknown or removed assets fall back to soft. */
+  soundId: FocusPreviewSound;
   vibrationEnabled: boolean;
   systemNotifyEnabled: boolean;
   wakeLockPreferred: boolean;
@@ -50,6 +55,7 @@ export const defaultFocusAccountPreferences: FocusAccountPreferences = {
 export const defaultFocusDevicePreferences: FocusDevicePreferences = {
   soundEnabled: true,
   soundVolume: 0.5,
+  soundId: "soft",
   vibrationEnabled: true,
   systemNotifyEnabled: true,
   wakeLockPreferred: false,
@@ -118,16 +124,22 @@ export function normalizeFocusDevicePreferences(
     value && typeof value === "object" && !Array.isArray(value)
       ? (value as Record<string, unknown>)
       : {};
-  const volume =
-    typeof input.soundVolume === "number" && Number.isFinite(input.soundVolume)
-      ? Math.min(1, Math.max(0, input.soundVolume))
-      : defaultFocusDevicePreferences.soundVolume;
+  const volumeSource =
+    typeof input.soundVolume === "number"
+      ? input.soundVolume
+      : typeof input.soundVolume === "string" && input.soundVolume.trim() !== ""
+        ? Number(input.soundVolume)
+        : Number.NaN;
+  const volume = Number.isFinite(volumeSource)
+    ? Math.min(1, Math.max(0, volumeSource))
+    : defaultFocusDevicePreferences.soundVolume;
   return {
     soundEnabled:
       typeof input.soundEnabled === "boolean"
         ? input.soundEnabled
         : defaultFocusDevicePreferences.soundEnabled,
     soundVolume: volume,
+    soundId: input.soundId === "bell" ? "bell" : "soft",
     vibrationEnabled:
       typeof input.vibrationEnabled === "boolean"
         ? input.vibrationEnabled
@@ -169,12 +181,23 @@ export function readFocusAccountFromProfilePreferences(
   return normalizeFocusAccountPreferences(root.focus);
 }
 
+let cachedDevicePreferencesRaw: string | null | undefined;
+let cachedDevicePreferences = defaultFocusDevicePreferences;
+
 export function loadFocusDevicePreferences(): FocusDevicePreferences {
   if (typeof window === "undefined") return defaultFocusDevicePreferences;
   try {
     const raw = window.localStorage.getItem(FOCUS_DEVICE_PREFS_KEY);
-    if (!raw) return defaultFocusDevicePreferences;
-    return normalizeFocusDevicePreferences(JSON.parse(raw));
+    if (raw === cachedDevicePreferencesRaw) return cachedDevicePreferences;
+    if (!raw) {
+      cachedDevicePreferencesRaw = null;
+      cachedDevicePreferences = defaultFocusDevicePreferences;
+      return cachedDevicePreferences;
+    }
+    const normalized = normalizeFocusDevicePreferences(JSON.parse(raw));
+    cachedDevicePreferencesRaw = raw;
+    cachedDevicePreferences = normalized;
+    return cachedDevicePreferences;
   } catch {
     return defaultFocusDevicePreferences;
   }

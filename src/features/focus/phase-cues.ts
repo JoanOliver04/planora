@@ -1,5 +1,6 @@
 import type { FocusSession } from "./types";
 import { loadFocusDevicePreferences } from "./focus-preferences";
+import { startSoundPreview } from "@/lib/audio/shared-preview";
 
 export type PhaseCueKind = "phase_change" | "session_complete" | "soft_goal";
 
@@ -52,35 +53,10 @@ export async function playPhaseCue(
   return result;
 }
 
-/** Soft synthesised chime — no external audio assets. Safe under autoplay limits. */
+/** Soft synthesised chime — no external audio assets. Never throws. */
 export function playSoftChime(volume = 0.5): boolean {
   try {
-    const AudioCtx =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext?: typeof AudioContext })
-        .webkitAudioContext;
-    if (!AudioCtx) return false;
-    const ctx = new AudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const peak = Math.max(0.0001, Math.min(0.08, 0.05 * volume));
-    osc.type = "sine";
-    osc.frequency.value = 528;
-    gain.gain.value = 0.0001;
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    const now = ctx.currentTime;
-    gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
-    osc.start(now);
-    osc.stop(now + 0.4);
-    void ctx.resume().catch(() => {
-      // Autoplay blocked — ignore quietly.
-    });
-    window.setTimeout(() => {
-      void ctx.close().catch(() => undefined);
-    }, 600);
-    return true;
+    return startSoundPreview({ volume, soundId: "soft" }).ok;
   } catch {
     return false;
   }

@@ -106,6 +106,38 @@ describe("focus device preferences", () => {
     });
   });
 
+  it("normalizes an invalid preview sound and keeps the rest of the device prefs", () => {
+    window.localStorage.setItem("planora-offline-keep", "keep");
+    window.localStorage.setItem(
+      FOCUS_DEVICE_PREFS_KEY,
+      JSON.stringify({
+        soundEnabled: false,
+        soundVolume: "0.25",
+        soundId: "sounds/gone.mp3",
+        vibrationEnabled: false,
+        lockScreenBehavior: "pause",
+      }),
+    );
+    const loaded = loadFocusDevicePreferences();
+    expect(loaded.soundEnabled).toBe(false);
+    expect(loaded.soundVolume).toBe(0.25);
+    expect(loaded.soundId).toBe("soft");
+    expect(loaded.vibrationEnabled).toBe(false);
+    expect(loaded.lockScreenBehavior).toBe("pause");
+    expect(window.localStorage.getItem("planora-offline-keep")).toBe("keep");
+    expect(window.localStorage.getItem(FOCUS_DEVICE_PREFS_KEY)).toContain(
+      "gone.mp3",
+    );
+  });
+
+  it("keeps corrupt device JSON in place and falls back in memory", () => {
+    window.localStorage.setItem("planora-offline-keep", "keep");
+    window.localStorage.setItem(FOCUS_DEVICE_PREFS_KEY, "{");
+    expect(loadFocusDevicePreferences()).toEqual(defaultFocusDevicePreferences);
+    expect(window.localStorage.getItem(FOCUS_DEVICE_PREFS_KEY)).toBe("{");
+    expect(window.localStorage.getItem("planora-offline-keep")).toBe("keep");
+  });
+
   it("keeps keyboard shortcuts enabled by default", () => {
     expect(normalizeFocusDevicePreferences({}).keyboardShortcutsEnabled).toBe(
       true,
