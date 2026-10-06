@@ -368,6 +368,20 @@ describe("system notification adapter", () => {
   });
 });
 
+describe("service worker notification tags", () => {
+  it("accepts an offset timestamp and rejects a script tag", () => {
+    const worker = readFileSync("public/sw.js", "utf8");
+    const literal = "/^[A-Za-z0-9:._+-]{8,180}$/";
+    expect(worker).toContain(literal);
+    const pattern = new RegExp(literal.slice(1, -1));
+    expect(
+      pattern.test("task:task-1:2026-10-06:2026-10-06T20:00:00.000+00:00"),
+    ).toBe(true);
+    expect(pattern.test("daily-summary:2026-10-06")).toBe(true);
+    expect(pattern.test("<script>")).toBe(false);
+  });
+});
+
 describe("daily summary mobile placement", () => {
   it("stays in the top safe area and clear of the bottom navigation", () => {
     const providers = readFileSync("src/components/providers.tsx", "utf8");

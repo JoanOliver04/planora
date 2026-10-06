@@ -130,7 +130,7 @@ function showPlanoraNotice(payload) {
     !payload ||
     typeof payload.title !== "string" ||
     typeof payload.tag !== "string" ||
-    !/^[A-Za-z0-9:._-]{8,180}$/.test(payload.tag)
+    !/^[A-Za-z0-9:._+-]{8,180}$/.test(payload.tag)
   ) {
     const error = new Error("invalid");
     error.name = "TypeError";
