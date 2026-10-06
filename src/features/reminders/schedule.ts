@@ -45,6 +45,23 @@ export function advanceTrigger(
   );
 }
 
+/** Walks past missed occurrences so a stale reminder is not delivered once per skipped day. */
+export function nextFutureTrigger(
+  trigger: Date,
+  recurrence: "once" | "daily" | "weekly",
+  timezone = "UTC",
+  now = new Date(),
+) {
+  if (recurrence === "once") return null;
+  let next = advanceTrigger(trigger, recurrence, timezone);
+  for (let step = 0; step < 3660 && next && next <= now; step += 1) {
+    const following = advanceTrigger(next, recurrence, timezone);
+    if (!following || following.getTime() === next.getTime()) return null;
+    next = following;
+  }
+  return next && next > now ? next : null;
+}
+
 export function customTrigger(date: string, time: string, timezone: string) {
   return fromZonedTime(date + "T" + time + ":00", timezone);
 }

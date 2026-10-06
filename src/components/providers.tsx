@@ -27,7 +27,16 @@ export function Providers({
       timeZone="Europe/Madrid"
     >
       <ThemeProvider>
-        <Toaster richColors position="top-center" />
+        <Toaster
+          richColors
+          position="top-center"
+          offset={{ top: "calc(0.75rem + env(safe-area-inset-top, 0px))" }}
+          mobileOffset={{
+            top: "calc(0.75rem + env(safe-area-inset-top, 0px))",
+            left: "max(0.75rem, env(safe-area-inset-left, 0px))",
+            right: "max(0.75rem, env(safe-area-inset-right, 0px))",
+          }}
+        />
         <PublicConnectivityStatus locale={locale} />
         {children}
       </ThemeProvider>

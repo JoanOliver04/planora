@@ -125,9 +125,54 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+function showPlanoraNotice(payload) {
+  if (
+    !payload ||
+    typeof payload.title !== "string" ||
+    typeof payload.tag !== "string" ||
+    !/^[A-Za-z0-9:._-]{8,180}$/.test(payload.tag)
+  ) {
+    const error = new Error("invalid");
+    error.name = "TypeError";
+    return Promise.reject(error);
+  }
+  const requested = payload.url;
+  const url =
+    typeof requested === "string" && NOTIFICATION_PATH.test(requested)
+      ? requested
+      : "/es/reminders";
+  return self.registration.showNotification(payload.title.slice(0, 120), {
+    body: typeof payload.body === "string" ? payload.body.slice(0, 240) : "",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    tag: payload.tag,
+    renotify: true,
+    requireInteraction: payload.requireInteraction === true,
+    silent: payload.silent === true,
+    data: { url },
+  });
+}
+
 self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "planora-clear-asset-cache")
+  if (event.data && event.data.type === "planora-clear-asset-cache") {
     event.waitUntil(clearAllPlanoraCaches());
+    return;
+  }
+  if (!event.data || event.data.type !== "planora-show-notification") return;
+  const port = event.ports && event.ports[0];
+  event.waitUntil(
+    showPlanoraNotice(event.data.payload)
+      .then(() => {
+        if (port) port.postMessage({ ok: true });
+      })
+      .catch((error) => {
+        if (port)
+          port.postMessage({
+            ok: false,
+            errorType: error && error.name ? error.name : "Error",
+          });
+      }),
+  );
 });
 
 self.addEventListener("fetch", (event) => {

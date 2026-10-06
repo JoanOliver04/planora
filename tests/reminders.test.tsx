@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   advanceTrigger,
@@ -43,7 +49,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("reminder scheduling", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
 
   it("calculates timezone-safe relative and recurring triggers", () => {
     expect(
@@ -126,5 +135,51 @@ describe("reminder scheduling", () => {
     await act(async () => {});
     expect(requestPermission).toHaveBeenCalledOnce();
     expect(enable).toHaveBeenCalledWith(true);
+    expect(screen.getByText("Permiso pendiente")).toBeInTheDocument();
+  });
+
+  it("explains a blocked permission without asking again", async () => {
+    const requestPermission = vi.fn();
+    vi.stubGlobal("Notification", {
+      permission: "denied",
+      requestPermission,
+    });
+    render(
+      <ReminderCenter
+        locale="es"
+        timezone="Europe/Madrid"
+        reminders={[]}
+        tasks={[]}
+        events={[]}
+      />,
+    );
+    await act(async () => {});
+    expect(screen.getByText("Permiso bloqueado")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Permitir notificaciones" }),
+    ).not.toBeInTheDocument();
+    expect(requestPermission).not.toHaveBeenCalled();
+  });
+
+  it("explains an unsupported browser and a failed system notification", async () => {
+    Reflect.deleteProperty(window, "Notification");
+    sessionStorage.setItem("planora-system-notification-status", "failed");
+    render(
+      <ReminderCenter
+        locale="es"
+        timezone="Europe/Madrid"
+        reminders={[]}
+        tasks={[]}
+        events={[]}
+      />,
+    );
+    await act(async () => {});
+    expect(screen.getByText("No compatible")).toBeInTheDocument();
+    expect(screen.getByRole("status").textContent ?? "").not.toMatch(
+      /Regar|tarea|nota/i,
+    );
+    expect(
+      screen.getByText("No se pudo mostrar la notificación del sistema."),
+    ).toBeInTheDocument();
   });
 });

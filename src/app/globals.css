@@ -3412,6 +3412,15 @@ select:disabled,
 .notification-limit-note p {
   margin-top: 0.35rem;
 }
+@media (max-width: 412px) {
+  [data-sonner-toaster][data-y-position="top"] .planora-daily-summary {
+    width: calc(
+      100vw - 1.5rem - env(safe-area-inset-left, 0px) -
+        env(safe-area-inset-right, 0px)
+    );
+    max-width: calc(100vw - 1.5rem);
+  }
+}
 @media (max-width: 1000px) {
   .reminder-forms-expanded {
     grid-template-columns: 1fr 1fr;

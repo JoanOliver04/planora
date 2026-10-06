@@ -34,6 +34,7 @@ import {
   saveNotificationPreferences,
   type NotificationPreferences,
 } from "./preferences";
+import { readSystemNotificationProblem } from "./system-notification";
 import type { Database } from "@/types/database";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
 
@@ -277,6 +278,7 @@ export function ReminderCenter({
   const [permission, setPermission] = useState<
     NotificationPermission | "unsupported"
   >("default");
+  const [systemProblem, setSystemProblem] = useState(false);
   const [optedOut, setOptedOut] = useState(
     reminders.length > 0 && reminders.every((item) => !item.enabled),
   );
@@ -351,9 +353,17 @@ export function ReminderCenter({
       );
     });
     const updated = () => router.refresh();
+    const syncProblem = () => setSystemProblem(readSystemNotificationProblem());
+    syncProblem();
     window.addEventListener("planora-reminders-updated", updated);
-    return () =>
+    window.addEventListener("planora-system-notification-status", syncProblem);
+    return () => {
       window.removeEventListener("planora-reminders-updated", updated);
+      window.removeEventListener(
+        "planora-system-notification-status",
+        syncProblem,
+      );
+    };
   }, [router]);
 
   function persistPreference(
@@ -596,23 +606,46 @@ export function ReminderCenter({
           {permission === "granted" && !optedOut ? <Bell /> : <BellOff />}
           <div>
             <strong>
-              {permission === "granted" && !optedOut
+              {permission === "unsupported"
                 ? es
-                  ? "Notificaciones activadas"
-                  : "Notifications enabled"
+                  ? "No compatible"
+                  : "Not supported"
                 : permission === "denied"
                   ? es
-                    ? "Bloqueadas en el navegador"
-                    : "Blocked in browser"
-                  : es
-                    ? "Notificaciones desactivadas"
-                    : "Notifications off"}
+                    ? "Permiso bloqueado"
+                    : "Permission blocked"
+                  : permission === "granted"
+                    ? es
+                      ? "Notificaciones permitidas"
+                      : "Notifications allowed"
+                    : es
+                      ? "Permiso pendiente"
+                      : "Permission pending"}
             </strong>
             <p className="muted">
-              {es
-                ? "Solo pedimos permiso cuando pulsas el botón. Sin publicidad."
-                : "Permission is only requested after your click. No advertising."}
+              {permission === "unsupported"
+                ? es
+                  ? "Este navegador no puede mostrar notificaciones del sistema."
+                  : "This browser cannot show system notifications."
+                : permission === "denied"
+                  ? es
+                    ? "El navegador ha bloqueado las notificaciones. Puedes activarlas en los ajustes del sitio. Planora no volverá a pedir el permiso sola."
+                    : "The browser has blocked notifications. You can allow them in the site settings. Planora will not ask again on its own."
+                  : permission === "granted"
+                    ? es
+                      ? "El canal del sistema puede usarse en este dispositivo."
+                      : "The system channel can be used on this device."
+                    : es
+                      ? "Solo pedimos permiso cuando pulsas el botón. Sin publicidad."
+                      : "Permission is only requested after your click. No advertising."}
             </p>
+            {systemProblem && (
+              <p className="muted" role="status">
+                {es
+                  ? "No se pudo mostrar la notificación del sistema."
+                  : "Could not show the system notification."}
+              </p>
+            )}
           </div>
         </div>
         {permission !== "unsupported" && permission !== "denied" && (
@@ -950,8 +983,8 @@ export function ReminderCenter({
         </strong>
         <p className="muted">
           {es
-            ? "Los popups, el sonido y la vibración funcionan mientras Planora está abierta o activa como PWA. El sistema operativo puede suspender una web completamente cerrada; las notificaciones del sistema dependen de los permisos y límites del navegador."
-            : "Popups, sound and vibration work while Planora is open or active as a PWA. The operating system may suspend a fully closed website; system notifications depend on browser permissions and limits."}
+            ? "Con Planora abierta se pueden usar a la vez el popup y la notificación del sistema, según los canales activos. En segundo plano, si la página sigue viva, el aviso del sistema puede salir, aunque el navegador puede retrasarlo. Si cierras Planora por completo no hay un servidor push que la despierte: el aviso espera a que vuelvas a abrirla."
+            : "While Planora is open, the popup and the system notification can both be used, according to the channels you enable. In the background, while the page is still alive, a system notification can appear, though the browser may delay it. If Planora is fully closed there is no push server to wake it: the alert waits until you open it again."}
         </p>
       </aside>
 
