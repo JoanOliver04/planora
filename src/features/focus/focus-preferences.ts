@@ -186,8 +186,9 @@ let cachedDevicePreferences = defaultFocusDevicePreferences;
 
 export function loadFocusDevicePreferences(): FocusDevicePreferences {
   if (typeof window === "undefined") return defaultFocusDevicePreferences;
+  let raw: string | null = null;
   try {
-    const raw = window.localStorage.getItem(FOCUS_DEVICE_PREFS_KEY);
+    raw = window.localStorage.getItem(FOCUS_DEVICE_PREFS_KEY);
     if (raw === cachedDevicePreferencesRaw) return cachedDevicePreferences;
     if (!raw) {
       cachedDevicePreferencesRaw = null;
@@ -199,6 +200,13 @@ export function loadFocusDevicePreferences(): FocusDevicePreferences {
     cachedDevicePreferences = normalized;
     return cachedDevicePreferences;
   } catch {
+    // Cache the corrupt payload so the next read stays stable and does not
+    // keep the previous valid object associated with this raw value.
+    if (raw) {
+      cachedDevicePreferencesRaw = raw;
+      cachedDevicePreferences = defaultFocusDevicePreferences;
+      return cachedDevicePreferences;
+    }
     return defaultFocusDevicePreferences;
   }
 }

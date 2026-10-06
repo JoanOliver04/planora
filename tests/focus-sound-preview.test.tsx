@@ -9,6 +9,8 @@ import {
   defaultFocusDevicePreferences,
 } from "@/features/focus/focus-preferences";
 import messages from "@/messages/es.json";
+import { playPhaseCue } from "@/features/focus/phase-cues";
+import { createStartedSession } from "@/features/focus/state-machine";
 import {
   __resetSoundPreviewForTests,
   __setSoundPreviewBackendForTests,
@@ -57,18 +59,27 @@ type FakeOscillator = {
 class FakeAudioContext {
   static created = 0;
   static failOnCreate = false;
+  static failResume = false;
+  static syncEnded = false;
+  static latest: FakeAudioContext | null = null;
   state = "running";
   currentTime = 0;
   destination = {};
   oscillators: FakeOscillator[] = [];
-  resume = vi.fn(() => Promise.resolve());
+  resume = vi.fn(() =>
+    FakeAudioContext.failResume
+      ? Promise.reject(new DOMException("blocked", "NotAllowedError"))
+      : Promise.resolve(),
+  );
   close = vi.fn(() => {
     this.state = "closed";
     return Promise.resolve();
   });
 
   constructor() {
+    FakeAudioContext.latest = this;
     FakeAudioContext.created += 1;
+    if (FakeAudioContext.failResume) this.state = "suspended";
     if (FakeAudioContext.failOnCreate) {
       throw new DOMException(
         "The number of hardware contexts provided (6) is greater than or equal to the maximum bound (6).",
@@ -84,6 +95,10 @@ class FakeAudioContext {
       ended: [],
       stop(when?: number) {
         this.stops.push(when);
+        if (FakeAudioContext.syncEnded) {
+          const listeners = this.ended.splice(0);
+          listeners.forEach((listener) => listener());
+        }
       },
       connect() {
         return this;
@@ -99,6 +114,7 @@ class FakeAudioContext {
         oscillator.frequency = value;
       },
     };
+    this.oscillators.push(oscillator);
     return Object.assign(oscillator, {
       type: "sine",
       frequency,
@@ -122,6 +138,9 @@ class FakeAudioContext {
 function installAudio() {
   FakeAudioContext.created = 0;
   FakeAudioContext.failOnCreate = false;
+  FakeAudioContext.failResume = false;
+  FakeAudioContext.syncEnded = false;
+  FakeAudioContext.latest = null;
   vi.stubGlobal("AudioContext", FakeAudioContext);
   delete (window as { webkitAudioContext?: unknown }).webkitAudioContext;
 }
@@ -257,6 +276,68 @@ describe("focus sound preview", () => {
     await user.click(screen.getByRole("button", { name: "Probar sonido" }));
     expect(activeSoundPreviewCount()).toBe(1);
     view.unmount();
+    expect(activeSoundPreviewCount()).toBe(0);
+  });
+
+  it("does not stop a newer alarm when the settings panel unmounts", async () => {
+    const user = userEvent.setup();
+    const view = renderSettings();
+    await user.click(screen.getByRole("button", { name: "Probar sonido" }));
+    startSoundPreview({ soundId: "alarm", volume: 1 });
+    expect(activeSoundPreviewCount()).toBe(1);
+    view.unmount();
+    expect(activeSoundPreviewCount()).toBe(1);
+  });
+
+  it("stops only the settings preview when sound is turned off", async () => {
+    const user = userEvent.setup();
+    renderSettings();
+    await user.click(screen.getByRole("button", { name: "Probar sonido" }));
+    expect(activeSoundPreviewCount()).toBe(1);
+    await user.click(screen.getByRole("checkbox", { name: "Sonidos de fase" }));
+    expect(activeSoundPreviewCount()).toBe(0);
+    expect(
+      screen.getByRole("button", { name: "Probar sonido" }),
+    ).toBeDisabled();
+  });
+
+  it("plays the selected device tone for a phase change", () => {
+    saveFocusDevicePreferences({
+      ...defaultFocusDevicePreferences,
+      soundEnabled: true,
+      soundId: "bell",
+    });
+    const session = createStartedSession(
+      {
+        mode: "countdown",
+        focusDurationSec: 60,
+        soundEnabled: true,
+        vibrationEnabled: false,
+        notifyOnPhaseEnd: false,
+        keepScreenAwake: false,
+      },
+      "user",
+      {
+        createId: (() => {
+          let n = 0;
+          return () => `phase-cue-${++n}`;
+        })(),
+        now: Date.parse("2026-08-07T10:00:00.000Z"),
+        sessionId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        intervalId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      },
+    );
+    void playPhaseCue(session);
+    expect(FakeAudioContext.latest?.oscillators[0]?.frequency).toBe(784);
+    expect(sharedAudioContextCreations()).toBe(1);
+  });
+
+  it("settles failed when resume rejects and stop ends the oscillator synchronously", async () => {
+    FakeAudioContext.failResume = true;
+    FakeAudioContext.syncEnded = true;
+    const result = startSoundPreview({ soundId: "bell" });
+    expect(result.ok).toBe(true);
+    await expect(result.finished).resolves.toBe("failed");
     expect(activeSoundPreviewCount()).toBe(0);
   });
 

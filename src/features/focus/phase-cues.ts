@@ -24,7 +24,7 @@ export async function playPhaseCue(
   const device = loadFocusDevicePreferences();
 
   if (session.config.soundEnabled && device.soundEnabled) {
-    result.sound = playSoftChime(device.soundVolume);
+    result.sound = playSoftChime(device.soundVolume, device.soundId);
   }
 
   if (
@@ -53,10 +53,10 @@ export async function playPhaseCue(
   return result;
 }
 
-/** Soft synthesised chime — no external audio assets. Never throws. */
-export function playSoftChime(volume = 0.5): boolean {
+/** Synthesised chime — no external audio assets. Never throws. */
+export function playSoftChime(volume = 0.5, soundId: string = "soft"): boolean {
   try {
-    return startSoundPreview({ volume, soundId: "soft" }).ok;
+    return startSoundPreview({ volume, soundId }).ok;
   } catch {
     return false;
   }

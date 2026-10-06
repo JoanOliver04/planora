@@ -275,6 +275,7 @@ export function previewFocusSound(volume?: number): SoundPreviewHandle {
       ok: false,
       reason: "blocked",
       finished: Promise.resolve("failed"),
+      generation: 0,
     };
   }
   try {
@@ -287,6 +288,7 @@ export function previewFocusSound(volume?: number): SoundPreviewHandle {
       ok: false,
       reason: "failed",
       finished: Promise.resolve("failed"),
+      generation: 0,
     };
   }
 }

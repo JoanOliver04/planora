@@ -11,6 +11,8 @@ export type SoundPreviewHandle = {
   ok: boolean;
   reason?: PreviewFailure;
   finished: Promise<PreviewOutcome>;
+  /** Generation that owns this attempt. 0 means this handle did not start audio. */
+  generation: number;
 };
 
 type PreviewSoundId = "soft" | "bell" | "alarm";
@@ -239,7 +241,7 @@ function rejected(reason: PreviewFailure, sound: string, error: unknown) {
   reportPreviewFailure(reason === "missing" ? "asset" : "play", sound, error);
   const finished = assignFinish();
   settle("failed");
-  return { ok: false as const, reason, finished };
+  return { ok: false as const, reason, finished, generation };
 }
 
 /**
@@ -277,12 +279,17 @@ export function startSoundPreview(options?: {
           settle("failed");
         },
       );
-      return { ok: true, finished };
+      return { ok: true, finished, generation: token };
     } catch (error) {
       backendActive = false;
       reportPreviewFailure("play", sound, error);
       settle("failed");
-      return { ok: false, reason: failureReason(error), finished };
+      return {
+        ok: false,
+        reason: failureReason(error),
+        finished,
+        generation: token,
+      };
     }
   }
 
@@ -304,6 +311,7 @@ export function startSoundPreview(options?: {
           ? "unavailable"
           : "failed",
       finished,
+      generation: token,
     };
   }
   const ctx = ensured.context;
@@ -313,24 +321,28 @@ export function startSoundPreview(options?: {
       () => undefined,
       (error: unknown) => {
         if (generation !== token) return;
-        voice?.stop();
-        voice = null;
+        // halt() bumps generation before stop(), so a synchronous "ended"
+        // event cannot resolve this attempt as a successful "done".
         reportPreviewFailure("play", sound, error);
-        settle("failed");
+        halt("failed");
       },
     );
-    return { ok: true, finished };
+    return { ok: true, finished, generation: token };
   } catch (error) {
-    voice?.stop();
-    voice = null;
-    dropContext();
     reportPreviewFailure("start", sound, error);
-    settle("failed");
-    return { ok: false, reason: "failed", finished };
+    if (generation === token) halt("failed");
+    dropContext();
+    return { ok: false, reason: "failed", finished, generation: token };
   }
 }
 
 export function stopSoundPreview() {
+  halt("done");
+}
+
+/** Stop only the attempt this caller started. A newer alarm or chime stays. */
+export function stopSoundPreviewIfCurrent(ownedGeneration: number) {
+  if (ownedGeneration === 0 || generation !== ownedGeneration) return;
   halt("done");
 }
 

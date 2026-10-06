@@ -21,7 +21,7 @@ import {
   previewFocusNotification,
   previewFocusSound,
 } from "./focus-phase-alerts";
-import { stopSoundPreview } from "@/lib/audio/shared-preview";
+import { stopSoundPreviewIfCurrent } from "@/lib/audio/shared-preview";
 import { isFocusWakeLockSupported } from "./focus-wake-lock";
 import { FocusHelpTip } from "./focus-help-tip";
 import { mapPresetRow } from "./mappers";
@@ -71,12 +71,13 @@ export function FocusSettingsPanel({
   );
   const soundPanelMounted = useRef(true);
   const soundPreviewRequest = useRef(0);
+  const ownedPreview = useRef(0);
 
   useEffect(() => {
     soundPanelMounted.current = true;
     return () => {
       soundPanelMounted.current = false;
-      stopSoundPreview();
+      stopSoundPreviewIfCurrent(ownedPreview.current);
     };
   }, []);
 
@@ -89,6 +90,7 @@ export function FocusSettingsPanel({
       if (soundPreviewRequest.current === request) setSoundPhase("failed");
       return;
     }
+    ownedPreview.current = result.generation;
     if (!result.ok) {
       setSoundPhase("failed");
       return;
@@ -345,9 +347,14 @@ export function FocusSettingsPanel({
           <input
             type="checkbox"
             checked={device.soundEnabled}
-            onChange={(event) =>
-              updateDevice("soundEnabled", event.target.checked)
-            }
+            onChange={(event) => {
+              const enabled = event.target.checked;
+              updateDevice("soundEnabled", enabled);
+              if (!enabled) {
+                stopSoundPreviewIfCurrent(ownedPreview.current);
+                setSoundPhase("idle");
+              }
+            }}
           />
         </label>
         <div className="settings-row">
