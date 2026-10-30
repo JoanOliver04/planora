@@ -11,12 +11,13 @@ Aplicación: https://planora-lake-one.vercel.app. Proyecto Supabase: `cilfuieycx
 
 ## Cambios aplicados
 
-Se aplicaron estas cuatro migraciones mediante Supabase CLI, sin seed ni cambios de secretos de Vault:
+Se aplicaron estas cinco migraciones mediante Supabase CLI, sin seed ni cambios de secretos de Vault:
 
 1. `20261030165630_restrict_auth_bootstrap_rpc.sql`
 2. `20261030170000_restore_attempt_accounting.sql`
 3. `20261030171000_database_resource_bounds.sql`
 4. `20261030172000_security_lock_order.sql`
+5. `20261030172612_preserve_restored_completion_history.sql`
 
 El permiso de restauración se retiró durante la transición y se devolvió al rol authenticated después de que Vercel confirmara el despliegue y pasaran las comprobaciones públicas. Anon y authenticated siguen sin acceso al core de restauración. La función de bootstrap de perfiles ya no admite ejecución directa desde roles cliente; el trigger continúa creando perfiles en la prueba aislada.
 
@@ -33,6 +34,10 @@ La copia DPAPI requiere el mismo perfil de Windows y sus claves; no sustituye un
 
 Para generar otra copia local, usar `scripts/backup-account-data.ps1` con la ruta de Supabase CLI y los UUID de las cuentas autorizadas. No publicar los archivos descifrados ni añadirlos al repositorio.
 
+La recuperación real de las dos copias cifradas pasó en un PostgreSQL 17 desechable, sin red ni puertos publicados, usando identidades locales nuevas y comprobando los recuentos de las once colecciones. Se utilizó `scripts/test-security-db.ps1 -EncryptedBackupPath <archivo.dpapi>`. No se restauró contenido sobre las cuentas de producción ni se escribieron archivos de datos en claro.
+
+Esta prueba detectó que el trigger de completados revalidaba el historial contra la recurrencia actual de tareas ya editadas. La quinta migración conserva los snapshots históricos durante la restauración autorizada. El bypass requiere tanto el contexto de restauración como ejecutar con la identidad propietaria del wrapper; establecer solo el GUC desde el rol authenticated no permite saltarse la validación habitual. Las pruebas SQL verificaron restauración histórica, snapshot exacto, rechazo de escrituras directas inválidas y rechazo de tareas de otro propietario.
+
 ## Advisors y comprobaciones
 
 Tras retirar el permiso innecesario de bootstrap quedaron dos avisos WARN, sin errores:
@@ -40,7 +45,7 @@ Tras retirar el permiso innecesario de bootstrap quedaron dos avisos WARN, sin e
 - Restauración ejecutable por usuarios autenticados como SECURITY DEFINER: es el wrapper intencional, con auth.uid, ownership, presupuesto y helpers privados. No debe convertirse a INVOKER sin rediseñar la llamada a helpers revocados. [Aviso y criterios](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
 - Protección de contraseñas filtradas desactivada: Email/password está deshabilitado y la app solo ofrece Google. Si se habilita contraseña en el futuro, debe revisarse este control. [Protección de contraseñas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 
-La suite local anterior pasó 552 pruebas con cobertura, 38 pruebas de navegador y pruebas SQL aisladas. CI pasó quality, CodeQL y Lighthouse. Su E2E detectó una aserción del contrato antiguo de restauración; se actualizó para comprobar el resultado JSON de fallo y el sexto intento rechazado. La ejecución CI correspondiente debe consultarse para el resultado final.
+La suite local anterior pasó 552 pruebas con cobertura, 38 pruebas de navegador y pruebas SQL aisladas. CI del commit `8aed37df5bfe52a78b50f28c5bd6f82637a0d33f` pasó completamente: quality, CodeQL, Lighthouse y E2E. [Ejecución completa](https://github.com/JoanOliver04/planora/actions/runs/41097316279). Las nuevas pruebas SQL de recuperación e historial también pasaron en el contenedor aislado.
 
 ## Pendientes y límites
 
