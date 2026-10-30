@@ -271,6 +271,8 @@ test("mobile More navigation reaches every secondary area naturally", async ({
       "aria-current",
       "page",
     );
+    await page.waitForLoadState("networkidle", { timeout: 10_000 });
+    await page.close();
   } finally {
     await admin.auth.admin.deleteUser(userId);
   }

@@ -81,6 +81,10 @@ export async function withLocalWorkspace(
       cookieJar.map((cookie) => ({ ...cookie, url: baseURL })),
     );
     await run(client, userId);
+    for (const page of context.pages()) {
+      await page.waitForLoadState("networkidle", { timeout: 10_000 });
+      await page.close();
+    }
   } finally {
     const removed = await admin.auth.admin.deleteUser(userId);
     expect(removed.error, "Synthetic account cleanup").toBeNull();

@@ -22,7 +22,10 @@ export function installBrowserErrorCapture() {
     report({
       kind: "error",
       name: event.error?.name ?? "Error",
-      message: event.message,
+      message:
+        typeof event.error?.message === "string"
+          ? event.error.message
+          : event.message,
       stack: event.error?.stack,
     });
   };

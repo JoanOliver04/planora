@@ -7,6 +7,10 @@ import { expect, offlineNetworkError, test } from "./fixtures";
 test.use({ actionTimeout: 15_000, navigationTimeout: 30_000 });
 
 async function navigateWorkspace(page: Page, route: string) {
+  if (!page.url().startsWith("http")) {
+    await page.goto(`/en/${route}`);
+    return;
+  }
   const link = page.locator(`a[href="/en/${route}"]:visible`).first();
   if (!(await link.isVisible())) {
     await page.getByRole("link", { name: "More", exact: true }).click();
@@ -17,7 +21,7 @@ async function navigateWorkspace(page: Page, route: string) {
 }
 
 async function openAdd(page: Page, route: string) {
-  await page.goto(`/en/${route}`);
+  await navigateWorkspace(page, route);
   await page
     .locator("main")
     .getByRole("button", { name: "Add", exact: true })
@@ -96,7 +100,7 @@ test("workspace CRUD, schedule copies, history, search and backup round trip", a
     expect(task.error).toBeNull();
     const taskId = task.data!.id;
 
-    await page.goto("/en/today");
+    await navigateWorkspace(page, "today");
     await page
       .getByRole("button", {
         name: "Mark as complete: QA scoped task",
@@ -111,6 +115,12 @@ test("workspace CRUD, schedule copies, history, search and backup round trip", a
           .eq("task_id", taskId)
       ).count;
     await expect.poll(completionCount).toBe(1);
+    await expect(
+      page.getByRole("button", {
+        name: "Completed: QA scoped task",
+        exact: true,
+      }),
+    ).toHaveAttribute("aria-busy", "false");
     await page.reload();
     await expect(
       page.getByRole("button", {
@@ -118,15 +128,21 @@ test("workspace CRUD, schedule copies, history, search and backup round trip", a
         exact: true,
       }),
     ).toHaveAttribute("aria-pressed", "true");
-    await page.goto("/en/history");
+    await navigateWorkspace(page, "history");
     await expect(
       page.locator("main").getByText("QA scoped task", { exact: true }),
     ).toHaveCount(1);
-    await page.goto("/en/today");
+    await navigateWorkspace(page, "today");
     await page
       .getByRole("button", { name: "Completed: QA scoped task", exact: true })
       .click();
     await expect.poll(completionCount).toBe(0);
+    await expect(
+      page.getByRole("button", {
+        name: "Mark as complete: QA scoped task",
+        exact: true,
+      }),
+    ).toHaveAttribute("aria-busy", "false");
 
     dialog = await openAdd(page, "tasks");
     await dialog
@@ -157,7 +173,7 @@ test("workspace CRUD, schedule copies, history, search and backup round trip", a
       category_id: category.data!.id,
     });
 
-    await page.goto("/en/schedules");
+    await navigateWorkspace(page, "schedules");
     await page
       .getByRole("button", { name: "Duplicate QA routine", exact: true })
       .click();
@@ -197,7 +213,7 @@ test("workspace CRUD, schedule copies, history, search and backup round trip", a
           ).data?.active_schedule_id,
       )
       .toBe(copy.id);
-    await page.goto("/en/today");
+    await navigateWorkspace(page, "today");
     await expect(
       page.getByText("QA scoped task updated", { exact: true }),
     ).toHaveCount(1);
@@ -205,7 +221,7 @@ test("workspace CRUD, schedule copies, history, search and backup round trip", a
       1,
     );
 
-    await page.goto("/en/schedules");
+    await navigateWorkspace(page, "schedules");
     await page
       .getByRole("button", { name: "Archive QA routine", exact: true })
       .click();
@@ -278,7 +294,7 @@ test("workspace CRUD, schedule copies, history, search and backup round trip", a
     expect(
       (await db.from("events").select("title,all_day").single()).data,
     ).toMatchObject({ title: "QA event", all_day: false });
-    await page.goto("/en/search");
+    await navigateWorkspace(page, "search");
     await page
       .locator("main")
       .getByRole("textbox")
@@ -288,7 +304,7 @@ test("workspace CRUD, schedule copies, history, search and backup round trip", a
       page.locator("main").getByText("QA scoped task updated", { exact: true }),
     ).toHaveCount(1);
 
-    await page.goto("/en/data");
+    await navigateWorkspace(page, "data");
     const downloading = page.waitForEvent("download");
     await page
       .getByRole("button", { name: "Download JSON", exact: true })
@@ -451,6 +467,7 @@ test("templates, alarms and account appearance persist through the UI", async ({
           (await db.from("reminders").select("title,timezone").single()).data,
       )
       .toMatchObject({ title: "QA alarm", timezone: "Europe/Madrid" });
+    await expect(page.getByText("QA alarm", { exact: true })).toBeVisible();
     await page.reload();
     await expect(page.getByText("QA alarm", { exact: true })).toBeVisible();
     await page
@@ -467,7 +484,8 @@ test("templates, alarms and account appearance persist through the UI", async ({
       )
       .toBe(0);
 
-    await page.goto("/en/settings");
+    await expect(page.getByText("QA alarm", { exact: true })).toHaveCount(0);
+    await navigateWorkspace(page, "settings");
     await page
       .getByRole("checkbox", { name: "Reduce animations", exact: true })
       .check();
@@ -669,5 +687,8 @@ test("Focus UI pauses, resumes after reload and finishes a persisted session", a
           .is("ended_at", null)
       ).count,
     ).toBe(0);
+    await expect(
+      page.getByText("Focus session completed", { exact: true }),
+    ).toBeVisible();
   });
 });
