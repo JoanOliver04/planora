@@ -1,6 +1,7 @@
 import { test as base, expect } from "@playwright/test";
 import {
   installBrowserErrorCapture,
+  isBrowserCleanup,
   type BrowserErrorRecord,
 } from "./browser-diagnostics";
 
@@ -39,6 +40,7 @@ export const test = base.extend<{
       const expectedConsoleErrors: RegExp[] = [];
       const expectedWindowErrors: RegExp[] = [];
       const resourceDiagnostics: string[] = [];
+      const cleanupDiagnostics: Array<{ kind: string; message: string }> = [];
       const errorDetails: Array<{
         name: string;
         message: string;
@@ -47,6 +49,13 @@ export const test = base.extend<{
       await page.exposeBinding(
         "__planoraQaError",
         (_source, record: BrowserErrorRecord) => {
+          if (isBrowserCleanup(page)) {
+            cleanupDiagnostics.push({
+              kind: record.kind,
+              message: redact(record.message),
+            });
+            return;
+          }
           exceptions.push(redact(record.message));
           errorDetails.push({
             name: redact(record.name),
@@ -60,14 +69,18 @@ export const test = base.extend<{
         resourceDiagnostics.push(redact(`${error.name}: ${error.message}`));
       });
       page.on("console", (message) => {
-        if (message.type() === "error")
-          consoleErrors.push(redact(message.text()).slice(0, 800));
+        if (message.type() !== "error") return;
+        const text = redact(message.text()).slice(0, 800);
+        if (isBrowserCleanup(page))
+          cleanupDiagnostics.push({ kind: "console", message: text });
+        else consoleErrors.push(text);
       });
       page.on("response", (response) => {
-        if (response.status() >= 500)
-          serverErrors.push(
-            `${response.status()} ${new URL(response.url()).pathname}`,
-          );
+        if (response.status() < 500) return;
+        const message = `${response.status()} ${new URL(response.url()).pathname}`;
+        if (isBrowserCleanup(page))
+          cleanupDiagnostics.push({ kind: "response", message });
+        else serverErrors.push(message);
       });
       await use({
         allowConsoleError: (pattern) => expectedConsoleErrors.push(pattern),
@@ -103,6 +116,7 @@ export const test = base.extend<{
             serverErrors,
             resourceDiagnostics,
             errorDetails,
+            cleanupDiagnostics,
           }),
         );
       }
@@ -114,6 +128,7 @@ export const test = base.extend<{
             serverErrors,
             resourceDiagnostics,
             errorDetails,
+            cleanupDiagnostics,
           }),
         ),
         contentType: "application/json",
@@ -121,6 +136,11 @@ export const test = base.extend<{
       if (resourceDiagnostics.length)
         console.info(
           `Browser pageerror diagnostics: ${resourceDiagnostics.length}; window errors and unhandled rejections checked separately`,
+        );
+      if (cleanupDiagnostics.length)
+        console.info(
+          "Controlled browser shutdown diagnostics:",
+          JSON.stringify(cleanupDiagnostics),
         );
       expect(unexpectedWindowErrors, "No unhandled browser exceptions").toEqual(
         [],

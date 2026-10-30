@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { installBrowserErrorCapture } from "../e2e/browser-diagnostics";
+import {
+  beginBrowserCleanup,
+  installBrowserErrorCapture,
+  isBrowserCleanup,
+} from "../e2e/browser-diagnostics";
 
 let dispose: (() => void) | undefined;
 afterEach(() => {
@@ -15,6 +19,14 @@ function capture() {
 }
 
 describe("actual browser JavaScript errors", () => {
+  it("only marks the explicitly closing page as cleanup", () => {
+    const closing = {},
+      active = {};
+    expect(isBrowserCleanup(closing)).toBe(false);
+    beginBrowserCleanup(closing);
+    expect(isBrowserCleanup(closing)).toBe(true);
+    expect(isBrowserCleanup(active)).toBe(false);
+  });
   it("captures an uncaught window error", () => {
     const report = capture();
     const error = new TypeError("application failure");

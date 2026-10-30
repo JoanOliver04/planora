@@ -5,6 +5,7 @@ import type { BrowserContext } from "@playwright/test";
 import type { Database } from "../src/types/database";
 import { assertLocalTestEnvironment } from "../scripts/assert-local-test-env.mjs";
 import { expect } from "./fixtures";
+import { beginBrowserCleanup } from "./browser-diagnostics";
 
 loadEnvConfig(process.cwd());
 
@@ -83,6 +84,7 @@ export async function withLocalWorkspace(
     await run(client, userId);
     for (const page of context.pages()) {
       await page.waitForLoadState("networkidle", { timeout: 10_000 });
+      beginBrowserCleanup(page);
       await page.close();
     }
   } finally {

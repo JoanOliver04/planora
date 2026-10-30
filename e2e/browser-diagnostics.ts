@@ -5,6 +5,14 @@ export type BrowserErrorRecord = {
   stack?: string;
 };
 
+const pagesClosingForCleanup = new WeakSet<object>();
+export function beginBrowserCleanup(page: object) {
+  pagesClosingForCleanup.add(page);
+}
+export function isBrowserCleanup(page: object) {
+  return pagesClosingForCleanup.has(page);
+}
+
 /** Install before application scripts. WebKit's pageerror also includes browser
  * resource diagnostics, so assert actual window errors and unhandled rejections.
  */
