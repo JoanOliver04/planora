@@ -105,6 +105,11 @@ test("workspace CRUD, schedule copies, history, search and portable export", asy
         exact: true,
       }),
     ).toHaveAttribute("aria-pressed", "true");
+    await page.goto("/en/history");
+    await expect(
+      page.locator("main").getByText("QA scoped task", { exact: true }),
+    ).toHaveCount(1);
+    await page.goto("/en/today");
     await page
       .getByRole("button", { name: "Completed: QA scoped task", exact: true })
       .click();
@@ -451,11 +456,9 @@ test("Focus UI pauses, resumes after reload and finishes a persisted session", a
           ).data?.status,
       )
       .toBe("completed");
-    const sessions = await db
-      .from("focus_sessions")
-      .select("focus_elapsed_sec");
+    const sessions = await db.from("focus_sessions").select("focus_sec");
     expect(sessions.data).toHaveLength(1);
-    expect(sessions.data![0].focus_elapsed_sec).toBeGreaterThan(0);
+    expect(sessions.data![0].focus_sec).toBeGreaterThan(0);
     expect(
       (
         await db

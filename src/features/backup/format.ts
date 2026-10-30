@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { timezoneSchema } from "@/lib/validation/timezone";
 
 export const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
 /**
@@ -21,7 +22,7 @@ const jsonObject = z.record(z.string(), z.unknown());
 
 const profileSchema = z.object({
   locale: z.enum(["es", "en"]).default("es"),
-  timezone: z.string().min(1).max(100),
+  timezone: timezoneSchema,
   theme: z.enum(["light", "dark", "system"]).default("system"),
   week_starts_on: z.number().int().min(0).max(6).default(1),
   active_schedule_id: nullableUuid.default(null),
@@ -115,7 +116,7 @@ const reminderSchema = z.object({
   minutes_before: z.number().int().min(0).max(10080).nullable(),
   recurrence: z.enum(["once", "daily", "weekly"]),
   time_of_day: nullableTime,
-  timezone: z.string().min(1).max(100),
+  timezone: timezoneSchema,
   next_trigger_at: timestamp,
 });
 
@@ -237,7 +238,7 @@ const focusGoalSchema = z.object({
     .default([0, 1, 2, 3, 4, 5, 6]),
   is_primary: z.boolean().optional().default(false),
   sort_order: z.number().int().optional().default(0),
-  timezone: z.string().min(1).max(100),
+  timezone: timezoneSchema,
   week_starts_on: z.number().int().min(0).max(6),
   active: z.boolean(),
 });
@@ -501,7 +502,7 @@ export const backupSchema = z.object({
   createdAt: timestamp,
   exportedBy: z.literal("planora"),
   locale: z.enum(["es", "en"]),
-  timezone: z.string().min(1).max(100),
+  timezone: timezoneSchema,
   data: backupDataSchema,
 });
 
