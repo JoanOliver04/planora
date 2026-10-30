@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import en from "@/messages/en.json";
 import es from "@/messages/es.json";
+import { BACKUP_SCHEMA_VERSION } from "@/features/backup/format";
 
 const originalSql = readFileSync(
   join(
@@ -97,7 +98,9 @@ describe("atomic backup restore migration", () => {
       expect(messages.Data.restore["safety-copy"].length).toBeGreaterThan(10);
       expect(messages.Data.summary.alarms.length).toBeGreaterThan(3);
       expect(messages.Data.summary.focus_sessions.length).toBeGreaterThan(3);
-      expect(messages.Data.restore.fileType).toMatch(/v4/i);
+      expect(messages.Data.restore.fileType).toContain(
+        `v${BACKUP_SCHEMA_VERSION}`,
+      );
     }
   });
 

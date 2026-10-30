@@ -32,7 +32,12 @@ export async function registerPlanoraServiceWorker() {
       serviceWorkerUrl(),
       { scope: "/", updateViaCache: "none" },
     );
-    void registration.update();
+    void registration.update().catch((error: unknown) => {
+      logBootstrap({
+        phase: "service_worker",
+        errorType: error instanceof Error ? error.name : "update_failed",
+      });
+    });
     return registration;
   } catch (error) {
     logBootstrap({

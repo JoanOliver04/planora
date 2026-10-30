@@ -4,6 +4,8 @@ import { localDate, nextLocalDate } from "../src/lib/dates/timezone";
 import { hasLocalCredentials, withLocalWorkspace } from "./local-workspace";
 import { expect, offlineNetworkError, test } from "./fixtures";
 
+test.use({ actionTimeout: 15_000, navigationTimeout: 30_000 });
+
 async function openAdd(page: Page, route: string) {
   await page.goto(`/en/${route}`);
   await page
@@ -358,13 +360,9 @@ test("templates, alarms and account appearance persist through the UI", async ({
   page,
   context,
   baseURL,
-  browserName,
 }) => {
   test.setTimeout(120_000);
-  test.skip(
-    !hasLocalCredentials || browserName !== "chromium",
-    "Run on Chromium with a disposable local backend",
-  );
+  test.skip(!hasLocalCredentials, "Local integration credentials required");
   await withLocalWorkspace(context, baseURL, async (db, userId) => {
     await page.goto("/en/templates");
     await page.getByRole("button", { name: /Studies/ }).click();
@@ -411,7 +409,7 @@ test("templates, alarms and account appearance persist through the UI", async ({
     await page.reload();
     await page.getByRole("button", { name: /QA reusable template/ }).click();
     await expect(
-      page.getByRole("dialog").getByText("Review notes", { exact: true }),
+      page.getByRole("dialog").getByText(/Review notes/),
     ).toBeVisible();
     await page
       .getByRole("dialog")
@@ -567,20 +565,19 @@ test("Focus UI pauses, resumes after reload and finishes a persisted session", a
   page,
   context,
   baseURL,
-  browserName,
 }) => {
   test.setTimeout(90_000);
-  test.skip(
-    !hasLocalCredentials || browserName !== "chromium",
-    "Run on Chromium with a disposable local backend",
-  );
+  test.skip(!hasLocalCredentials, "Local integration credentials required");
   await withLocalWorkspace(context, baseURL, async (db) => {
     await page.goto("/en/focus");
     await page
       .getByRole("button", { name: "Start session", exact: true })
       .click();
     const dialog = page.getByRole("dialog");
-    await dialog.getByRole("radio", { name: "Stopwatch", exact: true }).check();
+    await dialog.getByText("Stopwatch", { exact: true }).click();
+    await expect(
+      dialog.getByRole("radio", { name: "Stopwatch", exact: true }),
+    ).toBeChecked();
     await dialog
       .getByRole("textbox", { name: "Intention", exact: true })
       .fill("QA focus flow");
