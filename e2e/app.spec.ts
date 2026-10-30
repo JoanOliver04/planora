@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { expect, offlineNetworkError, test } from "./fixtures";
 test("public landing exposes product and conversion paths", async ({
   page,
 }) => {
@@ -23,7 +23,9 @@ test("PWA shell and connection status work offline", async ({
   page,
   context,
   browserName,
+  browserDiagnostics,
 }) => {
+  browserDiagnostics.allowConsoleError(offlineNetworkError);
   await page.goto("/es");
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();

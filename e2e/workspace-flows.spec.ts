@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import type { Page } from "@playwright/test";
 import { localDate, nextLocalDate } from "../src/lib/dates/timezone";
 import { hasLocalCredentials, withLocalWorkspace } from "./local-workspace";
-import { expect, test } from "./fixtures";
+import { expect, offlineNetworkError, test } from "./fixtures";
 
 async function openAdd(page: Page, route: string) {
   await page.goto(`/en/${route}`);
@@ -402,7 +402,7 @@ test("templates, alarms and account appearance persist through the UI", async ({
         async () =>
           (
             await db
-            .from("schedule_templates")
+              .from("schedule_templates")
               .select("id", { count: "exact", head: true })
               .eq("name", "QA reusable template")
           ).count,
@@ -419,14 +419,12 @@ test("templates, alarms and account appearance persist through the UI", async ({
       .click();
 
     await page.goto("/en/reminders");
-    const alarm = page
-      .locator("section")
-      .filter({
-        has: page.getByRole("heading", {
-          name: "Create an alarm",
-          exact: true,
-        }),
-      });
+    const alarm = page.locator("section").filter({
+      has: page.getByRole("heading", {
+        name: "Create an alarm",
+        exact: true,
+      }),
+    });
     await expect(alarm.locator('input[type="date"]')).toHaveValue(
       nextLocalDate("Europe/Madrid"),
     );
@@ -490,7 +488,9 @@ test("offline completions synchronize once and sign-out closes the private UI", 
   context,
   baseURL,
   browserName,
+  browserDiagnostics,
 }) => {
+  browserDiagnostics.allowConsoleError(offlineNetworkError);
   test.setTimeout(90_000);
   test.skip(
     !hasLocalCredentials || browserName !== "chromium",

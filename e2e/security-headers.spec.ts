@@ -2,7 +2,11 @@ import { expect, test } from "./fixtures";
 
 test("login hydrates with nonce scripts and blocks injected inline scripts", async ({
   page,
+  browserDiagnostics,
 }) => {
+  browserDiagnostics.allowConsoleError(
+    /^(Executing inline script violates|Refused to execute (an inline script|a script) because)/,
+  );
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const response = await page.goto("/es/login");

@@ -17,12 +17,18 @@ function redact(value: string) {
 }
 
 export { expect };
-export const test = base.extend<{ browserDiagnostics: void }>({
+export const offlineNetworkError =
+  /^Failed to load resource: (net::ERR_(INTERNET_DISCONNECTED|FAILED)|The Internet connection appears to be offline\.)/;
+
+export const test = base.extend<{
+  browserDiagnostics: { allowConsoleError: (pattern: RegExp) => void };
+}>({
   browserDiagnostics: [
     async ({ page }, use, testInfo) => {
       const exceptions: string[] = [];
       const consoleErrors: string[] = [];
       const serverErrors: string[] = [];
+      const expectedConsoleErrors: RegExp[] = [];
       page.on("pageerror", (error) => exceptions.push(redact(error.message)));
       page.on("console", (message) => {
         if (message.type() === "error")
@@ -34,7 +40,9 @@ export const test = base.extend<{ browserDiagnostics: void }>({
             `${response.status()} ${new URL(response.url()).pathname}`,
           );
       });
-      await use();
+      await use({
+        allowConsoleError: (pattern) => expectedConsoleErrors.push(pattern),
+      });
       if (testInfo.status === "skipped") return;
       if (testInfo.status !== testInfo.expectedStatus) {
         const text = await page
@@ -55,6 +63,13 @@ export const test = base.extend<{ browserDiagnostics: void }>({
       });
       expect(exceptions, "No unhandled browser exceptions").toEqual([]);
       expect(serverErrors, "No HTTP 5xx responses").toEqual([]);
+      expect(
+        consoleErrors.filter(
+          (message) =>
+            !expectedConsoleErrors.some((pattern) => pattern.test(message)),
+        ),
+        "No unexpected browser console errors",
+      ).toEqual([]);
     },
     { auto: true },
   ],
