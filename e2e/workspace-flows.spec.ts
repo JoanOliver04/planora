@@ -69,6 +69,7 @@ test("workspace CRUD, schedule copies, history, search and portable export", asy
     await dialog
       .getByRole("textbox", { name: "Title", exact: true })
       .fill("QA scoped task");
+    await dialog.locator('select[name="scheduleId"]').selectOption(scheduleId);
     await dialog.locator('select[name="recurrence"]').selectOption("daily");
     await dialog
       .locator('select[name="categoryId"]')
