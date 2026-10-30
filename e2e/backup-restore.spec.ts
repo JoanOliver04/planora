@@ -162,10 +162,11 @@ test("restoring the same backup replaces data without duplicates", async () => {
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const payload = prepareRestorePayload(backup);
-      const { error } = await db.rpc("restore_planora_backup", {
+      const { data, error } = await db.rpc("restore_planora_backup", {
         backup_data: payload as unknown as Json,
       });
       expect(error).toBeNull();
+      expect(data).toMatchObject({ ok: true });
       const restoredTasks = await db.from("tasks").select("title");
       const restoredEvents = await db.from("events").select("title");
       expect(restoredTasks.data?.map((item) => item.title)).toEqual([
@@ -181,7 +182,24 @@ test("restoring the same backup replaces data without duplicates", async () => {
     const failedRestore = await db.rpc("restore_planora_backup", {
       backup_data: brokenPayload as unknown as Json,
     });
-    expect(failedRestore.error).not.toBeNull();
+    expect(failedRestore.error).toBeNull();
+    expect(failedRestore.data).toEqual({
+      ok: false,
+      error: "INVALID_BACKUP",
+    });
+    // The two successful restores and this failure consumed three attempts.
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const rejected = await db.rpc("restore_planora_backup", {
+        backup_data: null as unknown as Json,
+      });
+      expect(rejected.error).toBeNull();
+      expect(rejected.data).toEqual({ ok: false, error: "INVALID_BACKUP" });
+    }
+    const exhausted = await db.rpc("restore_planora_backup", {
+      backup_data: null as unknown as Json,
+    });
+    expect(exhausted.error).toBeNull();
+    expect(exhausted.data).toEqual({ ok: false, error: "RATE_LIMITED" });
     const stateAfterRollback = await db.from("tasks").select("title");
     expect(stateAfterRollback.data?.map((item) => item.title)).toEqual([
       "Single backup task",
