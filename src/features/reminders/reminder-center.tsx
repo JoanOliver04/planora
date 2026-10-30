@@ -540,7 +540,7 @@ export function ReminderCenter({
   const status = (value: Reminder["delivery_status"]) =>
     ({
       pending: es ? "Pendiente" : "Pending",
-      delivered: es ? "Entregado" : "Delivered",
+      delivered: es ? "Enviado" : "Sent",
       permission_denied: es ? "Sin permiso" : "No permission",
       failed: es ? "Falló" : "Failed",
       snoozed: es ? "Pospuesto" : "Snoozed",
