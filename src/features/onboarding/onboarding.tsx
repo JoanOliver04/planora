@@ -3,6 +3,10 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { completeGuidedOnboarding } from "@/app/actions/domain";
 import {
+  canUsePrivateClientStorage,
+  clientSessionEpoch,
+} from "@/lib/security/client-session";
+import {
   getOnboardingPreset,
   onboardingPresets,
   type OnboardingGoal,
@@ -19,6 +23,7 @@ type Draft = {
 const storageKey = "planora-onboarding-v1";
 
 export function GuidedOnboarding({ locale }: { locale: "es" | "en" }) {
+  const [epoch] = useState(clientSessionEpoch);
   const es = locale === "es";
   const router = useRouter();
   const [visible, setVisible] = useState(true);
@@ -35,18 +40,26 @@ export function GuidedOnboarding({ locale }: { locale: "es" | "en" }) {
   });
   useEffect(() => {
     queueMicrotask(() => {
+      if (!canUsePrivateClientStorage(epoch)) return;
       try {
         const stored = localStorage.getItem(storageKey);
-        if (stored) setDraft(JSON.parse(stored) as Draft);
+        if (stored && stored.length <= 4096)
+          setDraft(JSON.parse(stored) as Draft);
       } catch {
         localStorage.removeItem(storageKey);
       }
       setReady(true);
     });
-  }, []);
+  }, [epoch]);
   useEffect(() => {
-    if (ready) localStorage.setItem(storageKey, JSON.stringify(draft));
-  }, [draft, ready]);
+    if (ready && canUsePrivateClientStorage(epoch)) {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(draft));
+      } catch {
+        /* Private mode. */
+      }
+    }
+  }, [draft, ready, epoch]);
 
   function choose(goal: OnboardingGoal) {
     const preset = getOnboardingPreset(goal);
@@ -70,6 +83,7 @@ export function GuidedOnboarding({ locale }: { locale: "es" | "en" }) {
           accent: draft.accent,
           skip,
         });
+        if (!canUsePrivateClientStorage(epoch)) return;
         localStorage.removeItem(storageKey);
         setVisible(false);
         router.refresh();

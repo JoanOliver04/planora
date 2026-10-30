@@ -20,6 +20,7 @@ import type {
 } from "./types";
 import type { QuickFocusPreset } from "./defaults";
 import { recordFocusStart } from "./focus-recents";
+import { clientSessionEpoch } from "@/lib/security/client-session";
 import {
   defaultFocusAccountPreferences,
   defaultFocusDevicePreferences,
@@ -410,6 +411,7 @@ export function SessionStartDialog({
   }
 
   function submit() {
+    const epoch = clientSessionEpoch();
     if (pending) return;
     if (hasConflict) {
       setFieldError(t("config.conflict.blocked"));
@@ -452,6 +454,8 @@ export function SessionStartDialog({
       toast.success(t("config.started"));
       const preset = presets.find((item) => item.id === form.presetId);
       recordFocusStart({
+        epoch,
+        userId: result.data.userId,
         presetId: form.presetId || null,
         presetName: preset?.name ?? null,
         taskId: form.taskId || null,

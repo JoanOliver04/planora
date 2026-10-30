@@ -623,9 +623,6 @@ export async function saveTask(
   if (error) {
     console.error("saveTask Supabase error", {
       code: error.code,
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
     });
     return {
       ok: false,
@@ -775,7 +772,14 @@ export async function restoreBackup(input: unknown) {
   const { data, error } = await db.rpc("restore_planora_backup", {
     backup_data: payload as unknown as Json,
   });
-  if (error) throw new Error("Atomic restore failed");
+  if (
+    error ||
+    !data ||
+    typeof data !== "object" ||
+    Array.isArray(data) ||
+    data.ok !== true
+  )
+    throw new Error("Atomic restore failed");
   refresh();
   return data;
 }

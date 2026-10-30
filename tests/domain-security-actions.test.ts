@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { backupFixture } from "./backup-fixture";
+import { createBackup } from "@/features/backup/format";
 
 const mocks = vi.hoisted(() => ({
   calls: [] as string[],
@@ -65,5 +67,29 @@ describe("critical domain action boundaries", () => {
 
     await expect(restoreBackup("not-a-backup")).rejects.toThrow("rate limited");
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { ok: false, error: "INVALID_BACKUP" },
+    { ok: false, error: "RATE_LIMITED" },
+    null,
+    {},
+  ])(
+    "does not report SQL failure envelopes as a successful restore",
+    async (data) => {
+      mocks.rpc.mockResolvedValue({ data, error: null });
+      await expect(
+        restoreBackup(createBackup(backupFixture())),
+      ).rejects.toThrow("Atomic restore failed");
+      expect(mocks.revalidatePath).not.toHaveBeenCalled();
+    },
+  );
+
+  it("returns restored counts only after explicit database success", async () => {
+    mocks.rpc.mockResolvedValue({ data: { ok: true, tasks: 1 }, error: null });
+    await expect(restoreBackup(createBackup(backupFixture()))).resolves.toEqual(
+      { ok: true, tasks: 1 },
+    );
+    expect(mocks.revalidatePath).toHaveBeenCalledOnce();
   });
 });

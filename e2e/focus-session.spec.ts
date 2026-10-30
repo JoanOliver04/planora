@@ -15,6 +15,7 @@ import {
   persistFocusSession,
 } from "../src/features/focus/repository";
 import type { Database, Json } from "../src/types/database";
+import { assertLocalTestEnvironment } from "../scripts/assert-local-test-env.mjs";
 
 loadEnvConfig(process.cwd());
 
@@ -37,6 +38,7 @@ test("Focus session lifecycle, stats and restore without duplicates", async ({
   // One browser project is enough for the API-backed flow.
   test.skip(browserName !== "chromium", "Run once on chromium");
 
+  assertLocalTestEnvironment({ url, serviceRole: serviceKey });
   const admin = createClient<Database>(url!, serviceKey!, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

@@ -1,6 +1,10 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GuidedOnboarding } from "@/features/onboarding/onboarding";
+import {
+  activateClientSession,
+  revokeClientSession,
+} from "@/lib/security/client-session";
 
 const complete = vi.fn();
 vi.mock("@/app/actions/domain", () => ({
@@ -10,6 +14,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 describe("GuidedOnboarding", () => {
   beforeEach(() => {
+    activateClientSession("onboarding-user");
     localStorage.clear();
     complete.mockReset();
   });
@@ -45,5 +50,15 @@ describe("GuidedOnboarding", () => {
     render(<GuidedOnboarding locale="es" />);
     await act(async () => {});
     expect(screen.getByDisplayValue("Turno de tarde")).toBeVisible();
+  });
+
+  it("does not recreate a cleared draft from a stale mounted form", async () => {
+    render(<GuidedOnboarding locale="es" />);
+    await act(async () => {});
+    revokeClientSession("onboarding-user");
+    localStorage.removeItem("planora-onboarding-v1");
+    activateClientSession("onboarding-user");
+    fireEvent.click(screen.getByRole("button", { name: /Mi curso/i }));
+    expect(localStorage.getItem("planora-onboarding-v1")).toBeNull();
   });
 });

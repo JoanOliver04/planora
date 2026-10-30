@@ -15,8 +15,13 @@ import {
   createStartedSession,
 } from "@/features/focus/state-machine";
 import type { FocusSession } from "@/features/focus/types";
+import type { FocusActionResult } from "@/features/focus/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import {
+  activateClientSession,
+  revokeClientSession,
+} from "@/lib/security/client-session";
 
 function idFactory(prefix = "id") {
   let n = 0;
@@ -42,6 +47,7 @@ function startSession(
 }
 
 beforeEach(() => {
+  activateClientSession("user-1");
   __resetFocusOfflineForTests();
   vi.restoreAllMocks();
 });
@@ -59,6 +65,55 @@ describe("focus offline policy", () => {
 });
 
 describe("focus offline queue", () => {
+  it("rejects oversized storage before parsing and mismatched transition identifiers", () => {
+    localStorage.setItem("planora-focus-offline-queue-v1", " ".repeat(500_001));
+    const parse = vi.spyOn(JSON, "parse");
+    expect(getQueuedFocusTransitions()).toEqual([]);
+    expect(parse).not.toHaveBeenCalled();
+    parse.mockRestore();
+    localStorage.removeItem("planora-focus-offline-queue-v1");
+    const session = startSession();
+    enqueueFocusTransition({
+      userId: "user-1",
+      actionId: "11111111-1111-4111-8111-111111111111",
+      session,
+      expectedRevision: 1,
+      transition: { type: "pause", sessionId: session.id, expectedRevision: 1 },
+    });
+    const item = getQueuedFocusTransitions()[0];
+    expect(
+      isQueuedFocusTransition({
+        ...item,
+        sessionId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      }),
+    ).toBe(false);
+    expect(
+      isQueuedFocusTransition({
+        ...item,
+        transition: { ...item.transition, type: "extend_break", extraSec: -1 },
+      }),
+    ).toBe(false);
+  });
+
+  it("does not trust a cached session with a different owner, malformed config or future timestamp", () => {
+    const session = startSession();
+    const key = "planora-focus-session-cache-v1:user-1";
+    for (const value of [
+      { savedAt: Date.now(), session: { ...session, userId: "other" } },
+      { savedAt: Date.now(), session: { ...session, config: {} } },
+      { savedAt: Date.now() + 300_000, session },
+      {
+        savedAt: Date.now(),
+        session: { ...session, intervals: [{ bad: true }] },
+      },
+    ]) {
+      localStorage.setItem(key, JSON.stringify(value));
+      expect(loadCachedFocusSession("user-1")).toBeNull();
+    }
+    localStorage.removeItem(key);
+    cacheFocusSession("user-1", { ...session, userId: "other" });
+    expect(localStorage.getItem(key)).toBeNull();
+  });
   it("enqueues pause transitions with idempotent action ids", () => {
     const session = startSession();
     const paused = applyFocusAction(
@@ -179,6 +234,50 @@ describe("focus offline queue", () => {
 });
 
 describe("flushFocusOfflineQueue", () => {
+  it("drops late replay results after logout without overwriting a new session generation", async () => {
+    const session = startSession();
+    const input = {
+      userId: "user-1",
+      actionId: "88888888-8888-4888-8888-888888888888",
+      session,
+      expectedRevision: 1,
+      transition: {
+        type: "pause" as const,
+        sessionId: session.id,
+        expectedRevision: 1,
+      },
+    };
+    enqueueFocusTransition(input);
+    let finish!: (value: FocusActionResult<FocusSession>) => void;
+    const transition = vi.fn(
+      () =>
+        new Promise<FocusActionResult<FocusSession>>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    vi.stubGlobal("navigator", { onLine: true });
+    const flight = flushFocusOfflineQueue(
+      {} as SupabaseClient<Database>,
+      "user-1",
+      { transition },
+    );
+    await Promise.resolve();
+    revokeClientSession("user-1");
+    clearFocusOfflineData("user-1");
+    activateClientSession("user-1");
+    enqueueFocusTransition({
+      ...input,
+      actionId: "99999999-9999-4999-8999-999999999999",
+    });
+    finish({ ok: true, data: { ...session, title: "stale private result" } });
+    await flight;
+    expect(
+      getQueuedFocusTransitions("user-1").map((item) => item.actionId),
+    ).toEqual(["99999999-9999-4999-8999-999999999999"]);
+    expect(loadCachedFocusSession("user-1")?.title).not.toBe(
+      "stale private result",
+    );
+  });
   it("replays actions in order when online", async () => {
     const session = startSession();
     const paused = applyFocusAction(

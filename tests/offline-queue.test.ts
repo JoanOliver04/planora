@@ -10,6 +10,7 @@ import {
 import type { WorkspaceData } from "@/features/workspace/types";
 import type { Database } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { activateClientSession } from "@/lib/security/client-session";
 
 function database(
   existing: { id: string; completed_at: string } | null,
@@ -50,7 +51,11 @@ function database(
 }
 
 describe("offline queue", () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    activateClientSession("user");
+    activateClientSession("other");
+  });
 
   it("keeps only the latest intent for each task occurrence", () => {
     const base = {
@@ -84,6 +89,14 @@ describe("offline queue", () => {
   });
 
   it("removes private offline data for the signed-out user only", async () => {
+    for (const key of [
+      "planora-focus-recents",
+      "planora-onboarding-v1",
+      "planora-focus-sync-v1",
+      "planora-focus-offline-processed-v1",
+      "planora-notice-ledger-v1",
+    ])
+      localStorage.setItem(key, "private title or snapshot");
     enqueueCompletion({
       userId: "user",
       taskId: "private-task",
@@ -102,6 +115,15 @@ describe("offline queue", () => {
     localStorage.setItem("planora-workspace-cache-v1:other:today", "other");
 
     await clearPrivateOfflineData("user");
+
+    for (const key of [
+      "planora-focus-recents",
+      "planora-onboarding-v1",
+      "planora-focus-sync-v1",
+      "planora-focus-offline-processed-v1",
+      "planora-notice-ledger-v1",
+    ])
+      expect(localStorage.getItem(key)).toBeNull();
 
     expect(getQueuedCompletions("user")).toHaveLength(0);
     expect(getQueuedCompletions("other")).toHaveLength(1);
@@ -264,5 +286,48 @@ describe("offline queue", () => {
       "x".repeat(500_001),
     );
     expect(loadCachedWorkspace("user", "today")).toBeNull();
+  });
+
+  it("does not let a stale flush restore private data after logout and a new sign-in", async () => {
+    enqueueCompletion({
+      userId: "user",
+      taskId: "old",
+      occurrenceDate: "2026-08-01",
+      completed: true,
+      snapshot: {},
+    });
+    let finish!: (value: unknown) => void;
+    const pending = new Promise((resolve) => {
+      finish = resolve;
+    });
+    const builder = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      maybeSingle: vi.fn(() => pending),
+      insert: vi.fn(),
+    };
+    builder.select.mockReturnValue(builder);
+    builder.eq.mockReturnValue(builder);
+    const db = { from: () => builder } as unknown as SupabaseClient<Database>;
+    const flight = flushCompletionQueue(db, "user");
+    await clearPrivateOfflineData("user");
+    cacheWorkspace("today", { user: { id: "user" } } as WorkspaceData);
+    expect(
+      localStorage.getItem("planora-workspace-cache-v1:user:today"),
+    ).toBeNull();
+    activateClientSession("user");
+    enqueueCompletion({
+      userId: "user",
+      taskId: "fresh",
+      occurrenceDate: "2026-08-01",
+      completed: true,
+      snapshot: {},
+    });
+    finish({ data: null, error: { message: "network" } });
+    await flight;
+    expect(builder.insert).not.toHaveBeenCalled();
+    expect(getQueuedCompletions("user").map((item) => item.taskId)).toEqual([
+      "fresh",
+    ]);
   });
 });

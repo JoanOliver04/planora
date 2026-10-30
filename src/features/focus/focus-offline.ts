@@ -4,6 +4,19 @@ import type { FocusSession } from "./types";
 import { isActiveStatus } from "./time";
 import type { FocusActionResult } from "./errors";
 import type { FocusTransitionInput } from "./validation";
+import { z } from "zod";
+import {
+  focusModeSchema,
+  focusPhaseKindSchema,
+  focusSessionConfigSchema,
+  focusStatusSchema,
+  focusTransitionSchema,
+  startFocusSessionSchema,
+} from "./validation";
+import {
+  canUseClientSession,
+  clientSessionGeneration,
+} from "@/lib/security/client-session";
 
 type TransitionFn = (
   input: unknown,
@@ -15,6 +28,119 @@ const PROCESSED_KEY = "planora-focus-offline-processed-v1";
 const MAX_QUEUE = 100;
 const MAX_PROCESSED = 200;
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_STORAGE_SIZE = 500_000;
+const MAX_PROCESSED_SIZE = 10_000;
+const identifier = z.string().min(1).max(100);
+const timestamp = z.string().datetime({ offset: true });
+const count = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
+const cachedSessionSchema = z.object({
+  id: z.string().uuid(),
+  userId: identifier,
+  status: focusStatusSchema,
+  mode: focusModeSchema,
+  title: z.string().max(140).nullable(),
+  presetId: z.string().uuid().nullable(),
+  taskId: z.string().uuid().nullable(),
+  categoryId: z.string().uuid().nullable(),
+  scheduleId: z.string().uuid().nullable(),
+  occurrenceDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable(),
+  plannedFocusSec: count.nullable(),
+  focusSec: count,
+  pausedSec: count,
+  breakSec: count,
+  currentPhaseKind: focusPhaseKindSchema.nullable(),
+  currentCycle: count.min(1),
+  config: focusSessionConfigSchema,
+  linkSnapshot: z.object({
+    taskTitle: z.string().max(140).optional(),
+    taskEmoji: z.string().max(16).nullable().optional(),
+    taskKind: z.enum(["one_time", "habit"]).optional(),
+    categoryName: z.string().max(60).nullable().optional(),
+    categoryColour: z
+      .string()
+      .regex(/^#[0-9a-f]{6}$/i)
+      .nullable()
+      .optional(),
+    scheduleName: z.string().max(80).nullable().optional(),
+    outcome: z
+      .enum(["done", "progress", "blocked", "other"])
+      .nullable()
+      .optional(),
+    nextStep: z.string().max(280).nullable().optional(),
+  }),
+  startedAt: timestamp,
+  endedAt: timestamp.nullable(),
+  notes: z.string().max(4000).nullable(),
+  distractions: z.array(z.string().max(280)).max(50),
+  subjectiveFocus: z.number().int().min(1).max(5).nullable(),
+  subjectiveEnergy: z.number().int().min(1).max(5).nullable(),
+  completeTaskOnEnd: z.boolean(),
+  taskCompletionApplied: z.boolean(),
+  revision: count.min(1),
+  intervals: z
+    .array(
+      z.object({
+        id: identifier,
+        kind: focusPhaseKindSchema,
+        sequence: count,
+        cycleIndex: count.min(1).nullable(),
+        startedAt: timestamp,
+        endedAt: timestamp.nullable(),
+        plannedDurationSec: count.nullable(),
+      }),
+    )
+    .max(2000),
+  createdAt: timestamp,
+  updatedAt: timestamp,
+});
+
+function validCachedSession(
+  value: unknown,
+  userId: string,
+): FocusSession | null {
+  const result = cachedSessionSchema.safeParse(value);
+  if (!result.success) return null;
+  const session = result.data;
+  if (
+    session.userId !== userId ||
+    !isActiveStatus(session.status) ||
+    session.endedAt !== null ||
+    session.currentPhaseKind === null ||
+    Date.parse(session.startedAt) > Date.now() + 120_000 ||
+    Date.parse(session.createdAt) > Date.now() + 120_000 ||
+    Date.parse(session.updatedAt) > Date.now() + 120_000 ||
+    !startFocusSessionSchema.safeParse({
+      ...session.config,
+      mode: session.mode,
+    }).success ||
+    new Set(session.intervals.map((item) => item.id)).size !==
+      session.intervals.length ||
+    new Set(session.intervals.map((item) => item.sequence)).size !==
+      session.intervals.length ||
+    session.intervals.filter((item) => item.endedAt === null).length !== 1 ||
+    session.intervals.find((item) => item.endedAt === null)?.kind !==
+      session.currentPhaseKind ||
+    session.intervals.some(
+      (item) =>
+        Date.parse(item.startedAt) < Date.parse(session.startedAt) ||
+        Date.parse(item.startedAt) > Date.now() + 120_000 ||
+        (item.endedAt !== null &&
+          (Date.parse(item.endedAt) < Date.parse(item.startedAt) ||
+            Date.parse(item.endedAt) > Date.now() + 120_000)),
+    )
+  )
+    return null;
+  return session;
+}
+
+function boundedJson(key: string, maximum = MAX_STORAGE_SIZE): unknown {
+  const raw = window.localStorage.getItem(key);
+  if (!raw || raw.length > maximum) return null;
+  return JSON.parse(raw) as unknown;
+}
 
 export type QueuedFocusTransition = {
   actionId: string;
@@ -44,9 +170,12 @@ function notify() {
 function parseQueue(): QueuedFocusTransition[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = JSON.parse(window.localStorage.getItem(QUEUE_KEY) ?? "[]");
+    const raw = boundedJson(QUEUE_KEY);
     if (!Array.isArray(raw)) return [];
-    return raw.filter(isQueuedFocusTransition);
+    return raw
+      .slice(-MAX_QUEUE)
+      .filter(isQueuedFocusTransition)
+      .filter((item) => canUseClientSession(item.userId));
   } catch {
     return [];
   }
@@ -55,10 +184,12 @@ function parseQueue(): QueuedFocusTransition[] {
 function writeQueue(items: QueuedFocusTransition[]) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(
-      QUEUE_KEY,
-      JSON.stringify(items.slice(-MAX_QUEUE)),
-    );
+    const bounded = items
+      .filter((item) => canUseClientSession(item.userId))
+      .slice(-MAX_QUEUE);
+    while (bounded.length && JSON.stringify(bounded).length > MAX_STORAGE_SIZE)
+      bounded.shift();
+    window.localStorage.setItem(QUEUE_KEY, JSON.stringify(bounded));
     notify();
   } catch {
     // Quota / private mode — best effort; UI still has in-memory session.
@@ -68,9 +199,13 @@ function writeQueue(items: QueuedFocusTransition[]) {
 function parseProcessed(): string[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = JSON.parse(window.localStorage.getItem(PROCESSED_KEY) ?? "[]");
+    const raw = boundedJson(PROCESSED_KEY, MAX_PROCESSED_SIZE);
     return Array.isArray(raw)
-      ? raw.filter((item): item is string => typeof item === "string")
+      ? raw
+          .slice(-MAX_PROCESSED)
+          .filter(
+            (item): item is string => z.string().uuid().safeParse(item).success,
+          )
       : [];
   } catch {
     return [];
@@ -102,15 +237,22 @@ export function isQueuedFocusTransition(
 ): value is QueuedFocusTransition {
   if (!value || typeof value !== "object") return false;
   const item = value as Record<string, unknown>;
+  const transition = focusTransitionSchema.safeParse(item.transition);
   return (
-    typeof item.actionId === "string" &&
-    typeof item.userId === "string" &&
-    typeof item.sessionId === "string" &&
-    typeof item.expectedRevision === "number" &&
-    typeof item.clientTimestamp === "string" &&
-    typeof item.queuedAt === "string" &&
-    item.transition != null &&
-    typeof item.transition === "object"
+    transition.success &&
+    Object.keys(item.transition as object).every((key) =>
+      Object.prototype.hasOwnProperty.call(transition.data, key),
+    ) &&
+    identifier.safeParse(item.userId).success &&
+    z.string().uuid().safeParse(item.actionId).success &&
+    timestamp.safeParse(item.clientTimestamp).success &&
+    timestamp.safeParse(item.queuedAt).success &&
+    Date.parse(String(item.queuedAt)) <= Date.now() + 120_000 &&
+    Date.parse(String(item.clientTimestamp)) <= Date.now() + 120_000 &&
+    transition.data.sessionId === item.sessionId &&
+    transition.data.expectedRevision === item.expectedRevision &&
+    transition.data.actionId === item.actionId &&
+    transition.data.clientAt === item.clientTimestamp
   );
 }
 
@@ -137,6 +279,15 @@ export function enqueueFocusTransition(input: {
   clientTimestamp?: string | number | Date;
   transition: FocusTransitionInput;
 }): { ok: true } | { ok: false; reason: "duplicate" | "storage" } {
+  if (
+    !canUseClientSession(input.userId) ||
+    input.session.userId !== input.userId ||
+    input.transition.sessionId !== input.session.id ||
+    input.transition.expectedRevision !== input.expectedRevision ||
+    (input.transition.actionId !== undefined &&
+      input.transition.actionId !== input.actionId)
+  )
+    return { ok: false, reason: "storage" };
   if (wasProcessed(input.actionId)) {
     return { ok: false, reason: "duplicate" };
   }
@@ -162,6 +313,8 @@ export function enqueueFocusTransition(input: {
     },
   };
 
+  if (!isQueuedFocusTransition(entry)) return { ok: false, reason: "storage" };
+
   try {
     writeQueue([...queue, entry]);
     cacheFocusSession(input.userId, input.session);
@@ -185,7 +338,7 @@ export function cacheFocusSession(
   userId: string,
   session: FocusSession | null,
 ) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !canUseClientSession(userId)) return;
   const key = SESSION_KEY_PREFIX + userId;
   try {
     if (!session || !isActiveStatus(session.status)) {
@@ -193,10 +346,11 @@ export function cacheFocusSession(
       notify();
       return;
     }
-    window.localStorage.setItem(
-      key,
-      JSON.stringify({ savedAt: Date.now(), session }),
-    );
+    const valid = validCachedSession(session, userId);
+    if (!valid) return;
+    const raw = JSON.stringify({ savedAt: Date.now(), session: valid });
+    if (raw.length > MAX_STORAGE_SIZE) return;
+    window.localStorage.setItem(key, raw);
     notify();
   } catch {
     // quota
@@ -204,21 +358,25 @@ export function cacheFocusSession(
 }
 
 export function loadCachedFocusSession(userId: string): FocusSession | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || !canUseClientSession(userId))
+    return null;
   try {
-    const raw = window.localStorage.getItem(SESSION_KEY_PREFIX + userId);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as {
+    const parsed = boundedJson(SESSION_KEY_PREFIX + userId) as {
       savedAt?: number;
       session?: FocusSession;
     };
-    if (!parsed?.session || typeof parsed.savedAt !== "number") return null;
+    if (
+      !parsed?.session ||
+      typeof parsed.savedAt !== "number" ||
+      !Number.isFinite(parsed.savedAt) ||
+      parsed.savedAt > Date.now() + 120_000
+    )
+      return null;
     if (Date.now() - parsed.savedAt > CACHE_MAX_AGE_MS) {
       window.localStorage.removeItem(SESSION_KEY_PREFIX + userId);
       return null;
     }
-    if (!isActiveStatus(parsed.session.status)) return null;
-    return parsed.session;
+    return validCachedSession(parsed.session, userId);
   } catch {
     return null;
   }
@@ -260,6 +418,15 @@ export async function flushFocusOfflineQueue(
     transition?: TransitionFn;
   },
 ): Promise<FocusOfflineFlushResult> {
+  const generation = clientSessionGeneration(userId);
+  const current = () => canUseClientSession(userId, generation);
+  const stopped = () => ({
+    synced: 0,
+    conflicts: 0,
+    remaining: 0,
+    blocked: true,
+  });
+  if (!current()) return stopped();
   const all = parseQueue();
   const own = all.filter((item) => item.userId === userId);
   const others = all.filter((item) => item.userId !== userId);
@@ -280,6 +447,7 @@ export async function flushFocusOfflineQueue(
   };
 
   for (let index = 0; index < own.length; index += 1) {
+    if (!current()) return stopped();
     const item = own[index]!;
     if (wasProcessed(item.actionId)) {
       synced += 1;
@@ -293,6 +461,7 @@ export async function flushFocusOfflineQueue(
     }
 
     const runTransition = await getTransition();
+    if (!current()) return stopped();
     const result = await runTransition({
       ...item.transition,
       sessionId: item.sessionId,
@@ -300,6 +469,7 @@ export async function flushFocusOfflineQueue(
       clientAt: item.clientTimestamp,
       actionId: item.actionId,
     });
+    if (!current()) return stopped();
 
     if (result.ok) {
       markProcessed(item.actionId);
@@ -331,6 +501,7 @@ export async function flushFocusOfflineQueue(
     break;
   }
 
+  if (!current()) return stopped();
   writeQueue([...remaining, ...failed]);
   return {
     synced,

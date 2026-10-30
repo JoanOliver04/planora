@@ -1,4 +1,9 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  activateClientSession,
+  clientSessionEpoch,
+  revokeClientSession,
+} from "@/lib/security/client-session";
 import {
   buildFocusHref,
   buildFocusShortcuts,
@@ -13,6 +18,7 @@ import {
   recordFocusStart,
 } from "@/features/focus/focus-recents";
 import type { FocusPreset } from "@/features/focus/types";
+beforeEach(() => activateClientSession("user"));
 
 afterEach(() => {
   window.localStorage.clear();
@@ -197,6 +203,26 @@ describe("focus deep links", () => {
 });
 
 describe("focus recents storage", () => {
+  it("does not restore a title from an action completing after logout and reauthentication", () => {
+    const epoch = clientSessionEpoch();
+    revokeClientSession("user");
+    localStorage.removeItem(FOCUS_RECENTS_STORAGE_KEY);
+    activateClientSession("user");
+    recordFocusStart({
+      userId: "user",
+      epoch,
+      taskId: "old-task",
+      taskTitle: "Private old title",
+    });
+    expect(localStorage.getItem(FOCUS_RECENTS_STORAGE_KEY)).toBeNull();
+    recordFocusStart({
+      userId: "user",
+      epoch: clientSessionEpoch(),
+      taskId: "fresh-task",
+      taskTitle: "New title",
+    });
+    expect(readFocusRecents().lastTaskTitle).toBe("New title");
+  });
   it("starts empty and records the last start context", () => {
     expect(readFocusRecents()).toEqual(emptyFocusRecents());
     recordFocusStart({

@@ -1,4 +1,8 @@
 /** Local, private recent-focus hints for shortcuts. Never sent to analytics. */
+import {
+  canUseClientSession,
+  canUsePrivateClientStorage,
+} from "@/lib/security/client-session";
 
 export type FocusRecents = {
   lastPresetId: string | null;
@@ -21,10 +25,11 @@ export const emptyFocusRecents = (): FocusRecents => ({
 });
 
 export function readFocusRecents(): FocusRecents {
-  if (typeof window === "undefined") return emptyFocusRecents();
+  if (typeof window === "undefined" || !canUsePrivateClientStorage())
+    return emptyFocusRecents();
   try {
     const raw = window.localStorage.getItem(FOCUS_RECENTS_STORAGE_KEY);
-    if (!raw) return emptyFocusRecents();
+    if (!raw || raw.length > 2048) return emptyFocusRecents();
     const parsed = JSON.parse(raw) as Partial<FocusRecents>;
     return {
       lastPresetId:
@@ -46,7 +51,11 @@ export function readFocusRecents(): FocusRecents {
   }
 }
 
-export function writeFocusRecents(patch: Partial<FocusRecents>): FocusRecents {
+export function writeFocusRecents(
+  patch: Partial<FocusRecents>,
+  epoch?: number,
+): FocusRecents {
+  if (!canUsePrivateClientStorage(epoch)) return emptyFocusRecents();
   const next: FocusRecents = {
     ...readFocusRecents(),
     ...patch,
@@ -66,12 +75,19 @@ export function writeFocusRecents(patch: Partial<FocusRecents>): FocusRecents {
 }
 
 export function recordFocusStart(input: {
+  userId?: string;
+  epoch?: number;
   presetId?: string | null;
   presetName?: string | null;
   taskId?: string | null;
   taskTitle?: string | null;
   quickKey?: string | null;
 }) {
+  if (
+    !canUsePrivateClientStorage(input.epoch, input.userId) ||
+    (input.userId && !canUseClientSession(input.userId))
+  )
+    return emptyFocusRecents();
   const patch: Partial<FocusRecents> = {};
   if (input.presetId) {
     patch.lastPresetId = input.presetId;
@@ -85,5 +101,5 @@ export function recordFocusStart(input: {
     patch.lastQuickKey = input.quickKey;
   }
   if (Object.keys(patch).length === 0) return readFocusRecents();
-  return writeFocusRecents(patch);
+  return writeFocusRecents(patch, input.epoch);
 }

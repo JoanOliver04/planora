@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { addDays, format } from "date-fns";
 import { Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Logo } from "@/components/navigation";
+import { AuthLink } from "@/components/auth-link";
 import {
   createDemoState,
   DEMO_STORAGE_KEY,
@@ -107,9 +108,9 @@ export function DemoWorkspace({
             <b>{copy.demo}</b>
             <span className="muted">{copy.demoHint}</span>
           </div>
-          <Link className="primary" href={`/${locale}/login`}>
+          <AuthLink className="primary" href={`/${locale}/login`}>
             {copy.create}
-          </Link>
+          </AuthLink>
         </header>
         {view === "today" && (
           <TodayDemo

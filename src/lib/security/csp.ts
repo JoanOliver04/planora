@@ -21,9 +21,11 @@ export function contentSecurityPolicy(options?: {
     "frame-ancestors 'none'",
     "object-src 'none'",
     "frame-src 'none'",
+    // Keep script-src before script-src-attr: Next's nonce extractor selects
+    // the first directive starting with script-src during streamed rendering.
+    scriptSource,
     "script-src-attr 'none'",
     "form-action 'self'",
-    scriptSource,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self' data:",

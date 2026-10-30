@@ -1049,7 +1049,7 @@ export function SettingsView({
             return;
           }
           await clearPrivateOfflineData(data.user.id);
-          router.replace("/login", { locale });
+          window.location.replace(`/${locale}/login`);
         }}
       />
       <Alert.Root open={danger} onOpenChange={setDanger}>
@@ -1078,7 +1078,22 @@ export function SettingsView({
                   });
                   if (r.ok) {
                     await clearPrivateOfflineData(data.user.id);
-                    router.replace("/login", { locale });
+                    window.location.replace(`/${locale}/login`);
+                  } else if (r.status === 401) {
+                    toast.info(
+                      locale === "es"
+                        ? "Vuelve a identificarte con Google antes de eliminar tu cuenta."
+                        : "Sign in with Google again before deleting your account.",
+                    );
+                    const { error } = await db.auth.signInWithOAuth({
+                      provider: "google",
+                      options: {
+                        scopes: "openid email",
+                        redirectTo: `${window.location.origin}/auth/callback?next=/${locale}/settings`,
+                        queryParams: { prompt: "select_account" },
+                      },
+                    });
+                    if (error) toast.error(t("error"));
                   } else toast.error(t("error"));
                 }}
               >

@@ -1,7 +1,40 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeTelemetry } from "@/lib/telemetry/sanitize";
+import {
+  sanitizeTelemetry,
+  sanitizeErrorEvent,
+} from "@/lib/telemetry/sanitize";
 import { rateLimit, unavailableLimit } from "@/lib/security/rate-limit";
 describe("production safeguards", () => {
+  it("logs only known technical error metadata and canonical routes", () => {
+    const raw = {
+      path: "/es/tasks/private-name?token=secret",
+      message: "private notes",
+      context: {
+        phase: "auth",
+        errorType: "TypeError",
+        code: "my-private-title",
+        other: "secret",
+        digest: "12345",
+        online: false,
+      },
+    };
+    expect(sanitizeErrorEvent(raw)).toEqual({
+      type: "error",
+      path: "/es/tasks",
+      context: {
+        phase: "auth",
+        errorType: "TypeError",
+        digest: "12345",
+        online: false,
+      },
+    });
+    expect(JSON.stringify(sanitizeErrorEvent(raw))).not.toMatch(
+      /private|secret/,
+    );
+    expect(sanitizeErrorEvent({ path: "/private-user-name" }).path).toBe(
+      "/other",
+    );
+  });
   it("redacts sensitive keys and email addresses", () => {
     expect(
       sanitizeTelemetry({ token: "abc", detail: "mail me@example.com" }),

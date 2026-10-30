@@ -6,8 +6,9 @@ import {
   exceedsContentLength,
   hasJsonContentType,
   isSameOriginRequest,
+  readBoundedText,
 } from "@/lib/security/request";
-import { sanitizeTelemetry } from "@/lib/telemetry/sanitize";
+import { sanitizeErrorEvent } from "@/lib/telemetry/sanitize";
 
 const noStore = { "Cache-Control": "no-store" };
 const payload = z.object({
@@ -33,10 +34,7 @@ export async function POST(request: Request) {
       { error: "Unsupported media type" },
       { status: 415, headers: noStore },
     );
-  if (
-    !request.headers.get("content-length") ||
-    exceedsContentLength(request, 4_096)
-  )
+  if (exceedsContentLength(request, 4_096))
     return NextResponse.json(
       { error: "Payload too large" },
       { status: 413, headers: noStore },
@@ -57,8 +55,8 @@ export async function POST(request: Request) {
       },
     );
 
-  const raw = await request.text().catch(() => "");
-  if (raw.length > 4_096)
+  const raw = await readBoundedText(request, 4_096);
+  if (raw === null)
     return NextResponse.json(
       { error: "Payload too large" },
       { status: 413, headers: noStore },
@@ -77,6 +75,6 @@ export async function POST(request: Request) {
       { error: "Invalid event" },
       { status: 400, headers: noStore },
     );
-  console.info("planora.telemetry", sanitizeTelemetry(parsed.data));
+  console.info("planora.telemetry", sanitizeErrorEvent(parsed.data));
   return new NextResponse(null, { status: 204, headers: noStore });
 }

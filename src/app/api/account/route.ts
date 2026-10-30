@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { distributedRateLimit } from "@/lib/security/distributed-rate-limit";
 import { isSameOriginRequest } from "@/lib/security/request";
+import { hasRecentAuthentication } from "@/lib/security/recent-auth";
+import { AUTH_TIMEOUT_MS, fetchWithTimeout } from "@/lib/bootstrap/timeout";
 
 const noStore = { "Cache-Control": "no-store" };
 
@@ -24,6 +26,13 @@ export async function DELETE(request: Request) {
   if (!user)
     return NextResponse.json(
       { error: "Unauthorized" },
+      { status: 401, headers: noStore },
+    );
+
+  const { data: verified, error: claimsError } = await db.auth.getClaims();
+  if (claimsError || !hasRecentAuthentication(verified?.claims, user.id))
+    return NextResponse.json(
+      { error: "Reauthentication required", code: "REAUTHENTICATION_REQUIRED" },
       { status: 401, headers: noStore },
     );
 
@@ -52,6 +61,9 @@ export async function DELETE(request: Request) {
 
   const admin = createAdmin(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
+    global: {
+      fetch: (input, init) => fetchWithTimeout(input, init, AUTH_TIMEOUT_MS),
+    },
   });
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error)
@@ -62,7 +74,10 @@ export async function DELETE(request: Request) {
   return NextResponse.json(
     { ok: true },
     {
-      headers: { ...noStore, "Clear-Site-Data": '"cache", "storage"' },
+      headers: {
+        ...noStore,
+        "Clear-Site-Data": '"cache", "cookies", "storage"',
+      },
     },
   );
 }

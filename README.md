@@ -109,7 +109,8 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Archived tasks act as a recoverable trash area, with explicit permanent deletion for the task, its completion history and reminders.
 - Privacy-focused Vercel Web Analytics for anonymous, aggregate page-view metrics without tracking cookies or custom product events.
 - Sanitized error telemetry. Account deletion is same-origin, confirmed and fail-closed if the rate limiter is unavailable.
-- Authenticated pages are `private, no-store`. Pages ship a Content-Security-Policy that still allows Next's inline hydration scripts.
+- Authenticated pages are `private, no-store`; login and private pages use a nonce-based script CSP. Cross-tab sign-out clears private UI and local data. Account deletion requires authentication within the last ten minutes.
+- PostgreSQL enforces JSON bounds and per-user resource quotas even for direct API writes. Failed restore payloads consume their SQL admission budget without losing the original workspace.
 
 ## Product preview
 

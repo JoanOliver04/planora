@@ -6,6 +6,7 @@ import {
   withTimeout,
 } from "@/lib/bootstrap/timeout";
 import { isPrivateAppPath } from "@/lib/security/routes";
+import { sessionCookieOptions } from "./cookie-options";
 
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -20,6 +21,7 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
+      cookieOptions: sessionCookieOptions(),
       global: {
         fetch: (url, init) => fetchWithTimeout(url, init, AUTH_TIMEOUT_MS),
       },

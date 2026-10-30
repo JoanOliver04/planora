@@ -1,6 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
 import type { WorkspaceData } from "@/features/workspace/types";
+import {
+  canUseClientSession,
+  clientSessionGeneration,
+  revokeClientSession,
+  privateGlobalStorageKeys,
+} from "@/lib/security/client-session";
 
 const queueKey = "planora-offline-completions-v1";
 const cachePrefix = "planora-workspace-cache-v1:";
@@ -108,6 +114,7 @@ export function getQueuedCompletions(userId?: string) {
 export function enqueueCompletion(
   item: Omit<QueuedCompletion, "id" | "queuedAt">,
 ) {
+  if (!canUseClientSession(item.userId)) return;
   const stored = readStoredQueue();
   const queue = (stored.corrupt ? [] : stored.items).filter(
     (queued) =>
@@ -128,6 +135,10 @@ export async function flushCompletionQueue(
   db: SupabaseClient<Database>,
   userId: string,
 ) {
+  const generation = clientSessionGeneration(userId);
+  const current = () => canUseClientSession(userId, generation);
+  const stopped = () => ({ synced: 0, conflicts: 0, remaining: 0 });
+  if (!current()) return stopped();
   const stored = readStoredQueue();
   if (stored.corrupt) {
     return { synced: 0, conflicts: 0, remaining: 0 };
@@ -138,12 +149,14 @@ export async function flushCompletionQueue(
   let synced = 0,
     conflicts = 0;
   for (const item of own) {
+    if (!current()) return stopped();
     const { data: existing, error: readError } = await db
       .from("task_completions")
       .select("id,completed_at")
       .eq("task_id", item.taskId)
       .eq("occurrence_date", item.occurrenceDate)
       .maybeSingle();
+    if (!current()) return stopped();
     if (readError) {
       remaining.push(item);
       continue;
@@ -165,6 +178,7 @@ export async function flushCompletionQueue(
       .eq("task_id", item.taskId)
       .eq("occurrence_date", item.occurrenceDate)
       .maybeSingle();
+    if (!current()) return stopped();
     if (
       observed?.changed_at &&
       new Date(observed.changed_at) > new Date(item.queuedAt) &&
@@ -186,6 +200,7 @@ export async function flushCompletionQueue(
           .delete()
           .eq("task_id", item.taskId)
           .eq("occurrence_date", item.occurrenceDate);
+    if (!current()) return stopped();
     if (!result.error) {
       synced += 1;
       continue;
@@ -198,7 +213,8 @@ export async function flushCompletionQueue(
     }
     remaining.push({ ...item, attempts });
   }
-  persistQueue(remaining);
+  if (!current()) return stopped();
+  persistQueue(remaining.filter((item) => canUseClientSession(item.userId)));
   return {
     synced,
     conflicts,
@@ -206,6 +222,7 @@ export async function flushCompletionQueue(
   };
 }
 export function cacheWorkspace(scope: string, data: WorkspaceData) {
+  if (!canUseClientSession(data.user.id)) return;
   try {
     const safeData = { ...data, user: { id: data.user.id } };
     const serialized = JSON.stringify({ savedAt: Date.now(), data: safeData });
@@ -220,6 +237,7 @@ export function loadCachedWorkspace(
   userId: string,
   scope: string,
 ): WorkspaceData | null {
+  if (!canUseClientSession(userId)) return null;
   try {
     const raw =
       localStorage.getItem(cachePrefix + userId + ":" + scope) ?? "null";
@@ -231,6 +249,8 @@ export function loadCachedWorkspace(
     if (
       !parsed ||
       typeof parsed.savedAt !== "number" ||
+      !Number.isFinite(parsed.savedAt) ||
+      parsed.savedAt > Date.now() + 120_000 ||
       Date.now() - parsed.savedAt > 7 * 24 * 60 * 60 * 1000 ||
       !parsed.data ||
       typeof parsed.data !== "object"
@@ -252,14 +272,34 @@ export function loadCachedWorkspace(
   }
 }
 export async function clearPrivateOfflineData(userId: string) {
-  const stored = readStoredQueue();
-  if (stored.corrupt) localStorage.removeItem(queueKey);
-  else persistQueue(stored.items.filter((item) => item.userId !== userId));
+  revokeClientSession(userId);
+  try {
+    // These legacy global stores contain titles, schedule drafts or complete
+    // Focus snapshots. They cannot safely carry over to another account.
+    for (const key of privateGlobalStorageKeys) localStorage.removeItem(key);
+    const stored = readStoredQueue();
+    if (stored.corrupt) localStorage.removeItem(queueKey);
+    else {
+      try {
+        persistQueue(stored.items.filter((item) => item.userId !== userId));
+      } catch {
+        localStorage.removeItem(queueKey);
+      }
+    }
 
-  const workspacePrefix = cachePrefix + userId + ":";
-  for (let index = localStorage.length - 1; index >= 0; index -= 1) {
-    const key = localStorage.key(index);
-    if (key?.startsWith(workspacePrefix)) localStorage.removeItem(key);
+    const workspacePrefix = cachePrefix + userId + ":";
+    for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith(workspacePrefix)) localStorage.removeItem(key);
+    }
+  } catch {
+    // Storage may be unavailable; still clear the other private stores below.
+  }
+  try {
+    sessionStorage.removeItem("planora-focus-client-id-v1");
+    sessionStorage.removeItem("planora-system-notification-status");
+  } catch {
+    // Session storage availability is independent of local storage.
   }
 
   try {

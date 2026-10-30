@@ -5,9 +5,13 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -25,18 +29,43 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://planora-lake-one.vercel.app
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with: { node-version: 24, cache: npm }
       - run: npm ci
       - name: Start isolated Supabase
-        run: npx --yes supabase@2.115.0 start
+        run: |
+          umask 077
+          start_log=$(mktemp "$RUNNER_TEMP/planora-supabase-start.XXXXXX")
+          trap 'rm -f -- "$start_log"' EXIT
+          if ! npx --yes supabase@2.115.0 start > "$start_log" 2>&1; then
+            echo "Unable to start isolated Supabase; startup output is withheld because it may contain generated credentials."
+            exit 1
+          fi
       - name: Export integration environment
         run: |
-          npx --yes supabase@2.115.0 status -o env > /tmp/supabase.env
-          cat /tmp/supabase.env >> "$GITHUB_ENV"
-          source /tmp/supabase.env
+          umask 077
+          env_file=$(mktemp "$RUNNER_TEMP/planora-supabase.XXXXXX")
+          trap 'rm -f -- "$env_file"' EXIT
+          npx --yes supabase@2.115.0 status -o env > "$env_file"
+          chmod 600 "$env_file"
+          source "$env_file"
+          : "${API_URL:?Missing local Supabase API URL}"
+          : "${ANON_KEY:?Missing local Supabase anon key}"
+          : "${SERVICE_ROLE_KEY:?Missing local Supabase service key}"
+          while IFS= read -r line; do
+            value=${line#*=}
+            value=${value#\"}
+            value=${value%\"}
+            if [ -n "$value" ]; then
+              value=${value//'%'/'%25'}
+              value=${value//$'\r'/'%0D'}
+              value=${value//$'\n'/'%0A'}
+              printf '::add-mask::%s\n' "$value"
+            fi
+          done < "$env_file"
           echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY" >> "$GITHUB_ENV"
           echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
@@ -48,6 +77,7 @@ jobs:
         run: npx --yes supabase@2.115.0 stop --no-backup
   lighthouse:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -78,6 +108,7 @@ jobs:
   codeql:
     name: CodeQL
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       security-events: write

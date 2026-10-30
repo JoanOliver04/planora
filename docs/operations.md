@@ -6,7 +6,7 @@
 
 ## Telemetry and privacy
 
-Client errors and explicitly consented page views go to `POST /api/telemetry`. The endpoint validates size and shape, redacts sensitive fields and email-like strings, and rate-limits callers. Logs contain no stable visitor identifier. Respect deletion requests and keep platform logs no longer than 30 days.
+Client errors go to `POST /api/telemetry`. The endpoint bounds streamed bytes before parsing, validates the payload, keeps only known technical metadata and canonical routes, and rate-limits callers. Raw error messages, arbitrary context and URL parameters are omitted. Automatic aggregate page views use the separate Vercel Web Analytics integration when `VERCEL_ENV` is set; no custom product events are emitted. Logs contain no application-added stable visitor identifier. Respect deletion requests and configure platform logs to retain no longer than 30 days; retention is an operator setting.
 
 ## Incident response
 

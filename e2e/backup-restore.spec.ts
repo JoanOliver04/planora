@@ -7,6 +7,7 @@ import {
   type BackupData,
 } from "../src/features/backup/format";
 import type { Database, Json } from "../src/types/database";
+import { assertLocalTestEnvironment } from "../scripts/assert-local-test-env.mjs";
 
 loadEnvConfig(process.cwd());
 
@@ -19,6 +20,7 @@ test("restoring the same backup replaces data without duplicates", async () => {
     !url || !anonKey || !serviceKey,
     "Supabase integration credentials required",
   );
+  assertLocalTestEnvironment({ url, serviceRole: serviceKey });
   const admin = createClient<Database>(url!, serviceKey!, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

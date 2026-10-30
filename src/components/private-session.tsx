@@ -4,6 +4,7 @@ import { GuidedOnboarding } from "@/features/onboarding/onboarding";
 import { ReminderScheduler } from "@/components/reminder-scheduler";
 import { OfflineStatus } from "@/components/offline-status";
 import { PrivateIntlProvider } from "@/components/private-intl-provider";
+import { PrivateSessionGuard } from "@/components/private-session-guard";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { logBootstrap } from "@/lib/bootstrap/log";
 import {
@@ -68,13 +69,15 @@ export async function PrivateSession({
   }
 
   return (
-    <PrivateIntlProvider locale={locale} timeZone={timezone}>
-      <OfflineStatus locale={locale} />
-      <ReminderScheduler locale={locale} />
-      {!onboardingCompleted && (
-        <GuidedOnboarding locale={locale as "es" | "en"} />
-      )}
-      <AppShell locale={locale as "es" | "en"}>{children}</AppShell>
-    </PrivateIntlProvider>
+    <PrivateSessionGuard userId={user.id} locale={locale}>
+      <PrivateIntlProvider locale={locale} timeZone={timezone}>
+        <OfflineStatus locale={locale} />
+        <ReminderScheduler locale={locale} />
+        {!onboardingCompleted && (
+          <GuidedOnboarding locale={locale as "es" | "en"} />
+        )}
+        <AppShell locale={locale as "es" | "en"}>{children}</AppShell>
+      </PrivateIntlProvider>
+    </PrivateSessionGuard>
   );
 }

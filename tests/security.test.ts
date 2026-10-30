@@ -122,10 +122,16 @@ describe("security boundaries", () => {
     expect(policy).not.toMatch(/script-src[^;]*'unsafe-inline'/);
   });
 
-  it("serves a hydratable CSP because Next 16 does not stamp script nonces", () => {
+  it("forwards the generated policy to rendering and emits script-src first", () => {
     const proxy = readFileSync(join(process.cwd(), "src/proxy.ts"), "utf8");
     expect(proxy).toContain("contentSecurityPolicy({");
-    expect(proxy).not.toMatch(/contentSecurityPolicy\(\{[\s\S]*nonce,/);
-    expect(contentSecurityPolicy()).toMatch(/script-src[^;]*'unsafe-inline'/);
+    expect(proxy).toContain(
+      'request.headers.set("Content-Security-Policy", policy)',
+    );
+    const policy = contentSecurityPolicy({ nonce: "testNonce" });
+    expect(policy.indexOf("script-src ")).toBeLessThan(
+      policy.indexOf("script-src-attr "),
+    );
+    expect(policy).not.toMatch(/script-src[^;]*'unsafe-inline'/);
   });
 });

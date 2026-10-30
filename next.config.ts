@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { siteConfig } from "./src/config/site";
+import { validatePublicConfiguration } from "./src/lib/security/public-config";
+
+validatePublicConfiguration(process.env);
 
 const planoraBuildId =
   (

@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Link, routing } from "@/i18n/routing";
+import { AuthLink } from "@/components/auth-link";
 
 const copy = {
   es: {
@@ -134,9 +135,9 @@ export default async function LandingPage({
           <Link href="/" locale={otherLocale} className="landing-language">
             {text.language}
           </Link>
-          <Link href="/login" locale={language} className="button secondary">
+          <AuthLink href={`/${language}/login`} className="button secondary">
             {text.signIn}
-          </Link>
+          </AuthLink>
         </div>
       </header>
       <section className="landing-hero" id="product">
@@ -152,9 +153,9 @@ export default async function LandingPage({
             >
               {text.demo}
             </Link>
-            <Link href="/login" locale={language} className="button secondary">
+            <AuthLink href={`/${language}/login`} className="button secondary">
               {text.signIn}
-            </Link>
+            </AuthLink>
           </div>
           <p className="landing-trust">{text.trust}</p>
         </div>
@@ -235,9 +236,9 @@ export default async function LandingPage({
           <Link href="/demo/today" locale={language} className="button primary">
             {text.demo}
           </Link>
-          <Link href="/login" locale={language} className="button secondary">
+          <AuthLink href={`/${language}/login`} className="button secondary">
             {text.signIn}
-          </Link>
+          </AuthLink>
         </div>
       </section>
       <footer className="landing-footer">

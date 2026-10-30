@@ -16,6 +16,10 @@ import {
   createStartedSession,
 } from "@/features/focus/state-machine";
 import type { FocusSession } from "@/features/focus/types";
+import {
+  activateClientSession,
+  revokeClientSession,
+} from "@/lib/security/client-session";
 
 function idFactory(prefix = "id") {
   let n = 0;
@@ -264,5 +268,40 @@ describe("focus sync bus helpers", () => {
     // Own client is filtered.
     expect(received).toHaveLength(0);
     bus.close();
+  });
+
+  it("cannot repopulate a private sync snapshot after revocation or bus close", () => {
+    const session = sessionAt(1);
+    activateClientSession(session.userId);
+    const bus = createFocusSyncBus(() => undefined);
+    revokeClientSession(session.userId);
+    localStorage.removeItem(FOCUS_SYNC_STORAGE_KEY);
+    activateClientSession(session.userId);
+    bus.publishSession(session);
+    expect(localStorage.getItem(FOCUS_SYNC_STORAGE_KEY)).toBeNull();
+    bus.close();
+    const fresh = createFocusSyncBus(() => undefined);
+    fresh.close();
+    fresh.publishSession(session);
+    expect(localStorage.getItem(FOCUS_SYNC_STORAGE_KEY)).toBeNull();
+    activateClientSession("another-account");
+    const receive = vi.fn();
+    const otherAccount = createFocusSyncBus(receive);
+    otherAccount.publishSession(session);
+    expect(localStorage.getItem(FOCUS_SYNC_STORAGE_KEY)).toBeNull();
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: FOCUS_SYNC_STORAGE_KEY,
+        newValue: JSON.stringify(
+          buildFocusSyncEvent(
+            "foreign-tab",
+            { ...session, userId: "unknown-account" },
+            "session_updated",
+          ),
+        ),
+      }),
+    );
+    expect(receive).not.toHaveBeenCalled();
+    otherAccount.close();
   });
 });

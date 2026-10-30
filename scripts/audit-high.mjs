@@ -1,78 +1,92 @@
 import { spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 
-// braces@3.0.3 has no patched release (GHSA-vfj7-8cjw-p6xm). It is only
-// installed for ESLint, through eslint-config-next → fast-glob → micromatch.
-// npm's suggested fix downgrades eslint-config-next to 14, which cannot lint
-// this Next.js 16 app. Any other high or critical advisory still fails CI.
-const allowedAdvisories = new Set(["GHSA-vfj7-8cjw-p6xm"]);
+const severities = ["info", "low", "moderate", "high", "critical"];
+const isRecord = (value) =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
 
-const result = spawnSync("npm", ["audit", "--json"], {
-  encoding: "utf8",
-  shell: process.platform === "win32",
-});
-
-if (result.error) {
-  console.error(result.error.message);
-  process.exit(1);
-}
-
-const stdout = result.stdout ?? "";
-const start = stdout.indexOf("{");
-let report;
-try {
-  report = JSON.parse(start === -1 ? stdout : stdout.slice(start));
-} catch {
-  console.error(result.stderr || stdout || "npm audit did not return JSON");
-  process.exit(1);
-}
-
-const vulnerabilities = report.vulnerabilities ?? {};
-
-function advisoryId(url) {
-  if (typeof url !== "string") return "";
-  const id = url.split("/").filter(Boolean).pop() ?? "";
-  return id.startsWith("GHSA-") ? id : "";
-}
-
-function isAllowed(name, seen = new Set()) {
-  if (seen.has(name)) return false;
-  seen.add(name);
-  const vulnerability = vulnerabilities[name];
-  const via = vulnerability?.via;
-  if (!Array.isArray(via) || via.length === 0) return false;
-  return via.every((item) => {
-    if (typeof item === "string") return isAllowed(item, seen);
-    return allowedAdvisories.has(advisoryId(item?.url));
-  });
-}
-
-const blocking = Object.values(vulnerabilities).filter((vulnerability) => {
-  const severity = vulnerability?.severity;
-  if (severity !== "high" && severity !== "critical") return false;
-  return !isAllowed(vulnerability.name);
-});
-
-if (blocking.length > 0) {
-  for (const vulnerability of blocking) {
-    console.error(
-      `${vulnerability.severity} ${vulnerability.name} ${vulnerability.range ?? ""}`.trim(),
+/** Validate the audit outcome before deciding whether CI may proceed. */
+export function evaluateAuditResult(result) {
+  if (result.error || result.signal || ![0, 1].includes(result.status)) {
+    throw new Error(
+      "npm audit failed to complete; dependency safety is unknown",
     );
   }
-  process.exit(1);
+
+  let report;
+  try {
+    report = JSON.parse(result.stdout ?? "");
+  } catch {
+    throw new Error(
+      "npm audit returned invalid JSON; dependency safety is unknown",
+    );
+  }
+  const counts = report?.metadata?.vulnerabilities;
+  if (
+    !isRecord(report) ||
+    Object.hasOwn(report, "error") ||
+    report.auditReportVersion !== 2 ||
+    !isRecord(report.vulnerabilities) ||
+    !isRecord(counts) ||
+    [...severities, "total"].some(
+      (severity) =>
+        !Number.isSafeInteger(counts[severity]) || counts[severity] < 0,
+    )
+  ) {
+    throw new Error(
+      "npm audit returned an incomplete report; dependency safety is unknown",
+    );
+  }
+
+  const vulnerabilities = Object.values(report.vulnerabilities);
+  if (
+    vulnerabilities.some(
+      (entry) =>
+        !isRecord(entry) ||
+        typeof entry.name !== "string" ||
+        !entry.name ||
+        !severities.includes(entry.severity),
+    ) ||
+    counts.total !== vulnerabilities.length ||
+    severities.some(
+      (severity) =>
+        counts[severity] !==
+        vulnerabilities.filter((entry) => entry.severity === severity).length,
+    ) ||
+    (result.status === 1 && counts.total === 0)
+  ) {
+    throw new Error(
+      "npm audit returned inconsistent results; dependency safety is unknown",
+    );
+  }
+
+  return vulnerabilities.filter(
+    (entry) => entry.severity === "high" || entry.severity === "critical",
+  );
 }
 
-const allowed = Object.values(vulnerabilities).filter(
-  (vulnerability) =>
-    (vulnerability?.severity === "high" ||
-      vulnerability?.severity === "critical") &&
-    isAllowed(vulnerability.name),
-);
-
-if (allowed.length === 0) {
-  console.log("npm audit: no high or critical vulnerabilities");
-} else {
-  const names = allowed.map((vulnerability) => vulnerability.name).join(", ");
-  console.log(
-    `npm audit: high findings limited to the unfixed dev-only braces advisory (${names})`,
-  );
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+  const result = spawnSync("npm", ["audit", "--json"], {
+    encoding: "utf8",
+    shell: process.platform === "win32",
+    timeout: 120_000,
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  try {
+    const blocking = evaluateAuditResult(result);
+    if (blocking.length > 0) {
+      for (const entry of blocking) {
+        console.error(`${entry.severity} ${entry.name}`);
+      }
+      process.exitCode = 1;
+    } else {
+      console.log("npm audit: no high or critical vulnerabilities");
+    }
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : "npm audit failed");
+    process.exitCode = 1;
+  }
 }

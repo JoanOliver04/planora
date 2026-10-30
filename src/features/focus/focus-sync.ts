@@ -1,5 +1,10 @@
 import type { FocusSession, FocusSessionStatus } from "./types";
 import { isActiveStatus } from "./time";
+import {
+  canUseClientSession,
+  canUsePrivateClientStorage,
+  clientSessionEpoch,
+} from "@/lib/security/client-session";
 
 /** Channel name shared by all Planora tabs on this origin. */
 export const FOCUS_SYNC_CHANNEL = "planora-focus-sync-v1";
@@ -183,9 +188,14 @@ export function createFocusSyncBus(
   onEvent: (event: FocusSyncEvent) => void,
 ): FocusSyncBus {
   const clientId = getFocusClientId();
+  const epoch = clientSessionEpoch();
+  let closed = false;
   let channel: BroadcastChannel | null = null;
 
   const deliver = (event: FocusSyncEvent) => {
+    if (closed || !canUsePrivateClientStorage(epoch, event.session?.userId))
+      return;
+    if (event.session && !canUseClientSession(event.session.userId)) return;
     if (event.clientId === clientId) return;
     onEvent(event);
   };
@@ -219,6 +229,9 @@ export function createFocusSyncBus(
   }
 
   const publish = (event: FocusSyncEvent) => {
+    if (closed || !canUsePrivateClientStorage(epoch, event.session?.userId))
+      return;
+    if (event.session && !canUseClientSession(event.session.userId)) return;
     try {
       channel?.postMessage(event);
     } catch {
@@ -259,6 +272,7 @@ export function createFocusSyncBus(
       });
     },
     close() {
+      closed = true;
       try {
         channel?.close();
       } catch {

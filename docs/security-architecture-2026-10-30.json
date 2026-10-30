@@ -1,0 +1,308 @@
+{
+  "threatModel": {
+    "origin": "generated",
+    "scope": {
+      "includePaths": ["."],
+      "summary": "Current repository architecture, including production application, database migrations, local development, browser storage, export/restore and conditional privileged CI/E2E workflows. Architecture mapping is not completed security-audit coverage."
+    },
+    "summary": "Planora is a bilingual personal planning PWA with tasks, schedules, events, reminders and Focus sessions. Next.js App Router serves public and authenticated UI; browsers use Supabase directly for account-scoped data while Server Actions provide domain mutations. Google OAuth establishes Supabase SSR cookie sessions. PostgreSQL RLS, ownership foreign keys and RPCs enforce persistence boundaries. Vercel deployment with managed Supabase is documented; next dev and next build/next start are supported locally. Browser localStorage retains offline workspace and Focus state, while the service worker handles public assets and notifications. JSON backup restore replaces an authenticated user's workspace through a privileged SQL wrapper. Sources: package.json:6, docs/architecture.md:3, docs/deployment.md:3, src/lib/supabase/client.ts:5, src/lib/supabase/server.ts:8, src/features/auth/google-button.tsx:15, src/app/actions/domain.ts:762.",
+    "assets": [
+      "Account identity and Supabase session/refresh authority represented by SSR cookies; server layouts verify getUser and proxy refreshes claims. Sources: src/components/private-session.tsx:31, src/lib/supabase/server.ts:8, src/lib/supabase/proxy.ts:39.",
+      "Private planning records, completion history, preferences and Focus notes/distractions; confidentiality and ownership must hold even for callers using PostgREST directly. Sources: supabase/migrations/20260820120000_authenticated_table_privileges.sql:5, supabase/migrations/20260802203000_rls_performance_hardening.sql:24, docs/security.md:13.",
+      "SUPABASE_SERVICE_ROLE_KEY server capability for account deletion and distributed rate-limit RPCs; never record its literal value. Sources: src/app/api/account/route.ts:45, src/lib/security/distributed-rate-limit.ts:15, docs/security.md:9.",
+      "Browser-local workspace snapshots at planora-workspace-cache-v1:<userId>:<scope>, completion queue at planora-offline-completions-v1, Focus session cache at planora-focus-session-cache-v1:<userId>, Focus transition queue and processed-operation ledger. Sources: src/lib/offline/queue.ts:5, src/lib/offline/queue.ts:208, src/features/focus/focus-offline.ts:12.",
+      "Portable JSON backups, automatic pre-restore safety copies, CSV/ICS exports and revision integrity of Focus sessions. Sources: src/features/backup/data-tools.tsx:193, src/features/backup/data-tools.tsx:130, src/features/focus/repository.ts:112.",
+      "Sanitized operational logs and Vercel navigation analytics; neither should disclose private workspace content. Sources: src/app/api/telemetry/route.ts:80, src/lib/telemetry/sanitize.ts:1, src/app/layout.tsx:81, docs/operations.md:9."
+    ],
+    "trustBoundaries": [
+      "Unauthenticated browser → Google/Supabase authentication → application cookie session. UI initiates Google OAuth with identity scopes and a current-origin callback; callback exchanges the code and passes the requested destination through safePostAuthPath before redirecting against siteConfig.url. NEXT_PUBLIC_SITE_URL overrides the production fallback https://planora-lake-one.vercel.app. Supabase/Google redirect allowlists are external operator controls. Sources: src/features/auth/google-button.tsx:15, src/app/auth/callback/route.ts:18, src/config/site.ts:9, docs/deployment.md:3.",
+      "Browser/API caller → Supabase public schema. Browser-safe URL and publishable key are configuration, not authorization. Authenticated users have direct table privileges; RLS and composite ownership foreign keys must preserve per-user isolation regardless of application checks. Sources: src/lib/supabase/client.ts:5, supabase/migrations/20260820120000_authenticated_table_privileges.sql:5, supabase/migrations/20260802203000_rls_performance_hardening.sql:24, supabase/migrations/20260726140000_initial_schema.sql:36.",
+      "Untrusted Server Action arguments → authenticated domain mutations. Domain and Focus action helpers obtain the identity using getUser; Focus creation restamps userId from that identity. Database ownership controls remain authoritative. Focus persistence conditions updates on the previous revision. Sources: src/app/actions/domain.ts:23, src/features/focus/actions.ts:39, src/features/focus/actions.ts:113, src/features/focus/repository.ts:112.",
+      "Browser-supplied backup → destructive workspace replacement. Client parses JSON and previews the parsed value; restoration first downloads a safety copy, then calls restoreBackup. The action authenticates, applies a fail-closed 5/hour limiter, checks 5 MiB and schema validity, then calls restore_planora_backup. Direct RPC callers encounter the SQL wrapper's authentication, size and SQL limiter. The wrapper uses SECURITY DEFINER with empty search_path, binds ownership to auth.uid(), and closes active Focus sessions. Direct restore internals are revoked from authenticated/anon. Sources: src/features/backup/data-tools.tsx:169, src/features/backup/data-tools.tsx:193, src/app/actions/domain.ts:762, src/features/backup/restore-security.ts:4, supabase/migrations/20260831200000_restore_wrapper_definer.sql:9, supabase/migrations/20260831200000_restore_wrapper_definer.sql:63, supabase/migrations/20260831190000_restore_rpc_hardening.sql:28.",
+      "Authenticated same-origin DELETE /api/account → server service-role auth administration. Same-origin and confirmation-header checks precede getUser; the authenticated user's ID alone selects the deleted account. A 3/hour distributed limiter fails closed. Successful deletion sends Clear-Site-Data for cache and storage. Sources: src/app/api/account/route.ts:10, src/app/api/account/route.ts:30, src/app/api/account/route.ts:45, src/app/api/account/route.ts:65.",
+      "Same-origin telemetry caller → platform logs. Endpoint only accepts type:error, same-origin JSON with required declared length, bounded input and a 30/minute distributed limiter with per-process fallback; sanitized data reaches console.info. IP-based limiting depends on infrastructure overwriting forwarded-IP headers. Sources: src/app/api/telemetry/route.ts:13, src/app/api/telemetry/route.ts:36, src/app/api/telemetry/route.ts:45, src/app/api/telemetry/route.ts:80, src/lib/security/rate-limit.ts:44.",
+      "Application data → browser localStorage and sibling tabs. Workspace cache uses user-and-scope keys, 500000-unit serialization bound, seven-day age and top-level structural checks. Focus uses separate localStorage resources and same-origin BroadcastChannel/localStorage sync. Same-origin scripts share access; key prefixes are application filtering, not browser-enforced account isolation. Explicit sign-out and account-deletion handlers invoke private-data cleanup. Sources: src/lib/offline/queue.ts:208, src/lib/offline/queue.ts:234, src/lib/offline/queue.ts:254, src/features/focus/focus-offline.ts:12, src/features/focus/focus-sync.ts:5, src/features/focus/focus-sync.ts:20, src/features/workspace/resource-views.tsx:1046.",
+      "Page → service worker/cache/OS notifications. Worker handles same-origin GET only, bypasses API/auth/login/RSC, and only caches allowlisted public navigations plus assets. Notification destinations are restricted to locale-specific reminders/focus/summary paths. This is distinct from application localStorage containing private snapshots. Sources: public/sw.js:181, public/sw.js:191, public/sw.js:211, src/lib/offline/queue.ts:208.",
+      "Deployment operator → application build/runtime trust configuration. NEXT_PUBLIC_SUPABASE_URL and publishable key feed browser/server clients; NEXT_PUBLIC_SITE_URL selects canonical redirect origin. VERCEL=1 or PLANORA_FORCE_HTTPS=true activates HSTS/HTTPS upgrade. Proxy sets private cache headers and CSP on its matched pages but excludes API/auth/static and dotted paths. Current script CSP allows unsafe-inline for framework hydration. Sources: src/lib/supabase/client.ts:5, src/lib/supabase/server.ts:8, src/config/site.ts:9, next.config.ts:14, src/proxy.ts:17, src/proxy.ts:38, src/lib/security/csp.ts:12.",
+      "Repository contributor/build workflow → CI runner and conditional administrative test credentials. CI executes npm ci and checks with contents:read; E2E starts isolated Supabase, exports its local credentials via /tmp/supabase.env and GITHUB_ENV, then tests create/delete users using that service role. Outside CI, tests load project environment and use whichever Supabase URL/service key are supplied; they do not establish local-only administration. Sources: .github/workflows/ci.yml:6, .github/workflows/ci.yml:33, .github/workflows/ci.yml:37, e2e/focus-session.spec.ts:19, e2e/focus-session.spec.ts:49, playwright.config.ts:7."
+    ],
+    "attackerCapabilities": [
+      "Anonymous Internet callers can request public pages, OAuth callback and public APIs, send arbitrary direct HTTP requests, and access the intentionally public Supabase project identifier/publishable key. They do not initially possess user sessions or the service-role key. Sources: src/lib/supabase/client.ts:5, src/app/auth/callback/route.ts:14, src/app/api/telemetry/route.ts:25.",
+      "A registered user can modify their own browser inputs/storage, call Server Actions and PostgREST directly, supply backups and resource identifiers, and race their own tabs/devices. The meaningful privilege gain to investigate is another account's data/authority or a privileged operation bypass, not ordinary modification of their own records. Sources: supabase/migrations/20260820120000_authenticated_table_privileges.sql:5, src/app/actions/domain.ts:762, src/features/focus/repository.ts:112.",
+      "An external web origin can induce browser requests but is subject to browser origin/cookie behavior and explicit origin checks on account deletion/telemetry. A nonbrowser caller can forge Origin, so Origin checks are CSRF controls and do not replace authentication. Sources: src/app/api/account/route.ts:10, src/app/api/telemetry/route.ts:25, src/lib/security/request.ts:1.",
+      "A same-origin script or a person with access to an unlocked browser profile already shares access to that origin's localStorage and client session authority. Do not assume account key names or BroadcastChannel provide hostile-script isolation. Sources: src/lib/offline/queue.ts:208, src/features/focus/focus-sync.ts:5.",
+      "A pull-request author can affect code executed by ordinary pull_request CI jobs; no production service-role secret is shown in that workflow. Local CI-generated administrative credentials belong to its isolated test instance. Production operator/host and dependency publisher compromise are separate privileged prerequisites. Sources: .github/workflows/ci.yml:3, .github/workflows/ci.yml:37."
+    ],
+    "securityObjectives": [
+      "User-requested objective: audit the whole application and implement feasible improvements that substantially strengthen user security; no absolute security guarantee or authorization to exercise production accounts is inferred.",
+      "Enforce per-user confidentiality, mutation authorization and cross-resource ownership at the database boundary, including direct PostgREST and privileged restore RPCs. Sources: supabase/migrations/20260802203000_rls_performance_hardening.sql:24, supabase/migrations/20260726140000_initial_schema.sql:36, supabase/migrations/20260831200000_restore_wrapper_definer.sql:14.",
+      "Keep service-role authority server-only and bind destructive administration to the verified current user; deletion/restore must fail closed when their distributed rate-limit enforcement is unavailable. Sources: src/app/api/account/route.ts:30, src/app/api/account/route.ts:45, src/features/backup/restore-security.ts:4.",
+      "Bound imported backup/action/telemetry work; preserve atomic restore ownership and Focus revision integrity, and exclude private navigations from reusable caches. Sources: next.config.ts:21, src/app/actions/domain.ts:762, src/app/api/telemetry/route.ts:36, src/features/focus/repository.ts:112, src/proxy.ts:17, public/sw.js:191.",
+      "Minimize private data in logs, analytics and notifications; remove local private state during explicit sign-out/deletion; preserve safe export handling. Sources: docs/security.md:5, docs/security.md:13, src/lib/telemetry/sanitize.ts:1, src/features/workspace/resource-views.tsx:1046, src/features/backup/format.ts:960."
+    ],
+    "assumptions": [
+      "No supplied threat model or authoritative knowledge base. This is an independent read-only offline architecture review; no application code, tests, network calls, migrations or production actions were executed.",
+      "No nearest uppercase SECURITY.md was found in the repository or checked parent locations. docs/security.md describes security expectations and was treated as repository data.",
+      "Actual production Supabase migrations/provider settings, Vercel environment values, TLS termination, log retention and OAuth allowlists are not established by source. docs/deployment.md:3 requires operators to apply/configure them. Local secret values were not read or reproduced.",
+      "Documented production provider policy differs from local configuration: docs/deployment.md:4 says disable Email, whereas supabase/config.toml:221 enables email signup and supabase/config.toml:226 disables confirmation. This is a local/test configuration fact, not proof that production email auth is enabled.",
+      "Telemetry documentation is stale/inconsistent: docs/operations.md:9 describes explicitly consented page views going to /api/telemetry. The endpoint permits error events only at src/app/api/telemetry/route.ts:13; src/app/layout.tsx:81 mounts automatic Vercel Analytics whenever VERCEL_ENV is truthy, consistent with README.md:190.",
+      "docs/security.md:5 calls cached workspace snapshots structurally validated; src/lib/offline/queue.ts:234 checks age, user identity and top-level arrays, without proving validation of each nested row. Preserve this precise implementation scope during investigation.",
+      "Proxy CSP deliberately permits inline scripts at src/lib/security/csp.ts:12 and src/proxy.ts:21. Its matcher excludes API/auth and dotted paths at src/proxy.ts:38; global next.config.ts headers still apply. Stronger CSP compatibility requires checking installed Next.js documentation.",
+      "Running integration tests outside CI can contact the Supabase project loaded from local/environment configuration using service-role authority. CI explicitly creates an isolated local instance; local-only enforcement was not established for standalone test invocation. Sources: e2e/focus-session.spec.ts:19, .github/workflows/ci.yml:33.",
+      "Public source includes no deployment mount mapping or hosted filesystem ACL guarantee; browser/host/managed-service protections are external prerequisites, not inferred component controls."
+    ]
+  },
+  "effectiveResources": [
+    {
+      "consumer": "Browser and server Supabase clients",
+      "deployment": "Configured production or local next dev/build/start",
+      "configurationChain": "NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY → createBrowserClient/createServerClient",
+      "effectiveValue": "Configured Supabase project HTTP origin; publishable key reference only. Actual deployment values unverified. Example target is a placeholder.",
+      "recipients": ["Browser", "Next.js server", "Configured Supabase API"],
+      "enforcingControl": "Supabase Auth, table/RPC grants, RLS and ownership foreign keys; publishable key is not a user secret",
+      "evidence": [
+        "src/lib/supabase/client.ts:5",
+        "src/lib/supabase/server.ts:8",
+        ".env.example:1",
+        "supabase/migrations/20260802203000_rls_performance_hardening.sql:24"
+      ]
+    },
+    {
+      "consumer": "OAuth completion redirect",
+      "deployment": "All application execution modes",
+      "configurationChain": "NEXT_PUBLIC_SITE_URL ?? production fallback → siteConfig.url → callback new URL(next, origin); browser OAuth initiation uses window.location.origin",
+      "effectiveValue": "Configured site origin; default https://planora-lake-one.vercel.app; callback /auth/callback",
+      "recipients": ["User browser", "Supabase OAuth redirect flow"],
+      "enforcingControl": "safePostAuthPath; external Supabase/Google exact allowlists",
+      "evidence": [
+        "src/config/site.ts:9",
+        "src/app/auth/callback/route.ts:18",
+        "src/features/auth/google-button.tsx:15",
+        "docs/deployment.md:3"
+      ]
+    },
+    {
+      "consumer": "Account deletion administrator",
+      "deployment": "Server route DELETE /api/account",
+      "configurationChain": "NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY → createAdmin → auth.admin.deleteUser(user.id)",
+      "effectiveValue": "Configured Supabase project's auth user record selected by verified session identity; service-role credential represented by environment reference only",
+      "recipients": [
+        "Next.js server",
+        "Configured Supabase Auth administration API"
+      ],
+      "enforcingControl": "Origin + confirmation header + getUser + fail-closed 3/hour distributed user limiter; no-store/Clear-Site-Data",
+      "evidence": [
+        "src/app/api/account/route.ts:10",
+        "src/app/api/account/route.ts:30",
+        "src/app/api/account/route.ts:45",
+        "src/app/api/account/route.ts:65"
+      ]
+    },
+    {
+      "consumer": "Distributed limiter",
+      "deployment": "Server account deletion, restore and telemetry",
+      "configurationChain": "SUPABASE_SERVICE_ROLE_KEY + configured URL → SHA256 request key → consume_rate_limit RPC → public.request_rate_limits",
+      "effectiveValue": "Shared configured database table of hashed bucket keys, counts and expiration",
+      "recipients": ["Next.js server", "Supabase RPC/table"],
+      "enforcingControl": "RPC execution granted service_role; table revoked from anon/authenticated; deny fallback for destructive operations and bounded memory fallback for telemetry",
+      "evidence": [
+        "src/lib/security/distributed-rate-limit.ts:15",
+        "supabase/migrations/20260814223000_distributed_rate_limits.sql:67",
+        "src/app/api/telemetry/route.ts:45",
+        "src/features/backup/restore-security.ts:4"
+      ]
+    },
+    {
+      "consumer": "Atomic restore SQL",
+      "deployment": "Authenticated action or direct Supabase RPC",
+      "configurationChain": "backup JSON → restore_planora_backup → assert_restore_rate_limit + restore_planora_backup_core + ownership-bound updates",
+      "effectiveValue": "Authenticated user's workspace rows; 5 MiB payload limit and SQL 5/hour bucket; active restored Focus sessions become terminal",
+      "recipients": [
+        "Authenticated user",
+        "Database function owner during wrapper execution"
+      ],
+      "enforcingControl": "SECURITY DEFINER empty search_path; auth.uid binding; revoked direct internals; atomic database statement",
+      "evidence": [
+        "src/app/actions/domain.ts:762",
+        "supabase/migrations/20260831200000_restore_wrapper_definer.sql:9",
+        "supabase/migrations/20260831200000_restore_wrapper_definer.sql:63",
+        "supabase/migrations/20260831190000_restore_rpc_hardening.sql:28"
+      ]
+    },
+    {
+      "consumer": "Offline workspace data",
+      "deployment": "Browser",
+      "configurationChain": "WorkspaceData → JSON localStorage; user.id and view scope derive keys",
+      "effectiveValue": "planora-workspace-cache-v1:<userId>:<scope>; planora-offline-completions-v1; same-origin browser storage",
+      "recipients": [
+        "Same-origin browser scripts/tabs",
+        "User browser profile"
+      ],
+      "enforcingControl": "Application user filtering, serialization bound, seven-day cache age, top-level checks, explicit cleanup",
+      "evidence": [
+        "src/lib/offline/queue.ts:5",
+        "src/lib/offline/queue.ts:208",
+        "src/lib/offline/queue.ts:234",
+        "src/lib/offline/queue.ts:254"
+      ]
+    },
+    {
+      "consumer": "Focus offline cache and cross-tab sync",
+      "deployment": "Browser",
+      "configurationChain": "FocusSession/transitions → localStorage; sync → BroadcastChannel or localStorage fallback",
+      "effectiveValue": "planora-focus-session-cache-v1:<userId>; planora-focus-offline-queue-v1; planora-focus-offline-processed-v1; planora-focus-sync-v1",
+      "recipients": ["Same-origin tabs/scripts"],
+      "enforcingControl": "Application validation/revision/user filtering and cleanup; origin isolation belongs to browser, not key names",
+      "evidence": [
+        "src/features/focus/focus-offline.ts:12",
+        "src/features/focus/focus-sync.ts:5",
+        "src/features/focus/focus-sync.ts:20",
+        "src/lib/offline/queue.ts:254"
+      ]
+    },
+    {
+      "consumer": "Backup and export downloads",
+      "deployment": "Authenticated browser export/restore UI",
+      "configurationChain": "Workspace data → JSON/CSV/ICS → Blob/object URL → browser download",
+      "effectiveValue": "User-selected browser download directory, including automatic planora-before-restore-<date>.json safety copy; no server archive path",
+      "recipients": [
+        "User browser/download filesystem",
+        "Any later recipient chosen by user"
+      ],
+      "enforcingControl": "Authenticated data loading, confirmation UI, CSV formula prefix handling; exported files themselves are portable private data",
+      "evidence": [
+        "src/features/backup/data-tools.tsx:37",
+        "src/features/backup/data-tools.tsx:130",
+        "src/features/backup/data-tools.tsx:193",
+        "src/features/backup/format.ts:960"
+      ]
+    },
+    {
+      "consumer": "Operational telemetry",
+      "deployment": "POST /api/telemetry",
+      "configurationChain": "Request JSON → Zod error payload → sanitizer → console.info",
+      "effectiveValue": "Platform process logs; retention destination/duration not enforced by application source",
+      "recipients": ["Application/platform log readers"],
+      "enforcingControl": "Same-origin, bounded payload, rate limiting and sanitizer",
+      "evidence": [
+        "src/app/api/telemetry/route.ts:13",
+        "src/app/api/telemetry/route.ts:36",
+        "src/app/api/telemetry/route.ts:80",
+        "src/lib/telemetry/sanitize.ts:1"
+      ],
+      "documentedClaim": "docs/operations.md:9 describes consented page views sent to this endpoint and maximum 30-day platform retention",
+      "discrepancy": "Endpoint accepts errors only; retention is an external operator obligation"
+    },
+    {
+      "consumer": "Vercel Web Analytics",
+      "deployment": "Any environment with truthy VERCEL_ENV",
+      "configurationChain": "VERCEL_ENV → shared root Analytics component",
+      "effectiveValue": "Automatic navigation analytics via Vercel integration; no application consent gate in mount condition",
+      "recipients": ["Vercel Analytics"],
+      "enforcingControl": "Environment guard; private-content exclusion is a data-minimization objective requiring caller/URL review",
+      "evidence": [
+        "src/app/layout.tsx:81",
+        "README.md:190",
+        "src/lib/security/csp.ts:12"
+      ],
+      "documentedClaim": "docs/operations.md:9 describes consented page views through internal telemetry",
+      "discrepancy": "Actual automatic Vercel integration differs"
+    },
+    {
+      "consumer": "Administrative E2E clients",
+      "deployment": "GitHub CI",
+      "configurationChain": "Supabase CLI isolated start/status → /tmp/supabase.env → GITHUB_ENV → NEXT_PUBLIC_SUPABASE_URL, publishable key and service-role environment reference → E2E admin client",
+      "effectiveValue": "Runner-local Supabase API at configured port 54321; local public schema; temporary runner file contains generated local test credentials",
+      "recipients": [
+        "CI runner steps",
+        "Local test Supabase",
+        "Next.js test server"
+      ],
+      "enforcingControl": "Ephemeral isolated service; workflow stops instance with --no-backup; repository job contents:read",
+      "evidence": [
+        ".github/workflows/ci.yml:33",
+        ".github/workflows/ci.yml:37",
+        "supabase/config.toml:10",
+        "e2e/focus-session.spec.ts:49"
+      ]
+    },
+    {
+      "consumer": "Administrative E2E clients",
+      "deployment": "Standalone developer invocation",
+      "configurationChain": "loadEnvConfig(process.cwd()) + existing environment → configured URL/service-role key → createUser/deleteUser",
+      "effectiveValue": "Whichever Supabase project environment resolves; remote/local target not hard pinned in inspected test",
+      "recipients": [
+        "Developer test process",
+        "Configured Supabase administration API"
+      ],
+      "enforcingControl": "Test skips if credentials absent; local-only target enforcement not established",
+      "evidence": [
+        "e2e/focus-session.spec.ts:19",
+        "e2e/focus-session.spec.ts:49",
+        "playwright.config.ts:7"
+      ],
+      "missingImpactPrerequisite": "Actual environment selection is unknown; do not execute privileged integration tests against an unverified project"
+    }
+  ],
+  "resolved_questions": [
+    {
+      "question": "Does application authentication alone protect database access?",
+      "resolution": "No. Browser Supabase clients and authenticated table grants establish a direct API surface; database RLS/FKs and RPC controls are independent enforcing boundaries.",
+      "evidence": [
+        "src/lib/supabase/client.ts:5",
+        "supabase/migrations/20260820120000_authenticated_table_privileges.sql:5"
+      ]
+    },
+    {
+      "question": "Does direct restore RPC bypass all restoration controls?",
+      "resolution": "The current migration adds SQL authentication, size and limiter checks and revokes internal RPC execution; app-side validation/limiting remains a separate layer. This maps controls and does not establish their complete correctness.",
+      "evidence": [
+        "supabase/migrations/20260831200000_restore_wrapper_definer.sql:9",
+        "supabase/migrations/20260831200000_restore_wrapper_definer.sql:63",
+        "supabase/migrations/20260831190000_restore_rpc_hardening.sql:28"
+      ]
+    },
+    {
+      "question": "Does public-only service-worker caching mean no private data persists locally?",
+      "resolution": "No. Worker navigation cache excludes private routes, while the application deliberately persists private workspace/Focus data in separate localStorage resources.",
+      "evidence": [
+        "public/sw.js:191",
+        "src/lib/offline/queue.ts:208",
+        "src/features/focus/focus-offline.ts:12"
+      ]
+    },
+    {
+      "question": "Are documented provider restrictions established in every deployment?",
+      "resolution": "Production policy requires disabling Email, but checked local Supabase configuration enables email signup without confirmation. Production dashboard values remain unresolved.",
+      "evidence": [
+        "docs/deployment.md:4",
+        "supabase/config.toml:221",
+        "supabase/config.toml:226"
+      ]
+    },
+    {
+      "question": "Are consented page views handled by internal telemetry?",
+      "resolution": "docs/operations.md:9 says so, but current telemetry schema accepts only errors and root layout mounts automatic Vercel Analytics under VERCEL_ENV. README describes the current implementation.",
+      "evidence": [
+        "docs/operations.md:9",
+        "src/app/api/telemetry/route.ts:13",
+        "src/app/layout.tsx:81",
+        "README.md:190"
+      ]
+    },
+    {
+      "question": "Are privileged tests inherently local?",
+      "resolution": "CI explicitly provisions local Supabase; standalone tests load project environment and can use any configured service-role project. Actual target must be verified before execution.",
+      "evidence": [
+        ".github/workflows/ci.yml:33",
+        ".github/workflows/ci.yml:37",
+        "e2e/focus-session.spec.ts:19",
+        "e2e/focus-session.spec.ts:49"
+      ]
+    },
+    {
+      "question": "Were architecture citations verified?",
+      "resolution": "Material source anchors were inspected and batch-checked against repository-relative paths and line bounds. No secrets were reproduced. This result is architecture mapping only."
+    }
+  ]
+}
