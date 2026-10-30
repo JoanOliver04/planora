@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import type { Page } from "@playwright/test";
-import { localDate } from "../src/lib/dates/timezone";
+import { localDate, nextLocalDate } from "../src/lib/dates/timezone";
 import { hasLocalCredentials, withLocalWorkspace } from "./local-workspace";
 import { expect, test } from "./fixtures";
 
@@ -13,7 +13,7 @@ async function openAdd(page: Page, route: string) {
   return page.getByRole("dialog");
 }
 
-test("workspace CRUD, schedule copies, history, search and portable export", async ({
+test("workspace CRUD, schedule copies, history, search and backup round trip", async ({
   page,
   context,
   baseURL,
@@ -291,6 +291,197 @@ test("workspace CRUD, schedule copies, history, search and portable export", asy
     expect(backup.data.tasks).toHaveLength(2);
     expect(backup.data.events).toHaveLength(1);
     expect(JSON.stringify(backup)).not.toContain(userId);
+
+    const fileInput = page.locator('input[type="file"]');
+    const invalid = structuredClone(backup);
+    invalid.data.profile.timezone = "Not/A-Timezone";
+    await fileInput.setInputFiles({
+      name: "invalid.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(invalid)),
+    });
+    await expect(
+      page.getByRole("alert").filter({ hasText: /backup is invalid/ }),
+    ).toBeVisible();
+    const restore = page.getByRole("button", {
+      name: "Restore backup",
+      exact: true,
+    });
+    await expect(restore).toBeDisabled();
+    expect(
+      (await db.from("tasks").select("id", { count: "exact", head: true }))
+        .count,
+    ).toBe(2);
+
+    await fileInput.setInputFiles({
+      name: "workspace.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(backup)),
+    });
+    await expect(restore).toBeEnabled();
+    await restore.click();
+    await page
+      .getByRole("alertdialog")
+      .getByRole("button", { name: "Cancel", exact: true })
+      .click();
+    expect(
+      (await db.from("tasks").select("id", { count: "exact", head: true }))
+        .count,
+    ).toBe(2);
+    const previousIds = (await db.from("tasks").select("id")).data!.map(
+      (item) => item.id,
+    );
+    await restore.click();
+    const safetyCopy = page.waitForEvent("download");
+    await page
+      .getByRole("alertdialog")
+      .getByRole("button", { name: "Restore and replace data", exact: true })
+      .click();
+    expect((await safetyCopy).suggestedFilename()).toMatch(
+      /^planora-before-restore-/,
+    );
+    await expect(page.getByText(/^Restore complete:/)).toBeVisible();
+    const restored = await db.from("tasks").select("id");
+    expect(restored.error).toBeNull();
+    expect(restored.data).toHaveLength(2);
+    expect(restored.data!.every((item) => !previousIds.includes(item.id))).toBe(
+      true,
+    );
+    expect(
+      (await db.from("events").select("id", { count: "exact", head: true }))
+        .count,
+    ).toBe(1);
+  });
+});
+
+test("templates, alarms and account appearance persist through the UI", async ({
+  page,
+  context,
+  baseURL,
+  browserName,
+}) => {
+  test.setTimeout(120_000);
+  test.skip(
+    !hasLocalCredentials || browserName !== "chromium",
+    "Run on Chromium with a disposable local backend",
+  );
+  await withLocalWorkspace(context, baseURL, async (db, userId) => {
+    await page.goto("/en/templates");
+    await page.getByRole("button", { name: /Studies/ }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Import selection", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/en\/today/);
+    const imported = await db
+      .from("schedules")
+      .select("id")
+      .eq("name", "Studies")
+      .single();
+    expect(imported.error).toBeNull();
+    expect(
+      (
+        await db
+          .from("tasks")
+          .select("id", { count: "exact", head: true })
+          .eq("schedule_id", imported.data!.id)
+      ).count,
+    ).toBe(2);
+    await page.goto("/en/templates");
+    await page
+      .getByRole("combobox", { name: "Source schedule", exact: true })
+      .selectOption(imported.data!.id);
+    await page
+      .getByRole("textbox", { name: "Template name", exact: true })
+      .fill("QA reusable template");
+    await page
+      .getByRole("button", { name: "Save template", exact: true })
+      .click();
+    await expect
+      .poll(
+        async () =>
+          (
+            await db
+            .from("schedule_templates")
+              .select("id", { count: "exact", head: true })
+              .eq("name", "QA reusable template")
+          ).count,
+      )
+      .toBe(1);
+    await page.reload();
+    await page.getByRole("button", { name: /QA reusable template/ }).click();
+    await expect(
+      page.getByRole("dialog").getByText("Review notes", { exact: true }),
+    ).toBeVisible();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Close", exact: true })
+      .click();
+
+    await page.goto("/en/reminders");
+    const alarm = page
+      .locator("section")
+      .filter({
+        has: page.getByRole("heading", {
+          name: "Create an alarm",
+          exact: true,
+        }),
+      });
+    await expect(alarm.locator('input[type="date"]')).toHaveValue(
+      nextLocalDate("Europe/Madrid"),
+    );
+    await alarm
+      .getByRole("textbox", { name: "Name", exact: true })
+      .fill("QA alarm");
+    await alarm
+      .getByRole("button", { name: "Create alarm", exact: true })
+      .click();
+    await expect
+      .poll(
+        async () =>
+          (await db.from("reminders").select("title,timezone").single()).data,
+      )
+      .toMatchObject({ title: "QA alarm", timezone: "Europe/Madrid" });
+    await page.reload();
+    await expect(page.getByText("QA alarm", { exact: true })).toBeVisible();
+    await page
+      .getByRole("button", { name: "Delete reminder", exact: true })
+      .click();
+    await expect
+      .poll(
+        async () =>
+          (
+            await db
+              .from("reminders")
+              .select("id", { count: "exact", head: true })
+          ).count,
+      )
+      .toBe(0);
+
+    await page.goto("/en/settings");
+    await page
+      .getByRole("checkbox", { name: "Reduce animations", exact: true })
+      .check();
+    await page
+      .locator(".personalization")
+      .getByRole("button", { name: "Save", exact: true })
+      .click();
+    await expect
+      .poll(
+        async () =>
+          (
+            await db
+              .from("profiles")
+              .select("preferences")
+              .eq("id", userId)
+              .single()
+          ).data?.preferences,
+      )
+      .toMatchObject({ reduceMotion: true });
+    await page.reload();
+    await expect(
+      page.getByRole("checkbox", { name: "Reduce animations", exact: true }),
+    ).toBeChecked();
   });
 });
 

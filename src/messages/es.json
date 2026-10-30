@@ -880,7 +880,7 @@
       "title": "Restaurar una copia",
       "description": "Selecciona una copia JSON creada por Planora para sustituir tu espacio de trabajo actual.",
       "selectTitle": "Selecciona una copia de Planora",
-      "fileType": "Archivo JSON · Formatos de copia v1–v4",
+      "fileType": "Archivo JSON · Formatos de copia v1–v5",
       "selectAction": "Seleccionar archivo",
       "removeFile": "Quitar {name}",
       "validating": "Comprobando la copia…",
