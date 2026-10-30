@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-377%20unit%20%2B%2052%20E2E-brightgreen?style=flat-square" alt="377 unit tests and 52 Playwright E2E tests" />
+  <img src="https://img.shields.io/badge/tests-602%20unit%20%2B%2090%20E2E-brightgreen?style=flat-square" alt="602 passing unit tests and 90 passing Playwright E2E tests; 6 deliberate browser exclusions" />
 </p>
 
 ---
@@ -91,7 +91,10 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Separate delivery controls for in-app popups, operating-system notifications, sound and vibration.
 - Individual enable/disable, ten-minute snooze and deletion controls for every configured reminder.
 - Timezone-safe scheduling, mobile-sized touch targets and responsive forms.
-- In-app alerts, sound and vibration require Planora to remain open or active as a PWA. Fully closed web apps can be suspended by the operating system, so system delivery remains subject to browser permissions and platform limits.
+- Opt-in Web Push for reminders, daily summaries and custom alarms while Planora is closed, with encrypted VAPID delivery and a persistent server outbox.
+- Per-device registration, a delayed test for checking reception after closing the app, bounded retries, expired-subscription cleanup and cancellation of queued alerts when an alarm changes or is disabled.
+- Android: enable the device from Notifications and alarms in an up-to-date Chrome. iPhone/iPad: use the Home Screen app on iOS/iPadOS 16.4 or later.
+- Web Push needs connectivity and notification permission. Sound, Do Not Disturb and battery restrictions are controlled by the operating system; web alarms do not offer native alarm-clock timing or continuous sound guarantees. In-app popups and custom audio still require an active page, and Focus phase alerts retain their own lifecycle limits. See [mobile Web Push](docs/mobile-web-push.md).
 
 ### Experience and safety
 
@@ -181,6 +184,11 @@ flowchart LR
     UI --> NS[Notification scheduler]
     UI --> WA[Vercel Web Analytics]
     NS --> SW[Service worker and in-app alerts]
+    CRON[Supabase Cron and pg_net] --> PD[Authenticated push dispatcher]
+    PD --> OUTBOX[Persistent push outbox]
+    OUTBOX --> DB
+    PD --> PUSH[Web Push provider]
+    PUSH --> SW
     SA --> SSR[Supabase SSR client]
     SC --> DB[(PostgreSQL)]
     SSR --> DB
@@ -190,7 +198,9 @@ flowchart LR
 
 Next.js App Router provides Server Components by default and Client Components only where interaction is required. Server Actions validate every mutation with Zod. Supabase manages Google sessions, PostgreSQL persistence and row-level access policies. Vercel Web Analytics is mounted once in the shared root layout and records automatic page views only on Vercel deployments.
 
-Recurring occurrences are calculated on demand instead of generating unlimited future database rows. Due reminders resolve their task and event copy in two batched lookups instead of issuing one query per notification. This keeps storage predictable, removes the need for scheduled jobs and keeps background refreshes lightweight.
+Recurring task occurrences are calculated on demand instead of generating unlimited future database rows. The page-based reminder fallback resolves task and event copy in two batched lookups, keeping background reads lightweight.
+
+Closed-app reminders use a separate server path: Supabase Cron and pg_net call an authenticated Next.js dispatcher every minute. A transactional outbox claims due occurrences, advances their schedules and tracks delivery per device. The dispatcher sends encrypted Web Push messages; the service worker displays them without an open page. Live tabs defer server-managed reminders to this path to avoid competing deliveries. Provider acceptance is labelled **Sent**, rather than treated as proof of physical reception.
 
 Schedule duplication and backup restoration execute as ownership-checked PostgreSQL functions, so multi-table changes commit atomically. Calendar reads are bounded to the visible week or month, private layouts parallelise independent queries, and public routes avoid loading authenticated offline and Focus clients.
 
@@ -207,6 +217,7 @@ Schedule duplication and backup restoration execute as ownership-checked Postgre
 | Authentication | **Google OAuth**                          | Passwordless identity                                      |
 | Localisation   | **next-intl**                             | Spanish and English routes and messages                    |
 | Dates          | **date-fns + date-fns-tz**                | Recurrence and timezone-safe calculations                  |
+| Notifications  | **Web Push + Supabase Cron + pg_net**     | Encrypted mobile delivery through a durable outbox         |
 | Testing        | **Vitest + Testing Library + Playwright** | Unit, component and end-to-end coverage                    |
 | Analytics      | **Vercel Web Analytics**                  | Anonymous, aggregate navigation metrics without cookies    |
 | Hosting        | **Vercel**                                | Automatic production deployments from `main`               |
@@ -221,16 +232,21 @@ planora/
 │   ├── components/             # Shared shell, navigation and dialogs
 │   ├── features/
 │   │   ├── auth/               # Google authentication
+│   │   ├── backup/             # Portable backups and restore validation
+│   │   ├── focus/              # Sessions, goals, offline state and statistics
+│   │   ├── reminders/          # Alarms, device subscriptions and push delivery
 │   │   └── workspace/          # Tasks, events, schedules and settings
 │   ├── i18n/                   # Localised routing configuration
 │   ├── lib/
 │   │   ├── dates/              # Timezone utilities
 │   │   ├── recurrence/         # Recurrence and progress engine
+│   │   ├── security/           # Request, session, CSP and rate-limit controls
 │   │   ├── supabase/           # Browser, server and proxy clients
 │   │   └── validation/         # Zod schemas
 │   ├── messages/               # Spanish and English translations
 │   └── types/                  # Generated database types
 ├── supabase/migrations/        # Schema, RLS policies and invariants
+├── scripts/                    # Operational setup, security checks and tooling
 ├── tests/                      # Vitest and Testing Library
 ├── e2e/                        # Playwright scenarios
 └── docs/                       # Product and engineering documentation
@@ -240,7 +256,7 @@ planora/
 
 ### Requirements
 
-- Node.js 20 or newer.
+- Node.js 20.9 or newer; CI uses Node.js 24.
 - A Supabase project.
 - A Google Cloud OAuth web client.
 
@@ -249,7 +265,7 @@ planora/
 ```bash
 git clone https://github.com/JoanOliver04/planora.git
 cd planora
-npm install
+npm ci
 ```
 
 Copy `.env.example` to `.env.local` and configure:
@@ -258,10 +274,10 @@ Copy `.env.example` to `.env.local` and configure:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-SUPABASE_SERVICE_ROLE_KEY=server-only-account-deletion-key
+SUPABASE_SERVICE_ROLE_KEY=server-only-service-role-key
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY` is server-only and is used exclusively for verified account deletion. Never expose it to browser code.
+`SUPABASE_SERVICE_ROLE_KEY` is server-only. It supports verified account deletion, distributed rate limiting and the authenticated Web Push dispatcher. Never expose it to browser code or use a `NEXT_PUBLIC_` prefix for it.
 
 Apply every file in `supabase/migrations` in filename order. In Supabase Authentication, enable Google and disable Email, Phone and unused providers. Add the local and production `/auth/callback` URLs to the redirect allow-list.
 
@@ -300,11 +316,15 @@ Open [http://localhost:3000](http://localhost:3000). Web Analytics is only mount
 - Google OAuth requests only identity, email and profile information.
 - Security headers include CSP, frame denial, MIME sniffing protection, cross-origin resource isolation and a restrictive permissions policy.
 - Account deletion requires a valid session, same-origin request, explicit typed confirmation and a per-user rate limit.
+- Account deletion also requires recent authentication. Login and authenticated pages use per-response CSP nonces and private pages are not cacheable.
 - Backup restoration is authenticated and protected by a distributed fail-closed rate limit before payload parsing.
 - Schedule duplication and backup restoration are atomic, ownership-scoped database operations.
 - Authenticated pages use private, no-store responses and are never written to the service-worker cache.
 - Offline browser records are size-bounded, structurally validated and checked against the authenticated owner before use.
 - Local workspace snapshots and pending offline changes are cleared after sign-out or account deletion.
+- PostgreSQL enforces per-user resource quotas and JSON size bounds. Invalid restore attempts consume their admission budget while preserving the original workspace.
+- Imported timezones are validated before use in date formatters; restored alarms are disabled and live Focus sessions are cancelled.
+- Push subscriptions are bound to their owner and auth session, with a device limit and expiry. Dispatch secrets stay in a private database schema; only the server role can claim or settle outbox jobs. Both SQL and the dispatcher restrict subscription endpoints to known push providers.
 - Internal telemetry accepts only small same-origin JSON payloads and sanitizes technical metadata before logging.
 - User content is rendered as text and never injected as HTML.
 - Web Analytics uses no custom events and receives no task, event, note, category, schedule, account or backup content.
@@ -326,9 +346,11 @@ npm audit
 
 CI runs npm audit, lint, Prettier (`format:check`), typecheck, coverage and a production build on every push to `main`. It also runs CodeQL, Lighthouse and the complete Playwright suite against an isolated Supabase instance built from the committed migrations, so authenticated scenarios cannot silently skip because credentials are missing.
 
-The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync, backup v4), forms, loading states, protected navigation, platform metadata, mobile authentication and the single-instance, automatic-only Analytics integration.
+The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync and backup v5), forms, loading states, protected navigation, platform metadata and the single-instance, automatic-only Analytics integration. Authenticated journeys exercise schedule/task CRUD, history and undo, templates, alarms, preferences, offline completion sync, sign-out, export and atomic restore. Web Push checks include a service worker without open clients, permission handling, server queue leases, cancellation, retries, ownership isolation and API access controls.
 
-Last verified on 2026-08-20: 63 Vitest files with 377 passing tests, 52 passing Playwright scenarios (2 intentionally skipped because the authenticated Focus lifecycle runs once on Chromium), a successful Next.js 16.3.1 production build, green CodeQL and Lighthouse jobs, and 0 known npm vulnerabilities.
+Last verified on **2026-10-30** at [`d82bd3a`](https://github.com/JoanOliver04/planora/commit/d82bd3ab440545a719ec57d94c643f824a78a195): **602 passing tests in 82 Vitest files**, **90 passing Playwright scenarios** and **6 deliberate exclusions** out of 96 cases. The exclusions are the two WebKit repetitions of three integration flows run in Chromium: the API-backed Focus lifecycle, offline completion sync and the push outbox. Next.js **16.4.3** / React **19.3.1** build, types, lint, formatting, CodeQL and Lighthouse all pass; npm reports 0 known vulnerabilities. [Verified CI run](https://github.com/JoanOliver04/planora/actions/runs/41136884138).
+
+These are dated test results, not a guarantee of zero bugs or complete device coverage. A successful push-provider response does not prove that a phone displayed the notification; use the delayed test on each device. No universal physical-device or Google OAuth acceptance claim is implied by CI.
 
 Product screenshots live under `docs/images/01–17-*.png` (about 80% light theme, desktop and mobile). To regenerate them against a local production server with Supabase credentials in `.env.local`, signed in as the secondary account:
 
@@ -349,8 +371,9 @@ Planora is configured for Vercel and Supabase:
 5. Enable **Web Analytics** in the Vercel project dashboard.
 6. Deploy and visit several public and authenticated routes.
 7. In Analytics, use the environment selector to keep Production and Preview traffic separate, then verify that reported pages contain no sensitive values.
+8. For closed-app reminders, configure the server-side push keys and minute scheduler using [the Web Push operations guide](docs/mobile-web-push.md#operación), then activate notifications separately on each device. The production setup script preserves existing keys and is deliberately excluded from automatic migrations and CI.
 
-Every push to `main` creates a production deployment automatically. Vercel tracks initial loads and App Router client-side page transitions; localhost remains excluded by the environment guard. Recurrence requires no cron jobs, so the project can run on the free Vercel and Supabase tiers within their usage limits.
+Every push to `main` creates a production deployment automatically. Vercel tracks initial loads and App Router client-side page transitions; localhost remains excluded by the environment guard. Task recurrence is calculated on demand. Closed-app Web Push requires the Supabase scheduler and dispatcher; their invocations and database usage count towards the hosting providers' limits. See the operations guide for setup, monitoring and rollback.
 
 See [docs/deployment.md](docs/deployment.md) for the complete checklist.
 
@@ -360,6 +383,8 @@ See [docs/deployment.md](docs/deployment.md) for the complete checklist.
 - [Architecture](docs/architecture.md)
 - [Database model](docs/database.md)
 - [Security model](docs/security.md)
+- [Security hardening and verification](docs/security-production-verification-2026-10-30.md)
+- [Mobile Web Push: activation, architecture and operations](docs/mobile-web-push.md)
 - [Testing strategy](docs/testing.md)
 - [Deployment guide](docs/deployment.md)
 - [Backup and restore](docs/backup-and-restore.md)
