@@ -51,6 +51,7 @@ vi.mock("next/navigation", () => ({
 describe("reminder scheduling", () => {
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -83,6 +84,33 @@ describe("reminder scheduling", () => {
       )?.toISOString(),
     ).toBe("2026-10-25T19:00:00.000Z");
   });
+
+  it.each([
+    ["Europe/Madrid", "2026-10-30T23:30:00Z", "2026-11-01"],
+    ["America/Los_Angeles", "2026-10-31T00:30:00Z", "2026-10-31"],
+    ["Pacific/Kiritimati", "2026-10-30T19:00:00Z", "2026-11-01"],
+    ["UTC", "2026-10-30T12:00:00Z", "2026-10-31"],
+  ])(
+    "defaults alarms to tomorrow in %s",
+    async (timezone, instant, expected) => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(new Date(instant));
+      vi.stubGlobal("Notification", { permission: "granted" });
+      const { container } = render(
+        <ReminderCenter
+          locale="en"
+          timezone={timezone}
+          reminders={[]}
+          tasks={[]}
+          events={[]}
+        />,
+      );
+      await act(async () => {});
+      const dateInput = container.querySelector('input[type="date"]');
+      expect(dateInput).not.toBeNull();
+      expect(dateInput).toHaveValue(expected);
+    },
+  );
 
   it("creates a standalone personalized alarm", async () => {
     vi.stubGlobal("Notification", {
