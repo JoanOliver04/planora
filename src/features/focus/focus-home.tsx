@@ -145,7 +145,11 @@ export function FocusHome({
   }
 
   return (
-    <section className="focus-home" aria-labelledby="focus-title">
+    <section
+      className="focus-home"
+      aria-labelledby="focus-title"
+      data-persisted-focus-status={activeSession?.status ?? "none"}
+    >
       <header className="topbar focus-home-header">
         <div>
           <p className="eyebrow">{t("eyebrow")}</p>

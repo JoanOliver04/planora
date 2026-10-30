@@ -30,16 +30,13 @@ async function openAdd(page: Page, route: string) {
 }
 
 async function focusAction(page: Page, name: string) {
-  const refresh = page.waitForRequest(
-    (request) =>
-      request.method() === "GET" &&
-      new URL(request.url()).pathname === "/en/focus" &&
-      request.headers().rsc === "1",
-  );
   await page.getByRole("button", { name, exact: true }).first().click();
-  const response = await (await refresh).response();
-  expect(response?.ok(), "Focus server view refresh").toBe(true);
-  await response!.finished();
+  const expected =
+    name === "Finish" ? "none" : name === "Pause" ? "paused" : "running";
+  await expect(page.locator(".focus-home")).toHaveAttribute(
+    "data-persisted-focus-status",
+    expected,
+  );
 }
 
 test("workspace CRUD, schedule copies, history, search and backup round trip", async ({
