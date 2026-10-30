@@ -33,7 +33,7 @@ create table planora_push.outbox (
   id uuid primary key default gen_random_uuid(),
   subscription_id uuid not null references public.push_subscriptions(id) on delete cascade,
   reminder_id uuid references public.reminders(id) on delete cascade,
-  reminder_version timestamptz,
+  reminder_version jsonb,
   occurrence timestamptz not null,
   payload jsonb not null,
   available_at timestamptz not null default now(),
@@ -140,14 +140,14 @@ begin
       if next_at<=now() then next_at:=(candidate+case when r.recurrence='weekly' then interval '7 days' else interval '1 day' end) at time zone r.timezone; end if;
     end if;
     update public.reminders set enabled=(next_at is not null),next_trigger_at=coalesce(next_at,r.next_trigger_at),snoozed_until=null where id=r.id;
-    update planora_push.outbox set reminder_version=(select updated_at from public.reminders where id=r.id) where reminder_id=r.id and occurrence=r.next_trigger_at;
+    update planora_push.outbox set reminder_version=(select jsonb_build_array(x.enabled,x.next_trigger_at at time zone 'UTC',x.timezone,x.title,x.task_id,x.event_id,x.recurrence,x.snoozed_until at time zone 'UTC') from public.reminders x where x.id=r.id) where reminder_id=r.id and occurrence=r.next_trigger_at;
   end loop;
   with picked as (
     select j.id from planora_push.outbox j join public.push_subscriptions s on s.id=j.subscription_id
     where j.status='pending' and j.available_at<=now() and (j.lease_until is null or j.lease_until<now()) and s.expires_at>now()
       and coalesce((s.preferences->>'system')::boolean,true)
-      and (j.reminder_id is null or exists(select 1 from public.reminders r where r.id=j.reminder_id and r.updated_at=j.reminder_version))
-    order by j.available_at limit 50 for update of j skip locked
+      and (j.reminder_id is null or exists(select 1 from public.reminders r where r.id=j.reminder_id and jsonb_build_array(r.enabled,r.next_trigger_at at time zone 'UTC',r.timezone,r.title,r.task_id,r.event_id,r.recurrence,r.snoozed_until at time zone 'UTC')=j.reminder_version))
+    order by j.available_at limit 25 for update of j skip locked
   ), claimed as (
     update planora_push.outbox j set lease=gen_random_uuid(),lease_until=now()+interval '2 minutes',attempts=attempts+1
     from picked where j.id=picked.id returning j.*
