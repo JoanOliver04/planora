@@ -29,6 +29,19 @@ async function openAdd(page: Page, route: string) {
   return page.getByRole("dialog");
 }
 
+async function focusAction(page: Page, name: string) {
+  const refresh = page.waitForRequest(
+    (request) =>
+      request.method() === "GET" &&
+      new URL(request.url()).pathname === "/en/focus" &&
+      request.headers().rsc === "1",
+  );
+  await page.getByRole("button", { name, exact: true }).first().click();
+  const response = await (await refresh).response();
+  expect(response?.ok(), "Focus server view refresh").toBe(true);
+  await response!.finished();
+}
+
 test("workspace CRUD, schedule copies, history, search and backup round trip", async ({
   page,
   context,
@@ -615,7 +628,7 @@ test("Focus UI pauses, resumes after reload and finishes a persisted session", a
     await dialog
       .getByRole("textbox", { name: "Intention", exact: true })
       .fill("QA focus flow");
-    await dialog.getByRole("button", { name: "Start", exact: true }).click();
+    await focusAction(page, "Start");
     await expect(dialog).toBeHidden();
     await expect
       .poll(
@@ -630,10 +643,7 @@ test("Focus UI pauses, resumes after reload and finishes a persisted session", a
     await expect
       .poll(() => Date.now() - Date.parse(started.started_at))
       .toBeGreaterThan(1500);
-    await page
-      .getByRole("button", { name: "Pause", exact: true })
-      .first()
-      .click();
+    await focusAction(page, "Pause");
     await expect
       .poll(
         async () =>
@@ -650,10 +660,7 @@ test("Focus UI pauses, resumes after reload and finishes a persisted session", a
       page.getByRole("button", { name: "Resume", exact: true }).first(),
     ).toBeVisible();
     await page.reload();
-    await page
-      .getByRole("button", { name: "Resume", exact: true })
-      .first()
-      .click();
+    await focusAction(page, "Resume");
     await expect
       .poll(
         async () =>
@@ -666,10 +673,7 @@ test("Focus UI pauses, resumes after reload and finishes a persisted session", a
           ).data?.status,
       )
       .toBe("running");
-    await page
-      .getByRole("button", { name: "Finish", exact: true })
-      .first()
-      .click();
+    await focusAction(page, "Finish");
     await expect
       .poll(
         async () =>
