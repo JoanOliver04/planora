@@ -355,5 +355,42 @@ select pg_temp.assert_rejected($command$
   values ('d0000000-0000-4000-8000-000000000005', auth.uid(), current_date - 20003, 'uncomplete')
 $command$, '23514');
 reset role;
+-- A backup can contain historical occurrences that no longer match the task's
+-- edited recurrence. Preserve that history only through the owner-bound RPC.
+insert into auth.users(id, raw_user_meta_data)
+values ('10000000-0000-4000-8000-000000000006', '{}'::jsonb);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000006', true);
+insert into public.tasks(id,user_id,scope,title,task_kind,recurrence_type,recurrence_config,start_date)
+values ('d0000000-0000-4000-8000-000000000006',auth.uid(),'global','Edited title','habit','weekdays',
+  jsonb_build_object('weekdays',jsonb_build_array(extract(dow from current_date)::integer)),current_date-100);
+select set_config('planora.restoring','on',true);
+select pg_temp.assert_rejected($command$
+  insert into public.task_completions(user_id,task_id,occurrence_date,task_snapshot)
+  values (auth.uid(),'d0000000-0000-4000-8000-000000000006',current_date-1,'{}')
+$command$,'P0001');
+select pg_temp.assert_true((public.restore_planora_backup(jsonb_build_object(
+  'tasks',(select jsonb_agg(to_jsonb(t)) from public.tasks t where user_id=auth.uid()),
+  'completions',jsonb_build_array(jsonb_build_object(
+    'id','f0000000-0000-4000-8000-000000000006','task_id','d0000000-0000-4000-8000-000000000006',
+    'occurrence_date',current_date-1,'completed_at',now()-interval '1 day',
+    'task_snapshot',jsonb_build_object('title','Historical title')
+  ))
+))->>'ok')='true','Restore must accept history predating task recurrence edits');
+select pg_temp.assert_true((select task_snapshot='{"title":"Historical title"}'::jsonb
+  from public.task_completions where user_id=auth.uid()),'Restore must preserve the historical snapshot exactly');
+select pg_temp.assert_rejected($command$
+  insert into public.task_completions(user_id,task_id,occurrence_date,task_snapshot)
+  values (auth.uid(),'d0000000-0000-4000-8000-000000000006',current_date-2,'{}')
+$command$,'P0001');
+select pg_temp.assert_true((public.restore_planora_backup(jsonb_build_object(
+  'completions',jsonb_build_array(jsonb_build_object(
+    'id','f0000000-0000-4000-8000-000000000007','task_id','d0000000-0000-4000-8000-000000000005',
+    'occurrence_date',current_date-1,'completed_at',now()-interval '1 day','task_snapshot','{}'::jsonb
+  ))
+))->>'error')='INVALID_BACKUP','Historical restore must still reject another owner task');
+select pg_temp.assert_true((select count(*)=1 from public.task_completions),
+  'Rejected foreign history must preserve previously restored completions');
+reset role;
 select 'security_hardening.sql: all assertions passed' as result;
 rollback;
