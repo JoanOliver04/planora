@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("login hydrates with nonce scripts and blocks injected inline scripts", async ({
   page,

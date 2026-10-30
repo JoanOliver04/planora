@@ -37,6 +37,7 @@ import {
 import { readSystemNotificationProblem } from "./system-notification";
 import type { Database } from "@/types/database";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
+import { nextLocalDate } from "@/lib/dates/timezone";
 
 type Reminder = Database["public"]["Tables"]["reminders"]["Row"];
 type Target = {
@@ -303,9 +304,7 @@ export function ReminderCenter({
   const [summaryTime, setSummaryTime] = useState("20:00");
 
   const [alarmTitle, setAlarmTitle] = useState("");
-  const [alarmDate, setAlarmDate] = useState(() =>
-    new Date(Date.now() + 86_400_000).toISOString().slice(0, 10),
-  );
+  const [alarmDate, setAlarmDate] = useState(() => nextLocalDate(timezone));
   const [alarmTime, setAlarmTime] = useState("20:00");
   const [alarmRecurrence, setAlarmRecurrence] = useState<
     "once" | "daily" | "weekly"

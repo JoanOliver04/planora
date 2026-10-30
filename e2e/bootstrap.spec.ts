@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("mobile landing paints product UI instead of a stuck logo splash", async ({
   page,

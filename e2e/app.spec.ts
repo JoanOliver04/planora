@@ -1,4 +1,4 @@
-﻿import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 test("public landing exposes product and conversion paths", async ({
   page,
 }) => {

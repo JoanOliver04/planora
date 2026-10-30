@@ -1,6 +1,12 @@
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 export const localDate = (timezone: string, instant: Date = new Date()) =>
   formatInTimeZone(instant, timezone, "yyyy-MM-dd");
+export function nextLocalDate(timezone: string, instant: Date = new Date()) {
+  // Advance a calendar date, rather than 24 hours across a DST boundary.
+  const day = new Date(`${localDate(timezone, instant)}T12:00:00Z`);
+  day.setUTCDate(day.getUTCDate() + 1);
+  return day.toISOString().slice(0, 10);
+}
 export const zonedDate = (day: string, timezone: string) =>
   fromZonedTime(`${day}T12:00:00`, timezone);
 export function localWeek(

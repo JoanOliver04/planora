@@ -1,7 +1,7 @@
 import { loadEnvConfig } from "@next/env";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import AxeBuilder from "@axe-core/playwright";
 import type { Database } from "../src/types/database";
 import { assertLocalTestEnvironment } from "../scripts/assert-local-test-env.mjs";

@@ -90,6 +90,9 @@ describe("reminder scheduling", () => {
     ["America/Los_Angeles", "2026-10-31T00:30:00Z", "2026-10-31"],
     ["Pacific/Kiritimati", "2026-10-30T19:00:00Z", "2026-11-01"],
     ["UTC", "2026-10-30T12:00:00Z", "2026-10-31"],
+    ["Europe/Madrid", "2026-03-28T23:30:00Z", "2026-03-30"],
+    ["Europe/Madrid", "2026-10-24T22:30:00Z", "2026-10-26"],
+    ["Pacific/Kiritimati", "2026-12-31T19:00:00Z", "2027-01-02"],
   ])(
     "defaults alarms to tomorrow in %s",
     async (timezone, instant, expected) => {
