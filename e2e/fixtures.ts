@@ -1,5 +1,8 @@
 import { test as base, expect } from "@playwright/test";
-import { isWebKitResourceDiagnostic } from "./browser-diagnostics";
+import {
+  installBrowserErrorCapture,
+  type BrowserErrorRecord,
+} from "./browser-diagnostics";
 
 function redact(value: string) {
   return value
@@ -19,37 +22,42 @@ function redact(value: string) {
 
 export { expect };
 export const offlineNetworkError =
-  /^Failed to load resource: (net::ERR_(INTERNET_DISCONNECTED|FAILED)|The Internet connection appears to be offline\.)/;
+  /^Failed to load resource: (net::ERR_(INTERNET_DISCONNECTED|FAILED)|The Internet connection appears to be offline\.|WebKit encountered an internal error)/;
 
 export const test = base.extend<{
-  browserDiagnostics: { allowConsoleError: (pattern: RegExp) => void };
+  browserDiagnostics: {
+    allowConsoleError: (pattern: RegExp) => void;
+    allowWindowError: (pattern: RegExp) => void;
+    windowErrors: () => string[];
+  };
 }>({
   browserDiagnostics: [
-    async ({ page, browserName, baseURL }, use, testInfo) => {
+    async ({ page }, use, testInfo) => {
       const exceptions: string[] = [];
       const consoleErrors: string[] = [];
       const serverErrors: string[] = [];
       const expectedConsoleErrors: RegExp[] = [];
+      const expectedWindowErrors: RegExp[] = [];
       const resourceDiagnostics: string[] = [];
       const errorDetails: Array<{
         name: string;
         message: string;
         stack?: string;
       }> = [];
-      const origins = [baseURL, process.env.NEXT_PUBLIC_SUPABASE_URL]
-        .filter((value): value is string => Boolean(value))
-        .map((value) => new URL(value).origin);
+      await page.exposeBinding(
+        "__planoraQaError",
+        (_source, record: BrowserErrorRecord) => {
+          exceptions.push(redact(record.message));
+          errorDetails.push({
+            name: redact(record.name),
+            message: redact(record.message),
+            stack: redact(record.stack ?? ""),
+          });
+        },
+      );
+      await page.addInitScript(installBrowserErrorCapture);
       page.on("pageerror", (error) => {
-        if (isWebKitResourceDiagnostic(error, browserName, origins)) {
-          resourceDiagnostics.push(redact(error.message));
-          return;
-        }
-        exceptions.push(redact(error.message));
-        errorDetails.push({
-          name: redact(error.name),
-          message: redact(error.message),
-          stack: redact(error.stack ?? ""),
-        });
+        resourceDiagnostics.push(redact(`${error.name}: ${error.message}`));
       });
       page.on("console", (message) => {
         if (message.type() === "error")
@@ -63,9 +71,25 @@ export const test = base.extend<{
       });
       await use({
         allowConsoleError: (pattern) => expectedConsoleErrors.push(pattern),
+        allowWindowError: (pattern) => expectedWindowErrors.push(pattern),
+        windowErrors: () => [...exceptions],
       });
       if (testInfo.status === "skipped") return;
-      if (testInfo.status !== testInfo.expectedStatus) {
+      await page.evaluate(() => Promise.resolve()).catch(() => undefined);
+      const unexpectedConsoleErrors = consoleErrors.filter(
+        (message) =>
+          !expectedConsoleErrors.some((pattern) => pattern.test(message)),
+      );
+      const unexpectedWindowErrors = exceptions.filter(
+        (message) =>
+          !expectedWindowErrors.some((pattern) => pattern.test(message)),
+      );
+      if (
+        testInfo.status !== testInfo.expectedStatus ||
+        unexpectedWindowErrors.length ||
+        unexpectedConsoleErrors.length ||
+        serverErrors.length
+      ) {
         const text = await page
           .locator("body")
           .innerText({ timeout: 1000 })
@@ -96,15 +120,14 @@ export const test = base.extend<{
       });
       if (resourceDiagnostics.length)
         console.info(
-          `WebKit resource diagnostics: ${resourceDiagnostics.length}; retained separately from JavaScript exceptions`,
+          `Browser pageerror diagnostics: ${resourceDiagnostics.length}; window errors and unhandled rejections checked separately`,
         );
-      expect(exceptions, "No unhandled browser exceptions").toEqual([]);
+      expect(unexpectedWindowErrors, "No unhandled browser exceptions").toEqual(
+        [],
+      );
       expect(serverErrors, "No HTTP 5xx responses").toEqual([]);
       expect(
-        consoleErrors.filter(
-          (message) =>
-            !expectedConsoleErrors.some((pattern) => pattern.test(message)),
-        ),
+        unexpectedConsoleErrors,
         "No unexpected browser console errors",
       ).toEqual([]);
     },

@@ -6,6 +6,16 @@ import { expect, offlineNetworkError, test } from "./fixtures";
 
 test.use({ actionTimeout: 15_000, navigationTimeout: 30_000 });
 
+async function navigateWorkspace(page: Page, route: string) {
+  const link = page.locator(`a[href="/en/${route}"]:visible`).first();
+  if (!(await link.isVisible())) {
+    await page.getByRole("link", { name: "More", exact: true }).click();
+    await expect(page).toHaveURL(/\/en\/more/);
+  }
+  await link.click();
+  await expect(page).toHaveURL(new RegExp(`/en/${route}(?:[?#]|$)`));
+}
+
 async function openAdd(page: Page, route: string) {
   await page.goto(`/en/${route}`);
   await page
@@ -385,7 +395,7 @@ test("templates, alarms and account appearance persist through the UI", async ({
           .eq("schedule_id", imported.data!.id)
       ).count,
     ).toBe(2);
-    await page.goto("/en/templates");
+    await navigateWorkspace(page, "templates");
     await page
       .getByRole("combobox", { name: "Source schedule", exact: true })
       .selectOption(imported.data!.id);
@@ -406,6 +416,9 @@ test("templates, alarms and account appearance persist through the UI", async ({
           ).count,
       )
       .toBe(1);
+    await expect(
+      page.getByRole("button", { name: /QA reusable template/ }),
+    ).toBeVisible();
     await page.reload();
     await page.getByRole("button", { name: /QA reusable template/ }).click();
     await expect(
@@ -416,7 +429,7 @@ test("templates, alarms and account appearance persist through the UI", async ({
       .getByRole("button", { name: "Close", exact: true })
       .click();
 
-    await page.goto("/en/reminders");
+    await navigateWorkspace(page, "reminders");
     const alarm = page.locator("section").filter({
       has: page.getByRole("heading", {
         name: "Create an alarm",

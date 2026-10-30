@@ -6,6 +6,7 @@ import {
   screen,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
 import {
   advanceTrigger,
   customTrigger,
@@ -114,6 +115,22 @@ describe("reminder scheduling", () => {
       expect(dateInput).toHaveValue(expected);
     },
   );
+
+  it("disables server-rendered reminder forms until their handlers are hydrated", () => {
+    const html = renderToStaticMarkup(
+      <ReminderCenter
+        locale="en"
+        timezone="Europe/Madrid"
+        reminders={[]}
+        tasks={[]}
+        events={[]}
+      />,
+    );
+    const document = new DOMParser().parseFromString(html, "text/html");
+    expect(
+      document.querySelector(".reminder-forms")?.hasAttribute("disabled"),
+    ).toBe(true);
+  });
 
   it("creates a standalone personalized alarm", async () => {
     vi.stubGlobal("Notification", {

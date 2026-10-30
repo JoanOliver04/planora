@@ -1,24 +1,44 @@
-/** WebKit reports some cancelled fetches as pageerror without a JS stack.
- * https://github.com/microsoft/playwright/issues/43120
- * Recognize only the browser's malformed error name and known test origins.
- * Ordinary JavaScript exceptions and errors with a stack remain failures.
+export type BrowserErrorRecord = {
+  kind: "error" | "unhandledrejection";
+  name: string;
+  message: string;
+  stack?: string;
+};
+
+/** Install before application scripts. WebKit's pageerror also includes browser
+ * resource diagnostics, so assert actual window errors and unhandled rejections.
  */
-export function isWebKitResourceDiagnostic(
-  error: { name: string; message: string; stack?: string },
-  browserName: string,
-  origins: string[],
-) {
-  if (browserName !== "webkit" || error.stack) return false;
-  const protocol = error.name.match(/^Fetch API cannot load (https?)$/)?.[1];
-  const resource = error.message.match(
-    /^(\/\S+) due to access control checks\.$/,
-  )?.[1];
-  if (!protocol || !resource) return false;
-  try {
-    // Playwright splitErrorMessage discards the first slash after "http:".
-    const target = new URL(`${protocol}:/${resource}`);
-    return origins.includes(target.origin);
-  } catch {
-    return false;
-  }
+export function installBrowserErrorCapture() {
+  const sink = (
+    globalThis as unknown as {
+      __planoraQaError: (record: BrowserErrorRecord) => Promise<void>;
+    }
+  ).__planoraQaError;
+  const report = (record: BrowserErrorRecord) => {
+    void sink(record).catch(() => undefined);
+  };
+  const onError = (event: Event) => {
+    if (!(event instanceof ErrorEvent)) return;
+    report({
+      kind: "error",
+      name: event.error?.name ?? "Error",
+      message: event.message,
+      stack: event.error?.stack,
+    });
+  };
+  const onRejection = (event: PromiseRejectionEvent) => {
+    const reason = event.reason;
+    report({
+      kind: "unhandledrejection",
+      name: reason?.name ?? "Error",
+      message: reason?.message ?? String(reason),
+      stack: reason?.stack,
+    });
+  };
+  window.addEventListener("error", onError);
+  window.addEventListener("unhandledrejection", onRejection);
+  return () => {
+    window.removeEventListener("error", onError);
+    window.removeEventListener("unhandledrejection", onRejection);
+  };
 }

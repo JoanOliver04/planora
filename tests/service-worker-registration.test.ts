@@ -36,15 +36,13 @@ describe("service worker registration", () => {
     vi.stubGlobal("navigator", {
       serviceWorker: {
         addEventListener: vi.fn(),
-        register: vi
-          .fn()
-          .mockRejectedValue(new DOMException("blocked", "SecurityError")),
+        register: vi.fn().mockRejectedValue(new Error("blocked")),
       },
     });
     await expect(registerPlanoraServiceWorker()).resolves.toBeNull();
     expect(log).toHaveBeenCalledWith({
       phase: "service_worker",
-      errorType: "SecurityError",
+      errorType: "Error",
     });
   });
 

@@ -1,47 +1,68 @@
-import { describe, expect, it } from "vitest";
-import { isWebKitResourceDiagnostic } from "../e2e/browser-diagnostics";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { installBrowserErrorCapture } from "../e2e/browser-diagnostics";
 
-const diagnostic = {
-  name: "Fetch API cannot load http",
-  message: "/127.0.0.1:3000/en/week?_rsc=test due to access control checks.",
-  stack: "",
-};
-const origins = ["http://127.0.0.1:3000"];
+let dispose: (() => void) | undefined;
+afterEach(() => {
+  dispose?.();
+  vi.unstubAllGlobals();
+});
 
-describe("browser diagnostic classification", () => {
-  it("records the known WebKit resource diagnostic separately", () => {
-    expect(isWebKitResourceDiagnostic(diagnostic, "webkit", origins)).toBe(
-      true,
+function capture() {
+  const report = vi.fn().mockResolvedValue(undefined);
+  vi.stubGlobal("__planoraQaError", report);
+  dispose = installBrowserErrorCapture();
+  return report;
+}
+
+describe("actual browser JavaScript errors", () => {
+  it("captures an uncaught window error", () => {
+    const report = capture();
+    const error = new TypeError("application failure");
+    window.dispatchEvent(
+      new ErrorEvent("error", { message: error.message, error }),
+    );
+    expect(report).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: "error",
+        name: "TypeError",
+        message: error.message,
+      }),
     );
   });
-  it("keeps Chromium errors as failures", () => {
-    expect(isWebKitResourceDiagnostic(diagnostic, "chromium", origins)).toBe(
-      false,
+  it("captures an unhandled promise rejection", () => {
+    const report = capture();
+    const event = new Event("unhandledrejection");
+    Object.defineProperty(event, "reason", {
+      value: new Error("async failure"),
+    });
+    window.dispatchEvent(event);
+    expect(report).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: "unhandledrejection",
+        message: "async failure",
+      }),
     );
   });
-  it("keeps genuine JavaScript errors with a stack as failures", () => {
-    expect(
-      isWebKitResourceDiagnostic(
-        { ...diagnostic, stack: "at application.js:1" },
-        "webkit",
-        origins,
-      ),
-    ).toBe(false);
+  it("captures syntax errors without an Error object", () => {
+    const report = capture();
+    window.dispatchEvent(
+      new ErrorEvent("error", { message: "Unexpected token" }),
+    );
+    expect(report).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "error", message: "Unexpected token" }),
+    );
   });
-  it("keeps ordinary fetch exceptions as failures", () => {
-    expect(
-      isWebKitResourceDiagnostic(
-        { name: "TypeError", message: "Load failed", stack: "" },
-        "webkit",
-        origins,
-      ),
-    ).toBe(false);
+  it("does not mislabel a resource event as a JavaScript exception", () => {
+    const report = capture();
+    window.dispatchEvent(new Event("error"));
+    expect(report).not.toHaveBeenCalled();
   });
-  it("does not accept resource diagnostics for an unknown origin", () => {
-    expect(
-      isWebKitResourceDiagnostic(diagnostic, "webkit", [
-        "https://other.invalid",
-      ]),
-    ).toBe(false);
+  it("removes listeners when disposed", () => {
+    const report = capture();
+    dispose!();
+    window.dispatchEvent(
+      new ErrorEvent("error", { message: "after disposal" }),
+    );
+    expect(report).not.toHaveBeenCalled();
   });
 });
