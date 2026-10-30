@@ -101,8 +101,14 @@ export function PushSettings({ locale }: { locale: string }) {
       const registration = await readyServiceWorker();
       if (!registration || !config.publicKey)
         throw new Error("Push unavailable");
+      let existing = await registration.pushManager.getSubscription();
+      // A browser may have retained a previous account's subscription.
+      if (existing && !config.endpoints?.includes(existing.endpoint)) {
+        await existing.unsubscribe();
+        existing = null;
+      }
       const sub =
-        (await registration.pushManager.getSubscription()) ??
+        existing ??
         (await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: applicationServerKey(config.publicKey),

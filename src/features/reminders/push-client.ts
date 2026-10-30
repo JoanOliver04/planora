@@ -29,6 +29,8 @@ export async function disconnectPushDevice() {
     await updatePushDevice("unsubscribe", subscription);
   } finally {
     await subscription.unsubscribe();
+    const notices = await registration?.getNotifications();
+    notices?.forEach((notice) => notice.close());
   }
 }
 

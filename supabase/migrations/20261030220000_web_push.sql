@@ -48,6 +48,12 @@ create table planora_push.outbox (
 alter table planora_push.outbox enable row level security;
 create index push_outbox_pending_idx on planora_push.outbox(available_at) where status = 'pending';
 
+create function planora_push.reminder_revision(r public.reminders) returns jsonb
+language sql stable set search_path = '' as $$
+  select jsonb_build_array(r.enabled,r.next_trigger_at at time zone 'UTC',r.timezone,r.title,r.task_id,r.event_id,r.recurrence,r.snoozed_until at time zone 'UTC');
+$$;
+revoke all on function planora_push.reminder_revision(public.reminders) from public,anon,authenticated,service_role;
+
 create function public.push_configuration() returns jsonb
 language sql stable security definer set search_path = '' as $$
   select jsonb_build_object(
@@ -115,10 +121,10 @@ begin
   update planora_push.configuration set last_dispatch_at=now() where id;
   delete from public.push_subscriptions where expires_at<=now();
   delete from planora_push.outbox where occurrence<now()-interval '7 days';
-  update planora_push.outbox set status='failed' where status='pending' and (expires_at<=now() or attempts>=5);
-  for r in select r.*, p.locale from public.reminders r join public.profiles p on p.id=r.user_id
-    where r.enabled and r.next_trigger_at<=now() and exists(select 1 from public.push_subscriptions s where s.user_id=r.user_id and coalesce((s.preferences->>'system')::boolean,true))
-    order by r.next_trigger_at limit 50 for update of r skip locked
+  update planora_push.outbox set status='failed' where status='pending' and (lease_until is null or lease_until<now()) and (expires_at<=now() or attempts>=5);
+  for r in select rem.*, p.locale from public.reminders rem join public.profiles p on p.id=rem.user_id
+    where rem.enabled and rem.next_trigger_at<=now() and exists(select 1 from public.push_subscriptions s where s.user_id=rem.user_id and coalesce((s.preferences->>'system')::boolean,true))
+    order by rem.next_trigger_at limit 50 for update of rem skip locked
   loop
     if r.next_trigger_at>now()-interval '24 hours' then
       insert into planora_push.outbox(subscription_id,reminder_id,occurrence,payload)
@@ -127,7 +133,8 @@ begin
         'body',left(coalesce(r.title,(select t.title from public.tasks t where t.id=r.task_id and t.user_id=r.user_id),(select e.title from public.events e where e.id=r.event_id and e.user_id=r.user_id),case when r.locale='es' then 'Es hora de revisar tu planificación.' else 'It is time to check your plan.' end),240),
         'tag','push:'||r.id||':'||extract(epoch from r.next_trigger_at)::bigint,
         'url','/'||r.locale||case when r.kind='daily_summary' then '/summary' else '/reminders' end,
-        'silent',not coalesce((s.preferences->>'sound')::boolean,true),'requireInteraction',r.kind='alarm')
+        'silent',not coalesce((s.preferences->>'sound')::boolean,true),'requireInteraction',r.kind='alarm',
+        'channel',case when r.kind='alarm' then 'alarms' when r.kind='daily_summary' then 'summaries' when r.event_id is not null then 'events' else 'tasks' end)
       from public.push_subscriptions s where s.user_id=r.user_id and s.expires_at>now() and coalesce((s.preferences->>'system')::boolean,true)
         and coalesce((s.preferences->>(case when r.kind='alarm' then 'alarms' when r.kind='daily_summary' then 'summaries' when r.event_id is not null then 'events' else 'tasks' end))::boolean,true)
       on conflict do nothing;
@@ -140,13 +147,14 @@ begin
       if next_at<=now() then next_at:=(candidate+case when r.recurrence='weekly' then interval '7 days' else interval '1 day' end) at time zone r.timezone; end if;
     end if;
     update public.reminders set enabled=(next_at is not null),next_trigger_at=coalesce(next_at,r.next_trigger_at),snoozed_until=null where id=r.id;
-    update planora_push.outbox set reminder_version=(select jsonb_build_array(x.enabled,x.next_trigger_at at time zone 'UTC',x.timezone,x.title,x.task_id,x.event_id,x.recurrence,x.snoozed_until at time zone 'UTC') from public.reminders x where x.id=r.id) where reminder_id=r.id and occurrence=r.next_trigger_at;
+    update planora_push.outbox set reminder_version=(select planora_push.reminder_revision(x) from public.reminders x where x.id=r.id) where reminder_id=r.id and occurrence=r.next_trigger_at;
   end loop;
   with picked as (
     select j.id from planora_push.outbox j join public.push_subscriptions s on s.id=j.subscription_id
     where j.status='pending' and j.available_at<=now() and (j.lease_until is null or j.lease_until<now()) and s.expires_at>now()
       and coalesce((s.preferences->>'system')::boolean,true)
-      and (j.reminder_id is null or exists(select 1 from public.reminders r where r.id=j.reminder_id and jsonb_build_array(r.enabled,r.next_trigger_at at time zone 'UTC',r.timezone,r.title,r.task_id,r.event_id,r.recurrence,r.snoozed_until at time zone 'UTC')=j.reminder_version))
+      and coalesce((s.preferences->>(j.payload->>'channel'))::boolean,true)
+      and (j.reminder_id is null or exists(select 1 from public.reminders rem where rem.id=j.reminder_id and planora_push.reminder_revision(rem)=j.reminder_version))
     order by j.available_at limit 25 for update of j skip locked
   ), claimed as (
     update planora_push.outbox j set lease=gen_random_uuid(),lease_until=now()+interval '2 minutes',attempts=attempts+1
@@ -163,6 +171,10 @@ create function public.finish_push_job(p_id uuid,p_lease uuid,p_code int) return
 language plpgsql security definer set search_path = '' as $$
 declare j planora_push.outbox;
 begin
+  -- Same lock order as enqueue: reminder before outbox row.
+  select * into j from planora_push.outbox where id=p_id;
+  if not found then return; end if;
+  perform 1 from public.reminders where id=j.reminder_id for update;
   select * into j from planora_push.outbox where id=p_id and lease=p_lease and status='pending' for update;
   if not found then return; end if;
   if p_code in (404,410) then
@@ -172,7 +184,7 @@ begin
   end if;
   update planora_push.outbox set status=case when p_code between 200 and 299 then 'sent' when attempts>=5 or (p_code between 400 and 499 and p_code not in (408,429)) then 'failed' else 'pending' end,
     last_code=p_code,lease=null,lease_until=null,available_at=now()+least(16,power(2,attempts)::int)*interval '1 minute' where id=p_id;
-  if p_code between 200 and 299 then update public.reminders set delivery_status='delivered',last_delivered_at=now() where id=j.reminder_id; end if;
+  if p_code between 200 and 299 then update public.reminders r set delivery_status='delivered',last_delivered_at=now() where id=j.reminder_id and planora_push.reminder_revision(r)=j.reminder_version; end if;
   if exists(select 1 from planora_push.outbox where id=p_id and status='failed') then update public.reminders set delivery_status='failed' where id=j.reminder_id and delivery_status<>'delivered'; end if;
 end;
 $$;
