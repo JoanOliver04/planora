@@ -505,6 +505,9 @@ test("templates, alarms and account appearance persist through the UI", async ({
           ).data?.preferences,
       )
       .toMatchObject({ reduceMotion: true });
+    await expect(
+      page.getByText("Changes saved", { exact: true }),
+    ).toBeVisible();
     await page.reload();
     await expect(
       page.getByRole("checkbox", { name: "Reduce animations", exact: true }),
@@ -643,6 +646,9 @@ test("Focus UI pauses, resumes after reload and finishes a persisted session", a
           ).data?.status,
       )
       .toBe("paused");
+    await expect(
+      page.getByRole("button", { name: "Resume", exact: true }).first(),
+    ).toBeVisible();
     await page.reload();
     await page
       .getByRole("button", { name: "Resume", exact: true })
