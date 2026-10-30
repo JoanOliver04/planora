@@ -5,6 +5,28 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+    groups:
+      # React and its renderer must move together to satisfy peer dependencies.
+      react:
+        patterns:
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+      test-tools:
+        dependency-type: development
+        patterns:
+          - "@playwright/test"
+          - "@testing-library/*"
+          - "@vitejs/plugin-react"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: github-actions
     directory: /
     schedule:
