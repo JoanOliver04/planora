@@ -5,6 +5,23 @@ import { hasLocalCredentials, withLocalWorkspace } from "./local-workspace";
 import { defaultNotificationPreferences } from "../src/features/reminders/preferences";
 import type { Database } from "../src/types/database";
 
+test("push APIs reject unauthenticated dispatch and cross-origin device writes", async ({
+  request,
+}) => {
+  const dispatch = await request.post("/api/push/dispatch", { data: {} });
+  expect(dispatch.status()).toBe(401);
+  expect(dispatch.headers()["cache-control"]).toContain("no-store");
+  expect((await request.get("/api/push")).status()).toBe(401);
+  expect(
+    (
+      await request.post("/api/push", {
+        headers: { Origin: "https://evil.test" },
+        data: { action: "test", endpoint: "https://fcm.googleapis.com/test" },
+      })
+    ).status(),
+  ).toBe(403);
+});
+
 test("push outbox survives closed pages, retries and isolates devices", async ({
   context,
   baseURL,
@@ -100,6 +117,77 @@ test("push outbox survives closed pages, retries and isolates devices", async ({
     expect(row.data?.enabled).toBe(false);
     expect(row.data?.delivery_status).toBe("delivered");
     expect(row.data?.last_delivered_at).toBeTruthy();
+    for (const scenario of ["cancel", "retry"]) {
+      const alarm = await db
+        .from("reminders")
+        .insert({
+          user_id: userId,
+          kind: "alarm",
+          title: `QA ${scenario}`,
+          recurrence: "once",
+          timezone: "UTC",
+          next_trigger_at: new Date(Date.now() - 1000).toISOString(),
+          enabled: true,
+        })
+        .select("id")
+        .single();
+      expect(alarm.error).toBeNull();
+      const claimed = await admin.rpc("claim_push_jobs");
+      expect(claimed.error).toBeNull();
+      const pending = (claimed.data as unknown as Job[]).find(
+        (item) =>
+          item.endpoint === endpoint && item.payload.body === `QA ${scenario}`,
+      )!;
+      expect(pending).toBeTruthy();
+      if (scenario === "cancel") {
+        // Enqueue already disabled this one-off. Explicitly disabling it again
+        // must nevertheless invalidate its pending delivery.
+        expect(
+          (
+            await db
+              .from("reminders")
+              .update({ enabled: false })
+              .eq("id", alarm.data!.id)
+          ).error,
+        ).toBeNull();
+      } else {
+        expect(
+          (
+            await admin.rpc("finish_push_job", {
+              p_id: pending.id,
+              p_lease: pending.lease,
+              p_code: 503,
+            })
+          ).error,
+        ).toBeNull();
+        const immediate = await admin.rpc("claim_push_jobs");
+        expect(immediate.error).toBeNull();
+        expect(
+          (immediate.data as unknown as Job[]).some(
+            (item) => item.id === pending.id,
+          ),
+        ).toBe(false);
+      }
+      // A canceled or already settled lease can never acknowledge delivery.
+      expect(
+        (
+          await admin.rpc("finish_push_job", {
+            p_id: pending.id,
+            p_lease: pending.lease,
+            p_code: 201,
+          })
+        ).error,
+      ).toBeNull();
+      expect(
+        (
+          await db
+            .from("reminders")
+            .select("delivery_status")
+            .eq("id", alarm.data!.id)
+            .single()
+        ).data?.delivery_status,
+      ).toBe("pending");
+    }
     // A second user cannot register/remove the first user's endpoint.
     await withLocalWorkspace(context, baseURL, async (other) => {
       expect(

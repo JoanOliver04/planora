@@ -356,7 +356,7 @@ export function ReminderCenter({
       : minutes;
 
   useEffect(() => {
-    queueMicrotask(() => {
+    const syncLocalState = () => {
       setPermission(
         "Notification" in window ? Notification.permission : "unsupported",
       );
@@ -366,14 +366,22 @@ export function ReminderCenter({
           ? current
           : savedPreferences,
       );
-    });
+    };
+    queueMicrotask(syncLocalState);
     const updated = () => router.refresh();
     const syncProblem = () => setSystemProblem(readSystemNotificationProblem());
     syncProblem();
     window.addEventListener("planora-reminders-updated", updated);
     window.addEventListener("planora-system-notification-status", syncProblem);
+    window.addEventListener("focus", syncLocalState);
+    window.addEventListener("planora-notification-preferences", syncLocalState);
     return () => {
       window.removeEventListener("planora-reminders-updated", updated);
+      window.removeEventListener("focus", syncLocalState);
+      window.removeEventListener(
+        "planora-notification-preferences",
+        syncLocalState,
+      );
       window.removeEventListener(
         "planora-system-notification-status",
         syncProblem,
@@ -616,6 +624,7 @@ export function ReminderCenter({
         </div>
       </header>
 
+      <PushSettings locale={locale} />
       <section className="surface permission-card" data-permission={permission}>
         <div>
           {permission === "granted" && !optedOut ? <Bell /> : <BellOff />}
@@ -648,8 +657,8 @@ export function ReminderCenter({
                     : "The browser has blocked notifications. You can allow them in the site settings. Planora will not ask again on its own."
                   : permission === "granted"
                     ? es
-                      ? "El canal del sistema puede usarse en este dispositivo."
-                      : "The system channel can be used on this device."
+                      ? "El permiso del sistema está concedido. Para recibir con Planora cerrada, registra este dispositivo en el apartado superior."
+                      : "System permission is granted. For delivery while Planora is closed, register this device in the section above."
                     : es
                       ? "Solo pedimos permiso cuando pulsas el botón. Sin publicidad."
                       : "Permission is only requested after your click. No advertising."}
@@ -690,7 +699,6 @@ export function ReminderCenter({
         )}
       </section>
 
-      <PushSettings locale={locale} />
       <section className="surface notification-preferences">
         <div className="notification-preferences-heading">
           <MonitorSmartphone />

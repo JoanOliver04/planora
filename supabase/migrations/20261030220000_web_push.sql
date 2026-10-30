@@ -54,6 +54,19 @@ language sql stable set search_path = '' as $$
 $$;
 revoke all on function planora_push.reminder_revision(public.reminders) from public,anon,authenticated,service_role;
 
+create function planora_push.cancel_changed_reminder_jobs() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  update planora_push.outbox set status='failed',last_code=499 where reminder_id=new.id and status='pending';
+  return new;
+end;
+$$;
+revoke all on function planora_push.cancel_changed_reminder_jobs() from public,anon,authenticated,service_role;
+-- UPDATE OF also detects an explicit cancellation of an already queued one-off
+-- alarm (its enabled flag is already false after enqueue).
+create trigger cancel_changed_reminder_push after update of enabled,next_trigger_at,snoozed_until,timezone,title,task_id,event_id,kind,recurrence,time_of_day,minutes_before on public.reminders
+for each row execute function planora_push.cancel_changed_reminder_jobs();
+
 create function public.push_configuration() returns jsonb
 language sql stable security definer set search_path = '' as $$
   select jsonb_build_object(
@@ -126,6 +139,15 @@ begin
     where rem.enabled and rem.next_trigger_at<=now() and exists(select 1 from public.push_subscriptions s where s.user_id=rem.user_id and coalesce((s.preferences->>'system')::boolean,true))
     order by rem.next_trigger_at limit 50 for update of rem skip locked
   loop
+    next_at:=null;
+    if r.recurrence<>'once' then
+      candidate := (now() at time zone r.timezone)::date + (r.next_trigger_at at time zone r.timezone)::time;
+      if r.recurrence='weekly' then candidate:=candidate + ((extract(isodow from r.next_trigger_at at time zone r.timezone)::int-extract(isodow from candidate)::int+7)%7)*interval '1 day'; end if;
+      next_at:=candidate at time zone r.timezone;
+      if next_at<=now() then next_at:=(candidate+case when r.recurrence='weekly' then interval '7 days' else interval '1 day' end) at time zone r.timezone; end if;
+    end if;
+    -- Cancel previous pending work first, then atomically enqueue this occurrence.
+    update public.reminders set enabled=(next_at is not null),next_trigger_at=coalesce(next_at,r.next_trigger_at),snoozed_until=null where id=r.id;
     if r.next_trigger_at>now()-interval '24 hours' then
       insert into planora_push.outbox(subscription_id,reminder_id,occurrence,payload)
       select s.id,r.id,r.next_trigger_at,jsonb_build_object(
@@ -139,14 +161,6 @@ begin
         and coalesce((s.preferences->>(case when r.kind='alarm' then 'alarms' when r.kind='daily_summary' then 'summaries' when r.event_id is not null then 'events' else 'tasks' end))::boolean,true)
       on conflict do nothing;
     end if;
-    next_at:=null;
-    if r.recurrence<>'once' then
-      candidate := (now() at time zone r.timezone)::date + (r.next_trigger_at at time zone r.timezone)::time;
-      if r.recurrence='weekly' then candidate:=candidate + ((extract(isodow from r.next_trigger_at at time zone r.timezone)::int-extract(isodow from candidate)::int+7)%7)*interval '1 day'; end if;
-      next_at:=candidate at time zone r.timezone;
-      if next_at<=now() then next_at:=(candidate+case when r.recurrence='weekly' then interval '7 days' else interval '1 day' end) at time zone r.timezone; end if;
-    end if;
-    update public.reminders set enabled=(next_at is not null),next_trigger_at=coalesce(next_at,r.next_trigger_at),snoozed_until=null where id=r.id;
     update planora_push.outbox set reminder_version=(select planora_push.reminder_revision(x) from public.reminders x where x.id=r.id) where reminder_id=r.id and occurrence=r.next_trigger_at;
   end loop;
   with picked as (
