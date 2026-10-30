@@ -6,6 +6,7 @@ import {
   screen,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
 import {
   advanceTrigger,
   customTrigger,
@@ -51,6 +52,7 @@ vi.mock("next/navigation", () => ({
 describe("reminder scheduling", () => {
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -82,6 +84,52 @@ describe("reminder scheduling", () => {
         "Europe/Madrid",
       )?.toISOString(),
     ).toBe("2026-10-25T19:00:00.000Z");
+  });
+
+  it.each([
+    ["Europe/Madrid", "2026-10-30T23:30:00Z", "2026-11-01"],
+    ["America/Los_Angeles", "2026-10-31T00:30:00Z", "2026-10-31"],
+    ["Pacific/Kiritimati", "2026-10-30T19:00:00Z", "2026-11-01"],
+    ["UTC", "2026-10-30T12:00:00Z", "2026-10-31"],
+    ["Europe/Madrid", "2026-03-28T23:30:00Z", "2026-03-30"],
+    ["Europe/Madrid", "2026-10-24T22:30:00Z", "2026-10-26"],
+    ["Pacific/Kiritimati", "2026-12-31T19:00:00Z", "2027-01-02"],
+  ])(
+    "defaults alarms to tomorrow in %s",
+    async (timezone, instant, expected) => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(new Date(instant));
+      vi.stubGlobal("Notification", { permission: "granted" });
+      const { container } = render(
+        <ReminderCenter
+          locale="en"
+          timezone={timezone}
+          reminders={[]}
+          tasks={[]}
+          events={[]}
+        />,
+      );
+      await act(async () => {});
+      const dateInput = container.querySelector('input[type="date"]');
+      expect(dateInput).not.toBeNull();
+      expect(dateInput).toHaveValue(expected);
+    },
+  );
+
+  it("disables server-rendered reminder forms until their handlers are hydrated", () => {
+    const html = renderToStaticMarkup(
+      <ReminderCenter
+        locale="en"
+        timezone="Europe/Madrid"
+        reminders={[]}
+        tasks={[]}
+        events={[]}
+      />,
+    );
+    const document = new DOMParser().parseFromString(html, "text/html");
+    expect(
+      document.querySelector(".reminder-forms")?.hasAttribute("disabled"),
+    ).toBe(true);
   });
 
   it("creates a standalone personalized alarm", async () => {

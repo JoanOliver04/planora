@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, offlineNetworkError, test } from "./fixtures";
 
 test("mobile landing paints product UI instead of a stuck logo splash", async ({
   page,
@@ -32,7 +32,9 @@ test("production service worker is not cached and public HTML still works offlin
   page,
   context,
   browserName,
+  browserDiagnostics,
 }) => {
+  browserDiagnostics.allowConsoleError(offlineNetworkError);
   const sw = await page.goto("/sw.js");
   expect(sw?.ok()).toBeTruthy();
   expect(sw?.headers()["cache-control"] ?? "").toMatch(/no-store|no-cache/);

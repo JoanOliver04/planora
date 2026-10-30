@@ -15,6 +15,34 @@ import {
 import { backupFixture, backupIds } from "./backup-fixture";
 
 describe("portable backups", () => {
+  it.each(["metadata", "profile", "reminder", "focus goal"])(
+    "rejects an unsupported timezone in %s before restoring",
+    (field) => {
+      const backup = createBackup(backupFixture());
+      if (field === "metadata") backup.timezone = "Not/A-Timezone";
+      if (field === "profile") backup.data.profile!.timezone = "Not/A-Timezone";
+      if (field === "reminder")
+        backup.data.reminders[0].timezone = "Not/A-Timezone";
+      if (field === "focus goal")
+        backup.data.focus_goals[0].timezone = "Not/A-Timezone";
+      expect(parseBackup(backup).success).toBe(false);
+    },
+  );
+
+  it.each([
+    "UTC",
+    "Europe/Madrid",
+    "America/Los_Angeles",
+    "Pacific/Kiritimati",
+  ])("accepts supported backup timezones: %s", (timezone) => {
+    const backup = createBackup(backupFixture());
+    backup.timezone = timezone;
+    backup.data.profile!.timezone = timezone;
+    backup.data.reminders[0].timezone = timezone;
+    backup.data.focus_goals[0].timezone = timezone;
+    expect(parseBackup(backup).success).toBe(true);
+  });
+
   it("creates a versioned backup with stable metadata", () => {
     const backup = createBackup(backupFixture());
     expect(backup).toMatchObject({

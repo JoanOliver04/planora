@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { preferencesSchema } from "@/lib/validation/preferences";
+import { timezoneSchema } from "@/lib/validation/timezone";
 
 export const id = z.string().uuid();
 export const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
@@ -52,19 +53,6 @@ export const eventSchema = z
         message: "End time must be later",
       });
   });
-
-const timezoneSchema = z
-  .string()
-  .min(1)
-  .max(100)
-  .refine((value) => {
-    try {
-      Intl.DateTimeFormat(undefined, { timeZone: value });
-      return true;
-    } catch {
-      return false;
-    }
-  }, "Invalid timezone");
 
 export const profileSchema = z.object({
   locale: z.enum(["es", "en"]).optional(),

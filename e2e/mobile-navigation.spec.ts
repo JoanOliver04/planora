@@ -1,7 +1,8 @@
 import { loadEnvConfig } from "@next/env";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
+import { beginBrowserCleanup } from "./browser-diagnostics";
 import AxeBuilder from "@axe-core/playwright";
 import type { Database } from "../src/types/database";
 import { assertLocalTestEnvironment } from "../scripts/assert-local-test-env.mjs";
@@ -271,6 +272,9 @@ test("mobile More navigation reaches every secondary area naturally", async ({
       "aria-current",
       "page",
     );
+    await page.waitForLoadState("networkidle", { timeout: 10_000 });
+    beginBrowserCleanup(page);
+    await page.close();
   } finally {
     await admin.auth.admin.deleteUser(userId);
   }

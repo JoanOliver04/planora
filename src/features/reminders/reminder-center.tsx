@@ -1,5 +1,12 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+} from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
@@ -37,8 +44,12 @@ import {
 import { readSystemNotificationProblem } from "./system-notification";
 import type { Database } from "@/types/database";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
+import { nextLocalDate } from "@/lib/dates/timezone";
 
 type Reminder = Database["public"]["Tables"]["reminders"]["Row"];
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
 type Target = {
   id: string;
   title: string;
@@ -273,6 +284,11 @@ export function ReminderCenter({
   }>;
 }) {
   const es = locale === "es";
+  const hydrated = useSyncExternalStore(
+    subscribeHydration,
+    clientHydrated,
+    serverHydrated,
+  );
   const t = useTranslations("Workspace");
   const router = useRouter();
   const [permission, setPermission] = useState<
@@ -303,9 +319,7 @@ export function ReminderCenter({
   const [summaryTime, setSummaryTime] = useState("20:00");
 
   const [alarmTitle, setAlarmTitle] = useState("");
-  const [alarmDate, setAlarmDate] = useState(() =>
-    new Date(Date.now() + 86_400_000).toISOString().slice(0, 10),
-  );
+  const [alarmDate, setAlarmDate] = useState(() => nextLocalDate(timezone));
   const [alarmTime, setAlarmTime] = useState("20:00");
   const [alarmRecurrence, setAlarmRecurrence] = useState<
     "once" | "daily" | "weekly"
@@ -763,7 +777,13 @@ export function ReminderCenter({
         </aside>
       )}
 
-      <div className="reminder-forms reminder-forms-expanded">
+      <fieldset
+        className="reminder-forms reminder-forms-expanded"
+        disabled={!hydrated}
+      >
+        <legend className="visually-hidden">
+          {es ? "Notificaciones y alarmas" : "Notifications and alarms"}
+        </legend>
         <section className="surface reminder-form alarm-form">
           <AlarmClock />
           <h2>{es ? "Crear una alarma" : "Create an alarm"}</h2>
@@ -975,7 +995,7 @@ export function ReminderCenter({
             {es ? "Guardar resumen" : "Save summary"}
           </button>
         </section>
-      </div>
+      </fieldset>
 
       <aside className="surface notification-limit-note">
         <strong>

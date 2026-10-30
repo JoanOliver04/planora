@@ -880,7 +880,7 @@
       "title": "Restore a backup",
       "description": "Select a JSON backup created by Planora to replace your current workspace.",
       "selectTitle": "Select a Planora backup",
-      "fileType": "JSON file · Backup formats v1–v4",
+      "fileType": "JSON file · Backup formats v1–v5",
       "selectAction": "Select file",
       "removeFile": "Remove {name}",
       "validating": "Checking backup…",
