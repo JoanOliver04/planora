@@ -153,6 +153,41 @@ function showPlanoraNotice(payload) {
   });
 }
 
+// Push wakes the service worker even when there is no open Planora page.
+self.addEventListener("push", (event) => {
+  event.waitUntil(
+    (async () => {
+      let payload;
+      try {
+        payload = event.data?.json();
+      } catch {
+        /* Always show a visible fallback. */
+      }
+      if (
+        !payload ||
+        typeof payload.title !== "string" ||
+        typeof payload.tag !== "string" ||
+        !/^[A-Za-z0-9:._+-]{8,180}$/.test(payload.tag)
+      ) {
+        payload = {
+          title: "Planora",
+          body: "Planora",
+          tag: "planora-push-fallback",
+          url: "/es/reminders",
+        };
+      }
+      await showPlanoraNotice(payload);
+      const clients = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      clients.forEach((client) =>
+        client.postMessage({ type: "planora-reminders-updated" }),
+      );
+    })(),
+  );
+});
+
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "planora-clear-asset-cache") {
     event.waitUntil(clearAllPlanoraCaches());

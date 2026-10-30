@@ -223,9 +223,12 @@ describe("reminder scheduling", () => {
     );
     await act(async () => {});
     expect(screen.getByText("No compatible")).toBeInTheDocument();
-    expect(screen.getByRole("status").textContent ?? "").not.toMatch(
-      /Regar|tarea|nota/i,
-    );
+    expect(
+      screen
+        .getAllByRole("status")
+        .map((item) => item.textContent ?? "")
+        .join(" "),
+    ).not.toMatch(/Regar|tarea|nota/i);
     expect(
       screen.getByText("No se pudo mostrar la notificación del sistema."),
     ).toBeInTheDocument();

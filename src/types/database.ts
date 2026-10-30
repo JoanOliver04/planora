@@ -321,6 +321,30 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      push_configuration: { Args: Record<string, never>; Returns: Json };
+      push_dispatch_configuration: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      claim_push_jobs: { Args: Record<string, never>; Returns: Json };
+      register_push_subscription: {
+        Args: {
+          p_endpoint: string;
+          p_p256dh: string;
+          p_auth: string;
+          p_preferences: Json;
+        };
+        Returns: string;
+      };
+      remove_push_subscription: {
+        Args: { p_endpoint: string };
+        Returns: undefined;
+      };
+      queue_push_test: { Args: { p_endpoint: string }; Returns: undefined };
+      finish_push_job: {
+        Args: { p_id: string; p_lease: string; p_code: number };
+        Returns: undefined;
+      };
       delete_schedule: {
         Args: { target_schedule_id: string };
         Returns: string | null;

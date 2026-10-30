@@ -92,6 +92,16 @@ export function ReminderScheduler({ locale }: { locale: string }) {
       data: { session },
     } = await db.auth.getSession();
     if (!session?.user) return;
+    // A server-managed occurrence must never also be consumed by a live tab.
+    const { data: push, error: pushError } = await db.rpc("push_configuration");
+    if (pushError) return;
+    if (
+      push &&
+      typeof push === "object" &&
+      !Array.isArray(push) &&
+      push.managed === true
+    )
+      return;
     const { data: reminders } = await db
       .from("reminders")
       .select(
@@ -197,7 +207,13 @@ export function ReminderScheduler({ locale }: { locale: string }) {
   }, [locale, router]);
 
   useEffect(() => {
-    const run = () => void check();
+    const run = () =>
+      void check().catch(() => {
+        console.info("planora.notification", {
+          phase: "poll",
+          errorType: "unavailable",
+        });
+      });
     const onVisible = () => {
       if (document.visibilityState === "visible") run();
     };

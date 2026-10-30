@@ -45,6 +45,7 @@ import { readSystemNotificationProblem } from "./system-notification";
 import type { Database } from "@/types/database";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
 import { nextLocalDate } from "@/lib/dates/timezone";
+import { PushSettings } from "./push-settings";
 
 type Reminder = Database["public"]["Tables"]["reminders"]["Row"];
 const subscribeHydration = () => () => {};
@@ -355,7 +356,7 @@ export function ReminderCenter({
       : minutes;
 
   useEffect(() => {
-    queueMicrotask(() => {
+    const syncLocalState = () => {
       setPermission(
         "Notification" in window ? Notification.permission : "unsupported",
       );
@@ -365,14 +366,22 @@ export function ReminderCenter({
           ? current
           : savedPreferences,
       );
-    });
+    };
+    queueMicrotask(syncLocalState);
     const updated = () => router.refresh();
     const syncProblem = () => setSystemProblem(readSystemNotificationProblem());
     syncProblem();
     window.addEventListener("planora-reminders-updated", updated);
     window.addEventListener("planora-system-notification-status", syncProblem);
+    window.addEventListener("focus", syncLocalState);
+    window.addEventListener("planora-notification-preferences", syncLocalState);
     return () => {
       window.removeEventListener("planora-reminders-updated", updated);
+      window.removeEventListener("focus", syncLocalState);
+      window.removeEventListener(
+        "planora-notification-preferences",
+        syncLocalState,
+      );
       window.removeEventListener(
         "planora-system-notification-status",
         syncProblem,
@@ -531,7 +540,7 @@ export function ReminderCenter({
   const status = (value: Reminder["delivery_status"]) =>
     ({
       pending: es ? "Pendiente" : "Pending",
-      delivered: es ? "Entregado" : "Delivered",
+      delivered: es ? "Enviado" : "Sent",
       permission_denied: es ? "Sin permiso" : "No permission",
       failed: es ? "Falló" : "Failed",
       snoozed: es ? "Pospuesto" : "Snoozed",
@@ -615,6 +624,7 @@ export function ReminderCenter({
         </div>
       </header>
 
+      <PushSettings locale={locale} />
       <section className="surface permission-card" data-permission={permission}>
         <div>
           {permission === "granted" && !optedOut ? <Bell /> : <BellOff />}
@@ -647,8 +657,8 @@ export function ReminderCenter({
                     : "The browser has blocked notifications. You can allow them in the site settings. Planora will not ask again on its own."
                   : permission === "granted"
                     ? es
-                      ? "El canal del sistema puede usarse en este dispositivo."
-                      : "The system channel can be used on this device."
+                      ? "El permiso del sistema está concedido. Para recibir con Planora cerrada, registra este dispositivo en el apartado superior."
+                      : "System permission is granted. For delivery while Planora is closed, register this device in the section above."
                     : es
                       ? "Solo pedimos permiso cuando pulsas el botón. Sin publicidad."
                       : "Permission is only requested after your click. No advertising."}
@@ -1003,8 +1013,8 @@ export function ReminderCenter({
         </strong>
         <p className="muted">
           {es
-            ? "Con Planora abierta se pueden usar a la vez el popup y la notificación del sistema, según los canales activos. En segundo plano, si la página sigue viva, el aviso del sistema puede salir, aunque el navegador puede retrasarlo. Si cierras Planora por completo no hay un servidor push que la despierte: el aviso espera a que vuelvas a abrirla."
-            : "While Planora is open, the popup and the system notification can both be used, according to the channels you enable. In the background, while the page is still alive, a system notification can appear, though the browser may delay it. If Planora is fully closed there is no push server to wake it: the alert waits until you open it again."}
+            ? "Para recibir avisos con Planora cerrada, activa este dispositivo en el apartado superior y comprueba la recepción con la prueba. Sin esa activación, los avisos dependen de mantener la página abierta. Los permisos, la conexión, No molestar y el ahorro de batería del móvil pueden afectar al aviso y a su sonido."
+            : "To receive alerts while Planora is closed, enable this device above and verify reception with the test. Without activation, alerts depend on keeping the page open. Permissions, connectivity, Do Not Disturb and battery saving can affect delivery and sound."}
         </p>
       </aside>
 

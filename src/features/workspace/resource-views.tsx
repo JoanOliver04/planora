@@ -1043,6 +1043,14 @@ export function SettingsView({
         cancelLabel={t("cancel")}
         confirmLabel={t("signOut")}
         onConfirm={async () => {
+          const { disconnectPushDevice } =
+            await import("@/features/reminders/push-client");
+          try {
+            await disconnectPushDevice();
+          } catch {
+            // Browser unsubscribe still runs if the network is unavailable.
+            // Server subscriptions also reference the revoked auth session.
+          }
           const { error } = await db.auth.signOut();
           if (error) {
             fail(error, t("error"));
