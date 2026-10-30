@@ -477,10 +477,13 @@ test("templates, alarms and account appearance persist through the UI", async ({
           (await db.from("reminders").select("title,timezone").single()).data,
       )
       .toMatchObject({ title: "QA alarm", timezone: "Europe/Madrid" });
-    await expect(page.getByText("QA alarm", { exact: true })).toBeVisible();
+    const configuredAlarm = page
+      .locator(".reminder-list .reminder-row:visible")
+      .filter({ has: page.getByText("QA alarm", { exact: true }) });
+    await expect(configuredAlarm).toHaveCount(1);
     await page.reload();
-    await expect(page.getByText("QA alarm", { exact: true })).toBeVisible();
-    await page
+    await expect(configuredAlarm).toHaveCount(1);
+    await configuredAlarm
       .getByRole("button", { name: "Delete reminder", exact: true })
       .click();
     await expect
@@ -494,7 +497,7 @@ test("templates, alarms and account appearance persist through the UI", async ({
       )
       .toBe(0);
 
-    await expect(page.getByText("QA alarm", { exact: true })).toHaveCount(0);
+    await expect(configuredAlarm).toHaveCount(0);
     await navigateWorkspace(page, "settings");
     await page
       .getByRole("checkbox", { name: "Reduce animations", exact: true })
