@@ -18,7 +18,15 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
   return (
-    <Providers locale={locale} messages={messages}>
+    <Providers
+      locale={locale}
+      messages={{
+        Auth: messages.Auth,
+        Common: messages.Common,
+        Errors: messages.Errors,
+        Nav: messages.Nav,
+      }}
+    >
       {children}
     </Providers>
   );

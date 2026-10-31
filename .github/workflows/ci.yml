@@ -71,6 +71,7 @@ jobs:
           echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000" >> "$GITHUB_ENV"
       - run: npx playwright install --with-deps chromium webkit
+      - run: npm run test:e2e
       - name: Measure base revision in isolation
         if: github.event_name == 'pull_request'
         env:
@@ -85,11 +86,13 @@ jobs:
           cd "$baseline_dir"
           npm ci
           PLANORA_PERFORMANCE_OUTPUT="$GITHUB_WORKSPACE/test-results/performance/before.json" npx playwright test --config playwright.performance.config.ts
-      - run: npm run test:e2e
       - name: Measure candidate revision
         env:
           PLANORA_PERFORMANCE_OUTPUT: ${{ github.workspace }}/test-results/performance/after.json
         run: npx playwright test --config playwright.performance.config.ts
+      - name: Check initial JavaScript budget
+        if: github.event_name == 'pull_request'
+        run: node scripts/check-performance-budget.mjs test-results/performance/before.json test-results/performance/after.json
       - uses: actions/upload-artifact@v7
         if: always()
         with:

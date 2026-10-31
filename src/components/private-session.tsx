@@ -15,6 +15,7 @@ import {
   withTimeout,
 } from "@/lib/bootstrap/timeout";
 import { redirect } from "next/navigation";
+import { getMessages } from "next-intl/server";
 
 export async function PrivateSession({
   children,
@@ -46,6 +47,7 @@ export async function PrivateSession({
     );
   }
   if (!user) redirect(`/${locale}/login`);
+  const messages = await getMessages();
 
   let timezone = "Europe/Madrid";
   let onboardingCompleted = true;
@@ -70,7 +72,11 @@ export async function PrivateSession({
 
   return (
     <PrivateSessionGuard userId={user.id} locale={locale}>
-      <PrivateIntlProvider locale={locale} timeZone={timezone}>
+      <PrivateIntlProvider
+        locale={locale}
+        timeZone={timezone}
+        messages={messages}
+      >
         <OfflineStatus locale={locale} />
         <ReminderScheduler locale={locale} />
         {!onboardingCompleted && (
