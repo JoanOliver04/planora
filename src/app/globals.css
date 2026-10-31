@@ -3446,6 +3446,41 @@ select:disabled,
 .notification-limit-note p {
   margin-top: 0.35rem;
 }
+[data-sonner-toaster] [data-sonner-toast].planora-daily-summary {
+  min-height: 68px;
+  padding-right: 72px;
+}
+[data-sonner-toaster]
+  [data-sonner-toast][data-styled="true"].planora-daily-summary
+  [data-close-button] {
+  top: 12px;
+  right: 12px;
+  left: auto;
+  width: 44px;
+  height: 44px;
+  transform: none;
+  border-color: #b91c1c;
+  border-radius: 12px;
+  background: #b91c1c;
+  color: #fff;
+}
+[data-sonner-toaster]
+  [data-sonner-toast][data-styled="true"].planora-daily-summary
+  [data-close-button]:hover {
+  border-color: #991b1b;
+  background: #991b1b;
+}
+[data-sonner-toaster]
+  [data-sonner-toast][data-styled="true"].planora-daily-summary
+  [data-close-button]:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+[data-sonner-toast].planora-daily-summary [data-close-button] svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.5;
+}
 @media (max-width: 412px) {
   [data-sonner-toaster][data-y-position="top"] .planora-daily-summary {
     width: calc(
