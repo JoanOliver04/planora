@@ -136,6 +136,7 @@ export function MonthView({
               key={day}
               role="gridcell"
               href={`/week?date=${day}`}
+              prefetch={false}
               aria-label={t("openDay", { date: day })}
             >
               <time dateTime={day}>{Number(day.slice(8))}</time>

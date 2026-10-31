@@ -40,6 +40,13 @@ export const test = base.extend<{
       const expectedConsoleErrors: RegExp[] = [];
       const expectedWindowErrors: RegExp[] = [];
       const resourceDiagnostics: string[] = [];
+      const failedRequests: Array<{ path: string; error: string; at: number }> =
+        [];
+      const consoleLocations: Array<{
+        path: string;
+        line: number;
+        at: number;
+      }> = [];
       const cleanupDiagnostics: Array<{ kind: string; message: string }> = [];
       const errorDetails: Array<{
         name: string;
@@ -70,10 +77,24 @@ export const test = base.extend<{
       });
       page.on("console", (message) => {
         if (message.type() !== "error") return;
+        const location = message.location();
+        consoleLocations.push({
+          path: redact(location.url),
+          line: location.lineNumber,
+          at: Date.now(),
+        });
         const text = redact(message.text()).slice(0, 800);
         if (isBrowserCleanup(page))
           cleanupDiagnostics.push({ kind: "console", message: text });
         else consoleErrors.push(text);
+      });
+      page.on("requestfailed", (request) => {
+        const url = new URL(request.url());
+        failedRequests.push({
+          path: redact(url.origin + url.pathname),
+          error: request.failure()?.errorText ?? "unknown",
+          at: Date.now(),
+        });
       });
       page.on("response", (response) => {
         if (response.status() < 500) return;
@@ -115,6 +136,8 @@ export const test = base.extend<{
             consoleErrors,
             serverErrors,
             resourceDiagnostics,
+            failedRequests,
+            consoleLocations,
             errorDetails,
             cleanupDiagnostics,
           }),
@@ -127,6 +150,8 @@ export const test = base.extend<{
             consoleErrors,
             serverErrors,
             resourceDiagnostics,
+            failedRequests,
+            consoleLocations,
             errorDetails,
             cleanupDiagnostics,
           }),

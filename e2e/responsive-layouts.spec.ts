@@ -92,6 +92,18 @@ test("private areas and task dialogs reflow with long content and enlarged text"
     "Disposable local integration account required",
   );
   await withLocalWorkspace(context, baseURL, async (db, userId) => {
+    const speculativeDays: string[] = [];
+    let watchingMonth = false;
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (
+        watchingMonth &&
+        url.pathname === "/en/week" &&
+        url.searchParams.has("date") &&
+        url.searchParams.has("_rsc")
+      )
+        speculativeDays.push(url.pathname);
+    });
     const schedule = await db.from("schedules").select("id").single();
     expect(schedule.error).toBeNull();
     const inserted = await db.from("tasks").insert({
@@ -123,6 +135,7 @@ test("private areas and task dialogs reflow with long content and enlarged text"
       "data",
       "more",
     ]) {
+      watchingMonth = route === "month";
       await page.goto(`/en/${route}`);
       await expect(page.locator("main h1").first()).toBeVisible();
       for (const size of viewports) {
@@ -149,6 +162,22 @@ test("private areas and task dialogs reflow with long content and enlarged text"
       await page.evaluate(() => {
         document.documentElement.style.fontSize = "";
       });
+      if (route === "month") {
+        expect(
+          speculativeDays,
+          "Calendar should not request each destination before a click",
+        ).toEqual([]);
+        watchingMonth = false;
+        const day = page.locator(".month-day").first();
+        const destination = await day.getAttribute("href");
+        await day.click();
+        await expect(page).toHaveURL(
+          new RegExp(destination!.replace("?", "\\?")),
+        );
+        await expect(page.locator(".week-picker input")).toHaveValue(
+          new URL(destination!, baseURL).searchParams.get("date")!,
+        );
+      }
     }
 
     await page.goto("/en/tasks");

@@ -3017,6 +3017,10 @@ select:disabled,
   align-items: center;
   gap: 0.4rem;
 }
+.resource-card .row-actions {
+  min-width: 0;
+  flex-wrap: wrap;
+}
 .demo-search {
   display: flex;
   align-items: center;
