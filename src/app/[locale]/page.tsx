@@ -167,7 +167,9 @@ export default async function LandingPage({
             width={220}
             height={220}
             alt=""
-            preload
+            sizes="(max-width: 900px) 160px, 220px"
+            loading="eager"
+            fetchPriority="high"
           />
         </div>
       </section>
@@ -202,7 +204,7 @@ export default async function LandingPage({
               src="/assets/planora-desktop.png"
               width={1440}
               height={900}
-              sizes="(max-width: 900px) 92vw, 62vw"
+              sizes="(max-width: 560px) calc(100vw - 28px), (max-width: 900px) calc(100vw - 40px), (max-width: 1220px) calc(64vw - 70px), 710px"
               alt={text.desktopAlt}
             />
           </div>
@@ -211,7 +213,7 @@ export default async function LandingPage({
               src="/assets/planora-mobile.png"
               width={390}
               height={844}
-              sizes="180px"
+              sizes="(max-width: 560px) 112px, 168px"
               alt={text.mobileAlt}
             />
           </div>

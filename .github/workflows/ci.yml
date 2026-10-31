@@ -99,6 +99,12 @@ jobs:
           name: workspace-performance
           path: test-results/performance/*.json
           retention-days: 14
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: responsive-previews
+          path: test-results/responsive/*.png
+          retention-days: 14
       - name: Stop isolated Supabase
         if: always()
         run: npx --yes supabase@2.115.0 stop --no-backup

@@ -1,6 +1,7 @@
 "use client";
 
 import { NextIntlClientProvider } from "next-intl";
+import { NotificationToaster } from "./notification-toaster";
 
 export function PrivateIntlProvider({
   children,
@@ -19,6 +20,7 @@ export function PrivateIntlProvider({
       timeZone={timeZone}
       messages={messages}
     >
+      <NotificationToaster />
       {children}
     </NextIntlClientProvider>
   );

@@ -384,7 +384,10 @@ describe("service worker notification tags", () => {
 
 describe("daily summary mobile placement", () => {
   it("stays in the top safe area and clear of the bottom navigation", () => {
-    const providers = readFileSync("src/components/providers.tsx", "utf8");
+    const providers = readFileSync(
+      "src/components/notification-toaster.tsx",
+      "utf8",
+    );
     const styles = readFileSync("src/app/globals.css", "utf8");
     expect(providers).toContain('position="top-center"');
     expect(providers).toContain("safe-area-inset-top");

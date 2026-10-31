@@ -84,7 +84,7 @@ test("private areas and task dialogs reflow with long content and enlarged text"
     const inserted = await db.from("tasks").insert({
       user_id: userId,
       schedule_id: schedule.data!.id,
-      title: "LongUnbrokenTaskTitle".repeat(7),
+      title: "LongUnbrokenTaskTitle".repeat(7).slice(0, 140),
       task_kind: "habit",
       recurrence_type: "daily",
       recurrence_config: { type: "daily" },
@@ -124,6 +124,15 @@ test("private areas and task dialogs reflow with long content and enlarged text"
         document.documentElement.style.fontSize = "200%";
       });
       await expectLayoutFits(page, `${route} with 200% root text`);
+      if (
+        test.info().project.name === "mobile" &&
+        ["today", "week", "month", "settings", "focus"].includes(route)
+      ) {
+        await page.screenshot({
+          path: `test-results/responsive/${route}-text-200.png`,
+          animations: "disabled",
+        });
+      }
       await page.evaluate(() => {
         document.documentElement.style.fontSize = "";
       });
@@ -146,6 +155,11 @@ test("private areas and task dialogs reflow with long content and enlarged text"
         );
       });
       expect(fits, `Task dialog at ${size.width}x${size.height}`).toBe(true);
+      if (test.info().project.name === "mobile")
+        await page.screenshot({
+          path: `test-results/responsive/task-dialog-${size.width}.png`,
+          animations: "disabled",
+        });
       await dialog
         .getByRole("textbox", { name: "Title", exact: true })
         .fill("Responsive task draft");
