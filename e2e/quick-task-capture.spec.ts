@@ -139,6 +139,17 @@ test("quick capture previews, preserves, and saves bilingual task plans", async 
     await page.evaluate(() => {
       document.documentElement.style.fontSize = "200%";
     });
+    const navFits = await page.locator(".mobile-nav").evaluate((nav) => {
+      const box = nav.getBoundingClientRect();
+      return (
+        nav.scrollWidth <= nav.clientWidth + 1 &&
+        [...nav.querySelectorAll("a, a > span:last-child")].every((item) => {
+          const rect = item.getBoundingClientRect();
+          return rect.left >= box.left - 1 && rect.right <= box.right + 1;
+        })
+      );
+    });
+    expect(navFits, "Mobile navigation labels fit at 200% text").toBe(true);
     expect(
       await page.evaluate(
         () =>

@@ -190,7 +190,7 @@ textarea:focus-visible {
   left: 0;
   right: 0;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   padding: 0.55rem max(0.55rem, env(safe-area-inset-right))
     calc(0.55rem + env(safe-area-inset-bottom))
     max(0.55rem, env(safe-area-inset-left));
@@ -214,6 +214,14 @@ textarea:focus-visible {
   background: var(--primary-2);
   color: var(--primary);
   font-weight: 700;
+}
+.mobile-nav .nav-link {
+  min-width: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.mobile-nav .nav-link > span:last-child {
+  max-width: 100%;
 }
 .add-orb {
   transform: translateY(-18px);
