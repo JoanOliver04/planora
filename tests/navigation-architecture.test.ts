@@ -65,7 +65,7 @@ describe("responsive navigation architecture", () => {
 
   it("keeps Settings dedicated to configuration", () => {
     const settings = readFileSync(
-      join(process.cwd(), "src/features/workspace/resource-views.tsx"),
+      join(process.cwd(), "src/features/workspace/settings-view.tsx"),
       "utf8",
     );
     expect(settings).not.toContain("settings-shortcuts");

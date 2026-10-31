@@ -142,6 +142,7 @@ function ShortcutLink({ item }: { item: FocusShortcutItem }) {
   return (
     <Link
       href={item.href}
+      prefetch={false}
       className={
         isContinue
           ? "primary focus-today-shortcut focus-today-shortcut-primary"

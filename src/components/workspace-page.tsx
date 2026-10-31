@@ -46,22 +46,22 @@ const StatisticsView = dynamic(() =>
   ),
 );
 const EventsView = dynamic(() =>
-  import("@/features/workspace/resource-views").then(
+  import("@/features/workspace/events-view").then(
     (module) => module.EventsView,
   ),
 );
 const SchedulesView = dynamic(() =>
-  import("@/features/workspace/resource-views").then(
+  import("@/features/workspace/schedules-view").then(
     (module) => module.SchedulesView,
   ),
 );
 const CategoriesView = dynamic(() =>
-  import("@/features/workspace/resource-views").then(
+  import("@/features/workspace/categories-view").then(
     (module) => module.CategoriesView,
   ),
 );
 const SettingsView = dynamic(() =>
-  import("@/features/workspace/resource-views").then(
+  import("@/features/workspace/settings-view").then(
     (module) => module.SettingsView,
   ),
 );

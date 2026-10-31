@@ -93,7 +93,9 @@ test("private areas and task dialogs reflow with long content and enlarged text"
   );
   await withLocalWorkspace(context, baseURL, async (db, userId) => {
     const speculativeDays: string[] = [];
+    const speculativeFocus: string[] = [];
     let watchingMonth = false;
+    let watchingToday = false;
     page.on("request", (request) => {
       const url = new URL(request.url());
       if (
@@ -103,12 +105,36 @@ test("private areas and task dialogs reflow with long content and enlarged text"
         url.searchParams.has("_rsc")
       )
         speculativeDays.push(url.pathname);
+      if (
+        watchingToday &&
+        url.pathname === "/en/focus" &&
+        url.searchParams.has("_rsc")
+      )
+        speculativeFocus.push(url.pathname);
     });
     const schedule = await db.from("schedules").select("id").single();
     expect(schedule.error).toBeNull();
+    const renamed = await db
+      .from("schedules")
+      .update({ name: "LongUnbrokenScheduleName".repeat(4).slice(0, 80) })
+      .eq("id", schedule.data!.id);
+    expect(renamed.error).toBeNull();
+    const category = await db
+      .from("categories")
+      .insert({
+        user_id: userId,
+        schedule_id: schedule.data!.id,
+        scope: "schedule",
+        name: "LongUnbrokenCategoryName".repeat(4).slice(0, 80),
+        colour: "#52734d",
+      })
+      .select("id")
+      .single();
+    expect(category.error).toBeNull();
     const inserted = await db.from("tasks").insert({
       user_id: userId,
       schedule_id: schedule.data!.id,
+      category_id: category.data!.id,
       title: "LongUnbrokenTaskTitle".repeat(7).slice(0, 140),
       task_kind: "habit",
       recurrence_type: "daily",
@@ -136,6 +162,7 @@ test("private areas and task dialogs reflow with long content and enlarged text"
       "more",
     ]) {
       watchingMonth = route === "month";
+      watchingToday = route === "today";
       await page.goto(`/en/${route}`);
       await expect(page.locator("main h1").first()).toBeVisible();
       for (const size of viewports) {
@@ -162,6 +189,20 @@ test("private areas and task dialogs reflow with long content and enlarged text"
       await page.evaluate(() => {
         document.documentElement.style.fontSize = "";
       });
+      if (route === "today") {
+        expect(
+          speculativeFocus,
+          "Focus shortcuts should wait for a click",
+        ).toEqual([]);
+        watchingToday = false;
+        await page
+          .getByRole("link", { name: "Quick start", exact: true })
+          .click();
+        await expect(page).toHaveURL(/\/en\/focus\?start=quick/);
+        await expect(page.getByRole("dialog")).toBeVisible();
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("dialog")).toBeHidden();
+      }
       if (route === "month") {
         expect(
           speculativeDays,

@@ -5,8 +5,8 @@ import messages from "@/messages/en.json";
 import { FocusTodayShortcuts } from "@/features/focus/focus-today-shortcuts";
 
 vi.mock("@/i18n/routing", () => ({
-  Link: ({ href, children, ...props }: React.ComponentProps<"a">) => (
-    <a href={String(href)} {...props}>
+  Link: ({ href, children, className }: React.ComponentProps<"a">) => (
+    <a href={String(href)} className={className}>
       {children}
     </a>
   ),

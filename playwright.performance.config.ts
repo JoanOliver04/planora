@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./benchmarks",
+  outputDir: "./test-results/performance-browser",
   workers: 1,
   retries: 0,
   timeout: 240_000,

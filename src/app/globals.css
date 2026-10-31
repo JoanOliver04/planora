@@ -671,10 +671,15 @@ textarea:focus-visible {
   margin-bottom: 1rem;
 }
 .resource-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: 1.2rem;
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+}
+.resource-card > div {
+  min-width: 0;
 }
 .resource-emoji {
   font-size: 2rem;
@@ -689,6 +694,8 @@ textarea:focus-visible {
   font-weight: 700;
 }
 .category-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -1975,6 +1982,8 @@ select:disabled,
 }
 .header-context {
   display: inline-flex;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   align-items: center;
   gap: 0.4rem;
   margin: 0.45rem 0 0;
@@ -5721,6 +5730,10 @@ button.mini-task {
 }
 .week-picker input,
 .day-navigation input {
+  min-width: 0;
+  max-width: 100%;
+}
+.schedule-bar select {
   min-width: 0;
   max-width: 100%;
 }
