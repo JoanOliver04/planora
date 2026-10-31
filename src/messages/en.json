@@ -944,7 +944,7 @@
     "schedule": "Schedule",
     "start": "Get started",
     "afternoon": "Afternoon",
-    "global": "Global",
+    "global": "Global (all schedules)",
     "theme": "Theme",
     "category": "Category",
     "weeks": "weeks",
@@ -1070,7 +1070,6 @@
     "manageRoutines": "Organise your routines",
     "allCategories": "All categories",
     "categoryScope": "Available in",
-    "global": "Global (all schedules)",
     "scheduleOnly": "Only in one schedule",
     "scheduleOnlyHint": "Task appears only when this schedule is active.",
     "globalHint": "Task is available regardless of active schedule.",
@@ -1115,5 +1114,25 @@
     "taskStatus": "Task status",
     "completedOneTime": "Completed",
     "noMatchingEvents": "There are no events with this status."
+  },
+  "QuickAdd": {
+    "label": "Quick capture",
+    "placeholder": "Read tomorrow at 18:00",
+    "hint": "Try “Piano every Monday and Wednesday at 18:00”. Review the preview before saving.",
+    "create": "Create task",
+    "saving": "Saving…",
+    "more": "More options",
+    "detect": "Detect dates and repetition",
+    "schedule": "Schedule: {name}",
+    "noSchedule": "Choose an active schedule to create a task.",
+    "emptyTitle": "Add a task name as well as its date or time.",
+    "tooLong": "Use a task name of up to 140 characters.",
+    "invalidDate": "Check the date. Use a real date in YYYY-MM-DD format or turn detection off.",
+    "invalidTime": "Check the time. Use 00:00–23:59 or 1–12 with am/pm, or turn detection off.",
+    "saveError": "The task could not be saved. Your text is still here; check your connection and try again.",
+    "refreshError": "The task was saved, but the list could not refresh. Reload the page to see it.",
+    "created": "Task created",
+    "offline": "You are offline. Your text stays in this form; reconnect to save it.",
+    "dayChanged": "The day has changed. Review the updated date and save again."
   }
 }

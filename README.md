@@ -35,6 +35,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 
 ### Tasks and habits
 
+- Quick capture in Today and Tasks, with a preview before saving: Spanish/English dates, weekday habits and times, literal-text mode, and an editable handoff to the full form. See the [supported quick-capture expressions](docs/quick-task-capture.md).
 - One-time tasks and recurring habits.
 - Recurrence every day, on selected weekdays, a target number of times per week, or at custom day, week and month intervals.
 - Optional start and end dates. Habits can continue indefinitely until the user edits or archives them.

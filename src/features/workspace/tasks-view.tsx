@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { categoriesForSchedule } from "./categories";
 import { formatTaskTime, uniqueMetadata } from "./presentation";
 import { TaskForm } from "./task-form";
+import { QuickTaskCapture } from "./quick-task-capture";
 
 import type { Task, WorkspaceData } from "./types";
 import { recurrenceFromJson } from "./types";
@@ -110,6 +111,9 @@ export function TasksView({
           {t("add")}
         </button>
       </header>
+      {(status === "active" || status === "all") && (
+        <QuickTaskCapture data={data} onSaved={reload} />
+      )}
       <div className="filterbar surface">
         <label className="search-field">
           <Search size={17} />
@@ -299,6 +303,7 @@ export function TasksView({
           open={open}
           onOpenChange={setOpen}
           schedules={data.schedules}
+          defaultScheduleId={data.profile.active_schedule_id ?? undefined}
           categories={data.categories}
           focusPresets={data.focusPresets ?? []}
           timezone={data.profile.timezone}
