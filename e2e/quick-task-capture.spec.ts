@@ -133,6 +133,9 @@ test("quick capture previews, preserves, and saves bilingual task plans", async 
         exact: true,
       })
       .check();
+    await spanish.screenshot({
+      path: `test-results/responsive/quick-capture-${test.info().project.name}.png`,
+    });
     await page.evaluate(() => {
       document.documentElement.style.fontSize = "200%";
     });
@@ -143,8 +146,8 @@ test("quick capture previews, preserves, and saves bilingual task plans", async 
           document.documentElement.clientWidth,
       ),
     ).toBeLessThanOrEqual(1);
-    await page.screenshot({
-      path: `test-results/responsive/quick-capture-${test.info().project.name}.png`,
+    await spanish.screenshot({
+      path: `test-results/responsive/quick-capture-text-200-${test.info().project.name}.png`,
     });
   });
 });

@@ -502,10 +502,21 @@ test("templates, alarms and account appearance persist through the UI", async ({
     await page
       .getByRole("checkbox", { name: "Reduce animations", exact: true })
       .check();
+    const preferencesResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname === "/en/settings" &&
+        Boolean(response.request().headers()["next-action"]),
+    );
     await page
       .locator(".personalization")
       .getByRole("button", { name: "Save", exact: true })
       .click();
+    // The toast confirms persistence; the deliberate hard reload must also
+    // wait for the streamed action/revalidation response to finish.
+    const persisted = await preferencesResponse;
+    expect(persisted.ok()).toBe(true);
+    await persisted.finished();
     await expect
       .poll(
         async () =>
@@ -521,6 +532,12 @@ test("templates, alarms and account appearance persist through the UI", async ({
     await expect(
       page.getByText("Changes saved", { exact: true }),
     ).toBeVisible();
+    await page.evaluate(
+      () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        ),
+    );
     await page.reload();
     await expect(
       page.getByRole("checkbox", { name: "Reduce animations", exact: true }),
