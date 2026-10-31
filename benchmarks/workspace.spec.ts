@@ -7,11 +7,15 @@ import { localDate } from "../src/lib/dates/timezone";
 test("measure cold private routes with a populated disposable workspace", async ({
   browser,
   context,
+  page: harnessPage,
   baseURL,
 }) => {
   const output = process.env.PLANORA_PERFORMANCE_OUTPUT;
   test.skip(!output, "Explicit performance output path required");
   const results: unknown[] = [];
+  // The local-account helper also cleans up the fixture-owned page. Give that
+  // page a completed loopback navigation; measured pages use fresh contexts.
+  await harnessPage.goto(`${baseURL}/api/health`);
   const publicDocuments: unknown[] = [];
   const publicContext = await browser.newContext({ serviceWorkers: "block" });
   publicContext.setDefaultTimeout(15_000);
@@ -89,6 +93,18 @@ test("measure cold private routes with a populated disposable workspace", async 
           try {
             const page = await isolated.newPage();
             const errors: string[] = [];
+            const pending = new Map<
+              import("@playwright/test").Request,
+              { path: string; type: string }
+            >();
+            page.on("request", (request) =>
+              pending.set(request, {
+                path: new URL(request.url()).pathname,
+                type: request.resourceType(),
+              }),
+            );
+            page.on("requestfinished", (request) => pending.delete(request));
+            page.on("requestfailed", (request) => pending.delete(request));
             page.on("pageerror", (error) => errors.push(error.message));
             const cdp = await isolated.newCDPSession(page);
             await cdp.send("Network.enable");
@@ -100,7 +116,17 @@ test("measure cold private routes with a populated disposable workspace", async 
             await expect(page).toHaveURL(`${baseURL}/en/${route}`);
             await expect(page.locator("main h1").first()).toBeVisible();
             const readyMs = await page.evaluate(() => performance.now());
-            await page.waitForLoadState("networkidle");
+            // Background polling/prefetching is not an application-readiness
+            // signal. Wait for the rendered route's scripts, not global idle.
+            await expect
+              .poll(
+                () =>
+                  [...pending.values()].filter(
+                    (request) => request.type === "script",
+                  ).length,
+              )
+              .toBe(0);
+            const pendingAtReady = [...pending.values()];
             const resources = await page.evaluate(() =>
               performance.getEntriesByType("resource").map((entry) => {
                 const resource = entry as PerformanceResourceTiming;
@@ -141,6 +167,7 @@ test("measure cold private routes with a populated disposable workspace", async 
               ),
               jsRequests: js.length,
               resources,
+              pendingAtReady,
             });
           } catch (error) {
             console.error(
