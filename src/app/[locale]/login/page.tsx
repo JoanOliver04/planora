@@ -6,6 +6,7 @@ import { Languages, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { AUTH_TIMEOUT_MS, withTimeout } from "@/lib/bootstrap/timeout";
+import { NotificationToaster } from "@/components/notification-toaster";
 export default async function Login({
   params,
 }: {
@@ -26,6 +27,7 @@ export default async function Login({
   const t = await getTranslations("Auth");
   return (
     <main className="login">
+      <NotificationToaster />
       <div className="login-card surface">
         <section className="login-copy">
           <Logo variant="login" />

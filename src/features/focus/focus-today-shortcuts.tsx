@@ -14,7 +14,7 @@ import {
   FOCUS_RECENTS_STORAGE_KEY,
   readFocusRecents,
 } from "./focus-recents";
-import { useOptionalFocusSessionContext } from "./focus-session-context";
+import { useOptionalFocusSessionState } from "./focus-session-context";
 
 type TodayTask = {
   id: string;
@@ -58,8 +58,7 @@ export function FocusTodayShortcuts({
   completedTaskIds: Set<string>;
 }) {
   const t = useTranslations("Focus");
-  const ctx = useOptionalFocusSessionContext();
-  const session = ctx?.engine.session ?? null;
+  const session = useOptionalFocusSessionState();
   const hasActive =
     Boolean(session) &&
     (session?.status === "running" ||
@@ -143,6 +142,7 @@ function ShortcutLink({ item }: { item: FocusShortcutItem }) {
   return (
     <Link
       href={item.href}
+      prefetch={false}
       className={
         isContinue
           ? "primary focus-today-shortcut focus-today-shortcut-primary"

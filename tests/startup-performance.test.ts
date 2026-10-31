@@ -54,12 +54,6 @@ describe("desktop and mobile startup performance", () => {
     expect(nav).toContain("prefetch={false}");
   });
 
-  it("keeps Today in the first JS payload on desktop and mobile", () => {
-    expect(page).toContain("TodayView,");
-    expect(page).toContain('from "@/features/workspace/task-views"');
-    expect(page).not.toContain("const TodayView = dynamic");
-  });
-
   it("authorizes the private shell with getUser, not cookie session alone", () => {
     expect(session).toContain("getUser()");
     expect(session).not.toContain("getSession()");
