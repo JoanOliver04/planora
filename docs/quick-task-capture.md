@@ -27,3 +27,9 @@ Creation uses the existing authenticated, ownership-checked and validated `saveT
 ## Verification
 
 Parser tests cover bilingual syntax, 12/24-hour boundaries, invalid values, literal text, title limits, leap years and date transitions. Component tests cover the active schedule, in-flight duplicate submissions, failure handling, offline/reconnect, midnight review, advanced prefill/edit/save and cancellation. The isolated Supabase browser scenario runs in desktop Chromium, Android Chromium emulation and iPhone WebKit emulation, with the device in UTC+14 and the account in Europe/Madrid, narrow layouts and 200% root text. Production accounts are not used for mutation tests.
+
+Verified on 2026-10-31 at application revision `8a3c819`: **655 unit tests in 85 files**, **102 passing browser scenarios** and three deliberate WebKit exclusions out of 105 cases. Build, types, lint, formatting, CodeQL, Lighthouse and the initial-JavaScript budget pass. [CI evidence](https://github.com/JoanOliver04/planora/actions/runs/41217858750).
+
+The controlled production-build comparison uses 60 tasks, 840 completions, three cold Chromium contexts per route and 4× CPU throttling. Today's median initial encoded JavaScript is 380,025 → 382,298 bytes (+2,273 bytes, about 0.6%) for the new capture UI; the other measured routes change by 4–5 bytes. Heading readiness is 1,749 → 1,752 ms in this run. These are lab observations, not field or tail-latency guarantees. Raw before/after JSON is retained in CI's `workspace-performance` artifact for 14 days.
+
+The final visual pass centres the mobile plus icon and adjusts the secondary button's typography. A 320 px CSS probe verifies a 44 × 44 px button, zero icon offset and no document overflow. Enlarged navigation labels also received a regression check after reproducing a 10 px overflow in the previous mobile layout.
