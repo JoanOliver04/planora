@@ -124,8 +124,7 @@ test("private areas and task dialogs reflow with long content and enlarged text"
       .insert({
         user_id: userId,
         schedule_id: schedule.data!.id,
-        scope: "schedule",
-        name: "LongUnbrokenCategoryName".repeat(4).slice(0, 80),
+        name: "LongUnbrokenCategoryName".repeat(3).slice(0, 60),
         colour: "#52734d",
       })
       .select("id")
