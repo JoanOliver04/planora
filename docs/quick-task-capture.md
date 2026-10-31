@@ -12,7 +12,7 @@ Today and Tasks offer a short form for creating a task in the active schedule. T
 | `Piano entre semana` / `Piano on weekdays` | A Monday–Friday habit, starting on its next matching day    |
 | `Call on 2027-01-01 at 09:00`              | One task on that calendar date                              |
 
-Both languages are accepted in either interface language. Additional supported relative expressions are `hoy`/`today` and `pasado mañana`/`day after tomorrow`. Weekday lists accept commas and `y`/`and`. Times follow `a las`, `a la` or `at`; 24-hour hours and explicit `am`/`pm` are supported. The time may precede or follow the date expression. Calendar dates use unambiguous `YYYY-MM-DD` strings.
+Both languages are accepted in either interface language. Additional supported relative expressions are `hoy`/`today` and `pasado mañana`/`day after tomorrow`. Weekday lists accept commas and `y`/`and`, including repeated articles such as `los lunes y los miércoles`. Times follow `a las`, `a la` or `at`; an explicit `HH:MM` or `am`/`pm` time also works without that prefix. Bare numbers stay in the task name. The time may precede or follow the date expression. Calendar dates use unambiguous `YYYY-MM-DD` strings.
 
 Only recognized suffixes are removed from the title. Other wording remains literal; this is a bounded parser, not a general-language assistant. Turn off **Detect dates and repetition** to preserve the full input as the task name. Impossible dates, invalid times and missing/oversized names block interpreted creation. The full task name limit remains 140 characters; the capture input allows 280 characters so scheduling expressions have room.
 

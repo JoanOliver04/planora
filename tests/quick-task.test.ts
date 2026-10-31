@@ -8,6 +8,8 @@ describe("quick task interpretation", () => {
     ["Comprar pan mañana a las 18:00", "Comprar pan", "2026-11-01", "18:00"],
     ["Read tomorrow at 6 pm", "Read", "2026-11-01", "18:00"],
     ["Read at 6:30 pm tomorrow", "Read", "2026-11-01", "18:30"],
+    ["Read tomorrow 18:00", "Read", "2026-11-01", "18:00"],
+    ["Read tomorrow 6 pm", "Read", "2026-11-01", "18:00"],
     ["Leer pasado mañana a la 1", "Leer", "2026-11-02", "01:00"],
     ["Study day after tomorrow at 12 am", "Study", "2026-11-02", "00:00"],
     ["Study today at 12 pm", "Study", today, "12:00"],
@@ -32,6 +34,7 @@ describe("quick task interpretation", () => {
     "Piano lunes y miércoles a las 18:00",
     "Piano every Monday and Wednesday at 18:00",
     "Piano los lunes, miércoles a las 18",
+    "Piano los lunes y los miércoles a las 18",
     "Piano lunes, y miércoles a las 18:00",
   ])("recognizes bilingual weekday lists: %s", (raw) => {
     expect(parseQuickTask(raw, today)).toEqual({
@@ -53,6 +56,21 @@ describe("quick task interpretation", () => {
       });
     },
   );
+  it.each(["Pasear los sábados", "Pasear sábados", "Walk Saturdays"])(
+    "recognizes weekend plurals: %s",
+    (raw) => {
+      expect(parseQuickTask(raw, today).values).toMatchObject({
+        startDate: today,
+        recurrence: { type: "weekdays", weekdays: [6] },
+      });
+    },
+  );
+  it("keeps bare numbers in the task name", () => {
+    expect(parseQuickTask("Read chapter 12", today)).toMatchObject({
+      detected: false,
+      values: { title: "Read chapter 12", timing: { mode: "anytime" } },
+    });
+  });
   it.each([
     "Leer cada día",
     "Leer todos los dias",

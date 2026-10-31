@@ -31,15 +31,16 @@ const dayNumbers: Record<string, number> = {
   saturday: 6,
 };
 const day =
-  "(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo|(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?)";
-const separator = "(?:\\s*,\\s*(?:(?:y|and)\\s+)?|\\s+(?:y|and|&)\\s+)";
+  "(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bados?|domingos?|(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?)";
+const separator =
+  "(?:\\s*,\\s*(?:(?:y|and)\\s+)?|\\s+(?:y|and|&)\\s+)(?:(?:los|el|every|on)\\s+)?";
 const daysSuffix = new RegExp(
   `(?:^|\\s)(?:(cada|los|every|on|el)\\s+)?(${day}(?:${separator}${day})*)$`,
   "iu",
 );
 const dayToken = new RegExp(day, "giu");
 const timeSuffix =
-  /(?:^|\s)(?:a\s+las?|at)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)?$/iu;
+  /(?:^|\s)(?:(a\s+las?|at)\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)?$/iu;
 
 function validDate(value: string) {
   if (!/^(?!0000)\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -78,10 +79,10 @@ export function parseQuickTask(
   let text = values.title;
   function stripTime() {
     const match = timeSuffix.exec(text);
-    if (!match) return;
-    const hour = Number(match[1]),
-      minute = Number(match[2] ?? "0");
-    const meridiem = match[3]?.replaceAll(".", "").toLowerCase();
+    if (!match || (!match[1] && !match[3] && !match[4])) return;
+    const hour = Number(match[2]),
+      minute = Number(match[3] ?? "0");
+    const meridiem = match[4]?.replaceAll(".", "").toLowerCase();
     if (
       values.timing.mode !== "anytime" ||
       minute > 59 ||
@@ -156,7 +157,7 @@ export function parseQuickTask(
         const repeating =
           unique.length > 1 ||
           /^(cada|los|every)$/i.test(days[1] ?? "") ||
-          /days$/i.test(days[2]);
+          /(?:days|s[aá]bados|domingos)$/i.test(days[2]);
         values.startDate = addDays(
           today,
           Math.min(
