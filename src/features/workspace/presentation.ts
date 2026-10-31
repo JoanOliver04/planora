@@ -24,7 +24,7 @@ export function formatNaturalDate(
   _timezone: string,
   options: { year?: boolean; weekday?: boolean } = {},
 ) {
-  const instant = new Date(`${day}T12:00:00`);
+  const instant = new Date(`${day}T12:00:00Z`);
   const formatted = new Intl.DateTimeFormat(
     locale === "es" ? "es-ES" : "en-GB",
     {

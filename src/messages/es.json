@@ -944,7 +944,7 @@
     "schedule": "Horario",
     "start": "Empezar",
     "afternoon": "Tarde",
-    "global": "Global",
+    "global": "Global (todos los horarios)",
     "theme": "Tema",
     "category": "Categoría",
     "weeks": "semanas",
@@ -1070,7 +1070,6 @@
     "manageRoutines": "Organiza tus rutinas",
     "allCategories": "Todas las categorías",
     "categoryScope": "Disponible en",
-    "global": "Global (todos los horarios)",
     "scheduleOnly": "Solo en un horario",
     "scheduleOnlyHint": "La tarea aparecerá únicamente cuando este horario esté activo.",
     "globalHint": "La tarea estará disponible independientemente del horario activo.",
@@ -1115,5 +1114,25 @@
     "taskStatus": "Estado de la tarea",
     "completedOneTime": "Completadas",
     "noMatchingEvents": "No hay eventos en este estado."
+  },
+  "QuickAdd": {
+    "label": "Captura rápida",
+    "placeholder": "Leer mañana a las 18:00",
+    "hint": "Prueba «Piano lunes y miércoles a las 18:00». Revisa la vista previa antes de guardar.",
+    "create": "Crear tarea",
+    "saving": "Guardando…",
+    "more": "Más opciones",
+    "detect": "Detectar fechas y repetición",
+    "schedule": "Horario: {name}",
+    "noSchedule": "Elige un horario activo para crear una tarea.",
+    "emptyTitle": "Añade un nombre para la tarea además de su fecha u hora.",
+    "tooLong": "Usa un nombre de tarea de hasta 140 caracteres.",
+    "invalidDate": "Revisa la fecha. Usa una fecha real con formato AAAA-MM-DD o desactiva la detección.",
+    "invalidTime": "Revisa la hora. Usa 00:00–23:59 o de 1 a 12 con am/pm, o desactiva la detección.",
+    "saveError": "No se ha podido guardar la tarea. El texto sigue aquí; comprueba tu conexión y vuelve a intentarlo.",
+    "refreshError": "La tarea está guardada, pero no se ha podido actualizar la lista. Recarga la página para verla.",
+    "created": "Tarea creada",
+    "offline": "Sin conexión. El texto se mantiene en este formulario; vuelve a conectarte para guardarlo.",
+    "dayChanged": "Ha cambiado el día. Revisa la fecha actualizada y vuelve a guardar."
   }
 }

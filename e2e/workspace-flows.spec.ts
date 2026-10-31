@@ -3,6 +3,7 @@ import type { Page } from "@playwright/test";
 import { localDate, nextLocalDate } from "../src/lib/dates/timezone";
 import { hasLocalCredentials, withLocalWorkspace } from "./local-workspace";
 import { expect, offlineNetworkError, test } from "./fixtures";
+import { beginBrowserCleanup, isBrowserCleanup } from "./browser-diagnostics";
 
 test.use({ actionTimeout: 15_000, navigationTimeout: 30_000 });
 
@@ -521,10 +522,39 @@ test("templates, alarms and account appearance persist through the UI", async ({
     await expect(
       page.getByText("Changes saved", { exact: true }),
     ).toBeVisible();
-    await page.reload();
+    // Verify persistence in a fresh document without aborting the action's
+    // revalidation stream. Guard the second page's errors too, then close the
+    // first page through the existing controlled-cleanup boundary.
+    const verification = await context.newPage();
+    const verificationErrors: string[] = [];
+    verification.on("console", (message) => {
+      if (message.type() === "error" && !isBrowserCleanup(verification))
+        verificationErrors.push("console.error");
+    });
+    verification.on("pageerror", (error) => {
+      if (!isBrowserCleanup(verification))
+        verificationErrors.push(`pageerror: ${error.name}`);
+    });
+    verification.on("response", (response) => {
+      if (response.status() >= 500 && !isBrowserCleanup(verification))
+        verificationErrors.push(
+          `HTTP ${response.status()} ${new URL(response.url()).pathname}`,
+        );
+    });
+    await verification.goto("/en/settings");
     await expect(
-      page.getByRole("checkbox", { name: "Reduce animations", exact: true }),
+      verification.getByRole("checkbox", {
+        name: "Reduce animations",
+        exact: true,
+      }),
     ).toBeChecked();
+    await verification.waitForLoadState("networkidle");
+    expect(
+      verificationErrors,
+      "No errors in the independent persistence check",
+    ).toEqual([]);
+    beginBrowserCleanup(page);
+    await page.close();
   });
 });
 

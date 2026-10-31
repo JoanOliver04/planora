@@ -40,8 +40,15 @@ export const test = base.extend<{
       const expectedConsoleErrors: RegExp[] = [];
       const expectedWindowErrors: RegExp[] = [];
       const resourceDiagnostics: string[] = [];
-      const failedRequests: Array<{ path: string; error: string; at: number }> =
-        [];
+      const failedRequests: Array<{
+        path: string;
+        error: string;
+        at: number;
+        method: string;
+        type: string;
+        action: boolean;
+        rsc: boolean;
+      }> = [];
       const consoleLocations: Array<{
         path: string;
         line: number;
@@ -94,6 +101,10 @@ export const test = base.extend<{
           path: redact(url.origin + url.pathname),
           error: request.failure()?.errorText ?? "unknown",
           at: Date.now(),
+          method: request.method(),
+          type: request.resourceType(),
+          action: Boolean(request.headers()["next-action"]),
+          rsc: request.headers()["rsc"] === "1",
         });
       });
       page.on("response", (response) => {

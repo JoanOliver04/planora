@@ -190,7 +190,7 @@ textarea:focus-visible {
   left: 0;
   right: 0;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   padding: 0.55rem max(0.55rem, env(safe-area-inset-right))
     calc(0.55rem + env(safe-area-inset-bottom))
     max(0.55rem, env(safe-area-inset-left));
@@ -214,6 +214,14 @@ textarea:focus-visible {
   background: var(--primary-2);
   color: var(--primary);
   font-weight: 700;
+}
+.mobile-nav .nav-link {
+  min-width: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.mobile-nav .nav-link > span:last-child {
+  max-width: 100%;
 }
 .add-orb {
   transform: translateY(-18px);
@@ -2348,6 +2356,92 @@ select:disabled,
   color: color-mix(in srgb, var(--foreground) 42%, transparent);
   font-size: 0.8rem;
   text-align: center;
+}
+.quick-task {
+  min-width: 0;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.quick-task form {
+  display: grid;
+  gap: 0.65rem;
+}
+.quick-task-label {
+  font-weight: 700;
+}
+.quick-task-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+.quick-task-head > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.quick-task-head .pill {
+  font-size: 0.85rem;
+}
+.quick-task-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+}
+.quick-task-entry input {
+  min-width: 0;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+}
+.quick-task button {
+  min-height: 44px;
+  white-space: normal;
+}
+.quick-task-hint,
+.quick-task-preview p,
+.quick-task-error {
+  margin: 0;
+  font-size: 0.85rem;
+}
+.quick-task-preview {
+  min-width: 0;
+  padding: 0.75rem;
+  border-radius: 0.8rem;
+  background: var(--background);
+  overflow-wrap: anywhere;
+}
+.quick-task-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+.quick-task-options label {
+  min-height: 44px;
+  font-size: 0.85rem;
+}
+.quick-task-error {
+  color: var(--destructive);
+}
+@media (max-width: 480px) {
+  .quick-task-entry {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+  .quick-task-entry .primary {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+  .quick-task-submit-label {
+    display: none;
+  }
 }
 .filterbar.surface {
   display: grid;

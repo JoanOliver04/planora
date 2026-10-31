@@ -8,6 +8,7 @@ import { recurrenceFromJson } from "./types";
 import { localDate } from "@/lib/dates/timezone";
 import { toast } from "sonner";
 import { categoriesForSchedule } from "./categories";
+import type { QuickTaskValues } from "@/lib/workspace/quick-task";
 
 export function TaskForm({
   open,
@@ -18,6 +19,8 @@ export function TaskForm({
   timezone,
   task,
   defaultTitle,
+  defaultDraft,
+  defaultScheduleId,
   onSaved,
 }: {
   open: boolean;
@@ -29,20 +32,25 @@ export function TaskForm({
   task?: Task | null;
   /** Prefill title when creating a new task (e.g. from a parked distraction). */
   defaultTitle?: string;
+  defaultDraft?: QuickTaskValues;
+  defaultScheduleId?: string;
   onSaved: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale(),
     existing = task
       ? recurrenceFromJson(task.recurrence_config, task.recurrence_type)
-      : null,
+      : (defaultDraft?.recurrence ?? null),
     [recurrence, setRecurrence] = useState(existing?.type ?? "once"),
-    [timing, setTiming] = useState(task?.time_mode ?? "anytime"),
+    [timing, setTiming] = useState(
+      task?.time_mode ?? defaultDraft?.timing.mode ?? "anytime",
+    ),
     [scope, setScope] = useState<"schedule" | "global">(
       task?.scope ?? "schedule",
     ),
     [scheduleId, setScheduleId] = useState(
       task?.schedule_id ??
+        defaultScheduleId ??
         schedules.find((item) => !item.is_archived)?.id ??
         "",
     ),
@@ -154,7 +162,9 @@ export function TaskForm({
                 name="title"
                 required
                 maxLength={140}
-                defaultValue={task?.title ?? defaultTitle ?? ""}
+                defaultValue={
+                  task?.title ?? defaultDraft?.title ?? defaultTitle ?? ""
+                }
               />
             </label>
             <fieldset className="availability-fieldset">
@@ -385,7 +395,12 @@ export function TaskForm({
                   name="startTime"
                   type="time"
                   required
-                  defaultValue={task?.start_time?.slice(0, 5) ?? "09:00"}
+                  defaultValue={
+                    task?.start_time?.slice(0, 5) ??
+                    (defaultDraft?.timing.mode === "specific_time"
+                      ? defaultDraft.timing.startTime
+                      : "09:00")
+                  }
                 />
               </label>
             )}
@@ -406,7 +421,9 @@ export function TaskForm({
                 <input
                   name="startDate"
                   type="date"
-                  defaultValue={task?.start_date ?? ""}
+                  defaultValue={
+                    task?.start_date ?? defaultDraft?.startDate ?? ""
+                  }
                 />
               </label>
               <label>

@@ -25,6 +25,7 @@ import {
 import { formatNaturalDate, greetingKey } from "./presentation";
 import { TaskCard } from "./task-card";
 import { TaskForm } from "./task-form";
+import { QuickTaskCapture } from "./quick-task-capture";
 
 import type { Task, WorkspaceData } from "./types";
 import { recurrenceFromJson } from "./types";
@@ -286,6 +287,7 @@ export function TodayView({
           )}
         </div>
       </header>
+      {isToday && <QuickTaskCapture data={data} onSaved={reload} />}
       <section
         className="progress-card surface"
         aria-label={t("weeklyProgress")}
@@ -532,6 +534,7 @@ export function TodayView({
           open={open}
           onOpenChange={setOpen}
           schedules={data.schedules}
+          defaultScheduleId={data.profile.active_schedule_id ?? undefined}
           categories={data.categories}
           focusPresets={data.focusPresets ?? []}
           timezone={data.profile.timezone}
