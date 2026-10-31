@@ -32,6 +32,15 @@ test("quick capture previews, preserves, and saves bilingual task plans", async 
     });
     await input.fill("Read tomorrow at 6 pm");
     await expect(capture.getByRole("status")).toContainText("18:00");
+    await page
+      .getByRole("button", { name: "Previous day", exact: true })
+      .click();
+    await expect(page.locator(".go-today-button")).toBeVisible();
+    await expect(input).toBeVisible();
+    await expect(input).toHaveValue("Read tomorrow at 6 pm");
+    await page.locator(".go-today-button").click();
+    await expect(page.locator(".go-today-button")).toBeHidden();
+    await expect(input).toHaveValue("Read tomorrow at 6 pm");
     await input.press("Enter");
     await expect(input).toHaveValue("");
     await expect(capture.locator("form")).toHaveAttribute("aria-busy", "false");

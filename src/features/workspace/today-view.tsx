@@ -287,7 +287,7 @@ export function TodayView({
           )}
         </div>
       </header>
-      {isToday && <QuickTaskCapture data={data} onSaved={reload} />}
+      <QuickTaskCapture data={data} onSaved={reload} visible={isToday} />
       <section
         className="progress-card surface"
         aria-label={t("weeklyProgress")}
