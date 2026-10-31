@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
-const view = read("src/features/workspace/task-views.tsx");
+const view = read("src/features/workspace/tasks-view.tsx");
 const action = read("src/app/actions/domain.ts");
 const migration = read(
   "supabase/migrations/20260802220000_delete_archived_task.sql",

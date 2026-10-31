@@ -18,8 +18,16 @@ import { demoViews, getMonthGridCellCount } from "./demo-views";
 
 type Setter = React.Dispatch<React.SetStateAction<DemoState>>;
 
-export function MonthDemo({ state, copy }: { state: DemoState; copy: Copy }) {
-  const start = new Date();
+export function MonthDemo({
+  state,
+  copy,
+  today,
+}: {
+  state: DemoState;
+  copy: Copy;
+  today: string;
+}) {
+  const start = new Date(`${today}T12:00:00`);
   start.setDate(1);
   const leading = (start.getDay() + 6) % 7;
   const cellCount = getMonthGridCellCount(leading, getDaysInMonth(start));
@@ -32,7 +40,7 @@ export function MonthDemo({ state, copy }: { state: DemoState; copy: Copy }) {
         <div>
           <div className="eyebrow">{copy.thisMonth}</div>
           <h1 className="title">
-            {new Intl.DateTimeFormat(undefined, {
+            {new Intl.DateTimeFormat(state.locale ?? "es", {
               month: "long",
               year: "numeric",
             }).format(start)}
@@ -207,7 +215,7 @@ export function StatisticsDemo({
   ).length;
   const rate = active ? Math.round((completedToday / active) * 100) : 0;
   const week = Array.from({ length: 7 }, (_, index) => ({
-    date: addDays(new Date(), index - 6),
+    date: addDays(new Date(`${today}T12:00:00`), index - 6),
     value: 20 + ((index * 17 + state.completions.length * 11) % 55),
   }));
   return (
@@ -232,9 +240,9 @@ export function StatisticsDemo({
           <div key={day.date.toISOString()}>
             <span style={{ height: `${day.value}%` }} />
             <small>
-              {new Intl.DateTimeFormat(undefined, { weekday: "narrow" }).format(
-                day.date,
-              )}
+              {new Intl.DateTimeFormat(state.locale ?? "es", {
+                weekday: "narrow",
+              }).format(day.date)}
             </small>
           </div>
         ))}

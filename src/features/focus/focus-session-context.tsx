@@ -59,6 +59,8 @@ type FocusSessionContextValue = {
 const FocusSessionContext = createContext<FocusSessionContextValue | null>(
   null,
 );
+// Task lists need session identity/status, not a new clock value every second.
+const FocusSessionStateContext = createContext<FocusSession | null>(null);
 
 export function FocusSessionProvider({
   children,
@@ -417,9 +419,11 @@ export function FocusSessionProvider({
   );
 
   return (
-    <FocusSessionContext.Provider value={value}>
-      {children}
-    </FocusSessionContext.Provider>
+    <FocusSessionStateContext.Provider value={engine.session}>
+      <FocusSessionContext.Provider value={value}>
+        {children}
+      </FocusSessionContext.Provider>
+    </FocusSessionStateContext.Provider>
   );
 }
 
@@ -440,4 +444,8 @@ export function useFocusSessionContext() {
 
 export function useOptionalFocusSessionContext() {
   return useContext(FocusSessionContext);
+}
+
+export function useOptionalFocusSessionState() {
+  return useContext(FocusSessionStateContext);
 }

@@ -71,7 +71,31 @@ jobs:
           echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000" >> "$GITHUB_ENV"
       - run: npx playwright install --with-deps chromium webkit
+      - name: Measure base revision in isolation
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          baseline_dir=$(mktemp -d "$RUNNER_TEMP/planora-perf-base.XXXXXX")
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          git archive "$BASE_SHA" | tar -x -C "$baseline_dir"
+          mkdir -p "$baseline_dir/benchmarks"
+          cp playwright.performance.config.ts "$baseline_dir/"
+          cp benchmarks/workspace.spec.ts "$baseline_dir/benchmarks/"
+          cd "$baseline_dir"
+          npm ci
+          PLANORA_PERFORMANCE_OUTPUT="$GITHUB_WORKSPACE/test-results/performance/before.json" npx playwright test --config playwright.performance.config.ts
       - run: npm run test:e2e
+      - name: Measure candidate revision
+        env:
+          PLANORA_PERFORMANCE_OUTPUT: ${{ github.workspace }}/test-results/performance/after.json
+        run: npx playwright test --config playwright.performance.config.ts
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: workspace-performance
+          path: test-results/performance/*.json
+          retention-days: 14
       - name: Stop isolated Supabase
         if: always()
         run: npx --yes supabase@2.115.0 stop --no-backup

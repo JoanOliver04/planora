@@ -9,6 +9,7 @@ import { Logo } from "@/components/navigation";
 import { AuthLink } from "@/components/auth-link";
 import {
   createDemoState,
+  DEMO_TTL,
   DEMO_STORAGE_KEY,
   parseDemoState,
   toggleDemoCompletion,
@@ -61,7 +62,7 @@ export function DemoWorkspace({
           localStorage.getItem(DEMO_STORAGE_KEY),
           Date.now(),
           locale,
-        ) ?? initialState,
+        ) ?? createDemoState(new Date(), locale),
       );
       setRestored(true);
     });
@@ -77,7 +78,11 @@ export function DemoWorkspace({
     );
     return () => window.clearTimeout(timer);
   }, [locale, state.expiresAt]);
-  const today = format(new Date(), "yyyy-MM-dd"),
+  // The first browser render must use the same calendar date as the cached
+  // server HTML. Switch to the device's date only after hydration.
+  const today = restored
+      ? format(new Date(), "yyyy-MM-dd")
+      : new Date(initialState.expiresAt - DEMO_TTL).toISOString().slice(0, 10),
     activeTasks = state.tasks.filter(
       (task) => task.scheduleId === state.activeScheduleId && !task.archived,
     ),
@@ -122,8 +127,12 @@ export function DemoWorkspace({
             completed={completedToday}
           />
         )}
-        {view === "week" && <WeekDemo state={state} copy={copy} />}
-        {view === "month" && <MonthDemo state={state} copy={copy} />}
+        {view === "week" && (
+          <WeekDemo state={state} copy={copy} today={today} />
+        )}
+        {view === "month" && (
+          <MonthDemo state={state} copy={copy} today={today} />
+        )}
         {view === "search" && <SearchDemo state={state} copy={copy} />}
         {view === "tasks" && (
           <TasksDemo state={state} setState={setState} copy={copy} />
@@ -303,10 +312,21 @@ function TodayDemo({
   );
 }
 
-function WeekDemo({ state, copy }: { state: DemoState; copy: Copy }) {
+function WeekDemo({
+  state,
+  copy,
+  today,
+}: {
+  state: DemoState;
+  copy: Copy;
+  today: string;
+}) {
   const days = useMemo(
-    () => Array.from({ length: 7 }, (_, index) => addDays(new Date(), index)),
-    [],
+    () =>
+      Array.from({ length: 7 }, (_, index) =>
+        addDays(new Date(`${today}T12:00:00`), index),
+      ),
+    [today],
   );
   return (
     <section>
@@ -317,7 +337,7 @@ function WeekDemo({ state, copy }: { state: DemoState; copy: Copy }) {
           return (
             <div className="day surface" key={value}>
               <b>
-                {new Intl.DateTimeFormat(undefined, {
+                {new Intl.DateTimeFormat(state.locale ?? "es", {
                   weekday: "short",
                   day: "numeric",
                 }).format(date)}

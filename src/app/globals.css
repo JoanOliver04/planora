@@ -178,6 +178,7 @@ textarea:focus-visible {
 }
 .main {
   padding: 1.25rem 1rem calc(7rem + env(safe-area-inset-bottom));
+  min-width: 0;
   max-width: 1000px;
   width: 100%;
   margin: auto;
@@ -584,6 +585,7 @@ textarea:focus-visible {
 .form-grid label,
 .form-grid fieldset {
   display: grid;
+  min-width: 0;
   gap: 0.4rem;
   font-size: 0.84rem;
   font-weight: 650;
@@ -604,7 +606,7 @@ textarea:focus-visible {
 }
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.8rem;
 }
 .weekday-grid {

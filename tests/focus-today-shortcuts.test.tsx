@@ -13,7 +13,7 @@ vi.mock("@/i18n/routing", () => ({
 }));
 
 vi.mock("@/features/focus/focus-session-context", () => ({
-  useOptionalFocusSessionContext: () => null,
+  useOptionalFocusSessionState: () => null,
 }));
 
 afterEach(() => {
