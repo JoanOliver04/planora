@@ -35,18 +35,20 @@ const data = {
 } as unknown as WorkspaceData;
 let online = true;
 function view(onSaved = vi.fn().mockResolvedValue(undefined)) {
-  render(
+  const element = (visible = true) => (
     <NextIntlClientProvider
       locale="en"
       messages={messages}
       timeZone="Europe/Madrid"
     >
-      <QuickTaskCapture data={data} onSaved={onSaved} />
-    </NextIntlClientProvider>,
+      <QuickTaskCapture data={data} onSaved={onSaved} visible={visible} />
+    </NextIntlClientProvider>
   );
+  const { rerender } = render(element());
   return {
     input: screen.getByRole("textbox", { name: "Quick capture" }),
     onSaved,
+    setVisible: (visible: boolean) => rerender(element(visible)),
   };
 }
 beforeEach(() => {
@@ -62,12 +64,33 @@ afterEach(() => {
 });
 
 describe("QuickTaskCapture", () => {
+  it("preserves an unfinished capture when day navigation hides empty captures", async () => {
+    const user = userEvent.setup(),
+      { input, setVisible } = view();
+    await user.type(input, "Read tomorrow");
+    setVisible(false);
+    expect(input).toBeVisible();
+    expect(input).toHaveValue("Read tomorrow");
+    await user.clear(input);
+    expect(
+      screen.queryByRole("region", { name: "Quick capture" }),
+    ).not.toBeInTheDocument();
+    setVisible(true);
+    expect(screen.getByRole("textbox", { name: "Quick capture" })).toHaveValue(
+      "",
+    );
+  });
   it("requires a fresh date review when an open form crosses midnight", async () => {
     const calendar = vi.spyOn(dates, "localDate").mockReturnValue("2026-12-31");
     const user = userEvent.setup(),
       { input } = view();
     await user.type(input, "Read tomorrow");
     calendar.mockReturnValue("2027-01-01");
+    online = false;
+    act(() => window.dispatchEvent(new Event("offline")));
+    online = true;
+    act(() => window.dispatchEvent(new Event("online")));
+    expect(screen.getByRole("status")).toHaveTextContent("1 Jan 2027");
     await user.click(screen.getByRole("button", { name: "Create task" }));
     expect(screen.getByRole("alert")).toHaveTextContent("The day has changed");
     expect(saveTask).not.toHaveBeenCalled();
@@ -125,7 +148,7 @@ describe("QuickTaskCapture", () => {
     await waitFor(() => expect(input).toHaveValue(""));
     await waitFor(() => expect(input).toHaveFocus());
   });
-  it("keeps the text when saving fails", async () => {
+  it("keeps text after a failed save and can recover through the advanced editor", async () => {
     vi.mocked(saveTask).mockResolvedValue({
       ok: false,
       error: { code: "DATABASE_ERROR", message: "Database error" },
@@ -139,6 +162,16 @@ describe("QuickTaskCapture", () => {
     );
     expect(input).toHaveValue("Read tomorrow");
     expect(onSaved).not.toHaveBeenCalled();
+    vi.mocked(saveTask).mockResolvedValue({ ok: true, taskId: "created-task" });
+    await user.click(screen.getByRole("button", { name: "More options" }));
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", { name: "Save" }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(input).toHaveValue("");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
   it("does not invite a second creation when the task saved but list refresh failed", async () => {
     const user = userEvent.setup(),

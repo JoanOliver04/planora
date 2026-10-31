@@ -24,9 +24,11 @@ import type { WorkspaceData } from "./types";
 export function QuickTaskCapture({
   data,
   onSaved,
+  visible = true,
 }: {
   data: WorkspaceData;
   onSaved: () => Promise<void>;
+  visible?: boolean;
 }) {
   const t = useTranslations("QuickAdd");
   const workspace = useTranslations("Workspace");
@@ -41,8 +43,10 @@ export function QuickTaskCapture({
   const [error, setError] = useState("");
   const [advanced, setAdvanced] = useState<QuickTaskValues | null>(null);
   const [pending, startTransition] = useTransition();
-  const today = localDate(data.profile.timezone);
-  const draft = parseQuickTask(text, today, detect);
+  const [referenceDate, setReferenceDate] = useState(() =>
+    localDate(data.profile.timezone),
+  );
+  const draft = parseQuickTask(text, referenceDate, detect);
   const schedule = data.schedules.find(
     (item) => item.id === data.profile.active_schedule_id && !item.is_archived,
   );
@@ -89,7 +93,13 @@ export function QuickTaskCapture({
       return;
     }
     // A form left open overnight must show the new date before saving.
-    if (localDate(data.profile.timezone) !== today) {
+    const currentDate = localDate(data.profile.timezone);
+    if (
+      currentDate !== referenceDate &&
+      parseQuickTask(text, currentDate, detect).values.startDate !==
+        values.startDate
+    ) {
+      setReferenceDate(currentDate);
       setError(t("dayChanged"));
       return;
     }
@@ -125,6 +135,8 @@ export function QuickTaskCapture({
     });
   }
 
+  // Preserve an unfinished capture or editor when the selected day changes.
+  if (!visible && !text.trim() && !advanced && !message) return null;
   return (
     <section className="quick-task surface" aria-label={t("label")}>
       <form onSubmit={submit} aria-busy={pending}>
@@ -138,7 +150,14 @@ export function QuickTaskCapture({
             disabled={
               pending || Boolean(draft.issue && draft.issue !== "emptyTitle")
             }
-            onClick={() => setAdvanced(values)}
+            onClick={() =>
+              setAdvanced(
+                text.trim()
+                  ? values
+                  : parseQuickTask("", localDate(data.profile.timezone), detect)
+                      .values,
+              )
+            }
           >
             {t("more")}
           </button>
@@ -160,6 +179,8 @@ export function QuickTaskCapture({
             }
             aria-invalid={Boolean(issue)}
             onChange={(event) => {
+              if (!text.trim())
+                setReferenceDate(localDate(data.profile.timezone));
               setText(event.target.value);
               setError("");
             }}
@@ -233,6 +254,7 @@ export function QuickTaskCapture({
           onSaved={async () => {
             setText("");
             setDetect(true);
+            setError("");
             try {
               await onSaved();
             } catch {
