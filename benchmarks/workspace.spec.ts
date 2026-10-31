@@ -37,6 +37,7 @@ test("measure cold private routes with a populated disposable workspace", async 
   }
   console.info("[performance] create disposable workspace");
   await withLocalWorkspace(context, baseURL, async (db, userId) => {
+    console.info("[performance] authenticated; seed tasks");
     const schedule = await db.from("schedules").select("id").single();
     expect(schedule.error).toBeNull();
     const tasks = await db
@@ -55,6 +56,7 @@ test("measure cold private routes with a populated disposable workspace", async 
       )
       .select("id");
     expect(tasks.error).toBeNull();
+    console.info("[performance] seed completions");
     const today = localDate("Europe/Madrid");
     const completions = await db.from("task_completions").insert(
       tasks.data!.flatMap((task) =>

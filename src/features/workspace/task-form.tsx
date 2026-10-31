@@ -49,6 +49,9 @@ export function TaskForm({
     [categoryId, setCategoryId] = useState(task?.category_id ?? ""),
     [focusEnabled, setFocusEnabled] = useState(task?.focus_enabled ?? false),
     [pending, startTransition] = useTransition();
+  const [returnFocus] = useState(() =>
+    typeof document === "undefined" ? null : document.activeElement,
+  );
 
   const weekdays = existing?.type === "weekdays" ? existing.weekdays : [];
   const weekdayLabels =
@@ -123,7 +126,19 @@ export function TaskForm({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content className="dialog-content">
+        <Dialog.Content
+          className="dialog-content"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            if (
+              returnFocus instanceof HTMLElement &&
+              returnFocus.isConnected &&
+              !returnFocus.matches(":disabled")
+            )
+              returnFocus.focus();
+            else document.getElementById("main-content")?.focus();
+          }}
+        >
           <Dialog.Title>
             {task ? t("edit") : t("add")} · {t("title")}
           </Dialog.Title>

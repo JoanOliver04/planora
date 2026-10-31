@@ -40,7 +40,8 @@ jobs:
           umask 077
           start_log=$(mktemp "$RUNNER_TEMP/planora-supabase-start.XXXXXX")
           trap 'rm -f -- "$start_log"' EXIT
-          if ! npx --yes supabase@2.115.0 start > "$start_log" 2>&1; then
+          # Tests use Auth, REST and PostgreSQL; no Studio/analytics/Edge UI.
+          if ! npx --yes supabase@2.115.0 start --exclude studio,imgproxy,edge-runtime,logflare,vector,supavisor > "$start_log" 2>&1; then
             echo "Unable to start isolated Supabase; startup output is withheld because it may contain generated credentials."
             exit 1
           fi

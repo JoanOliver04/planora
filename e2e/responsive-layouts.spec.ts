@@ -38,10 +38,23 @@ async function expectLayoutFits(page: Page, label: string) {
     return {
       overflow: root.scrollWidth - root.clientWidth,
       escapedControls,
+      overflowSources:
+        root.scrollWidth > root.clientWidth + 1
+          ? Array.from(document.querySelectorAll("main *"))
+              .filter((element) => {
+                const rect = element.getBoundingClientRect();
+                return rect.width > 0 && rect.right > root.clientWidth + 1;
+              })
+              .slice(0, 6)
+              .map((element) => `${element.tagName}.${element.className}`)
+          : [],
     };
   });
   expect
-    .soft(result.overflow, `${label}: document width`)
+    .soft(
+      result.overflow,
+      `${label}: document width (${result.overflowSources.join(", ")})`,
+    )
     .toBeLessThanOrEqual(1);
   expect.soft(result.escapedControls, `${label}: controls`).toEqual([]);
 }
