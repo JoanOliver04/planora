@@ -24,16 +24,10 @@ import {
 } from "./daily-occurrences";
 import { formatNaturalDate, greetingKey } from "./presentation";
 import { TaskCard } from "./task-card";
-import dynamic from "next/dynamic";
-import { WorkspaceSkeleton } from "@/components/workspace-skeleton";
+import { TaskForm } from "./task-form";
 
 import type { Task, WorkspaceData } from "./types";
 import { recurrenceFromJson } from "./types";
-
-const TaskForm = dynamic(
-  () => import("./task-form").then((module) => module.TaskForm),
-  { loading: () => <WorkspaceSkeleton /> },
-);
 
 const adapter = (task: Task) => ({
   startDate: task.start_date,
