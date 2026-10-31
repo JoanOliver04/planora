@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-602%20unit%20%2B%2090%20E2E-brightgreen?style=flat-square" alt="602 passing unit tests and 90 passing Playwright E2E tests; 6 deliberate browser exclusions" />
+  <img src="https://img.shields.io/badge/tests-602%20unit%20%2B%2099%20E2E-brightgreen?style=flat-square" alt="602 passing unit tests and 99 passing Playwright E2E tests; 3 deliberate browser exclusions" />
 </p>
 
 ---
@@ -346,9 +346,11 @@ npm audit
 
 CI runs npm audit, lint, Prettier (`format:check`), typecheck, coverage and a production build on every push to `main`. It also runs CodeQL, Lighthouse and the complete Playwright suite against an isolated Supabase instance built from the committed migrations, so authenticated scenarios cannot silently skip because credentials are missing.
 
+Workspace views load on demand; the task editor is included with the task views so its first opening stays responsive. Public pages receive a smaller translation catalogue, and task lists do not subscribe to every Focus clock tick. Responsive regression checks cover 16 private areas, widths from 320 to 1440 CSS pixels, portrait/landscape, maximum-length names and 200% root text. CI also measures cold route loading with 60 tasks and 840 history entries; pull requests compare initial JavaScript against their base revision. See the [performance and responsive report](docs/performance-2026-10-31.md) for measured results, conditions and coverage limits.
+
 The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync and backup v5), forms, loading states, protected navigation, platform metadata and the single-instance, automatic-only Analytics integration. Authenticated journeys exercise schedule/task CRUD, history and undo, templates, alarms, preferences, offline completion sync, sign-out, export and atomic restore. Web Push checks include a service worker without open clients, permission handling, server queue leases, cancellation, retries, ownership isolation and API access controls.
 
-Last verified on **2026-10-30** at [`d82bd3a`](https://github.com/JoanOliver04/planora/commit/d82bd3ab440545a719ec57d94c643f824a78a195): **602 passing tests in 82 Vitest files**, **90 passing Playwright scenarios** and **6 deliberate exclusions** out of 96 cases. The exclusions are the two WebKit repetitions of three integration flows run in Chromium: the API-backed Focus lifecycle, offline completion sync and the push outbox. Next.js **16.4.3** / React **19.3.1** build, types, lint, formatting, CodeQL and Lighthouse all pass; npm reports 0 known vulnerabilities. [Verified CI run](https://github.com/JoanOliver04/planora/actions/runs/41136884138).
+Last verified on **2026-10-31** at [`a903c6c`](https://github.com/JoanOliver04/planora/commit/a903c6c5ecb48e5950e5d859112379b18a57d1a6): **602 passing tests in 83 Vitest files**, **99 passing Playwright scenarios** and **3 deliberate exclusions** out of 102 cases. Browser projects cover desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. The exclusions are three WebKit integration flows exercised in Chromium: the API-backed Focus lifecycle, offline completion sync and the push outbox. Next.js **16.4.3** / React **19.3.1** build, types, lint, formatting, CodeQL and Lighthouse all pass. The dependency audit reports **0 production vulnerabilities** and no high/critical findings overall; the full development-tool tree has 16 moderate package entries from one minimatch advisory, detailed in the performance report. [Verified CI run](https://github.com/JoanOliver04/planora/actions/runs/41206267552).
 
 These are dated test results, not a guarantee of zero bugs or complete device coverage. A successful push-provider response does not prove that a phone displayed the notification; use the delayed test on each device. No universal physical-device or Google OAuth acceptance claim is implied by CI.
 
@@ -386,6 +388,7 @@ See [docs/deployment.md](docs/deployment.md) for the complete checklist.
 - [Security hardening and verification](docs/security-production-verification-2026-10-30.md)
 - [Mobile Web Push: activation, architecture and operations](docs/mobile-web-push.md)
 - [Testing strategy](docs/testing.md)
+- [Performance and responsive verification](docs/performance-2026-10-31.md)
 - [Deployment guide](docs/deployment.md)
 - [Backup and restore](docs/backup-and-restore.md)
 - [Operations and status](docs/operations.md)
