@@ -1,6 +1,6 @@
 # Quick task capture
 
-Today and Tasks offer a short form for creating a task in the active schedule. Type a name and optionally a supported date, weekday rule or time. Review the interpreted title, first date, recurrence, time and schedule before pressing Enter or **Create task**.
+Today and Tasks offer a compact form for creating a task in the active schedule. Type a name and optionally a supported date, weekday rule or time. The preview and interpretation options appear as you write. Review the interpreted title, first date, recurrence, time and schedule before pressing Enter or **Create task** (the plus button on narrow screens).
 
 | Input                                      | Result                                                      |
 | ------------------------------------------ | ----------------------------------------------------------- |
@@ -14,7 +14,7 @@ Today and Tasks offer a short form for creating a task in the active schedule. T
 
 Both languages are accepted in either interface language. Additional supported relative expressions are `hoy`/`today` and `pasado mañana`/`day after tomorrow`. Weekday lists accept commas and `y`/`and`, including repeated articles such as `los lunes y los miércoles`. Times follow `a las`, `a la` or `at`; an explicit `HH:MM` or `am`/`pm` time also works without that prefix. Bare numbers stay in the task name. The time may precede or follow the date expression. Calendar dates use unambiguous `YYYY-MM-DD` strings.
 
-Only recognized suffixes are removed from the title. Other wording remains literal; this is a bounded parser, not a general-language assistant. Turn off **Detect dates and repetition** to preserve the full input as the task name. Impossible dates, invalid times and missing/oversized names block interpreted creation. The full task name limit remains 140 characters; the capture input allows 280 characters so scheduling expressions have room.
+Only recognized suffixes are removed from the title. Other wording remains literal; this is a bounded parser, not a general-language assistant. Turn off **Detect dates and repetition** to preserve the full input as the task name for that capture. Detection returns to its default after a successful save. Impossible dates, invalid times and missing/oversized names block interpreted creation. The full task name limit remains 140 characters; the capture input allows 280 characters so scheduling expressions have room.
 
 **More options** opens the full editor with the interpreted name, date, time, weekday selection and active schedule already filled. Cancel returns to the intact capture text. The existing Add/Edit controls remain available. Capturing a scheduled time does not create an alarm or request notification permissions; reminders retain their explicit configuration.
 

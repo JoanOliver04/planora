@@ -34,9 +34,10 @@ test("quick capture previews, preserves, and saves bilingual task plans", async 
     await expect(capture.getByRole("status")).toContainText("18:00");
     await input.press("Enter");
     await expect(input).toHaveValue("");
+    await expect(capture.locator("form")).toHaveAttribute("aria-busy", "false");
     await expect(
       capture.getByRole("button", { name: "Create task", exact: true }),
-    ).toBeEnabled();
+    ).toBeDisabled();
     const saved = await db
       .from("tasks")
       .select("title,start_date,start_time,recurrence_type,schedule_id")
@@ -123,15 +124,15 @@ test("quick capture previews, preserves, and saves bilingual task plans", async 
           document.documentElement.clientWidth,
       ),
     ).toBeLessThanOrEqual(1);
+    await entry.fill(
+      `${"LongUnbrokenTaskName".repeat(8).slice(0, 140)} mañana a las 18:00`,
+    );
     await spanish
       .getByRole("checkbox", {
         name: "Detectar fechas y repetición",
         exact: true,
       })
       .check();
-    await entry.fill(
-      `${"LongUnbrokenTaskName".repeat(8).slice(0, 140)} mañana a las 18:00`,
-    );
     await page.evaluate(() => {
       document.documentElement.style.fontSize = "200%";
     });

@@ -109,6 +109,7 @@ export function QuickTaskCapture({
           return;
         }
         setText("");
+        setDetect(true);
         focusAfterSave.current = true;
         toast.success(t("created"));
         try {
@@ -127,9 +128,21 @@ export function QuickTaskCapture({
   return (
     <section className="quick-task surface" aria-label={t("label")}>
       <form onSubmit={submit} aria-busy={pending}>
-        <label htmlFor={id} className="quick-task-label">
-          {t("label")}
-        </label>
+        <div className="quick-task-head">
+          <label htmlFor={id} className="quick-task-label">
+            {t("label")}
+          </label>
+          <button
+            className="pill"
+            type="button"
+            disabled={
+              pending || Boolean(draft.issue && draft.issue !== "emptyTitle")
+            }
+            onClick={() => setAdvanced(values)}
+          >
+            {t("more")}
+          </button>
+        </div>
         <div className="quick-task-entry">
           <input
             id={id}
@@ -140,8 +153,12 @@ export function QuickTaskCapture({
             placeholder={t("placeholder")}
             autoComplete="off"
             readOnly={pending}
-            aria-describedby={`${id}-hint${message ? ` ${id}-error` : ""}`}
-            aria-invalid={Boolean(message)}
+            aria-describedby={
+              text.trim() || message
+                ? `${id}-hint${message ? ` ${id}-error` : ""}`
+                : undefined
+            }
+            aria-invalid={Boolean(issue)}
             onChange={(event) => {
               setText(event.target.value);
               setError("");
@@ -149,15 +166,21 @@ export function QuickTaskCapture({
           />
           <button
             className="primary"
+            type="submit"
+            aria-label={pending ? t("saving") : t("create")}
             disabled={pending || !online || Boolean(draft.issue) || !schedule}
           >
             <Plus size={18} aria-hidden="true" />
-            {pending ? t("saving") : t("create")}
+            <span className="quick-task-submit-label">
+              {pending ? t("saving") : t("create")}
+            </span>
           </button>
         </div>
-        <p id={`${id}-hint`} className="muted quick-task-hint">
-          {t("hint")}
-        </p>
+        {(text.trim() || message) && (
+          <p id={`${id}-hint`} className="muted quick-task-hint">
+            {t("hint")}
+          </p>
+        )}
         {text.trim() && !draft.issue && (
           <div className="quick-task-preview">
             <strong>{values.title}</strong>
@@ -178,30 +201,22 @@ export function QuickTaskCapture({
           </p>
         )}
         {!schedule && <p className="quick-task-error">{t("noSchedule")}</p>}
-        <div className="quick-task-options">
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={detect}
-              disabled={pending}
-              onChange={(event) => {
-                setDetect(event.target.checked);
-                setError("");
-              }}
-            />
-            {t("detect")}
-          </label>
-          <button
-            className="pill"
-            type="button"
-            disabled={
-              pending || Boolean(draft.issue && draft.issue !== "emptyTitle")
-            }
-            onClick={() => setAdvanced(values)}
-          >
-            {t("more")}
-          </button>
-        </div>
+        {text.trim() && (
+          <div className="quick-task-options">
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={detect}
+                disabled={pending}
+                onChange={(event) => {
+                  setDetect(event.target.checked);
+                  setError("");
+                }}
+              />
+              {t("detect")}
+            </label>
+          </div>
+        )}
       </form>
       {advanced && (
         <TaskForm
@@ -217,6 +232,7 @@ export function QuickTaskCapture({
           defaultScheduleId={schedule?.id}
           onSaved={async () => {
             setText("");
+            setDetect(true);
             try {
               await onSaved();
             } catch {

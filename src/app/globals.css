@@ -2361,6 +2361,17 @@ select:disabled,
 .quick-task-label {
   font-weight: 700;
 }
+.quick-task-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+.quick-task-head > * {
+  min-width: 0;
+  max-width: 100%;
+}
 .quick-task-entry {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -2409,7 +2420,15 @@ select:disabled,
 }
 @media (max-width: 480px) {
   .quick-task-entry {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+  .quick-task-entry .primary {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+  .quick-task-submit-label {
+    display: none;
   }
 }
 .filterbar.surface {
