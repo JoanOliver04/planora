@@ -321,7 +321,9 @@ test("workspace CRUD, schedule copies, history, search and backup round trip", a
       .getByRole("button", { name: "Download JSON", exact: true })
       .click();
     const download = await downloading;
-    const backup = JSON.parse(await readFile((await download.path())!, "utf8"));
+    const backupPath = test.info().outputPath("workspace-export.json");
+    await download.saveAs(backupPath);
+    const backup = JSON.parse(await readFile(backupPath, "utf8"));
     expect(backup).toMatchObject({
       format: "planora-backup",
       schemaVersion: 5,
