@@ -101,3 +101,13 @@ del plazo de recuperación de la app; el rendimiento se mide por separado.
 La primera medición del candidato en CI obtiene 91/100/100/100 en la portada y
 95/100/100/91 en la demo (rendimiento/accesibilidad/buenas prácticas/SEO), con
 las seis ejecuciones superando las nuevas condiciones de cierre.
+
+La migración de historial está aplicada en Supabase de producción. Se ha
+verificado por metadatos que las seis funciones revisadas coinciden con las
+versiones locales y sus permisos. No se han creado ni borrado cuentas de
+producción para probarla. El editor de tareas conserva explícitamente el botón
+de origen del foco para devolverlo al cerrar también en Safari.
+
+La instalación inicial de navegadores en CI se detuvo por fallos DNS de los
+repositorios APT de Ubuntu 26.04. La batería E2E queda fijada en Ubuntu 24.04,
+instala solo los motores necesarios y limita ese paso a diez minutos.

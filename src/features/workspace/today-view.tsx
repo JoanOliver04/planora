@@ -280,7 +280,13 @@ export function TodayView({
             </button>
           )}
           {isToday && (
-            <button className="primary" onClick={() => setOpen(true)}>
+            <button
+              className="primary"
+              onClick={(event) => {
+                event.currentTarget.focus();
+                setOpen(true);
+              }}
+            >
               <Plus size={18} />
               {t("add")}
             </button>
@@ -491,7 +497,13 @@ export function TodayView({
           <h2>{t("clearDay")}</h2>
           <p>{t("noTasksToday")}</p>
           {isToday && (
-            <button className="pill" onClick={() => setOpen(true)}>
+            <button
+              className="pill"
+              onClick={(event) => {
+                event.currentTarget.focus();
+                setOpen(true);
+              }}
+            >
               {t("add")}
             </button>
           )}

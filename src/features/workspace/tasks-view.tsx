@@ -102,7 +102,8 @@ export function TasksView({
         </div>
         <button
           className="primary"
-          onClick={() => {
+          onClick={(event) => {
+            event.currentTarget.focus();
             setEditing(null);
             setOpen(true);
           }}

@@ -147,7 +147,10 @@ export function TaskCard({
       {onEdit && (
         <button
           className="icon-button"
-          onClick={onEdit}
+          onClick={(event) => {
+            event.currentTarget.focus();
+            onEdit?.();
+          }}
           aria-label={`${t("edit")} ${task.title}`}
         >
           <Edit3 size={17} />
