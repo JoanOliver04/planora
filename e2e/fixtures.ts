@@ -28,6 +28,7 @@ export const offlineNetworkError =
 export const test = base.extend<{
   browserDiagnostics: {
     allowConsoleError: (pattern: RegExp) => void;
+    allowNextConsoleError: (pattern: RegExp) => () => void;
     allowWindowError: (pattern: RegExp) => void;
     windowErrors: () => string[];
   };
@@ -38,6 +39,7 @@ export const test = base.extend<{
       const consoleErrors: string[] = [];
       const serverErrors: string[] = [];
       const expectedConsoleErrors: RegExp[] = [];
+      const nextConsoleErrors: RegExp[] = [];
       const expectedWindowErrors: RegExp[] = [];
       const resourceDiagnostics: string[] = [];
       const failedRequests: Array<{
@@ -91,6 +93,14 @@ export const test = base.extend<{
           at: Date.now(),
         });
         const text = redact(message.text()).slice(0, 800);
+        const expectedOnce = nextConsoleErrors.findIndex((pattern) =>
+          pattern.test(text),
+        );
+        if (expectedOnce >= 0) {
+          nextConsoleErrors.splice(expectedOnce, 1);
+          cleanupDiagnostics.push({ kind: "navigation-cancel", message: text });
+          return;
+        }
         if (isBrowserCleanup(page))
           cleanupDiagnostics.push({ kind: "console", message: text });
         else consoleErrors.push(text);
@@ -116,6 +126,13 @@ export const test = base.extend<{
       });
       await use({
         allowConsoleError: (pattern) => expectedConsoleErrors.push(pattern),
+        allowNextConsoleError: (pattern) => {
+          nextConsoleErrors.push(pattern);
+          return () => {
+            const index = nextConsoleErrors.indexOf(pattern);
+            if (index >= 0) nextConsoleErrors.splice(index, 1);
+          };
+        },
         allowWindowError: (pattern) => expectedWindowErrors.push(pattern),
         windowErrors: () => [...exceptions],
       });

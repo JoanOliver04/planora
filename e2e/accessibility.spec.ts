@@ -329,6 +329,8 @@ test("resource order can be saved with clicks and the position menu restores foc
   page,
   context,
   baseURL,
+  browserName,
+  browserDiagnostics,
 }) => {
   test.setTimeout(90_000);
   test.skip(!hasLocalCredentials, "Disposable local account required");
@@ -343,7 +345,16 @@ test("resource order can be saved with clicks and the position menu restores foc
     const trigger = page.getByLabel("Change position of Second schedule");
     await trigger.click();
     const menu = trigger.locator("..");
+    const scheduleSave = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname === "/en/schedules" &&
+        Boolean(response.request().headers()["next-action"]),
+    );
     await menu.getByRole("button", { name: "Move up" }).click();
+    const scheduleSaved = await scheduleSave;
+    expect(scheduleSaved.ok()).toBe(true);
+    await expect(trigger).toHaveAttribute("aria-disabled", "false");
     await expect
       .poll(async () => {
         const rows = await db
@@ -395,10 +406,19 @@ test("resource order can be saved with clicks and the position menu restores foc
     await page.goto("/en/today");
     const globalPosition = page.getByLabel("Change position of Global task");
     await globalPosition.click();
+    const taskSave = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname === "/en/today" &&
+        Boolean(response.request().headers()["next-action"]),
+    );
     await globalPosition
       .locator("..")
       .getByRole("button", { name: "Move up" })
       .click();
+    const taskSaved = await taskSave;
+    expect(taskSaved.ok()).toBe(true);
+    await expect(globalPosition).toHaveAttribute("aria-disabled", "false");
     await expect
       .poll(async () => {
         const tasks = await db
@@ -408,7 +428,18 @@ test("resource order can be saved with clicks and the position menu restores foc
         return tasks.data?.map((task) => task.title);
       })
       .toEqual(["Global task", "Schedule task"]);
-    await page.reload();
+    // WebKit can report cancellation of a completed action's remaining Flight
+    // stream during a hard reload. Allow one such console entry only while
+    // this navigation runs; earlier/later errors and unhandled errors still fail.
+    const endExpectedCancellation =
+      browserName === "webkit"
+        ? browserDiagnostics.allowNextConsoleError(/^TypeError: Load failed$/)
+        : () => {};
+    try {
+      await page.reload();
+    } finally {
+      endExpectedCancellation();
+    }
     await expect(
       page.getByLabel(/^Change position of .* task$/).first(),
     ).toHaveAccessibleName("Change position of Global task", {
