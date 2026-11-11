@@ -35,6 +35,10 @@ La ordenación de Hoy incluye ahora las tareas globales al guardar el orden
 combinado. La regresión reproduce el fallo anterior y verifica ambas posiciones
 en la base de datos y después de recargar.
 
+Las acciones de recordatorios permanecen deshabilitadas hasta que sus manejadores
+están hidratados y mientras se guarda una operación. Evita perder el primer toque
+de borrado, edición, activación o posposición sobre el HTML inicial en Safari.
+
 La auditoría inicial recorrió 80 pantallas públicas (20 rutas, dos idiomas y dos
 temas) y 32 vistas privadas (16 rutas y dos temas). Se midió también el diseño a
 320 px/125 %, 390 px/200 % y 1440 px/100 %. Los informes detallados se conservan

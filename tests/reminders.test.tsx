@@ -37,8 +37,9 @@ vi.mock("next-intl", () => ({
 
 const enable = vi.fn().mockResolvedValue(undefined);
 const save = vi.fn().mockResolvedValue(undefined);
+const remove = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/app/actions/domain", () => ({
-  deleteReminder: vi.fn(),
+  deleteReminder: (...args: unknown[]) => remove(...args),
   saveReminder: (...args: unknown[]) => save(...args),
   setReminderEnabled: vi.fn(),
   setRemindersEnabled: (...args: unknown[]) => enable(...args),
@@ -116,12 +117,33 @@ describe("reminder scheduling", () => {
     },
   );
 
-  it("disables server-rendered reminder forms until their handlers are hydrated", () => {
+  it("disables server-rendered reminder forms and actions until their handlers are hydrated", async () => {
+    const reminders: Parameters<typeof ReminderCenter>[0]["reminders"] = [
+      {
+        id: "10000000-0000-4000-8000-000000000001",
+        user_id: "10000000-0000-4000-8000-000000000002",
+        task_id: null,
+        event_id: null,
+        kind: "alarm",
+        title: "Test alarm",
+        minutes_before: null,
+        recurrence: "once",
+        time_of_day: null,
+        timezone: "Europe/Madrid",
+        next_trigger_at: "2031-01-01T12:00:00Z",
+        snoozed_until: null,
+        enabled: true,
+        delivery_status: "pending",
+        last_delivered_at: null,
+        created_at: "2026-01-01T12:00:00Z",
+        updated_at: "2026-01-01T12:00:00Z",
+      },
+    ];
     const html = renderToStaticMarkup(
       <ReminderCenter
         locale="en"
         timezone="Europe/Madrid"
-        reminders={[]}
+        reminders={reminders}
         tasks={[]}
         events={[]}
       />,
@@ -130,6 +152,29 @@ describe("reminder scheduling", () => {
     expect(
       document.querySelector(".reminder-forms")?.hasAttribute("disabled"),
     ).toBe(true);
+    expect(
+      document
+        .querySelector('[aria-label="Delete reminder"]')
+        ?.hasAttribute("disabled"),
+    ).toBe(true);
+    render(
+      <ReminderCenter
+        locale="en"
+        timezone="Europe/Madrid"
+        reminders={reminders}
+        tasks={[]}
+        events={[]}
+      />,
+    );
+    await act(async () => {});
+    const deleteButton = screen.getByRole("button", {
+      name: "Delete reminder",
+    });
+    expect(deleteButton).toBeEnabled();
+    await act(async () => {
+      fireEvent.click(deleteButton);
+    });
+    expect(remove).toHaveBeenCalledExactlyOnceWith(reminders[0].id);
   });
 
   it("creates a standalone personalized alarm", async () => {
