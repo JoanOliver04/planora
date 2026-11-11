@@ -302,6 +302,7 @@ export function TodayView({
         <div
           className="progress-ring"
           role="progressbar"
+          aria-label={t("weeklyProgress")}
           aria-valuemin={0}
           aria-valuemax={stats.expected || 1}
           aria-valuenow={stats.completed}
@@ -408,7 +409,10 @@ export function TodayView({
                 const iterator = ids[Symbol.iterator]();
                 const merged = data.tasks
                   .filter(
-                    (item) => item.schedule_id === active && !item.archived_at,
+                    (item) =>
+                      (item.scope === "global" ||
+                        item.schedule_id === active) &&
+                      !item.archived_at,
                   )
                   .map((item) =>
                     visible.has(item.id) ? iterator.next().value! : item.id,

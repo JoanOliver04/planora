@@ -61,7 +61,7 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
           height={180}
           sizes="180px"
           style={{ width: 180, height: "auto" }}
-          priority
+          preload
         />
       </div>
     );

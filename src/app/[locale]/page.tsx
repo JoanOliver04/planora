@@ -1,7 +1,8 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Link, routing } from "@/i18n/routing";
+import { routing } from "@/i18n/routing";
+import Link from "next/link";
 import { AuthLink } from "@/components/auth-link";
 import { StudioCredit } from "@/components/studio-credit";
 
@@ -119,21 +120,24 @@ export default async function LandingPage({
     <main className="landing">
       <header className="landing-nav">
         <Link
-          href="/"
-          locale={language}
+          href={`/${language}`}
           className="landing-brand"
           aria-label="Planora"
         >
           <Image src="/assets/logo.webp" width={38} height={38} alt="" />
           <span>Planora</span>
         </Link>
-        <nav aria-label="Principal">
+        <nav aria-label={language === "es" ? "Principal" : "Main"}>
           <a href="#product">{text.nav[0]}</a>
           <a href="#privacy">{text.nav[1]}</a>
           <a href="#screenshots">{text.nav[2]}</a>
         </nav>
         <div className="landing-nav-actions">
-          <Link href="/" locale={otherLocale} className="landing-language">
+          <Link
+            href={`/${otherLocale}`}
+            hrefLang={otherLocale}
+            className="landing-language"
+          >
             {text.language}
           </Link>
           <AuthLink href={`/${language}/login`} className="button secondary">
@@ -148,8 +152,8 @@ export default async function LandingPage({
           <p className="landing-lead">{text.lead}</p>
           <div className="landing-actions">
             <Link
-              href="/demo/today"
-              locale={language}
+              href={`/${language}/demo/today`}
+              prefetch={false}
               className="button primary"
             >
               {text.demo}
@@ -170,8 +174,7 @@ export default async function LandingPage({
             height={220}
             alt=""
             sizes="(max-width: 900px) 160px, 220px"
-            loading="eager"
-            fetchPriority="high"
+            preload
           />
         </div>
       </section>
@@ -193,8 +196,8 @@ export default async function LandingPage({
           <h2>{text.previewTitle}</h2>
           <p>{text.previewBody}</p>
           <Link
-            href="/demo/week"
-            locale={language}
+            href={`/${language}/demo/week`}
+            prefetch={false}
             className="landing-text-link"
           >
             {text.demo} →
@@ -237,7 +240,11 @@ export default async function LandingPage({
         <h2>{text.finalTitle}</h2>
         <p>{text.finalBody}</p>
         <div className="landing-actions">
-          <Link href="/demo/today" locale={language} className="button primary">
+          <Link
+            href={`/${language}/demo/today`}
+            prefetch={false}
+            className="button primary"
+          >
             {text.demo}
           </Link>
           <AuthLink href={`/${language}/login`} className="button secondary">
@@ -251,10 +258,10 @@ export default async function LandingPage({
           <StudioCredit locale={language} />
         </div>
         <span>{text.trust}</span>
-        <Link href="/privacy" locale={language}>
+        <Link href={`/${language}/privacy`} prefetch={false}>
           {language === "es" ? "Privacidad" : "Privacy"}
         </Link>
-        <Link href="/terms" locale={language}>
+        <Link href={`/${language}/terms`} prefetch={false}>
           {language === "es" ? "Condiciones" : "Terms"}
         </Link>
       </footer>

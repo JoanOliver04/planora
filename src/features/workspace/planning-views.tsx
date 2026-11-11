@@ -106,7 +106,7 @@ export function MonthView({
       </div>
       <div
         className="month-grid"
-        role="grid"
+        role="group"
         aria-label={formatter.format(first)}
       >
         {days.slice(0, 7).map((day) => (
@@ -134,10 +134,9 @@ export function MonthView({
               data-outside={day.slice(0, 7) !== anchor.slice(0, 7)}
               data-today={day === today}
               key={day}
-              role="gridcell"
               href={`/week?date=${day}`}
               prefetch={false}
-              aria-label={t("openDay", { date: day })}
+              aria-label={`${t("openDay", { date: day })}. ${t("dayContents", { tasks: tasks.length, events: events.length })}`}
             >
               <time dateTime={day}>{Number(day.slice(8))}</time>
               <div className="month-items">

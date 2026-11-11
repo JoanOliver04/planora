@@ -18,12 +18,16 @@ export async function GET(request: Request) {
     next = safePostAuthPath(url.searchParams.get("next"), locale),
     origin = siteConfig.url.replace(/\/$/, "");
   if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error)
-      return NextResponse.redirect(new URL(next, origin), {
-        headers: { "Cache-Control": "no-store" },
-      });
+    try {
+      const supabase = await createClient();
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error)
+        return NextResponse.redirect(new URL(next, origin), {
+          headers: { "Cache-Control": "no-store" },
+        });
+    } catch {
+      // Provider/network failures return to the same recoverable sign-in UI.
+    }
   }
   return NextResponse.redirect(
     new URL(`/${locale}/login?error=oauth`, origin),

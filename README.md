@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-656%20unit%20%2B%20102%20E2E-brightgreen?style=flat-square" alt="656 passing unit tests and 102 passing Playwright E2E tests; 3 deliberate browser exclusions" />
+  <img src="https://img.shields.io/badge/tests-665%20unit%20%2B%20120%20E2E%20cases-brightgreen?style=flat-square" alt="665 unit tests and 120 Playwright E2E cases; 3 deliberate browser exclusions" />
 </p>
 
 ---
@@ -349,11 +349,11 @@ npm audit
 
 CI runs npm audit, lint, Prettier (`format:check`), typecheck, coverage and a production build on every push to `main`. It also runs CodeQL, Lighthouse and the complete Playwright suite against an isolated Supabase instance built from the committed migrations, so authenticated scenarios cannot silently skip because credentials are missing.
 
-Workspace views load on demand; the task editor is included with the task views so its first opening stays responsive. Public pages receive a smaller translation catalogue, and task lists do not subscribe to every Focus clock tick. Responsive regression checks cover 16 private areas, widths from 320 to 1440 CSS pixels, portrait/landscape, maximum-length names and 200% root text. CI also measures cold route loading with 60 tasks and 840 history entries; pull requests compare initial JavaScript against their base revision. See the [performance and responsive report](docs/performance-2026-10-31.md) for measured results, conditions and coverage limits.
+Workspace views load on demand; the task editor is included with the task views so its first opening stays responsive. Public pages do not receive the private translation catalogue, and task lists do not subscribe to every Focus clock tick. Responsive regression checks cover 16 private areas, widths from 320 to 1440 CSS pixels, portrait/landscape, maximum-length names and 200% root text. CI also measures cold route loading with 60 tasks and 840 history entries; pull requests compare initial JavaScript against their base revision. See the [performance and responsive report](docs/performance-2026-10-31.md) for measured results, conditions and coverage limits.
 
 The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync and backup v5), forms, loading states, protected navigation, platform metadata and the single-instance, automatic-only Analytics integration. Authenticated journeys exercise schedule/task CRUD, history and undo, templates, alarms, preferences, offline completion sync, sign-out, export and atomic restore. Web Push checks include a service worker without open clients, permission handling, server queue leases, cancellation, retries, ownership isolation and API access controls.
 
-Last verified on **2026-10-31** at [`86a6286`](https://github.com/JoanOliver04/planora/commit/86a62861e37668b4d8314955ea17102084a64482): **656 passing tests in 85 Vitest files**, **102 passing Playwright scenarios** and **3 deliberate exclusions** out of 105 cases. Browser projects cover desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. The exclusions are three WebKit integration flows exercised in Chromium: the API-backed Focus lifecycle, offline completion sync and the push outbox. Next.js **16.4.3** / React **19.3.1** build, types, lint, formatting, CodeQL and Lighthouse all pass. The dependency audit reports **0 production vulnerabilities** and no high/critical findings overall; the full development-tool tree has 16 moderate package entries from one minimatch advisory, detailed in the performance report. [Verified CI run](https://github.com/JoanOliver04/planora/actions/runs/41220969402).
+The **2026-11-11 / 0.1.2** suite contains **665 unit tests in 88 Vitest files** and **120 Playwright cases**, including **3 deliberate exclusions**. Browser projects cover desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. The exclusions are three WebKit integration flows exercised in Chromium: the API-backed Focus lifecycle, offline completion sync and the push outbox. The release uses Next.js **16.4.6** / React **19.3.1**; the strict dependency audit reports **0 known vulnerabilities across the complete tree**. The [quality review](docs/quality-review-2026-11-11.md) records fixes, verification and the database account-deletion regression. CI also enforces database ownership checks, public/private accessibility and mobile Lighthouse thresholds.
 
 These are dated test results, not a guarantee of zero bugs or complete device coverage. A successful push-provider response does not prove that a phone displayed the notification; use the delayed test on each device. No universal physical-device or Google OAuth acceptance claim is implied by CI.
 
@@ -391,6 +391,7 @@ See [docs/deployment.md](docs/deployment.md) for the complete checklist.
 - [Security hardening and verification](docs/security-production-verification-2026-10-30.md)
 - [Mobile Web Push: activation, architecture and operations](docs/mobile-web-push.md)
 - [Testing strategy](docs/testing.md)
+- [Release quality review](docs/quality-review-2026-11-11.md)
 - [Performance and responsive verification](docs/performance-2026-10-31.md)
 - [Deployment guide](docs/deployment.md)
 - [Backup and restore](docs/backup-and-restore.md)

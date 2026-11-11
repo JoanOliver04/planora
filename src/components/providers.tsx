@@ -1,6 +1,5 @@
 "use client";
 import { ThemeProvider } from "@/components/theme-provider";
-import { NextIntlClientProvider } from "next-intl";
 import { useEffect } from "react";
 import { PublicConnectivityStatus } from "@/components/public-connectivity-status";
 import { registerPlanoraServiceWorker } from "@/lib/pwa/register-sw";
@@ -8,27 +7,24 @@ import { registerPlanoraServiceWorker } from "@/lib/pwa/register-sw";
 export function Providers({
   children,
   locale,
-  messages,
 }: {
   children: React.ReactNode;
   locale: string;
-  messages: Record<string, unknown>;
 }) {
   useEffect(() => {
     document.documentElement.lang = locale;
-    void registerPlanoraServiceWorker();
+    // Shell precaching downloads several brand assets. Let first paint and
+    // hydration finish before competing with the hero image on mobile networks.
+    const timer = window.setTimeout(() => {
+      void registerPlanoraServiceWorker();
+    }, 2_500);
+    return () => window.clearTimeout(timer);
   }, [locale]);
 
   return (
-    <NextIntlClientProvider
-      locale={locale}
-      messages={messages}
-      timeZone="Europe/Madrid"
-    >
-      <ThemeProvider>
-        <PublicConnectivityStatus locale={locale} />
-        {children}
-      </ThemeProvider>
-    </NextIntlClientProvider>
+    <ThemeProvider>
+      <PublicConnectivityStatus locale={locale} />
+      {children}
+    </ThemeProvider>
   );
 }

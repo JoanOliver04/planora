@@ -1,4 +1,4 @@
-import { Link } from "@/i18n/routing";
+import Link from "next/link";
 import { StudioCredit } from "@/components/studio-credit";
 
 export default async function Privacy({
@@ -11,12 +11,12 @@ export default async function Privacy({
 
   return (
     <main className="legal-page">
-      <Link href="/">← Planora</Link>
+      <Link href={`/${locale}`}>← Planora</Link>
       <h1>{es ? "Privacidad" : "Privacy"}</h1>
       <p>
         {es
-          ? "Última actualización: 7 de agosto de 2026"
-          : "Last updated: 7 August 2026"}
+          ? "Última actualización: 11 de noviembre de 2026"
+          : "Last updated: 11 November 2026"}
       </p>
       <h2>{es ? "Datos que tratamos" : "Data we process"}</h2>
       <p>
@@ -49,11 +49,11 @@ export default async function Privacy({
           ? "No vendemos datos ni mostramos publicidad. Puedes exportar tus datos o eliminar tu cuenta desde los ajustes."
           : "We do not sell data or show advertising. You can export your data or delete your account from settings."}
       </p>
-      <h2>{es ? "Proveedores y contacto" : "Providers and contact"}</h2>
+      <h2>{es ? "Proveedores del servicio" : "Service providers"}</h2>
       <p>
         {es
-          ? "Supabase aloja la autenticación y la base de datos; Vercel aloja la aplicación y proporciona la analítica web. Para consultas, abre una incidencia privada en el repositorio del proyecto."
-          : "Supabase hosts authentication and the database; Vercel hosts the application and provides web analytics. For questions, open a private issue in the project repository."}
+          ? "Supabase aloja la autenticación y la base de datos; Vercel aloja la aplicación y proporciona la analítica web."
+          : "Supabase hosts authentication and the database; Vercel hosts the application and provides web analytics."}
       </p>
       <footer className="legal-credit">
         <StudioCredit locale={locale} />

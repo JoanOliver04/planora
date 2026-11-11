@@ -7,6 +7,7 @@ import { Check, Edit3, StickyNote, Timer } from "lucide-react";
 import { formatRecurrenceDescription } from "@/lib/recurrence";
 import type { Category, Completion, Task } from "./types";
 import { recurrenceFromJson } from "./types";
+import { accessibleAccent } from "@/lib/colors";
 import {
   formatCategoryMetadata,
   formatTaskTime,
@@ -68,6 +69,8 @@ export function TaskCard({
       task.scope === "global" ? t("global") : null,
     ]);
 
+  const categoryColor = category?.colour;
+  const categoryAccent = categoryColor ? accessibleAccent(categoryColor) : null;
   return (
     <article
       className="task surface"
@@ -75,6 +78,14 @@ export function TaskCard({
       style={
         {
           "--accent": category?.colour ?? "var(--primary)",
+          ...(categoryAccent
+            ? {
+                "--category-text-light": categoryAccent.lightText,
+                "--category-text-dark": categoryAccent.darkText,
+                "--task-check-contrast": categoryAccent.foreground,
+                "--task-check-hover": categoryAccent.hover,
+              }
+            : {}),
         } as React.CSSProperties
       }
     >

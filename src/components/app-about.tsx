@@ -1,5 +1,5 @@
 import { siteConfig } from "@/config/site";
-import { Link } from "@/i18n/routing";
+import Link from "next/link";
 import { StudioCredit } from "./studio-credit";
 
 export function AppAbout({ locale }: { locale: "es" | "en" }) {
@@ -22,10 +22,10 @@ export function AppAbout({ locale }: { locale: "es" | "en" }) {
           : "A one-person independent studio creating apps and games."}
       </p>
       <nav aria-label={es ? "Información de Planora" : "Planora information"}>
-        <Link href="/privacy" locale={locale}>
+        <Link href={`/${locale}/privacy`} prefetch={false}>
           {es ? "Privacidad" : "Privacy"}
         </Link>
-        <Link href="/terms" locale={locale}>
+        <Link href={`/${locale}/terms`} prefetch={false}>
           {es ? "Condiciones de uso" : "Terms of use"}
         </Link>
       </nav>

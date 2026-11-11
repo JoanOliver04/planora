@@ -16,6 +16,10 @@
     "title": "Organiza tu vida, a tu ritmo.",
     "subtitle": "Rutinas flexibles para cada etapa de tu vida.",
     "google": "Continuar con Google",
+    "connecting": "Conectando con Google…",
+    "oauthError": "No se ha podido completar el acceso con Google. Vuelve a intentarlo o explora la demo.",
+    "signInError": "No se ha podido iniciar el acceso con Google. Comprueba tu conexión y vuelve a intentarlo.",
+    "unavailable": "El acceso no está disponible ahora. Puedes probar la demo y volver a intentarlo más tarde.",
     "privacy": "Solo usamos tu nombre, correo y foto para identificar tu cuenta.",
     "signOut": "Cerrar sesión",
     "demo": "Probar la demo interactiva",
@@ -70,6 +74,7 @@
     "nextMonth": "Mes siguiente",
     "today": "Hoy",
     "openDay": "Abrir la planificación del {date}",
+    "dayContents": "{tasks, plural, =0 {Sin tareas} one {# tarea} other {# tareas}} y {events, plural, =0 {sin eventos} one {# evento} other {# eventos}}",
     "searchEyebrow": "Todo Planora",
     "searchTitle": "Buscar",
     "searchPlaceholder": "Busca tareas, eventos, categorías u horarios…",
@@ -862,7 +867,7 @@
       "error": "No se pudo preparar la exportación. Inténtalo de nuevo.",
       "json": {
         "title": "Copia completa",
-        "description": "Guarda todos los datos compatibles con la restauración de Planora, incluidas sesiones de Enfoque, notas y objetivos (esquema v4).",
+        "description": "Guarda todos los datos compatibles con la restauración de Planora, incluidas sesiones de Enfoque, notas y objetivos.",
         "action": "Descargar JSON"
       },
       "csv": {

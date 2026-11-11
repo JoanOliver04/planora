@@ -77,6 +77,7 @@ function DayPartsSettings({
           <div className="row-actions">
             <input
               type="time"
+              aria-label={`${t(part)}: ${t("startTime")}`}
               value={values[part].start}
               onChange={(e) =>
                 setValues((v) => ({
@@ -88,6 +89,7 @@ function DayPartsSettings({
             <span>–</span>
             <input
               type="time"
+              aria-label={`${t(part)}: ${t("endTime")}`}
               value={values[part].end}
               onChange={(e) =>
                 setValues((v) => ({
@@ -156,8 +158,9 @@ function PersonalizationSettings({
         </div>
       </div>
       <div className="settings-row">
-        <span>{t("density")}</span>
+        <label htmlFor="settings-density">{t("density")}</label>
         <select
+          id="settings-density"
           className="pill"
           value={preferences.density}
           onChange={(event) =>
@@ -187,8 +190,9 @@ function PersonalizationSettings({
         </div>
       </div>
       <div className="settings-row">
-        <span>{t("corners")}</span>
+        <label htmlFor="settings-corners">{t("corners")}</label>
         <select
+          id="settings-corners"
           className="pill"
           value={preferences.radius}
           onChange={(event) =>
@@ -266,8 +270,9 @@ export function SettingsView({
       <h1 className="title">{t("settings")}</h1>
       <section className="surface">
         <div className="settings-row">
-          <span>{t("theme")}</span>
+          <label htmlFor="settings-theme">{t("theme")}</label>
           <select
+            id="settings-theme"
             className="pill"
             value={theme ?? data.profile.theme}
             onChange={(e) => {
@@ -275,14 +280,15 @@ export function SettingsView({
               void profile({ theme: e.target.value });
             }}
           >
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+            <option value="system">{t("system")}</option>
+            <option value="light">{t("light")}</option>
+            <option value="dark">{t("dark")}</option>
           </select>
         </div>
         <div className="settings-row">
-          <span>{t("language")}</span>
+          <label htmlFor="settings-language">{t("language")}</label>
           <select
+            id="settings-language"
             className="pill"
             value={locale}
             onChange={(e) => {
@@ -296,24 +302,26 @@ export function SettingsView({
           </select>
         </div>
         <div className="settings-row">
-          <span>{t("timezone")}</span>
+          <label htmlFor="settings-timezone">{t("timezone")}</label>
           <input
             className="pill"
+            id="settings-timezone"
             defaultValue={data.profile.timezone}
             onBlur={(e) => void profile({ timezone: e.target.value })}
           />
         </div>
         <div className="settings-row">
-          <span>{t("weekStart")}</span>
+          <label htmlFor="settings-week-start">{t("weekStart")}</label>
           <select
+            id="settings-week-start"
             className="pill"
             value={data.profile.week_starts_on}
             onChange={(e) =>
               void profile({ week_starts_on: Number(e.target.value) })
             }
           >
-            <option value="1">Monday</option>
-            <option value="0">Sunday</option>
+            <option value="1">{t("monday")}</option>
+            <option value="0">{t("sunday")}</option>
           </select>
         </div>
         <PersonalizationSettings data={data} save={profile} />
