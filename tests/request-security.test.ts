@@ -10,6 +10,25 @@ import { hasRecentAuthentication } from "@/lib/security/recent-auth";
 import { validatePublicConfiguration } from "@/lib/security/public-config";
 
 describe("request security", () => {
+  it("uses the target Host when Next exposes an internal URL, while rejecting foreign or malformed authorities", () => {
+    for (const [origin, host, expected] of [
+      ["http://127.0.0.1:3000", "127.0.0.1:3000", true],
+      ["http://evil.example", "127.0.0.1:3000", false],
+      ["http://127.0.0.1:3001", "127.0.0.1:3000", false],
+      ["https://127.0.0.1:3000", "127.0.0.1:3000", false],
+      ["http://evil.example", "127.0.0.1:3000@evil.example", false],
+      ["http://evil.example", "evil.example/path", false],
+      ["http://evil.example", "evil.example,127.0.0.1:3000", false],
+    ] as const)
+      expect(
+        isSameOriginRequest(
+          new Request("http://localhost:3000/api/telemetry", {
+            headers: { origin, host },
+          }),
+        ),
+        `${origin} to ${host}`,
+      ).toBe(expected);
+  });
   it.each(["application/jsonp", "application/json-invalid", "text/plain"])(
     "rejects misleading media type %s",
     (type) => {

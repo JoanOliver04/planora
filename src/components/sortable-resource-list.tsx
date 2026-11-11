@@ -111,6 +111,9 @@ function SortableItem<T extends { id: string }>({
               <button
                 key={direction}
                 type="button"
+                // Safari otherwise moves focus to <main> before click, which
+                // closes the disclosure before the pointer action can run.
+                onMouseDown={(event) => event.preventDefault()}
                 disabled={
                   disabled || (direction === -1 ? !canMoveUp : !canMoveDown)
                 }

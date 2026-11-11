@@ -75,7 +75,9 @@ jobs:
         run: |
           docker cp supabase/tests/security_hardening.sql supabase_db_planora:/tmp/security_hardening.sql
           docker exec supabase_db_planora psql -X -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -q -f /tmp/security_hardening.sql
-      - run: npx playwright install --with-deps chromium webkit
+      - name: Install browser dependencies
+        timeout-minutes: 10
+        run: npx playwright install --with-deps --only-shell chromium webkit
       - run: npm run test:e2e
       - name: Measure base revision in isolation
         if: github.event_name == 'pull_request'

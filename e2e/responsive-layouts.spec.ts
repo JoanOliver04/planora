@@ -163,7 +163,11 @@ test("private areas and task dialogs reflow with long content and enlarged text"
       watchingMonth = route === "month";
       watchingToday = route === "today";
       await page.goto(`/en/${route}`);
-      await expect(page.locator("main h1").first()).toBeVisible();
+      // Auth + workspace queries have their own bounded recovery deadlines.
+      // This functional reflow matrix waits for data; timing has a separate CI benchmark.
+      await expect(page.locator("main h1").first()).toBeVisible({
+        timeout: 15_000,
+      });
       for (const size of viewports) {
         await page.setViewportSize(size);
         await expectLayoutFits(

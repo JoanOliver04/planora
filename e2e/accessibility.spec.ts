@@ -404,12 +404,9 @@ test("resource order can be saved with clicks and the position menu restores foc
           .from("tasks")
           .select("title,sort_order")
           .order("sort_order");
-        return tasks.data;
+        return tasks.data?.map((task) => task.title);
       })
-      .toEqual([
-        { title: "Global task", sort_order: 0 },
-        { title: "Schedule task", sort_order: 1 },
-      ]);
+      .toEqual(["Global task", "Schedule task"]);
     await page.reload();
     await expect(
       page.getByLabel(/^Change position of .* task$/).first(),

@@ -63,7 +63,7 @@ la corrección. Esta batería pasa a ejecutarse también en CI.
 
 ## Validación
 
-La batería unitaria pasa con 665 pruebas en 88 archivos. Cobertura: 60,79 % de
+La batería unitaria inicial pasa con 665 pruebas en 88 archivos. Cobertura: 60,79 % de
 sentencias, 53,76 % de ramas, 53,83 % de funciones y 62,76 % de líneas. También
 pasan compilación de producción, tipos, lint, formato y auditoría estricta del
 árbol completo de dependencias.
@@ -82,4 +82,22 @@ de mejora de rendimiento. La referencia y el candidato de CI se conservan por
 separado.
 
 La validación completa de navegadores y la publicación se registran junto a
-esta revisión en el pull request de la entrega 0.1.2.
+esta revisión en el [pull request de la entrega 0.1.2](https://github.com/JoanOliver04/planora/pull/25).
+
+La revisión de WebKit añade una regresión de origen (666 pruebas unitarias en
+total): Next exponía `localhost` internamente para peticiones dirigidas a
+`127.0.0.1`. La comprobación usa ahora la autoridad `Host` recibida, manteniendo
+el rechazo de orígenes externos, autoridades malformadas, protocolos o puertos
+distintos y peticiones marcadas como `cross-site`. Los encabezados de proxy
+reenviados no autorizan peticiones. Una prueba E2E verifica también una petición
+válida, además de los rechazos.
+
+En Safari, los botones del menú de orden evitan perder el foco durante
+`mousedown`, de modo que el clic puede guardarse antes de cerrar el menú. La
+cabecera de Hoy permite saltos de línea a anchuras intermedias para que Añadir
+permanezca dentro de la pantalla. La matriz funcional espera a los datos dentro
+del plazo de recuperación de la app; el rendimiento se mide por separado.
+
+La primera medición del candidato en CI obtiene 91/100/100/100 en la portada y
+95/100/100/91 en la demo (rendimiento/accesibilidad/buenas prácticas/SEO), con
+las seis ejecuciones superando las nuevas condiciones de cierre.

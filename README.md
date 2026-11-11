@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-665%20unit%20%2B%20120%20E2E%20cases-brightgreen?style=flat-square" alt="665 unit tests and 120 Playwright E2E cases; 3 deliberate browser exclusions" />
+  <img src="https://img.shields.io/badge/tests-666%20unit%20%2B%20120%20E2E%20cases-brightgreen?style=flat-square" alt="666 unit tests and 120 Playwright E2E cases; 3 deliberate browser exclusions" />
 </p>
 
 ---
@@ -353,7 +353,7 @@ Workspace views load on demand; the task editor is included with the task views 
 
 The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync and backup v5), forms, loading states, protected navigation, platform metadata and the single-instance, automatic-only Analytics integration. Authenticated journeys exercise schedule/task CRUD, history and undo, templates, alarms, preferences, offline completion sync, sign-out, export and atomic restore. Web Push checks include a service worker without open clients, permission handling, server queue leases, cancellation, retries, ownership isolation and API access controls.
 
-The **2026-11-11 / 0.1.2** suite contains **665 unit tests in 88 Vitest files** and **120 Playwright cases**, including **3 deliberate exclusions**. Browser projects cover desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. The exclusions are three WebKit integration flows exercised in Chromium: the API-backed Focus lifecycle, offline completion sync and the push outbox. The release uses Next.js **16.4.6** / React **19.3.1**; the strict dependency audit reports **0 known vulnerabilities across the complete tree**. The [quality review](docs/quality-review-2026-11-11.md) records fixes, verification and the database account-deletion regression. CI also enforces database ownership checks, public/private accessibility and mobile Lighthouse thresholds.
+The **2026-11-11 / 0.1.2** suite contains **666 unit tests in 88 Vitest files** and **120 Playwright cases**, including **3 deliberate exclusions**. Browser projects cover desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. The exclusions are three WebKit integration flows exercised in Chromium: the API-backed Focus lifecycle, offline completion sync and the push outbox. The release uses Next.js **16.4.6** / React **19.3.1**; the strict dependency audit reports **0 known vulnerabilities across the complete tree**. The [quality review](docs/quality-review-2026-11-11.md) records fixes, verification and the database account-deletion regression. CI also enforces database ownership checks, public/private accessibility and mobile Lighthouse thresholds.
 
 These are dated test results, not a guarantee of zero bugs or complete device coverage. A successful push-provider response does not prove that a phone displayed the notification; use the delayed test on each device. No universal physical-device or Google OAuth acceptance claim is implied by CI.
 

@@ -49,6 +49,7 @@ test("login hydrates with nonce scripts and blocks injected inline scripts", asy
 
 test("private requests are never cacheable and APIs reject cross-origin writes", async ({
   request,
+  baseURL,
 }) => {
   const response = await request.get("/es/today", { maxRedirects: 0 });
   expect(response.headers()["cache-control"]).toContain("no-store");
@@ -66,6 +67,11 @@ test("private requests are never cacheable and APIs reject cross-origin writes",
     data: { type: "error", path: "/" },
   });
   expect(telemetry.status()).toBe(403);
+  const ownTelemetry = await request.post("/api/telemetry", {
+    headers: { origin: new URL(baseURL!).origin },
+    data: { type: "error", path: "/", message: "integration-check" },
+  });
+  expect(ownTelemetry.status()).toBe(204);
 });
 
 test("entering login from public pages installs a new document policy", async ({
