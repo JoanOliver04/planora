@@ -1,0 +1,392 @@
+{
+  "10": {
+    "status": "accepted",
+    "sha256": "811268120da7410b3cd1a49d0249cb84a127e7b3c3c22ed9ffd2f581ebc044bd",
+    "reviewedAt": "2026-11-11T21:34:40.760Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "11": {
+    "status": "accepted",
+    "sha256": "a088da140cb5eab23c193a9e5767d4018824f257b86013a8648253fa8e55f4bb",
+    "reviewedAt": "2026-11-11T21:34:40.762Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "12": {
+    "status": "accepted",
+    "sha256": "b7dc27544704e42326c80cb8d41388761d0e143441362a5545f25eb3710e4779",
+    "reviewedAt": "2026-11-11T21:34:40.765Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "13": {
+    "status": "accepted",
+    "sha256": "1e56bc9f44063c52f851d47e6d8dcb821cf7335cb1e024e12386c123531f2308",
+    "reviewedAt": "2026-11-11T21:34:40.767Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "14": {
+    "status": "accepted",
+    "sha256": "52e2c63455a87ccce4ef5746f91107053c3a4c4a85d71605f0df903795a1d6c6",
+    "reviewedAt": "2026-11-11T21:34:40.770Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "15": {
+    "status": "accepted",
+    "sha256": "8f74f85022eed8246e74c621e871635ceb77e7452f855fc1e4f291276aa884d4",
+    "reviewedAt": "2026-11-11T21:34:40.774Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "16": {
+    "status": "accepted",
+    "sha256": "2e6b1166557b2a76d23388e0938d250a50dac1e56033094e68ce5e2edc9ae9cd",
+    "reviewedAt": "2026-11-11T21:34:40.778Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "17": {
+    "status": "accepted",
+    "sha256": "a2d05bb336ce912af92519f403b2a20d4664cc38991d95e3d09c69a5445fbabd",
+    "reviewedAt": "2026-11-11T21:34:40.788Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "18": {
+    "status": "accepted",
+    "sha256": "6af67fb72b1303c2f37d88581bc3b0e3c86396a9ec9f7961f1a5763d68a8976d",
+    "reviewedAt": "2026-11-11T21:34:40.792Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "19": {
+    "status": "accepted",
+    "sha256": "7a8f726a9ac0fbee9ecb0a57cd746af4514226a840777eaecd289f1036591266",
+    "reviewedAt": "2026-11-11T21:34:40.796Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "20": {
+    "status": "accepted",
+    "sha256": "befecfc3bf57bc1007d7ed2fba09c9f7e2758e9df3ce33c49cee00c5c19fec96",
+    "reviewedAt": "2026-11-11T21:34:40.799Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "21": {
+    "status": "accepted",
+    "sha256": "8babb553ebbf8d1139765cd9dbb243ff49f7b34c5c00f2f52e8bcdf268f69818",
+    "reviewedAt": "2026-11-11T21:34:40.805Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "22": {
+    "status": "accepted",
+    "sha256": "ad5109f1721415e713c02d399b016c378a985417252e827690524bf9312d98de",
+    "reviewedAt": "2026-11-11T21:34:40.808Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "23": {
+    "status": "accepted",
+    "sha256": "6a751694955ab53f78a5293bd024ae8cfeed01265edb77ceb377350be1f83b6e",
+    "reviewedAt": "2026-11-11T21:34:40.812Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "24": {
+    "status": "accepted",
+    "sha256": "1e4773876356f1c732328e80b33811682557a09eafdbf3bdc0a9d53dcf352b98",
+    "reviewedAt": "2026-11-11T21:34:40.817Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "25": {
+    "status": "accepted",
+    "sha256": "fbdc9a001c28d8432c29ce94b9b1ae4bdd853b7d02a723f8e1044f02506761bc",
+    "reviewedAt": "2026-11-11T21:34:40.819Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "26": {
+    "status": "accepted",
+    "sha256": "3bca4521fea19b1eb491cb42a12bfbd84fea7510fa59ecfd0c5f8f08c78adf07",
+    "reviewedAt": "2026-11-11T21:34:40.822Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "27": {
+    "status": "accepted",
+    "sha256": "67d00dab1e9599930cffb132338af592c3077b4ad830f4610184dc88875ec3ad",
+    "reviewedAt": "2026-11-11T21:34:40.826Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "28": {
+    "status": "accepted",
+    "sha256": "df03a49e1e322811a03e3bdc2caed4cce06d3980e97c26bd930a1236cd45f622",
+    "reviewedAt": "2026-11-11T21:34:40.829Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "29": {
+    "status": "accepted",
+    "sha256": "d19f2b6df1f9ebebef932c409cb755227cc660dc13754098d5be04cb0a208d86",
+    "reviewedAt": "2026-11-11T21:34:40.833Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "30": {
+    "status": "accepted",
+    "sha256": "3a71b1e1d652ea4d7594bd16ce55d3381f184e745a66277f094c97b9611e9982",
+    "reviewedAt": "2026-11-11T21:34:40.837Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "31": {
+    "status": "accepted",
+    "sha256": "af095e41e2907644b09aec487a35f9c267bcdbd6579ddc75404a5ae71f605073",
+    "reviewedAt": "2026-11-11T21:34:40.841Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "32": {
+    "status": "accepted",
+    "sha256": "8200d0e4584985f6718b1a02ba253245ae9783a14d1df8247c5904b41a49cb3a",
+    "reviewedAt": "2026-11-11T21:34:40.844Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "33": {
+    "status": "accepted",
+    "sha256": "9a859c94f6904e551608231d07c10fa1e85eb3752e1ef6d690dcd0c21f8de1a5",
+    "reviewedAt": "2026-11-11T21:34:40.847Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "34": {
+    "status": "accepted",
+    "sha256": "7f062f046e403035d796c76f392c8a7efd281cd6a858f62bae19ff4921cd4cc9",
+    "reviewedAt": "2026-11-11T21:34:40.850Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "35": {
+    "status": "accepted",
+    "sha256": "77c0d4b9991a4df441acf5aacd9b3b590440f209232e8e400e73d28fb9727cf0",
+    "reviewedAt": "2026-11-11T21:34:40.852Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "36": {
+    "status": "accepted",
+    "sha256": "d9aaea189ce66001354b6ee72b9d71d964d14b34bcedad45771853710456a28c",
+    "reviewedAt": "2026-11-11T21:34:40.854Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "37": {
+    "status": "accepted",
+    "sha256": "480be2f8d65671237b92052d0419579e76a94705dabf11cf859dc211e8153f1d",
+    "reviewedAt": "2026-11-11T21:34:40.856Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "38": {
+    "status": "accepted",
+    "sha256": "0d0b041801f8fc9af51ef7949b3ea9bb8cf713546db40b476cbbb5150287bab9",
+    "reviewedAt": "2026-11-11T21:34:40.859Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "39": {
+    "status": "accepted",
+    "sha256": "91dcfe96a23bf8cda77c12cabf8fd1a6ef862fe1ff958861a450178789ae5340",
+    "reviewedAt": "2026-11-11T21:34:40.862Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "40": {
+    "status": "accepted",
+    "sha256": "61c935a64f404d5ad229e5334e56411ea1163abbd25bfbe94ec35a8923de3460",
+    "reviewedAt": "2026-11-11T21:34:40.867Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "41": {
+    "status": "accepted",
+    "sha256": "6b3627852badc92bbe155d37d9f7098a3c57cb140b82add7265e6611fa5ee3a3",
+    "reviewedAt": "2026-11-11T21:34:40.869Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "42": {
+    "status": "accepted",
+    "sha256": "53c8edc2157106254c084e0656668b52b23d4572c644ac1da33f08aac7392330",
+    "reviewedAt": "2026-11-11T21:34:40.870Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "43": {
+    "status": "accepted",
+    "sha256": "88164d9e8492114d11dab6cf4b68d5a34d4d98f1eed95fc24fb2f964eb9dba1d",
+    "reviewedAt": "2026-11-11T21:34:40.873Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "44": {
+    "status": "accepted",
+    "sha256": "ad30cccf68f1f3472b45cbf18213558f7976b1a392aac55982ce7405b635c809",
+    "reviewedAt": "2026-11-11T21:34:40.877Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "45": {
+    "status": "accepted",
+    "sha256": "0fdf74aa6c60acf978a2be699982781662641b5345f76102367579861f0f0527",
+    "reviewedAt": "2026-11-11T21:34:40.882Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "46": {
+    "status": "accepted",
+    "sha256": "f450bcab3706b3d56b2941cd52528b8d828882f6188651d24343b36a07c00572",
+    "reviewedAt": "2026-11-11T21:34:40.885Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "47": {
+    "status": "accepted",
+    "sha256": "01564c57a41e23982bcf4dee51aa9f3532a99704dd1cfb4e00f66b2047508c99",
+    "reviewedAt": "2026-11-11T21:34:40.888Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "48": {
+    "status": "accepted",
+    "sha256": "15530cd4a0846bf1674e8e3408ac20f102f916608b31f175e6f9d9cfa66ca56b",
+    "reviewedAt": "2026-11-11T21:34:40.891Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "49": {
+    "status": "accepted",
+    "sha256": "6531b2f6518f1297874094d027f42395e3fa3ade4c429730c376a08da628ffc2",
+    "reviewedAt": "2026-11-11T21:34:40.895Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "50": {
+    "status": "accepted",
+    "sha256": "692e9aae671e3d84879fc78990732cb18a120bb25bbdaedbbbe635761e42c060",
+    "reviewedAt": "2026-11-11T21:34:40.898Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "51": {
+    "status": "accepted",
+    "sha256": "a5ae7d1976fae3cd0704e901b7541bf99d4164c65ab15a8cb58ae5ae4e4eee34",
+    "reviewedAt": "2026-11-11T21:34:40.901Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "52": {
+    "status": "accepted",
+    "sha256": "110f33194a252e5228c6ab5282a0c6447ff6ef9ae84e0acf35f136d804247acb",
+    "reviewedAt": "2026-11-11T21:34:40.902Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "53": {
+    "status": "accepted",
+    "sha256": "9f857a4903da2d4e9d637033f08afcaafca3c9f564fc2c261ce3ae6e85802c76",
+    "reviewedAt": "2026-11-11T21:34:40.903Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "54": {
+    "status": "accepted",
+    "sha256": "a965c2f401a057b2f98ff74ea59d237e82dd5df93a1c811f07d1de81489324e9",
+    "reviewedAt": "2026-11-11T21:34:40.905Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "55": {
+    "status": "accepted",
+    "sha256": "64890b4176fc0e9089cb4016d2eab2eec0e5aa23227814d2f02081bb15949b9a",
+    "reviewedAt": "2026-11-11T21:34:40.908Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "56": {
+    "status": "accepted",
+    "sha256": "894c522b2a8c7610cd273adf4f150137f8019c3754979ccecc514df7db34cad4",
+    "reviewedAt": "2026-11-11T21:34:40.909Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "57": {
+    "status": "accepted",
+    "sha256": "d6528ef3932a6049d810fbb60b6b61a97dd1efc3bca20774a9a25dce4bbd8f58",
+    "reviewedAt": "2026-11-11T21:34:40.911Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "58": {
+    "status": "accepted",
+    "sha256": "dcf438959be99d659219efc82188fafc573bdd8870da8aff6329d403851b3390",
+    "reviewedAt": "2026-11-11T21:34:40.914Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "59": {
+    "status": "accepted",
+    "sha256": "48e74b055e7e8db9021e9d75ab1ee4deb81a47bfedb5cc79599967b53f80d6f5",
+    "reviewedAt": "2026-11-11T21:34:40.919Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "60": {
+    "status": "accepted",
+    "sha256": "f1b3097c07af250ae6687a04073af234701720e368c7349e69f93eeabe2cd8aa",
+    "reviewedAt": "2026-11-11T21:34:40.922Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "61": {
+    "status": "accepted",
+    "sha256": "268ed3a3503613badd5e1bdd58d18d291e9ac37995ae688b11a1ab449d7252ba",
+    "reviewedAt": "2026-11-11T21:34:40.927Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "62": {
+    "status": "accepted",
+    "sha256": "fabaf1c963ff632c6962f430f46ad4d901526089e2552a98618f244f09f7633a",
+    "reviewedAt": "2026-11-11T21:34:40.930Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "63": {
+    "status": "accepted",
+    "sha256": "ced2d854a1470d1e470468d65a7b561df62c3237dc60b1befe95e16b7d060ccc",
+    "reviewedAt": "2026-11-11T21:34:40.931Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "64": {
+    "status": "accepted",
+    "sha256": "f8b80e474682e8c372369fb232fc754ead9e20d6d7b5cca0035289e0f62d589c",
+    "reviewedAt": "2026-11-11T21:34:40.933Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "65": {
+    "status": "accepted",
+    "sha256": "95283d7a2a1ce5e46bcc403872ed46a6e2b15806baa8ef489765cf134fb9e896",
+    "reviewedAt": "2026-11-11T21:34:40.934Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "01": {
+    "status": "accepted",
+    "sha256": "05116d2eeef43e2342005a83c1ea98af37a5fd7303d1094aaf7cc4a819d379ae",
+    "reviewedAt": "2026-11-11T21:34:40.736Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "02": {
+    "status": "accepted",
+    "sha256": "3cd97cb6c310155d0e373ab15bfd21432a631e0766959f0e45262a4120e8c8f2",
+    "reviewedAt": "2026-11-11T21:34:40.740Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "03": {
+    "status": "accepted",
+    "sha256": "35c5948ab276537f184af57fa1ee4b4cd90ee0a235a99388a896b975a63f8292",
+    "reviewedAt": "2026-11-11T21:34:40.741Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "04": {
+    "status": "accepted",
+    "sha256": "b7d920ce7b722565e3dcf2ebcb707b303da274d6da6b93b1db4e2fc89b8878a4",
+    "reviewedAt": "2026-11-11T21:34:40.744Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "05": {
+    "status": "accepted",
+    "sha256": "88ff0ca79bbac4a132b1034071d20e33a9cde24c3fd090d1be2524fa887457eb",
+    "reviewedAt": "2026-11-11T21:34:40.746Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "06": {
+    "status": "accepted",
+    "sha256": "56e3aa68bbdd6bee7d48fe396d3885cf7bc8e38d34728d9dedbcc9b01f7d2e60",
+    "reviewedAt": "2026-11-11T21:34:40.749Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "07": {
+    "status": "accepted",
+    "sha256": "ec84f8adedad7beba11060f3d2e672485deb8af0631eed716beba9732ca2b0d3",
+    "reviewedAt": "2026-11-11T21:34:40.751Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "08": {
+    "status": "accepted",
+    "sha256": "bd353c482c07aff85e21105c2b790db0476664d2c43597bd25e257b404117a0a",
+    "reviewedAt": "2026-11-11T21:34:40.754Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  },
+  "09": {
+    "status": "accepted",
+    "sha256": "aba76e26931864cb96bc91565322c95294c6be48c492164c9171dcefbaed9195",
+    "reviewedAt": "2026-11-11T21:34:40.757Z",
+    "note": "Revisados los estados corregidos de Enfoque: cuatro modos, historial con valores de semanas anteriores y editor completo en escritorio y móvil; conservadas las vistas sin cambios de píxeles previamente revisadas."
+  }
+}

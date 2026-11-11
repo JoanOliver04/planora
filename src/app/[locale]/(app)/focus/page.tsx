@@ -5,7 +5,11 @@ import {
   mapPresetRow,
   mapSessionRow,
 } from "@/features/focus/mappers";
-import { localWeek, localDate } from "@/lib/dates/timezone";
+import { localDate } from "@/lib/dates/timezone";
+import {
+  goalSessionWindow,
+  sessionsInCurrentWeek,
+} from "@/features/focus/goal-session-window";
 import type { FocusSession, SessionStartDraft } from "@/features/focus/types";
 import { resolveDeepLinkDraft } from "@/features/focus/focus-deep-link";
 import type { FocusTaskSource } from "@/features/focus/task-link";
@@ -36,13 +40,8 @@ export default async function FocusPage({
 
   const timezone = profile?.timezone ?? "Europe/Madrid";
   const weekStartsOn = profile?.week_starts_on === 0 ? 0 : 1;
-  const week = localWeek(timezone, new Date(), weekStartsOn);
+  const week = goalSessionWindow(timezone, new Date(), weekStartsOn);
   const today = localDate(timezone);
-  // Local week strings are not UTC midnights — pad the query window by one day.
-  const weekQueryStart = new Date(`${week.start}T00:00:00.000Z`);
-  weekQueryStart.setUTCDate(weekQueryStart.getUTCDate() - 1);
-  const weekQueryEnd = new Date(`${week.end}T23:59:59.999Z`);
-  weekQueryEnd.setUTCDate(weekQueryEnd.getUTCDate() + 1);
 
   const [
     { data: activeRow },
@@ -70,8 +69,8 @@ export default async function FocusPage({
       .from("focus_sessions")
       .select("*")
       .eq("user_id", user.id)
-      .gte("started_at", weekQueryStart.toISOString())
-      .lte("started_at", weekQueryEnd.toISOString())
+      .gte("started_at", week.queryStart)
+      .lte("started_at", week.queryEnd)
       .order("started_at", { ascending: false }),
     db
       .from("focus_presets")
@@ -153,12 +152,13 @@ export default async function FocusPage({
     mapSessionRow(row, intervalsBySession.get(row.id) ?? []),
   );
 
-  const weekSessions: FocusSession[] = (weekRows ?? []).map((row) =>
+  const goalSessions: FocusSession[] = (weekRows ?? []).map((row) =>
     mapSessionRow(
       row,
       row.id === activeRow?.id ? (intervalsBySession.get(row.id) ?? []) : [],
     ),
   );
+  const weekSessions = sessionsInCurrentWeek(goalSessions, timezone, week);
 
   const tasks = (taskRows ?? []).map((task) => ({
     id: task.id,
@@ -242,6 +242,7 @@ export default async function FocusPage({
       presets={presets}
       goals={(goalRows ?? []).map(mapGoalRow)}
       weekSessions={weekSessions}
+      goalSessions={goalSessions}
       timezone={timezone}
       weekStartsOn={weekStartsOn}
       tasks={tasks}

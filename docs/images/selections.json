@@ -1,0 +1,400 @@
+{
+  "readme": [
+    {
+      "id": "01",
+      "file": "readme/01-landing-desktop-light-en.webp",
+      "title": "Presentación pública, propuesta de valor y CTA",
+      "sha256": "03a98f9d162a93ed0fbd9412c873913f6dd915d411305f9fadae9c1bcbdcf9db",
+      "width": 1440,
+      "height": 768
+    },
+    {
+      "id": "04",
+      "file": "readme/04-today-desktop-light-es.webp",
+      "title": "Hoy: progreso, horario activo y grupos del día",
+      "sha256": "057f8ae31d2fdab75345ed2c27d8a842466007981367c91c3836aa94ab47d807",
+      "width": 1440,
+      "height": 1038
+    },
+    {
+      "id": "07",
+      "file": "readme/07-today-mobile-light-es.webp",
+      "title": "Hoy móvil: progreso y tareas de la mañana",
+      "sha256": "8898f8b50c13a53af808ed5e2cbad6df36745095d4830530fd7457480265837f",
+      "width": 780,
+      "height": 1760
+    },
+    {
+      "id": "08",
+      "file": "readme/08-week-desktop-light-es.webp",
+      "title": "Semana completa con tareas, hábitos y eventos",
+      "sha256": "b67b584af4b83fc72ebae138fe41ab6e030d5b0bfd28eb318fb53900e52d34ed",
+      "width": 1440,
+      "height": 943
+    },
+    {
+      "id": "11",
+      "file": "readme/11-week-mobile-dark-es.webp",
+      "title": "Selector de días y agenda semanal móvil",
+      "sha256": "f1d567e9a0917bd14939d3879d436848631a6208bb7613f16cc879eff9a843a1",
+      "width": 780,
+      "height": 1774
+    },
+    {
+      "id": "12",
+      "file": "readme/12-month-desktop-light-es.webp",
+      "title": "Calendario mensual con actividad y eventos",
+      "sha256": "1aaaa0be7de4d411808065ca43f58b232275f7d889d4d3b5b42a9fa7dafc589c",
+      "width": 1440,
+      "height": 1419
+    },
+    {
+      "id": "15",
+      "file": "readme/15-tasks-desktop-light-es.webp",
+      "title": "Gestión de tareas, búsqueda, filtros y recurrencias",
+      "sha256": "69257deebe1de802679380ddd166fe0c215a5c229d8050276d33054361b1631d",
+      "width": 1440,
+      "height": 1085
+    },
+    {
+      "id": "21",
+      "file": "readme/21-events-desktop-light-es.webp",
+      "title": "Eventos del proyecto y de la vida personal",
+      "sha256": "abf91c20d6df7fe9c222a28b644eda8a00b96d4eab8ce5d0f9fb430d83499f89",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "id": "24",
+      "file": "readme/24-history-desktop-light-es.webp",
+      "title": "Historial con instantáneas y fechas anteriores",
+      "sha256": "58b0e8468ed7c76099f014bcbd1eda68fe889582e00c099171f63249041ee36d",
+      "width": 1440,
+      "height": 970
+    },
+    {
+      "id": "27",
+      "file": "readme/27-statistics-desktop-light-en.webp",
+      "title": "Estadísticas de hábitos y progreso real",
+      "sha256": "78d8e5a473d36cbcbcc731cb65854f9f9731fd5fbd684869d326dd7a34534959",
+      "width": 1440,
+      "height": 1136
+    },
+    {
+      "id": "30",
+      "file": "readme/30-schedules-desktop-light-es.webp",
+      "title": "Horarios para trabajo, aprendizaje y fin de semana",
+      "sha256": "3b648981c5a51fb2dc283de65d897621b0795550b737c5479b697a67e8fd2dad",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "id": "31",
+      "file": "readme/31-categories-desktop-light-es.webp",
+      "title": "Categorías y colores de la biblioteca demo",
+      "sha256": "c3986031566babb905b2bcd98b41bb317192d7614e1e19c7e79cb8bb9b559f14",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "id": "33",
+      "file": "readme/33-reminders-desktop-light-es.webp",
+      "title": "Centro de notificaciones, recordatorios y alarmas",
+      "sha256": "993fe6cb8bcdde54dc37b8e93a528eec4dfb823500b8073b01551749250a3ab9",
+      "width": 1440,
+      "height": 642
+    },
+    {
+      "id": "40",
+      "file": "readme/40-data-desktop-light-en.webp",
+      "title": "Tus datos: copias, exportación y restauración",
+      "sha256": "7c4886e5a676ef04693239e54f14ec2715e5b3392fe38dffe6c011f5d614d3dd",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "id": "41",
+      "file": "readme/41-settings-mobile-dark-es.webp",
+      "title": "Personalización y ajustes en móvil",
+      "sha256": "1b8ec7c4b2cfd4d65e74ea468419385646244e28f341ebfc8d2c6b4f90b8b892",
+      "width": 780,
+      "height": 1718
+    },
+    {
+      "id": "43",
+      "file": "readme/43-focus-home-desktop-light-en.webp",
+      "title": "Enfoque: presets, inicio rápido y resumen semanal",
+      "sha256": "8a673d4dbd8b6a89ea23bb496cd56f305d99c1556cea4de713a99b1ff74fd34e",
+      "width": 1440,
+      "height": 908
+    },
+    {
+      "id": "45",
+      "file": "readme/45-focus-preset-desktop-light-en.webp",
+      "title": "Configuración de un preset de trabajo profundo",
+      "sha256": "cfa5f1b24212540dfb893f4c91e62e3d77ccea8d17f8eb8dea91e59301f82469",
+      "width": 1440,
+      "height": 1250
+    },
+    {
+      "id": "47",
+      "file": "readme/47-focus-countdown-desktop-light-es.webp",
+      "title": "Sesión activa de trabajo profundo",
+      "sha256": "c1d69f11555312c1fa98fd871431fe352a20fb46474b8dd8217d5f2b6c9627aa",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "id": "50",
+      "file": "readme/50-focus-plan-desktop-dark-en.webp",
+      "title": "Plan estructurado: bloque actual y siguiente",
+      "sha256": "16e888a840f3c6e73856c3c7fbffd3046de28e10a8f69b6bd1968e1cd9d7ab3d",
+      "width": 1440,
+      "height": 1200
+    },
+    {
+      "id": "52",
+      "file": "readme/52-focus-summary-desktop-light-es.webp",
+      "title": "Resumen final y comparación de lo previsto con lo realizado",
+      "sha256": "6f3f31a9247a0cd67ba2e351d23a3877d616580cf9fb8eadbbcff2b3791b1d4b",
+      "width": 1440,
+      "height": 1421
+    },
+    {
+      "id": "53",
+      "file": "readme/53-focus-goals-desktop-light-en.webp",
+      "title": "Objetivos semanales: tiempo, sesiones y días activos",
+      "sha256": "6e54f10e21b7a4819eef11224de1951ae7fa9688a87d3be5017baf6075129e66",
+      "width": 1440,
+      "height": 1497
+    },
+    {
+      "id": "54",
+      "file": "readme/54-focus-statistics-desktop-dark-en.webp",
+      "title": "Estadísticas de Enfoque con historial suficiente",
+      "sha256": "d25c5152371ed2ed5ee3c29be3b46af8968c1d8df4b0b9932184f3ab01d94a80",
+      "width": 1440,
+      "height": 1868
+    },
+    {
+      "id": "56",
+      "file": "readme/56-focus-active-mobile-dark-es.webp",
+      "title": "Sesión activa de Enfoque en móvil oscuro",
+      "sha256": "f9fd1583f1141cf9beefc111d56fe3bde842cc2912a7c2b783661de5b6883b0d",
+      "width": 780,
+      "height": 1840
+    },
+    {
+      "id": "61",
+      "file": "readme/61-templates-desktop-light-es.webp",
+      "title": "Plantillas reutilizables para empezar un horario",
+      "sha256": "23eccbd7f891acedd013d9de7ab53f1e4c97c2b3f61143f15aed273bc941d4ef",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "id": "62",
+      "file": "readme/62-search-desktop-light-en.webp",
+      "title": "Búsqueda global con resultados del workspace",
+      "sha256": "1a3157748bec4a6b107812f7fd6d014284d4076755b54e2d2256d8b9ea2a2bd2",
+      "width": 1440,
+      "height": 1100
+    }
+  ],
+  "portfolio": [
+    {
+      "id": "01",
+      "file": "portfolio/01-landing-desktop-light-en.webp",
+      "title": "Presentación pública, propuesta de valor y CTA",
+      "sha256": "e671898af947bc8b931c7c6ee7674173ae94bac8475f1e56935a8dc0ecf12455",
+      "width": 2400,
+      "height": 1280
+    },
+    {
+      "id": "04",
+      "file": "portfolio/04-today-desktop-light-es.webp",
+      "title": "Hoy: progreso, horario activo y grupos del día",
+      "sha256": "8c7d5facdf75a79031aa4b74c24b05f0cda3354790197441105e4f6c94bb3fc0",
+      "width": 2400,
+      "height": 1730
+    },
+    {
+      "id": "08",
+      "file": "portfolio/08-week-desktop-light-es.webp",
+      "title": "Semana completa con tareas, hábitos y eventos",
+      "sha256": "bef4fea2f36ce7049f35810f56b6e7830a4579227356e14592c102ee1c027844",
+      "width": 2400,
+      "height": 1571
+    },
+    {
+      "id": "15",
+      "file": "portfolio/15-tasks-desktop-light-es.webp",
+      "title": "Gestión de tareas, búsqueda, filtros y recurrencias",
+      "sha256": "5fff07c8a8f807b41c4e4e5e7ef05dfbdb292f22217aa42bc3323ed43f3d2013",
+      "width": 2400,
+      "height": 1808
+    },
+    {
+      "id": "43",
+      "file": "portfolio/43-focus-home-desktop-light-en.webp",
+      "title": "Enfoque: presets, inicio rápido y resumen semanal",
+      "sha256": "a85dcaa5238aa275544370666331d5b153d449fadd1de367bbea465341758816",
+      "width": 2400,
+      "height": 1513
+    },
+    {
+      "id": "47",
+      "file": "portfolio/47-focus-countdown-desktop-light-es.webp",
+      "title": "Sesión activa de trabajo profundo",
+      "sha256": "9e8ffa8ee197c96f4da0785ea3605124ef0611ea820044b2f034be8bf78d154a",
+      "width": 2400,
+      "height": 1833
+    },
+    {
+      "id": "50",
+      "file": "portfolio/50-focus-plan-desktop-dark-en.webp",
+      "title": "Plan estructurado: bloque actual y siguiente",
+      "sha256": "03e79313e60a3b5bb21fce0f5c78ac2b40be362314340bd608bb4fcfcdd3521c",
+      "width": 2400,
+      "height": 2000
+    },
+    {
+      "id": "52",
+      "file": "portfolio/52-focus-summary-desktop-light-es.webp",
+      "title": "Resumen final y comparación de lo previsto con lo realizado",
+      "sha256": "fec8f0b7249ea609395f50dc654ec22b3ff23635197ec2fcab0dfe456b167dbc",
+      "width": 1640,
+      "height": 1618
+    },
+    {
+      "id": "27",
+      "file": "portfolio/27-statistics-desktop-light-en.webp",
+      "title": "Estadísticas de hábitos y progreso real",
+      "sha256": "39fcf8bbd43d2948bfe65b041f8bcee073a390f79ba19a70b8cf26a4f5b020bb",
+      "width": 2400,
+      "height": 1893
+    },
+    {
+      "id": "12",
+      "file": "portfolio/12-month-desktop-light-es.webp",
+      "title": "Calendario mensual con actividad y eventos",
+      "sha256": "51224d923a153ebf3081bdb54d95f677d2bdb66d930477d5e472ed37c5b2c1c5",
+      "width": 2400,
+      "height": 2365
+    },
+    {
+      "id": "33",
+      "file": "portfolio/33-reminders-desktop-light-es.webp",
+      "title": "Centro de notificaciones, recordatorios y alarmas",
+      "sha256": "79e8e92e4c1a66620b98bb01ae4fc4a65fcdca2ae72f34f164722e11b548a45f",
+      "width": 2132,
+      "height": 950
+    },
+    {
+      "id": "07",
+      "file": "portfolio/07-today-mobile-light-es.webp",
+      "title": "Hoy móvil: progreso y tareas de la mañana",
+      "sha256": "a4e57c6d53cfab8f0ecad830b5784ab24f198b043c4cb2ba69b510d5cb7a7772",
+      "width": 1170,
+      "height": 2640
+    },
+    {
+      "id": "56",
+      "file": "portfolio/56-focus-active-mobile-dark-es.webp",
+      "title": "Sesión activa de Enfoque en móvil oscuro",
+      "sha256": "69995cc37d72a48afb3c27a28f2cb4d1a2102741b67d891bbe88fb8a4c28b8c1",
+      "width": 1170,
+      "height": 2760
+    },
+    {
+      "id": "38",
+      "file": "portfolio/38-settings-desktop-light-es.webp",
+      "title": "Ajustes de apariencia, idioma y personalización",
+      "sha256": "f09335d5790ef460a7801524392539bbe4906e836e0964e1e78a0d55c3495b07",
+      "width": 2400,
+      "height": 1695
+    }
+  ],
+  "linkedin": [
+    {
+      "id": "01",
+      "file": "linkedin/01-landing-desktop-light-en.png",
+      "title": "Presentación pública, propuesta de valor y CTA",
+      "sha256": "5f2e589e22e4762ddc3808c167ed3c1fd29f3eb57b420a2493d1c0ae6c4fcabd",
+      "width": 1600,
+      "height": 853
+    },
+    {
+      "id": "04",
+      "file": "linkedin/04-today-desktop-light-es.png",
+      "title": "Hoy: progreso, horario activo y grupos del día",
+      "sha256": "1e146323ed9da7480fb656003bf09a1a7d94a2db5eff6574d46bc43b88619e73",
+      "width": 1600,
+      "height": 1153
+    },
+    {
+      "id": "08",
+      "file": "linkedin/08-week-desktop-light-es.png",
+      "title": "Semana completa con tareas, hábitos y eventos",
+      "sha256": "141548884f6c8cb70f20914f9878c51b74e5a9a1e3796ef77a4f996f7ac3f059",
+      "width": 1600,
+      "height": 1048
+    },
+    {
+      "id": "15",
+      "file": "linkedin/15-tasks-desktop-light-es.png",
+      "title": "Gestión de tareas, búsqueda, filtros y recurrencias",
+      "sha256": "f3da930462c5d8541d5f10f565a86b0f4b659af5783c1f2bc60784f307c85f5a",
+      "width": 1600,
+      "height": 1206
+    },
+    {
+      "id": "43",
+      "file": "linkedin/43-focus-home-desktop-light-en.png",
+      "title": "Enfoque: presets, inicio rápido y resumen semanal",
+      "sha256": "10b6d5da559db55600ad7ccf47869186f57e3d5196ae6be8eaa28b824e764641",
+      "width": 1600,
+      "height": 1009
+    },
+    {
+      "id": "51",
+      "file": "linkedin/51-focus-blocks-desktop-light-es.png",
+      "title": "Bloques de programación y avance del plan",
+      "sha256": "15a8651705550ed29984a14c4fd4deb76359be7b480c79353054b783e0db423b",
+      "width": 1600,
+      "height": 1251
+    },
+    {
+      "id": "27",
+      "file": "linkedin/27-statistics-desktop-light-en.png",
+      "title": "Estadísticas de hábitos y progreso real",
+      "sha256": "a559bc2d646c33d5d0e8c5b24749a3270b155c051ccca741a7eb81b5b0b4dd8d",
+      "width": 1600,
+      "height": 1262
+    },
+    {
+      "id": "07",
+      "file": "linkedin/07-today-mobile-light-es.png",
+      "title": "Hoy móvil: progreso y tareas de la mañana",
+      "sha256": "615048e211c76275fcfb7f4dfdd5892ec424b74afdda39c462850238e4e43e17",
+      "width": 1170,
+      "height": 2640
+    },
+    {
+      "id": "56",
+      "file": "linkedin/56-focus-active-mobile-dark-es.png",
+      "title": "Sesión activa de Enfoque en móvil oscuro",
+      "sha256": "29e4514c7ba65c1a972b1140359b4989323882e387bd7cbe845c91185185aac7",
+      "width": 1170,
+      "height": 2760
+    },
+    {
+      "id": "40",
+      "file": "linkedin/40-data-desktop-light-en.png",
+      "title": "Tus datos: copias, exportación y restauración",
+      "sha256": "31558e7e40f0714822ada2ce33a1a52331393188cbed8c04e07a3bd2df2d98d3",
+      "width": 1600,
+      "height": 1222
+    }
+  ]
+}

@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-666%20unit%20%2B%20126%20E2E%20cases-brightgreen?style=flat-square" alt="666 unit tests and 126 Playwright E2E cases; 3 deliberate browser exclusions" />
+  <img src="https://img.shields.io/badge/tests-667%20unit%20%2B%20126%20E2E%20cases-brightgreen?style=flat-square" alt="667 unit tests and 126 Playwright E2E cases; 3 deliberate browser exclusions" />
 </p>
 
 ---
@@ -121,60 +121,76 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 ## Product preview
 
 <p align="center">
-  <img src="docs/images/01-landing.png" alt="Planora public landing page" width="100%" />
+  <a href="docs/images/01-landing-desktop-light-en.png"><img src="docs/images/readme/01-landing-desktop-light-en.webp" alt="Planora: A calmer way to plan" width="100%" /></a>
 </p>
 
 Planora is a portfolio case study in turning irregular routines into a calm planning system. Recurrence, timezone boundaries, data isolation and offline changes are handled as domain rules rather than visual shortcuts. A public demo makes the complete product easy to evaluate while real workspaces remain private.
 
 ## Screenshots
 
+Real product captures with a coherent synthetic workspace. Click an image for the full-resolution PNG. The [complete visual library](docs/screenshots.md) includes every area, capture settings and selections for portfolio and LinkedIn.
+
 <table>
   <tr>
-    <td width="50%" align="center"><strong>Today at a glance</strong><br/><img src="docs/images/02-today.png" alt="Planora Today view with daily progress and grouped tasks" width="100%" /></td>
-    <td width="50%" align="center"><strong>Weekly planning</strong><br/><img src="docs/images/03-week.png" alt="Planora weekly schedule" width="100%" /></td>
+    <td width="50%" align="center"><strong>Today at a glance</strong><br/><a href="docs/images/04-today-desktop-light-es.png"><img src="docs/images/readme/04-today-desktop-light-es.webp" alt="Planora: Today at a glance" width="100%" /></a></td>
+    <td width="50%" align="center"><strong>Weekly planning</strong><br/><a href="docs/images/08-week-desktop-light-es.png"><img src="docs/images/readme/08-week-desktop-light-es.webp" alt="Planora: Weekly planning" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Task management</strong><br/><img src="docs/images/04-tasks.png" alt="Planora task management view" width="100%" /></td>
-    <td width="50%" align="center"><strong>Events</strong><br/><img src="docs/images/05-events.png" alt="Planora events view" width="100%" /></td>
+    <td width="50%" align="center"><strong>Tasks, filters and recurrence</strong><br/><a href="docs/images/15-tasks-desktop-light-es.png"><img src="docs/images/readme/15-tasks-desktop-light-es.webp" alt="Planora: Tasks, filters and recurrence" width="100%" /></a></td>
+    <td width="50%" align="center"><strong>Progress and patterns</strong><br/><a href="docs/images/27-statistics-desktop-light-en.png"><img src="docs/images/readme/27-statistics-desktop-light-en.webp" alt="Planora: Progress and patterns" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Completion history</strong><br/><img src="docs/images/06-history.png" alt="Planora completion history" width="100%" /></td>
-    <td width="50%" align="center"><strong>Deep personalization</strong><br/><img src="docs/images/09-settings.png" alt="Planora appearance and behavior settings" width="100%" /></td>
+    <td width="50%" align="center"><strong>Reminders and alarms</strong><br/><a href="docs/images/33-reminders-desktop-light-es.png"><img src="docs/images/readme/33-reminders-desktop-light-es.webp" alt="Planora: Reminders and alarms" width="100%" /></a></td>
+    <td width="50%" align="center"><strong>Focus: presets and weekly rhythm</strong><br/><a href="docs/images/43-focus-home-desktop-light-en.png"><img src="docs/images/readme/43-focus-home-desktop-light-en.webp" alt="Planora: Focus: presets and weekly rhythm" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Focus home</strong><br/><img src="docs/images/14-focus-home.png" alt="Planora Focus home with presets and weekly goals in light theme" width="100%" /></td>
-    <td width="50%" align="center"><strong>Active Focus session</strong><br/><img src="docs/images/16-focus-active.png" alt="Planora active Focus countdown session in light theme" width="100%" /></td>
+    <td width="50%" align="center"><strong>Deep work in progress</strong><br/><a href="docs/images/47-focus-countdown-desktop-light-es.png"><img src="docs/images/readme/47-focus-countdown-desktop-light-es.webp" alt="Planora: Deep work in progress" width="100%" /></a></td>
+    <td width="50%" align="center"><strong>Structured Focus plans</strong><br/><a href="docs/images/50-focus-plan-desktop-dark-en.png"><img src="docs/images/readme/50-focus-plan-desktop-dark-en.webp" alt="Planora: Structured Focus plans" width="100%" /></a></td>
   </tr>
 </table>
 
 <details>
-<summary><strong>More workspace views</strong></summary>
+<summary><strong>More workspace and Focus views</strong></summary>
 <br/>
 <table>
   <tr>
-    <td align="center"><img src="docs/images/07-schedules.png" alt="Schedule management" width="100%" /><br/><sub>Independent schedules for every context</sub></td>
-    <td align="center"><img src="docs/images/08-categories.png" alt="Category management" width="100%" /><br/><sub>Color-coded categories</sub></td>
+    <td width="50%" align="center"><strong>The month ahead</strong><br/><a href="docs/images/12-month-desktop-light-es.png"><img src="docs/images/readme/12-month-desktop-light-es.webp" alt="Planora: The month ahead" width="100%" /></a></td>
+    <td width="50%" align="center"><strong>Events in context</strong><br/><a href="docs/images/21-events-desktop-light-es.png"><img src="docs/images/readme/21-events-desktop-light-es.webp" alt="Planora: Events in context" width="100%" /></a></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/13-focus-intro.png" alt="Focus first-visit intro in light theme" width="100%" /><br/><sub>Focus first-visit intro</sub></td>
-    <td align="center"><img src="docs/images/15-focus-start.png" alt="Focus session start dialog in light theme" width="100%" /><br/><sub>Session start configurator</sub></td>
+    <td width="50%" align="center"><strong>Completion history</strong><br/><a href="docs/images/24-history-desktop-light-es.png"><img src="docs/images/readme/24-history-desktop-light-es.webp" alt="Planora: Completion history" width="100%" /></a></td>
+    <td width="50%" align="center"><strong>Independent schedules</strong><br/><a href="docs/images/30-schedules-desktop-light-es.png"><img src="docs/images/readme/30-schedules-desktop-light-es.webp" alt="Planora: Independent schedules" width="100%" /></a></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><strong>Color-coded categories</strong><br/><a href="docs/images/31-categories-desktop-light-es.png"><img src="docs/images/readme/31-categories-desktop-light-es.webp" alt="Planora: Color-coded categories" width="100%" /></a></td>
+    <td width="50%" align="center"><strong>Your data, your control</strong><br/><a href="docs/images/40-data-desktop-light-en.png"><img src="docs/images/readme/40-data-desktop-light-en.webp" alt="Planora: Your data, your control" width="100%" /></a></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><strong>Reusable Focus presets</strong><br/><a href="docs/images/45-focus-preset-desktop-light-en.png"><img src="docs/images/readme/45-focus-preset-desktop-light-en.webp" alt="Planora: Reusable Focus presets" width="100%" /></a></td>
+    <td width="50%" align="center"><strong>A thoughtful session summary</strong><br/><a href="docs/images/52-focus-summary-desktop-light-es.png"><img src="docs/images/readme/52-focus-summary-desktop-light-es.webp" alt="Planora: A thoughtful session summary" width="100%" /></a></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><strong>Flexible weekly goals</strong><br/><a href="docs/images/53-focus-goals-desktop-light-en.png"><img src="docs/images/readme/53-focus-goals-desktop-light-en.webp" alt="Planora: Flexible weekly goals" width="100%" /></a></td>
+    <td width="50%" align="center"><strong>Focus statistics</strong><br/><a href="docs/images/54-focus-statistics-desktop-dark-en.png"><img src="docs/images/readme/54-focus-statistics-desktop-dark-en.webp" alt="Planora: Focus statistics" width="100%" /></a></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><strong>Reusable planning templates</strong><br/><a href="docs/images/61-templates-desktop-light-es.png"><img src="docs/images/readme/61-templates-desktop-light-es.webp" alt="Planora: Reusable planning templates" width="100%" /></a></td>
+    <td width="50%" align="center"><strong>Search the whole workspace</strong><br/><a href="docs/images/62-search-desktop-light-en.png"><img src="docs/images/readme/62-search-desktop-light-en.webp" alt="Planora: Search the whole workspace" width="100%" /></a></td>
   </tr>
 </table>
 </details>
 
-<details>
-<summary><strong>Mobile experience</strong></summary>
-<br/>
+### Mobile experience
+
 <p align="center">
-  <img src="docs/images/10-mobile-landing.png" alt="Planora mobile landing page" width="30%" />
+  <a href="docs/images/07-today-mobile-light-es.png"><img src="docs/images/readme/07-today-mobile-light-es.webp" alt="Planora: Today on mobile" width="23%" /></a>
   &nbsp;
-  <img src="docs/images/11-mobile-today.png" alt="Planora Today view on mobile" width="30%" />
+  <a href="docs/images/11-week-mobile-dark-es.png"><img src="docs/images/readme/11-week-mobile-dark-es.webp" alt="Planora: A week in your pocket" width="23%" /></a>
   &nbsp;
-  <img src="docs/images/12-mobile-week.png" alt="Planora Week view on mobile" width="30%" />
+  <a href="docs/images/41-settings-mobile-dark-es.png"><img src="docs/images/readme/41-settings-mobile-dark-es.webp" alt="Planora: Mobile personalization" width="23%" /></a>
   &nbsp;
-  <img src="docs/images/17-mobile-focus.png" alt="Planora Focus active session on mobile in light theme" width="30%" />
+  <a href="docs/images/56-focus-active-mobile-dark-es.png"><img src="docs/images/readme/56-focus-active-mobile-dark-es.webp" alt="Planora: Mobile concentration mode" width="23%" /></a>
 </p>
-</details>
 
 ## Architecture
 
@@ -353,16 +369,15 @@ Workspace views load on demand; the task editor is included with the task views 
 
 The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync and backup v5), forms, loading states, protected navigation, platform metadata and the single-instance, automatic-only Analytics integration. Authenticated journeys exercise schedule/task CRUD, history and undo, templates, alarms, preferences, offline completion sync, sign-out, export and atomic restore. Web Push checks include a service worker without open clients, permission handling, server queue leases, cancellation, retries, ownership isolation and API access controls.
 
-The **2026-11-11 / 0.1.2** suite contains **666 unit tests in 88 Vitest files** and **126 Playwright cases**, including **3 deliberate exclusions**. Browser projects cover desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. The exclusions are three WebKit integration flows exercised in Chromium: the API-backed Focus lifecycle, offline completion sync and the push outbox. The release uses Next.js **16.4.6** / React **19.3.1**; the strict dependency audit reports **0 known vulnerabilities across the complete tree**. The [quality review](docs/quality-review-2026-11-11.md) records fixes, verification and the database account-deletion regression. CI also enforces database ownership checks, public/private accessibility, legal-page returns to authenticated settings and mobile Lighthouse thresholds.
+The **2026-11-11 / 0.1.2** suite contains **667 unit tests in 88 Vitest files** and **126 Playwright cases**, including **3 deliberate exclusions**. Browser projects cover desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. The exclusions are three WebKit integration flows exercised in Chromium: the API-backed Focus lifecycle, offline completion sync and the push outbox. The release uses Next.js **16.4.6** / React **19.3.1**; the strict dependency audit reports **0 known vulnerabilities across the complete tree**. The [quality review](docs/quality-review-2026-11-11.md) records fixes, verification and the database account-deletion regression. CI also enforces database ownership checks, public/private accessibility, legal-page returns to authenticated settings and mobile Lighthouse thresholds.
 
 These are dated test results, not a guarantee of zero bugs or complete device coverage. A successful push-provider response does not prove that a phone displayed the notification; use the delayed test on each device. No universal physical-device or Google OAuth acceptance claim is implied by CI.
 
-Product screenshots live under `docs/images/01–17-*.png` (about 80% light theme, desktop and mobile). To regenerate them against a local production server with Supabase credentials in `.env.local`, signed in as the secondary account:
+The real product screenshot library lives under docs/images/. Its [inventory and repeatable capture workflow](docs/screenshots.md) cover desktop/mobile, both languages, themes and all major Focus states. The runner creates disposable accounts in an isolated local Supabase project and keeps the application's real CSP.
 
 ```bash
-npm run build
-npm start
-node scripts/capture-docs-screenshots.mjs
+npm run docs:captures
+npm run docs:captures -- --only 04,08,47
 ```
 
 ## Deployment
