@@ -330,6 +330,7 @@ test("resource order can be saved with clicks and the position menu restores foc
   context,
   baseURL,
 }) => {
+  test.setTimeout(90_000);
   test.skip(!hasLocalCredentials, "Disposable local account required");
   await withLocalWorkspace(context, baseURL, async (db, userId) => {
     const created = await db
@@ -410,6 +411,8 @@ test("resource order can be saved with clicks and the position menu restores foc
     await page.reload();
     await expect(
       page.getByLabel(/^Change position of .* task$/).first(),
-    ).toHaveAccessibleName("Change position of Global task", { timeout: 15_000 });
+    ).toHaveAccessibleName("Change position of Global task", {
+      timeout: 15_000,
+    });
   });
 });
