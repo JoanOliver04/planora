@@ -254,11 +254,22 @@ test("mobile More navigation reaches every secondary area naturally", async ({
         element.scrollIntoView({ block: "center" }),
       );
       await expect(dataLink).toBeVisible();
-      const dataBox = await dataLink.boundingBox();
-      const navBox = await bottomNav.boundingBox();
-      expect((dataBox?.y ?? 0) + (dataBox?.height ?? 0)).toBeLessThanOrEqual(
-        navBox?.y ?? viewport.height,
-      );
+      // WebKit may finish the viewport resize/scroll after scrollIntoView
+      // returns. Keep the same overlap bound and wait for the final position.
+      await expect
+        .poll(
+          async () => {
+            const [dataBox, navBox] = await Promise.all([
+              dataLink.boundingBox(),
+              bottomNav.boundingBox(),
+            ]);
+            return dataBox && navBox
+              ? dataBox.y + dataBox.height - navBox.y
+              : Infinity;
+          },
+          { message: "Your data must be fully above the bottom navigation" },
+        )
+        .toBeLessThanOrEqual(0);
     }
 
     await page.goto("/en/more");

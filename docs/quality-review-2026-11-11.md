@@ -129,3 +129,10 @@ recursos del HTML inicial. La regresión fuerza URLs nuevas para impedir que la
 caché HTTP oculte el fallo: falla con el worker anterior y pasa tras la corrección
 en los dos proyectos Chromium. El chequeo de conexión pasa también en WebKit.
 El encabezado de privacidad de la portada española queda traducido.
+
+La comprobación geométrica de Más espera ahora la posición final después de
+redimensionar y desplazar la pantalla en WebKit. Conserva el límite de cero
+solapamiento con la barra inferior y falla si falta cualquiera de los elementos.
+Se han ejecutado tres recorridos completos de Safari antes y tres después del
+ajuste. La corrección afecta a la sincronización de la prueba, sin cambios en
+el diseño de la navegación.
