@@ -280,7 +280,13 @@ export function TodayView({
             </button>
           )}
           {isToday && (
-            <button className="primary" onClick={() => setOpen(true)}>
+            <button
+              className="primary"
+              onClick={(event) => {
+                event.currentTarget.focus();
+                setOpen(true);
+              }}
+            >
               <Plus size={18} />
               {t("add")}
             </button>
@@ -302,6 +308,7 @@ export function TodayView({
         <div
           className="progress-ring"
           role="progressbar"
+          aria-label={t("weeklyProgress")}
           aria-valuemin={0}
           aria-valuemax={stats.expected || 1}
           aria-valuenow={stats.completed}
@@ -408,7 +415,10 @@ export function TodayView({
                 const iterator = ids[Symbol.iterator]();
                 const merged = data.tasks
                   .filter(
-                    (item) => item.schedule_id === active && !item.archived_at,
+                    (item) =>
+                      (item.scope === "global" ||
+                        item.schedule_id === active) &&
+                      !item.archived_at,
                   )
                   .map((item) =>
                     visible.has(item.id) ? iterator.next().value! : item.id,
@@ -487,7 +497,13 @@ export function TodayView({
           <h2>{t("clearDay")}</h2>
           <p>{t("noTasksToday")}</p>
           {isToday && (
-            <button className="pill" onClick={() => setOpen(true)}>
+            <button
+              className="pill"
+              onClick={(event) => {
+                event.currentTarget.focus();
+                setOpen(true);
+              }}
+            >
               {t("add")}
             </button>
           )}

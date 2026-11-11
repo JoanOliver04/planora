@@ -1,0 +1,11 @@
+.next/
+.vercel/
+node_modules/
+coverage/
+test-results/
+playwright-report/
+AGENTS.md
+CLAUDE.md
+PORTFOLIO_ROADMAP.md
+prompts.md
+auditoria uno.md

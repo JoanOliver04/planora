@@ -159,12 +159,15 @@ describe("DataTools", () => {
     ).toBeVisible();
   });
 
-  it("downloads the full JSON backup in version three format", async () => {
+  it("names the full JSON backup for its current schema version", async () => {
     const user = userEvent.setup();
     renderTools();
     await user.click(screen.getByRole("button", { name: "Download JSON" }));
     await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalledOnce());
     expect(downloadClick).toHaveBeenCalledOnce();
+    expect(
+      (downloadClick.mock.instances[0] as HTMLAnchorElement).download,
+    ).toBe("planora-backup-v5.json");
     expect(await screen.findByText("Your download is ready.")).toBeVisible();
   });
 });

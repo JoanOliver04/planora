@@ -150,14 +150,15 @@ export function QuickTaskCapture({
             disabled={
               pending || Boolean(draft.issue && draft.issue !== "emptyTitle")
             }
-            onClick={() =>
+            onClick={(event) => {
+              event.currentTarget.focus();
               setAdvanced(
                 text.trim()
                   ? values
                   : parseQuickTask("", localDate(data.profile.timezone), detect)
                       .values,
-              )
-            }
+              );
+            }}
           >
             {t("more")}
           </button>

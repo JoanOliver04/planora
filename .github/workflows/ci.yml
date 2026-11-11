@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with: { node-version: 24, cache: npm }
       - run: npm ci
-      - run: node scripts/audit-high.mjs
+      - run: npm run audit:dependencies
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
@@ -28,7 +28,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-key
           NEXT_PUBLIC_SITE_URL: https://planora-lake-one.vercel.app
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -71,7 +71,29 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY" >> "$GITHUB_ENV"
           echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000" >> "$GITHUB_ENV"
-      - run: npx playwright install --with-deps chromium webkit
+      - name: Verify database ownership and account deletion
+        run: |
+          docker cp supabase/tests/security_hardening.sql supabase_db_planora:/tmp/security_hardening.sql
+          docker exec supabase_db_planora psql -X -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -q -f /tmp/security_hardening.sql
+      - name: Start pinned browser service
+        timeout-minutes: 10
+        run: |
+          browser_version=$(node -p "require('./node_modules/playwright/package.json').version")
+          browser_image="mcr.microsoft.com/playwright:v${browser_version}-noble"
+          docker pull "$browser_image"
+          docker run --detach --rm --init --ipc=host --network=host \
+            --name planora-browser-service --user pwuser --workdir /work \
+            --volume "$GITHUB_WORKSPACE:/work:ro" "$browser_image" \
+            node node_modules/playwright/cli.js run-server --port 3500 --host 127.0.0.1
+          for attempt in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3500/ > /dev/null; then
+              echo "PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:3500/" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs planora-browser-service
+          exit 1
       - run: npm run test:e2e
       - name: Measure base revision in isolation
         if: github.event_name == 'pull_request'
@@ -109,6 +131,9 @@ jobs:
       - name: Stop isolated Supabase
         if: always()
         run: npx --yes supabase@2.115.0 stop --no-backup
+      - name: Stop browser service
+        if: always()
+        run: docker rm --force planora-browser-service 2>/dev/null || true
   lighthouse:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -134,6 +159,8 @@ jobs:
           exit 1
       - uses: treosh/lighthouse-ci-action@v12
         with:
+          configPath: ./lighthouserc.json
+          runs: 3
           urls: |
             http://127.0.0.1:3000/es
             http://127.0.0.1:3000/es/demo/today

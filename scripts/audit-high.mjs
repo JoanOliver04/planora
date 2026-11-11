@@ -6,7 +6,9 @@ const isRecord = (value) =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
 /** Validate the audit outcome before deciding whether CI may proceed. */
-export function evaluateAuditResult(result) {
+export function evaluateAuditResult(result, minimumSeverity = "high") {
+  if (!severities.includes(minimumSeverity))
+    throw new Error("Unknown audit severity threshold");
   if (result.error || result.signal || ![0, 1].includes(result.status)) {
     throw new Error(
       "npm audit failed to complete; dependency safety is unknown",
@@ -61,7 +63,8 @@ export function evaluateAuditResult(result) {
   }
 
   return vulnerabilities.filter(
-    (entry) => entry.severity === "high" || entry.severity === "critical",
+    (entry) =>
+      severities.indexOf(entry.severity) >= severities.indexOf(minimumSeverity),
   );
 }
 
@@ -69,21 +72,33 @@ if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
-  const result = spawnSync("npm", ["audit", "--json"], {
-    encoding: "utf8",
-    shell: process.platform === "win32",
-    timeout: 120_000,
-    maxBuffer: 10 * 1024 * 1024,
-  });
+  const npmCli = process.env.npm_execpath;
+  const result = spawnSync(
+    npmCli ? process.execPath : "npm",
+    npmCli ? [npmCli, "audit", "--json"] : ["audit", "--json"],
+    {
+      encoding: "utf8",
+      shell: !npmCli && process.platform === "win32",
+      timeout: 120_000,
+      maxBuffer: 10 * 1024 * 1024,
+    },
+  );
   try {
-    const blocking = evaluateAuditResult(result);
+    const blocking = evaluateAuditResult(
+      result,
+      process.argv.includes("--strict") ? "low" : "high",
+    );
     if (blocking.length > 0) {
       for (const entry of blocking) {
         console.error(`${entry.severity} ${entry.name}`);
       }
       process.exitCode = 1;
     } else {
-      console.log("npm audit: no high or critical vulnerabilities");
+      console.log(
+        process.argv.includes("--strict")
+          ? "npm audit: no known vulnerabilities"
+          : "npm audit: no high or critical vulnerabilities",
+      );
     }
   } catch (error) {
     console.error(error instanceof Error ? error.message : "npm audit failed");

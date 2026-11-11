@@ -8,5 +8,5 @@
   },
   url:
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://planora-lake-one.vercel.app",
-  version: "0.1.1",
+  version: "0.1.2",
 } as const;

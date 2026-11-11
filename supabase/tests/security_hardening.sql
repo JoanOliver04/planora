@@ -392,5 +392,36 @@ select pg_temp.assert_true((public.restore_planora_backup(jsonb_build_object(
 select pg_temp.assert_true((select count(*)=1 from public.task_completions),
   'Rejected foreign history must preserve previously restored completions');
 reset role;
+-- Hosted Auth deletes users under its restricted service role. Completion
+-- tombstones must not block the account cascade or recreate orphan state.
+reset role;
+select set_config('request.jwt.claim.sub', '', true);
+select pg_temp.assert_true(
+  not has_function_privilege('anon', 'public.record_completion_occurrence_state()', 'execute')
+  and not has_function_privilege('authenticated', 'public.record_completion_occurrence_state()', 'execute'),
+  'Occurrence trigger must not be a client RPC'
+);
+insert into public.schedules(id, user_id, name) values
+  ('a0000000-0000-4000-8000-000000000009', '10000000-0000-4000-8000-000000000009', 'Account deletion fixture');
+insert into public.tasks(id, user_id, schedule_id, title, task_kind, recurrence_type, recurrence_config, start_date) values
+  ('d0000000-0000-4000-8000-000000000009', '10000000-0000-4000-8000-000000000009',
+   'a0000000-0000-4000-8000-000000000009', 'Completed before account deletion', 'habit', 'daily', '{"type":"daily"}', current_date);
+insert into public.task_completions(user_id, task_id, occurrence_date, task_snapshot) values
+  ('10000000-0000-4000-8000-000000000009', 'd0000000-0000-4000-8000-000000000009', current_date, '{}');
+set local role supabase_auth_admin;
+delete from auth.users where id = '10000000-0000-4000-8000-000000000009';
+reset role;
+select pg_temp.assert_true(
+  not exists(select 1 from public.profiles where id = '10000000-0000-4000-8000-000000000009')
+  and not exists(select 1 from public.tasks where user_id = '10000000-0000-4000-8000-000000000009')
+  and not exists(select 1 from public.task_completions where user_id = '10000000-0000-4000-8000-000000000009')
+  and not exists(select 1 from public.task_occurrence_state where user_id = '10000000-0000-4000-8000-000000000009'),
+  'Account deletion must remove history and occurrence state atomically'
+);
+select pg_temp.assert_true(
+  exists(select 1 from public.profiles where id = '10000000-0000-4000-8000-000000000002'),
+  'Account deletion must preserve other workspaces'
+);
+
 select 'security_hardening.sql: all assertions passed' as result;
 rollback;

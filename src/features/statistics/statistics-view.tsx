@@ -89,7 +89,7 @@ export function StatisticsView({ data }: { data: WorkspaceData }) {
             </div>
             <div
               className="heatmap-grid"
-              role="img"
+              role="list"
               aria-label={
                 es
                   ? "Mapa de tareas completadas durante los últimos 90 días"
@@ -99,6 +99,7 @@ export function StatisticsView({ data }: { data: WorkspaceData }) {
               {stats.heatmap.map((day) => (
                 <span
                   key={day.date}
+                  role="listitem"
                   data-level={day.level}
                   title={day.date + ": " + day.count}
                   aria-label={

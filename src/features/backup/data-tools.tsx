@@ -22,6 +22,7 @@ import { restoreBackup } from "@/app/actions/domain";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   buildCsvExportFiles,
+  BACKUP_SCHEMA_VERSION,
   createBackup,
   MAX_BACKUP_BYTES,
   parseBackup,
@@ -130,7 +131,7 @@ export function DataTools({
     try {
       if (kind === "json") {
         download(
-          "planora-backup-v4.json",
+          `planora-backup-v${BACKUP_SCHEMA_VERSION}.json`,
           JSON.stringify(createBackup(data), null, 2),
           "application/json",
         );

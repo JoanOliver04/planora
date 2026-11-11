@@ -4,10 +4,17 @@ export function isSameOriginRequest(request: Request) {
     return false;
   try {
     const supplied = new URL(origin);
-    return (
-      origin === supplied.origin &&
-      supplied.origin === new URL(request.url).origin
-    );
+    const target = new URL(request.url);
+    // Next can expose an internal localhost URL for a request addressed to
+    // 127.0.0.1 or a reverse-proxy host. Host is the browser's target authority;
+    // forwarded host headers are intentionally not trusted here.
+    const host = request.headers.get("host");
+    if (host !== null) {
+      if (!host || /[\s,/@\\?#]/.test(host)) return false;
+      const authority = new URL(`${target.protocol}//${host}`);
+      target.host = authority.host;
+    }
+    return origin === supplied.origin && supplied.origin === target.origin;
   } catch {
     return false;
   }

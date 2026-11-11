@@ -1,4 +1,5 @@
 import type { Json } from "@/types/database";
+import { accessibleAccent } from "./colors";
 import {
   defaultFocusAccountPreferences,
   normalizeFocusAccountPreferences,
@@ -64,26 +65,20 @@ export function normalizePreferences(value: Json | undefined): UserPreferences {
 
 export function applyPreferences(preferences: UserPreferences) {
   const root = document.documentElement;
-  const red = Number.parseInt(preferences.accent.slice(1, 3), 16);
-  const green = Number.parseInt(preferences.accent.slice(3, 5), 16);
-  const blue = Number.parseInt(preferences.accent.slice(5, 7), 16);
-  const luminance = (red * 299 + green * 587 + blue * 114) / 1000;
+  const accent = accessibleAccent(preferences.accent);
   root.dataset.density = preferences.density;
   root.dataset.radius = preferences.radius;
   root.dataset.reduceMotion = String(preferences.reduceMotion);
   root.style.setProperty("--font-scale", String(preferences.fontScale / 100));
   root.style.setProperty("--primary", preferences.accent);
-  root.style.setProperty(
-    "--primary-strong",
-    `color-mix(in srgb, ${preferences.accent} 72%, var(--foreground))`,
-  );
+  root.style.setProperty("--primary-text-light", accent.lightText);
+  root.style.setProperty("--primary-text-dark", accent.darkText);
+  root.style.setProperty("--primary-strong", "var(--primary-text)");
+  root.style.setProperty("--primary-hover", accent.hover);
   root.style.setProperty(
     "--primary-2",
     `color-mix(in srgb, ${preferences.accent} 16%, var(--surface))`,
   );
-  root.style.setProperty("--ring", preferences.accent);
-  root.style.setProperty(
-    "--accent-contrast",
-    luminance > 150 ? "#111827" : "#ffffff",
-  );
+  root.style.setProperty("--ring", "var(--primary-text)");
+  root.style.setProperty("--accent-contrast", accent.foreground);
 }

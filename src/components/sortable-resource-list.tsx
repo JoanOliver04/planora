@@ -1,5 +1,5 @@
 "use client";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import {
   closestCenter,
   DndContext,
@@ -18,7 +18,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, GripVertical } from "lucide-react";
 
 export function moveResourceIds(
   ids: string[],
@@ -36,12 +36,18 @@ function SortableItem<T extends { id: string }>({
   render,
   locale,
   disabled,
+  canMoveUp,
+  canMoveDown,
+  onMove,
 }: {
   item: T;
   label: string;
   render: (item: T) => ReactNode;
   locale: "es" | "en";
   disabled?: boolean;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMove: (direction: -1 | 1) => void;
 }) {
   const {
     attributes,
@@ -58,15 +64,85 @@ function SortableItem<T extends { id: string }>({
       data-dragging={isDragging}
       style={{ transform: CSS.Transform.toString(transform), transition }}
     >
-      <button
-        className="drag-handle"
-        disabled={disabled}
-        aria-label={locale === "es" ? "Reordenar " + label : "Reorder " + label}
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical size={18} />
-      </button>
+      <div className="sort-controls">
+        <button
+          className="drag-handle"
+          disabled={disabled}
+          aria-label={
+            locale === "es" ? "Reordenar " + label : "Reorder " + label
+          }
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical size={18} aria-hidden="true" />
+        </button>
+        <details
+          className="sort-menu"
+          onBlur={(event) => {
+            if (
+              event.relatedTarget &&
+              !event.currentTarget.contains(event.relatedTarget as Node | null)
+            )
+              event.currentTarget.open = false;
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.currentTarget.open = false;
+              event.currentTarget.querySelector("summary")?.focus();
+            }
+          }}
+        >
+          <summary
+            aria-label={
+              locale === "es"
+                ? `Cambiar posición de ${label}`
+                : `Change position of ${label}`
+            }
+            aria-disabled={disabled}
+            tabIndex={disabled ? -1 : 0}
+            onClick={(event) => {
+              if (disabled) event.preventDefault();
+            }}
+          >
+            <ArrowUpDown size={16} aria-hidden="true" />
+          </summary>
+          <div className="sort-menu-options">
+            {([-1, 1] as const).map((direction) => (
+              <button
+                key={direction}
+                type="button"
+                // Safari otherwise moves focus to <main> before click, which
+                // closes the disclosure before the pointer action can run.
+                onMouseDown={(event) => event.preventDefault()}
+                disabled={
+                  disabled || (direction === -1 ? !canMoveUp : !canMoveDown)
+                }
+                onClick={(event) => {
+                  const details = event.currentTarget.closest("details");
+                  if (details) {
+                    details.open = false;
+                    details.querySelector("summary")?.focus();
+                  }
+                  onMove(direction);
+                }}
+              >
+                {direction === -1 ? (
+                  <ArrowUp size={16} aria-hidden="true" />
+                ) : (
+                  <ArrowDown size={16} aria-hidden="true" />
+                )}
+                {locale === "es"
+                  ? direction === -1
+                    ? "Subir"
+                    : "Bajar"
+                  : direction === -1
+                    ? "Move up"
+                    : "Move down"}
+              </button>
+            ))}
+          </div>
+        </details>
+      </div>
       <div className="sortable-content">{render(item)}</div>
     </div>
   );
@@ -94,8 +170,17 @@ export function SortableResourceList<T extends { id: string }>({
   const [orderedIds, setOrderedIds] = useState(() =>
     initialItems.map((item) => item.id),
   );
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [announcement, setAnnouncement] = useState("");
   const itemById = new Map(initialItems.map((item) => [item.id, item]));
   const currentIds = initialItems.map((item) => item.id);
+  const signature = currentIds.join("|");
+  const [receivedSignature, setReceivedSignature] = useState(signature);
+  if (!saving && receivedSignature !== signature) {
+    setReceivedSignature(signature);
+    setOrderedIds(currentIds);
+  }
   const visibleIds = [
     ...orderedIds.filter((id) => itemById.has(id)),
     ...currentIds.filter((id) => !orderedIds.includes(id)),
@@ -111,9 +196,8 @@ export function SortableResourceList<T extends { id: string }>({
     }),
   );
   async function finished(event: DragEndEvent) {
-    if (disabled) return;
+    if (disabled || savingRef.current) return;
     if (!event.over || event.active.id === event.over.id) return;
-    const previous = items;
     const from = items.findIndex((item) => item.id === event.active.id);
     const to = items.findIndex((item) => item.id === event.over?.id);
     if (from < 0 || to < 0) return;
@@ -122,14 +206,26 @@ export function SortableResourceList<T extends { id: string }>({
       String(event.active.id),
       String(event.over.id),
     );
-    const orderedItemById = new Map(items.map((item) => [item.id, item]));
-    const next = orderedIds.map((id) => orderedItemById.get(id)!);
-    setOrderedIds(next.map((item) => item.id));
+    await persist(orderedIds);
+  }
+  async function persist(next: string[]) {
+    if (disabled || savingRef.current) return;
+    const previous = items.map((item) => item.id);
+    savingRef.current = true;
+    setSaving(true);
+    setOrderedIds(next);
+    setAnnouncement("");
     try {
-      await onCommit(next.map((item) => item.id));
+      await onCommit(next);
+      setAnnouncement(
+        locale === "es" ? "Orden actualizado." : "Order updated.",
+      );
     } catch {
-      setOrderedIds(previous.map((item) => item.id));
+      setOrderedIds(previous);
       onError();
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
   }
   return (
@@ -151,17 +247,33 @@ export function SortableResourceList<T extends { id: string }>({
         strategy={rectSortingStrategy}
       >
         <div className={className}>
-          {items.map((item) => (
+          {items.map((item, index) => (
             <SortableItem
               key={item.id}
               item={item}
               label={getLabel(item)}
               render={renderItem}
               locale={locale}
-              disabled={disabled}
+              disabled={disabled || saving}
+              canMoveUp={index > 0}
+              canMoveDown={index < items.length - 1}
+              onMove={(direction) => {
+                const target = items[index + direction];
+                if (target)
+                  void persist(
+                    moveResourceIds(
+                      items.map((item) => item.id),
+                      item.id,
+                      target.id,
+                    ),
+                  );
+              }}
             />
           ))}
         </div>
+        <span className="sr-only" role="status">
+          {announcement}
+        </span>
       </SortableContext>
     </DndContext>
   );

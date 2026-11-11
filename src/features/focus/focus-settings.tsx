@@ -198,8 +198,11 @@ export function FocusSettingsPanel({
         <p className="muted">{t("settings.accountHint")}</p>
 
         <div className="settings-row">
-          <span>{t("settings.defaultMode")}</span>
+          <label htmlFor="focus-settings-defaultMode">
+            {t("settings.defaultMode")}
+          </label>
           <select
+            id="focus-settings-defaultMode"
             className="pill"
             value={account.defaultMode}
             onChange={(event) =>
@@ -219,8 +222,11 @@ export function FocusSettingsPanel({
         </div>
 
         <div className="settings-row">
-          <span>{t("settings.defaultPreset")}</span>
+          <label htmlFor="focus-settings-defaultPreset">
+            {t("settings.defaultPreset")}
+          </label>
           <select
+            id="focus-settings-defaultPreset"
             className="pill"
             value={account.defaultPresetId ?? ""}
             onChange={(event) =>
@@ -241,8 +247,11 @@ export function FocusSettingsPanel({
         </div>
 
         <div className="settings-row">
-          <span>{t("settings.timerDisplay")}</span>
+          <label htmlFor="focus-settings-timerDisplay">
+            {t("settings.timerDisplay")}
+          </label>
           <select
+            id="focus-settings-timerDisplay"
             className="pill"
             value={account.timerDisplay}
             onChange={(event) =>
@@ -258,8 +267,11 @@ export function FocusSettingsPanel({
         </div>
 
         <div className="settings-row">
-          <span>{t("settings.homeLanding")}</span>
+          <label htmlFor="focus-settings-homeLanding">
+            {t("settings.homeLanding")}
+          </label>
           <select
+            id="focus-settings-homeLanding"
             className="pill"
             value={account.homeLanding}
             onChange={(event) =>
@@ -532,8 +544,11 @@ export function FocusSettingsPanel({
         </label>
         <p className="muted">{t("settings.keyboardShortcutsHint")}</p>
         <div className="settings-row">
-          <span>{t("settings.lockScreen")}</span>
+          <label htmlFor="focus-settings-lock-screen">
+            {t("settings.lockScreen")}
+          </label>
           <select
+            id="focus-settings-lock-screen"
             className="pill"
             value={device.lockScreenBehavior}
             onChange={(event) =>

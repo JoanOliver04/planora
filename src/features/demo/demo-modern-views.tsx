@@ -47,7 +47,12 @@ export function MonthDemo({
           </h1>
         </div>
       </div>
-      <div className="demo-month-grid surface">
+      <div
+        className="demo-month-grid surface"
+        role="region"
+        aria-label={copy.month}
+        tabIndex={0}
+      >
         {days.map((date) => {
           const value = format(date, "yyyy-MM-dd");
           const events = state.events.filter((item) => item.date === value);

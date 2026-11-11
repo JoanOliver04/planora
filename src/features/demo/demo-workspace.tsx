@@ -333,7 +333,12 @@ function WeekDemo({
   return (
     <section>
       <h1 className="title">{copy.week}</h1>
-      <div className="week-grid">
+      <div
+        className="week-grid"
+        role="region"
+        aria-label={copy.week}
+        tabIndex={0}
+      >
         {days.map((date) => {
           const value = format(date, "yyyy-MM-dd");
           return (

@@ -1,4 +1,4 @@
-import { Link } from "@/i18n/routing";
+import Link from "next/link";
 import { StudioCredit } from "@/components/studio-credit";
 export default async function Terms({
   params,
@@ -9,7 +9,7 @@ export default async function Terms({
     es = locale === "es";
   return (
     <main className="legal-page">
-      <Link href="/">← Planora</Link>
+      <Link href={`/${locale}`}>← Planora</Link>
       <h1>{es ? "Condiciones de uso" : "Terms of use"}</h1>
       <p>
         {es

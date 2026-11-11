@@ -1059,6 +1059,7 @@ export function ReminderCenter({
                     <button
                       className="pill"
                       type="button"
+                      disabled={!hydrated || pending}
                       onClick={() => editRelative(reminder)}
                     >
                       {t("edit")}
@@ -1066,6 +1067,7 @@ export function ReminderCenter({
                   )}
                   <Switch
                     checked={reminder.enabled}
+                    disabled={!hydrated || pending}
                     label={
                       es ? "Activar " + reminderName : "Enable " + reminderName
                     }
@@ -1079,6 +1081,8 @@ export function ReminderCenter({
                   {reminder.enabled && (
                     <button
                       className="pill"
+                      type="button"
+                      disabled={!hydrated || pending}
                       onClick={() =>
                         startTransition(async () => {
                           await snoozeReminder({
@@ -1094,6 +1098,8 @@ export function ReminderCenter({
                   )}
                   <button
                     className="icon-button"
+                    type="button"
+                    disabled={!hydrated || pending}
                     aria-label={
                       es ? "Eliminar recordatorio" : "Delete reminder"
                     }

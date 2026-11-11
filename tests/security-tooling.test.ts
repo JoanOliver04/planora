@@ -34,6 +34,16 @@ function auditResult(severities: Severity[] = []) {
 }
 
 describe("dependency audit gate", () => {
+  it("blocks moderate and low findings in the strict release gate", () => {
+    expect(evaluateAuditResult(auditResult(["moderate"]), "low")).toHaveLength(
+      1,
+    );
+    expect(evaluateAuditResult(auditResult(["low"]), "low")).toHaveLength(1);
+    expect(evaluateAuditResult(auditResult(), "low")).toEqual([]);
+    expect(() => evaluateAuditResult(auditResult(), "invalid")).toThrow(
+      /threshold/,
+    );
+  });
   it("accepts a complete clean report and keeps the high/critical threshold", () => {
     expect(evaluateAuditResult(auditResult())).toEqual([]);
     expect(evaluateAuditResult(auditResult(["low", "moderate"]))).toEqual([]);
