@@ -8,6 +8,8 @@ const PRECACHE = [
   "/assets/logo.webp",
   "/assets/logo_modo_claro.webp",
   "/assets/logo_modo_oscuro.webp",
+  "/assets/planora-desktop.png",
+  "/assets/planora-mobile.png",
   "/icon-192.png",
   "/icon-512.png",
 ];
@@ -84,7 +86,7 @@ function networkFirstPublicNavigation(event, request) {
     );
 }
 
-function networkFirstAsset(event, request) {
+function networkFirstAsset(event, request, offlineSource) {
   return fetch(request)
     .then((response) => {
       if (response.ok)
@@ -95,7 +97,12 @@ function networkFirstAsset(event, request) {
         );
       return response;
     })
-    .catch(async () => (await caches.match(request)) || Response.error());
+    .catch(
+      async () =>
+        (await caches.match(request)) ||
+        (offlineSource && (await caches.match(offlineSource))) ||
+        Response.error(),
+    );
 }
 
 function cacheFirstImmutable(event, request) {
@@ -230,6 +237,15 @@ self.addEventListener("fetch", (event) => {
 
   if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(cacheFirstImmutable(event, request));
+    return;
+  }
+
+  if (url.pathname === "/_next/image") {
+    const source = url.searchParams.get("url");
+    // Only public, precached images can fall back to their original asset.
+    // A new size may be requested offline before its optimized variant is cached.
+    if (source?.startsWith("/assets/") && PRECACHE.includes(source))
+      event.respondWith(networkFirstAsset(event, request, source));
     return;
   }
 

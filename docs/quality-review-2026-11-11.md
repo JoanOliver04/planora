@@ -119,3 +119,13 @@ El servicio escucha solo en loopback y comparte la red del runner para acceder
 a la app y a Supabase local; el repositorio está montado en modo de solo lectura.
 Se elimina la dependencia de APT durante la ejecución de la batería. Véase la
 [configuración Docker de Playwright](https://playwright.dev/docs/docker#remote-connection).
+
+La inspección visual final en producción detectó imágenes rotas al recargar la
+portada sin conexión: se guardaban los originales públicos, pero Next solicita
+variantes optimizadas. El worker recupera ahora el original únicamente para las
+imágenes públicas de su lista de precarga. Las dos capturas añaden 378.104 bytes
+a esa caché, instalada tras el registro aplazado del worker; no se precargan como
+recursos del HTML inicial. La regresión fuerza URLs nuevas para impedir que la
+caché HTTP oculte el fallo: falla con el worker anterior y pasa tras la corrección
+en los dos proyectos Chromium. El chequeo de conexión pasa también en WebKit.
+El encabezado de privacidad de la portada española queda traducido.

@@ -34,6 +34,7 @@ const copy = {
     previewTitle: "Entiende tu semana de un vistazo",
     previewBody:
       "Explora todas las funciones con datos locales. Nada de lo que hagas en la demo modifica cuentas reales.",
+    privacyEyebrow: "Privacidad desde el diseño",
     privacyTitle: "Tu agenda no es un producto",
     privacyBody:
       "Planora guarda únicamente lo necesario para darte el servicio. La demo vive en tu navegador y se elimina automáticamente.",
@@ -76,6 +77,7 @@ const copy = {
     previewTitle: "Understand your week at a glance",
     previewBody:
       "Explore every feature with local data. Nothing you do in the demo changes real accounts.",
+    privacyEyebrow: "Privacy by design",
     privacyTitle: "Your schedule is not a product",
     privacyBody:
       "Planora stores only what is needed to provide the service. Demo data stays in your browser and expires automatically.",
@@ -226,7 +228,7 @@ export default async function LandingPage({
       </section>
       <section className="landing-privacy" id="privacy">
         <div>
-          <p className="landing-eyebrow">Privacy by design</p>
+          <p className="landing-eyebrow">{text.privacyEyebrow}</p>
           <h2>{text.privacyTitle}</h2>
           <p>{text.privacyBody}</p>
         </div>
