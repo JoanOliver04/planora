@@ -51,6 +51,30 @@ test("production service worker is not cached and public HTML still works offlin
       await expect(
         page.getByRole("heading", { name: /Tu vida cambia/i }),
       ).toBeVisible();
+      // Use new variant URLs so the HTTP image cache cannot mask a missing
+      // service-worker fallback, including screenshots not yet scrolled into view.
+      await page.evaluate(async () => {
+        await Promise.all(
+          Array.from(document.images).map(async (image) => {
+            const source = new URL(image.currentSrc || image.src);
+            source.searchParams.set("offline-check", "1");
+            image.loading = "eager";
+            image.removeAttribute("srcset");
+            image.src = source.href;
+            await image.decode();
+          }),
+        );
+      });
+      expect(
+        await page
+          .locator("main img")
+          .evaluateAll((images) =>
+            images.every(
+              (image) =>
+                image instanceof HTMLImageElement && image.naturalWidth > 0,
+            ),
+          ),
+      ).toBe(true);
     }
   } finally {
     await context.setOffline(false);
