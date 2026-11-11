@@ -2,7 +2,13 @@ import { siteConfig } from "@/config/site";
 import Link from "next/link";
 import { StudioCredit } from "./studio-credit";
 
-export function AppAbout({ locale }: { locale: "es" | "en" }) {
+export function AppAbout({
+  locale,
+  source,
+}: {
+  locale: "es" | "en";
+  source: "settings" | "demo-settings";
+}) {
   const es = locale === "es";
 
   return (
@@ -22,10 +28,10 @@ export function AppAbout({ locale }: { locale: "es" | "en" }) {
           : "A one-person independent studio creating apps and games."}
       </p>
       <nav aria-label={es ? "Información de Planora" : "Planora information"}>
-        <Link href={`/${locale}/privacy`} prefetch={false}>
+        <Link href={`/${locale}/privacy?from=${source}`} prefetch={false}>
           {es ? "Privacidad" : "Privacy"}
         </Link>
-        <Link href={`/${locale}/terms`} prefetch={false}>
+        <Link href={`/${locale}/terms?from=${source}`} prefetch={false}>
           {es ? "Condiciones de uso" : "Terms of use"}
         </Link>
       </nav>

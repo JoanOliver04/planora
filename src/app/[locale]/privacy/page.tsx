@@ -1,17 +1,19 @@
-import Link from "next/link";
+import { LegalBackLink } from "@/components/legal-back-link";
 import { StudioCredit } from "@/components/studio-credit";
 
 export default async function Privacy({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ from?: string | string[] }>;
 }) {
-  const { locale } = await params;
+  const [{ locale }, { from }] = await Promise.all([params, searchParams]);
   const es = locale === "es";
 
   return (
     <main className="legal-page">
-      <Link href={`/${locale}`}>← Planora</Link>
+      <LegalBackLink locale={locale} from={from} />
       <h1>{es ? "Privacidad" : "Privacy"}</h1>
       <p>
         {es
