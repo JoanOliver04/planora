@@ -147,6 +147,7 @@ html[data-reduce-motion="true"] *::after {
   transition-duration: 0.01ms !important;
 }
 .dark {
+  --accent-contrast: #172015;
   --background: #0f130e;
   --foreground: #edf3e9;
   --surface: #181d16;
