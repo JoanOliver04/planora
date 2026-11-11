@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Link, routing } from "@/i18n/routing";
 import { AuthLink } from "@/components/auth-link";
+import { StudioCredit } from "@/components/studio-credit";
 
 const copy = {
   es: {
@@ -158,6 +159,7 @@ export default async function LandingPage({
             </AuthLink>
           </div>
           <p className="landing-trust">{text.trust}</p>
+          <StudioCredit locale={language} />
         </div>
         <div className="landing-hero-visual" aria-hidden="true">
           <div className="landing-orbit orbit-one" />
@@ -244,7 +246,10 @@ export default async function LandingPage({
         </div>
       </section>
       <footer className="landing-footer">
-        <span>© {new Date().getFullYear()} Planora</span>
+        <div>
+          <span>© {new Date().getFullYear()} Planora</span>
+          <StudioCredit locale={language} />
+        </div>
         <span>{text.trust}</span>
         <Link href="/privacy" locale={language}>
           {language === "es" ? "Privacidad" : "Privacy"}

@@ -30,6 +30,9 @@ export const metadata: Metadata = {
   title: { default: "Planora", template: "%s · Planora" },
   description: siteConfig.description.es,
   applicationName: siteConfig.name,
+  authors: [{ name: siteConfig.studio }],
+  creator: siteConfig.studio,
+  publisher: siteConfig.studio,
   category: "productivity",
   formatDetection: { telephone: false, address: false, email: false },
   openGraph: {

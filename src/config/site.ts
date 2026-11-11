@@ -1,6 +1,7 @@
 ﻿export const siteConfig = {
   name: "Planora",
   shortName: "Planora",
+  studio: "JVOR Studios",
   description: {
     es: "Tus rutinas, hábitos y eventos en armonía.",
     en: "Your routines, habits and events in harmony.",

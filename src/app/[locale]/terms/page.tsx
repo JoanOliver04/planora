@@ -1,4 +1,5 @@
 import { Link } from "@/i18n/routing";
+import { StudioCredit } from "@/components/studio-credit";
 export default async function Terms({
   params,
 }: {
@@ -30,6 +31,9 @@ export default async function Terms({
           ? "Puedes dejar de usar Planora y eliminar tu cuenta en cualquier momento. Estas condiciones pueden actualizarse cuando cambie el servicio."
           : "You may stop using Planora and delete your account at any time. These terms may be updated when the service changes."}
       </p>
+      <footer className="legal-credit">
+        <StudioCredit locale={locale} />
+      </footer>
     </main>
   );
 }

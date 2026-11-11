@@ -9,6 +9,8 @@
   A private, bilingual and mobile-first planner built for flexible routines.
 </p>
 
+<p align="center">An app by <strong>JVOR Studios</strong>, a one-person independent studio creating apps and games.</p>
+
 <p align="center">
   <a href="https://planora-lake-one.vercel.app">
     <img src="https://img.shields.io/badge/demo-online-52734D?style=flat-square" alt="Live demo" />
