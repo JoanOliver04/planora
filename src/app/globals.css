@@ -5558,6 +5558,27 @@ select:disabled,
   display: grid;
   gap: 0.65rem;
 }
+.focus-goal-editor > label:not(.check-row) {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  font-weight: 650;
+}
+.focus-goal-editor > label:not(.check-row) > input,
+.focus-goal-editor > label:not(.check-row) > select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--foreground);
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+}
+.focus-goal-editor .focus-rating-row {
+  flex-wrap: wrap;
+}
 .focus-goal-days {
   border: 0;
   margin: 0;

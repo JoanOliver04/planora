@@ -13,6 +13,9 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:security:e2e": "playwright test --config=playwright.security.config.ts",
+    "docs:captures": "node scripts/capture-docs-screenshots.mjs",
+    "docs:captures:check": "node scripts/capture-docs-screenshots.mjs --check",
+    "docs:captures:test": "node --test scripts/screenshots/safety.test.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:types": "supabase gen types typescript --local > src/types/database.ts"
@@ -56,6 +59,7 @@
     "jsdom": "^29.1.1",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "sharp": "0.35.5",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",

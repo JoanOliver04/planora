@@ -58,7 +58,7 @@ Countdown, stopwatch, cycles, structured plans, pause/resume, reload recovery, b
 
 1. **System notification delivery** while a PWA is fully suspended depends on OS/browser — documented in UI and privacy policy.
 2. **Authenticated browser UI e2e** (clicking through `/focus` UI) needs a dedicated test project + real session; API-backed lifecycle covers data correctness without Google OAuth in CI.
-3. **Screenshots** for Focus (light theme) ship in `docs/images/13–17-*.png`; regenerate with `node scripts/capture-focus-screenshots.mjs` against a local production server.
+3. **Screenshots**: the current [visual library](screenshots.md) supersedes the original Focus set. Regenerate with `npm run docs:captures -- --group focus`; the runner uses an isolated local environment and synthetic accounts.
 4. **npm audit** residual risk is low after overrides; re-check after major dependency upgrades.
 
 ## Verdict

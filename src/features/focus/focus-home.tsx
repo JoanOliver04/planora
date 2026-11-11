@@ -42,6 +42,7 @@ export type FocusHomeProps = {
   /** @deprecated use goals */
   goal?: FocusGoal | null;
   weekSessions: FocusSession[];
+  goalSessions?: FocusSession[];
   timezone: string;
   weekStartsOn: number;
   tasks?: FocusTaskOption[];
@@ -69,6 +70,7 @@ export function FocusHome({
   goals: goalsProp,
   goal = null,
   weekSessions,
+  goalSessions = weekSessions,
   timezone,
   weekStartsOn,
   tasks = [],
@@ -261,7 +263,7 @@ export function FocusHome({
             <div className="focus-home-block" data-block="goals">
               <FocusGoalsPanel
                 goals={goals}
-                sessions={weekSessions}
+                sessions={goalSessions}
                 timezone={timezone}
                 weekStartsOn={weekStartsOn}
                 categories={categories}

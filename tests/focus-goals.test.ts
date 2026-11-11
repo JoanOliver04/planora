@@ -12,6 +12,10 @@ import {
 } from "@/features/focus/state-machine";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import {
+  goalSessionWindow,
+  sessionsInCurrentWeek,
+} from "@/features/focus/goal-session-window";
 
 const migration = readFileSync(
   join(
@@ -83,6 +87,30 @@ function completeSession(
 }
 
 describe("flexible weekly focus goals", () => {
+  it("loads prior goal weeks without counting them in the current week summary across DST", () => {
+    const now = new Date("2026-10-28T12:00:00Z");
+    const window = goalSessionWindow("Europe/Madrid", now, 1);
+    const sessions = [
+      completeSession("2026-10-19T09:00:00Z", 1800),
+      completeSession("2026-10-26T09:00:00Z", 1200),
+      completeSession("2026-10-25T23:30:00Z", 600),
+    ];
+    expect(Date.parse(window.queryStart)).toBeLessThan(
+      Date.parse(sessions[0].startedAt),
+    );
+    expect(sessionsInCurrentWeek(sessions, "Europe/Madrid", window)).toEqual(
+      sessions.slice(1),
+    );
+    const history = calculateGoalWeekHistory(goal(), sessions, now, 4);
+    expect(
+      history.find((week) => week.weekStart === "2026-10-19")?.completedValue,
+    ).toBe(1800);
+    expect(
+      history.find((week) => week.weekStart === "2026-10-26")?.completedValue,
+    ).toBe(1800);
+    const sunday = goalSessionWindow("Pacific/Auckland", now, 0);
+    expect(sunday.start).toBe("2026-10-25");
+  });
   it("extends schema for metrics, scope and primary goals", () => {
     expect(migration).toContain("metric text");
     expect(migration).toContain("active_days");
