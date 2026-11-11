@@ -364,7 +364,7 @@ export function SettingsView({
           </button>
         </div>
       </section>
-      <AppAbout locale={locale} />
+      <AppAbout locale={locale} source="settings" />
       <ConfirmDialog
         open={confirmSignOut}
         onOpenChange={setConfirmSignOut}

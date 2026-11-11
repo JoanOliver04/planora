@@ -176,7 +176,7 @@ export function DemoWorkspace({
                 <RotateCcw size={17} /> {copy.reset}
               </button>
             </div>
-            <AppAbout locale={locale} />
+            <AppAbout locale={locale} source="demo-settings" />
           </section>
         )}
         {view === "data" && (
