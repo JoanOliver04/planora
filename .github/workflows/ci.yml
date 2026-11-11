@@ -75,9 +75,25 @@ jobs:
         run: |
           docker cp supabase/tests/security_hardening.sql supabase_db_planora:/tmp/security_hardening.sql
           docker exec supabase_db_planora psql -X -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -q -f /tmp/security_hardening.sql
-      - name: Install browser dependencies
+      - name: Start pinned browser service
         timeout-minutes: 10
-        run: npx playwright install --with-deps --only-shell chromium webkit
+        run: |
+          browser_version=$(node -p "require('./node_modules/playwright/package.json').version")
+          browser_image="mcr.microsoft.com/playwright:v${browser_version}-noble"
+          docker pull "$browser_image"
+          docker run --detach --rm --init --ipc=host --network=host \
+            --name planora-browser-service --user pwuser --workdir /work \
+            --volume "$GITHUB_WORKSPACE:/work:ro" "$browser_image" \
+            node node_modules/playwright/cli.js run-server --port 3500 --host 127.0.0.1
+          for attempt in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3500/ > /dev/null; then
+              echo "PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:3500/" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs planora-browser-service
+          exit 1
       - run: npm run test:e2e
       - name: Measure base revision in isolation
         if: github.event_name == 'pull_request'
@@ -115,6 +131,9 @@ jobs:
       - name: Stop isolated Supabase
         if: always()
         run: npx --yes supabase@2.115.0 stop --no-backup
+      - name: Stop browser service
+        if: always()
+        run: docker rm --force planora-browser-service 2>/dev/null || true
   lighthouse:
     runs-on: ubuntu-latest
     timeout-minutes: 15

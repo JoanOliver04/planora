@@ -109,5 +109,9 @@ producción para probarla. El editor de tareas conserva explícitamente el botó
 de origen del foco para devolverlo al cerrar también en Safari.
 
 La instalación inicial de navegadores en CI se detuvo por fallos DNS de los
-repositorios APT de Ubuntu 26.04. La batería E2E queda fijada en Ubuntu 24.04,
-instala solo los motores necesarios y limita ese paso a diez minutos.
+repositorios APT. La batería E2E usa Ubuntu 24.04 y el servicio de navegadores de
+la imagen oficial de Playwright, con la versión exacta del cliente instalado.
+El servicio escucha solo en loopback y comparte la red del runner para acceder
+a la app y a Supabase local; el repositorio está montado en modo de solo lectura.
+Se elimina la dependencia de APT durante la ejecución de la batería. Véase la
+[configuración Docker de Playwright](https://playwright.dev/docs/docker#remote-connection).
