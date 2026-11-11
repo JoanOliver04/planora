@@ -1,4 +1,5 @@
 import { Link } from "@/i18n/routing";
+import { StudioCredit } from "@/components/studio-credit";
 
 export default async function Privacy({
   params,
@@ -54,6 +55,9 @@ export default async function Privacy({
           ? "Supabase aloja la autenticación y la base de datos; Vercel aloja la aplicación y proporciona la analítica web. Para consultas, abre una incidencia privada en el repositorio del proyecto."
           : "Supabase hosts authentication and the database; Vercel hosts the application and provides web analytics. For questions, open a private issue in the project repository."}
       </p>
+      <footer className="legal-credit">
+        <StudioCredit locale={locale} />
+      </footer>
     </main>
   );
 }

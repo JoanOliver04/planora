@@ -7,6 +7,7 @@ import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { AUTH_TIMEOUT_MS, withTimeout } from "@/lib/bootstrap/timeout";
 import { NotificationToaster } from "@/components/notification-toaster";
+import { StudioCredit } from "@/components/studio-credit";
 export default async function Login({
   params,
 }: {
@@ -46,6 +47,7 @@ export default async function Login({
         </section>
         <section className="login-form">
           <h2>Planora</h2>
+          <StudioCredit locale={locale} />
           <p className="muted">{t("subtitle")}</p>
           <GoogleButton />
           <Link className="pill demo-entry" href={`/${locale}/demo/today`}>

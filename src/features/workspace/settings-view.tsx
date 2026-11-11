@@ -2,6 +2,7 @@
 
 import { updateProfile } from "@/app/actions/domain";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { AppAbout } from "@/components/app-about";
 import { useTheme } from "@/components/theme-provider";
 import { FocusSettingsPanel } from "@/features/focus/focus-settings";
 import { useRouter } from "@/i18n/routing";
@@ -355,6 +356,7 @@ export function SettingsView({
           </button>
         </div>
       </section>
+      <AppAbout locale={locale} />
       <ConfirmDialog
         open={confirmSignOut}
         onOpenChange={setConfirmSignOut}

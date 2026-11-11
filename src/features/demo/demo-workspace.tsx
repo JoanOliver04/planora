@@ -7,6 +7,7 @@ import { addDays, format } from "date-fns";
 import { Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Logo } from "@/components/navigation";
 import { AuthLink } from "@/components/auth-link";
+import { AppAbout } from "@/components/app-about";
 import {
   createDemoState,
   DEMO_TTL,
@@ -175,6 +176,7 @@ export function DemoWorkspace({
                 <RotateCcw size={17} /> {copy.reset}
               </button>
             </div>
+            <AppAbout locale={locale} />
           </section>
         )}
         {view === "data" && (

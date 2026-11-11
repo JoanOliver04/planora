@@ -38,6 +38,65 @@
 .legal-page h2 {
   margin-top: 2rem;
 }
+.studio-credit {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.studio-credit span {
+  font-weight: 650;
+}
+.landing-hero-copy > .studio-credit {
+  margin-top: 1rem;
+}
+.landing-footer .studio-credit {
+  margin-top: 0.25rem;
+}
+.legal-credit {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.app-about {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+}
+.app-about-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+}
+.app-about-heading h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+.app-about-heading span,
+.app-about > .muted {
+  font-size: 0.8125rem;
+}
+.app-about > .muted {
+  max-width: 60ch;
+  margin: 0.5rem 0;
+}
+.app-about nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+}
+.app-about nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--primary-strong);
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
 html {
   font-size: calc(100% * var(--font-scale));
 }
