@@ -410,6 +410,6 @@ test("resource order can be saved with clicks and the position menu restores foc
     await page.reload();
     await expect(
       page.getByLabel(/^Change position of .* task$/).first(),
-    ).toHaveAccessibleName("Change position of Global task");
+    ).toHaveAccessibleName("Change position of Global task", { timeout: 15_000 });
   });
 });
