@@ -1,5 +1,9 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
+
+// Chromium compares icon URLs when checking existing installations for updates.
+const iconVersion = "planora-logo";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: siteConfig.name,
@@ -17,19 +21,19 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#546a42",
     icons: [
       {
-        src: "/icon-192.png",
+        src: `/icon-192.png?v=${iconVersion}`,
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon-512.png",
+        src: `/icon-512.png?v=${iconVersion}`,
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon-maskable.png",
+        src: `/icon-maskable.png?v=${iconVersion}`,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

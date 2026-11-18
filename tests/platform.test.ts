@@ -5,7 +5,7 @@ import manifest from "@/app/manifest";
 import { GET } from "@/app/api/health/route";
 
 describe("platform integration", () => {
-  it("publishes square installation icons with and without a mask", async () => {
+  it("publishes versioned square installation icons with and without a mask", async () => {
     const value = manifest();
 
     expect(value).toMatchObject({
@@ -24,8 +24,13 @@ describe("platform integration", () => {
     );
 
     for (const icon of value.icons ?? []) {
+      const { pathname, searchParams } = new URL(
+        icon.src,
+        "https://planora.test",
+      );
+      expect(searchParams.get("v")).toBeTruthy();
       const size = Number(icon.sizes?.split("x")[0]);
-      const image = sharp(join(process.cwd(), "public", icon.src));
+      const image = sharp(join(process.cwd(), "public", pathname));
       await expect(image.metadata()).resolves.toMatchObject({
         width: size,
         height: size,
