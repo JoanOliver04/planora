@@ -2,6 +2,7 @@
   name: "Planora",
   shortName: "Planora",
   studio: "JVOR Studios",
+  logo: { url: "/assets/planora-mark.webp", width: 448, height: 448 },
   description: {
     es: "Tus rutinas, hábitos y eventos en armonía.",
     en: "Your routines, habits and events in harmony.",

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/assets/logo_modo_oscuro.webp" alt="Planora" width="240" />
+  <img src="public/assets/planora-logo-dark.webp" alt="Planora" width="112" />
 </p>
 
 <h1 align="center">Planora</h1>

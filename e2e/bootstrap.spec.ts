@@ -12,8 +12,16 @@ test("mobile landing paints product UI instead of a stuck logo splash", async ({
     page.getByRole("link", { name: /Probar demo gratis/i }).first(),
   ).toBeVisible();
   const heroLogo = page.locator(".landing-hero-visual img");
+  await expect(heroLogo).toBeVisible();
+  await heroLogo.evaluate((image: HTMLImageElement) => image.decode());
   const box = await heroLogo.boundingBox();
   expect(box?.width ?? 0).toBeLessThan(280);
+
+  const tabIcon = page.locator('head link[rel="icon"]');
+  await expect(tabIcon).toHaveAttribute("href", /^\/favicon\.ico(?:\?|$)/);
+  const appleIcon = page.locator('head link[rel="apple-touch-icon"]');
+  await expect(appleIcon).toHaveAttribute("href", "/apple-touch-icon.png");
+  await expect(appleIcon).toHaveAttribute("sizes", "180x180");
 });
 
 test("mobile login stays usable and does not fill the viewport with the logo", async ({
@@ -22,7 +30,9 @@ test("mobile login stays usable and does not fill the viewport with the logo", a
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/es/login");
   await expect(page.getByRole("button", { name: /Google/i })).toBeVisible();
-  const logo = page.locator(".brand-logo").first();
+  const logo = page.getByRole("img", { name: "Planora" });
+  await expect(logo).toBeVisible();
+  await logo.evaluate((image: HTMLImageElement) => image.decode());
   const box = await logo.boundingBox();
   expect(box?.width ?? 0).toBeLessThanOrEqual(200);
   expect(box?.height ?? 0).toBeLessThanOrEqual(200);
@@ -75,6 +85,25 @@ test("production service worker is not cached and public HTML still works offlin
             ),
           ),
       ).toBe(true);
+
+      const icons = await page.evaluate(async () => {
+        const manifest = await fetch("/manifest.webmanifest").then((response) =>
+          response.json(),
+        );
+        const paths = [
+          "/favicon.ico?offline-check=1",
+          "/apple-touch-icon.png",
+          ...manifest.icons.map((icon: { src: string }) => icon.src),
+        ];
+        return Promise.all(
+          paths.map(async (path) =>
+            (await fetch(path)).headers.get("content-type"),
+          ),
+        );
+      });
+      expect(icons).toHaveLength(5);
+      expect(icons[0]).toMatch(/^image\/.*icon/);
+      expect(icons.slice(1)).toEqual(Array<string>(4).fill("image/png"));
     }
   } finally {
     await context.setOffline(false);

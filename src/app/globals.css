@@ -490,25 +490,6 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
 }
-.brand-logo {
-  width: 140px;
-  height: auto;
-  max-width: 100%;
-  object-fit: contain;
-  object-position: left center;
-}
-.brand-logo-dark {
-  display: none;
-}
-.dark .brand-logo-light {
-  display: none;
-}
-.dark .brand-logo-dark {
-  display: block;
-}
-.login-copy .brand-logo {
-  width: 180px;
-}
 .bootstrap-screen {
   min-height: 100vh;
   min-height: 100dvh;
@@ -887,7 +868,7 @@ textarea:focus-visible {
   text-decoration: none;
 }
 .landing-brand img {
-  border-radius: 12px;
+  flex-shrink: 0;
 }
 .landing-nav nav,
 .landing-nav-actions,
@@ -975,7 +956,6 @@ textarea:focus-visible {
 .landing-hero-visual img {
   position: relative;
   z-index: 2;
-  border-radius: 54px;
   filter: drop-shadow(
     0 28px 50px color-mix(in srgb, var(--accent) 25%, transparent)
   );
@@ -1152,9 +1132,8 @@ textarea:focus-visible {
     min-height: 300px;
   }
   .landing-hero-visual img {
-    width: 160px;
-    height: 160px;
-    border-radius: 40px;
+    width: 128px;
+    height: auto;
   }
   .orbit-one {
     width: 280px;

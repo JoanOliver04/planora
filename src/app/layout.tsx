@@ -41,10 +41,16 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description.es,
     url: siteConfig.url,
-    images: [{ url: "/assets/logo.webp", width: 1024, height: 1024 }],
+    images: [siteConfig.logo],
   },
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/assets/logo.ico" },
+  icons: {
+    apple: {
+      url: "/apple-touch-icon.png",
+      sizes: "180x180",
+      type: "image/png",
+    },
+  },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Planora" },
 };
 export const viewport: Viewport = {
@@ -77,7 +83,7 @@ export default function RootLayout({
         <style
           dangerouslySetInnerHTML={{
             __html:
-              ".brand-logo{width:140px;height:auto;max-width:min(140px,42vw)}.sidebar{display:none}@media(min-width:860px){.sidebar{display:flex}}",
+              ".brand-logo{height:auto;max-width:100%}.brand-logo-dark,.dark .brand-logo-light{display:none}.dark .brand-logo-dark{display:block}.sidebar{display:none}@media(min-width:860px){.sidebar{display:flex}}",
           }}
         />
         {children}

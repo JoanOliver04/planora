@@ -53,9 +53,14 @@ describe("service worker update safety", () => {
   });
 
   it("keeps brand images small even if CSS has not arrived", () => {
-    expect(logo).not.toContain("width={1024}");
-    expect(logo).toContain("width={140}");
-    expect(logo).toContain("width={180}");
+    const imageSizes = [
+      ...logo.matchAll(/width=\{(\d+)\}\s+height=\{(\d+)\}/g),
+    ];
+    expect(imageSizes).toHaveLength(3);
+    for (const [, width, height] of imageSizes) {
+      expect(Number(width)).toBeLessThanOrEqual(180);
+      expect(Number(height)).toBeLessThanOrEqual(180);
+    }
   });
 });
 

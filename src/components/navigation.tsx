@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { siteConfig } from "@/config/site";
 import {
   desktopNavigationItems,
   isNavigationItemActive,
@@ -55,12 +56,10 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
       <div className="brand">
         <Image
           className="brand-logo"
-          src="/assets/logo.webp"
+          src={siteConfig.logo.url}
           alt="Planora"
-          width={180}
-          height={180}
-          sizes="180px"
-          style={{ width: 180, height: "auto" }}
+          width={96}
+          height={96}
           preload
         />
       </div>
@@ -71,21 +70,17 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
     <div className="brand">
       <Image
         className="brand-logo brand-logo-light"
-        src="/assets/logo_modo_claro.webp"
+        src="/assets/planora-logo-light.webp"
         alt="Planora"
-        width={140}
-        height={140}
-        sizes="140px"
-        style={{ width: 140, height: "auto" }}
+        width={112}
+        height={103}
       />
       <Image
         className="brand-logo brand-logo-dark"
-        src="/assets/logo_modo_oscuro.webp"
+        src="/assets/planora-logo-dark.webp"
         alt="Planora"
-        width={140}
-        height={140}
-        sizes="140px"
-        style={{ width: 140, height: "auto" }}
+        width={112}
+        height={103}
       />
     </div>
   );

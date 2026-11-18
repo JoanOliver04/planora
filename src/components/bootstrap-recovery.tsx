@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { siteConfig } from "@/config/site";
 import { logBootstrap } from "@/lib/bootstrap/log";
 import type { BootstrapPhase } from "@/lib/bootstrap/phase";
 
@@ -47,7 +48,7 @@ export function BootstrapRecovery({
       >
         {/* Native img so a missing next/image chunk cannot pin recovery. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/logo.webp" width={72} height={72} alt="" />
+        <img src={siteConfig.logo.url} width={72} height={72} alt="" />
         <h1>{t("title")}</h1>
         <p className="muted">{t("body")}</p>
         <p className="muted">{detail}</p>

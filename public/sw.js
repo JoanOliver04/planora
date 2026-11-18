@@ -1,17 +1,24 @@
 const BUILD = new URL(self.location.href).searchParams.get("v") || "dev";
 const VERSION = "planora-assets-" + BUILD;
+const APP_ICONS = [
+  "/favicon.ico",
+  "/apple-touch-icon.png",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/icon-maskable.png",
+];
 const PRECACHE = [
   "/",
   "/es",
   "/en",
   "/manifest.webmanifest",
-  "/assets/logo.webp",
-  "/assets/logo_modo_claro.webp",
-  "/assets/logo_modo_oscuro.webp",
+  "/assets/planora-mark.webp",
+  "/assets/planora-logo-light.webp",
+  "/assets/planora-logo-dark.webp",
+  "/assets/notification-badge.png",
   "/assets/planora-desktop.png",
   "/assets/planora-mobile.png",
-  "/icon-192.png",
-  "/icon-512.png",
+  ...APP_ICONS,
 ];
 const PUBLIC_NAVIGATION = new Set([
   "/",
@@ -151,7 +158,7 @@ function showPlanoraNotice(payload) {
   return self.registration.showNotification(payload.title.slice(0, 120), {
     body: typeof payload.body === "string" ? payload.body.slice(0, 240) : "",
     icon: "/icon-192.png",
-    badge: "/icon-192.png",
+    badge: "/assets/notification-badge.png",
     tag: payload.tag,
     renotify: true,
     requireInteraction: payload.requireInteraction === true,
@@ -249,13 +256,19 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const appIcon = APP_ICONS.includes(url.pathname);
   if (
     url.pathname.startsWith("/assets/") ||
-    url.pathname === "/icon-192.png" ||
-    url.pathname === "/icon-512.png" ||
+    appIcon ||
     url.pathname === "/manifest.webmanifest"
   ) {
-    event.respondWith(networkFirstAsset(event, request));
+    event.respondWith(
+      networkFirstAsset(
+        event,
+        request,
+        appIcon && url.search ? url.pathname : undefined,
+      ),
+    );
   }
 });
 

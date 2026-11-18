@@ -51,7 +51,7 @@ function noticeOptions(
   return {
     body: input.body,
     icon: "/icon-192.png",
-    badge: "/icon-192.png",
+    badge: "/assets/notification-badge.png",
     tag: input.tag,
     renotify,
     requireInteraction: input.requireInteraction,

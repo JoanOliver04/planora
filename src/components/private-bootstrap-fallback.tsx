@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { siteConfig } from "@/config/site";
 import { BOOTSTRAP_WATCHDOG_MS } from "@/lib/bootstrap/timeout";
 import { BootstrapRecovery } from "@/components/bootstrap-recovery";
 
@@ -43,7 +44,7 @@ export function PrivateBootstrapFallback({
     >
       {/* Native img so a missing next/image chunk cannot pin this fallback. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/icon-192.png" width={72} height={72} alt="" />
+      <img src={siteConfig.logo.url} width={72} height={72} alt="" />
       <p className="muted">{t("loading")}</p>
     </div>
   );

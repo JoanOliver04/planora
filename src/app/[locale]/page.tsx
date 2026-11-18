@@ -5,6 +5,7 @@ import { routing } from "@/i18n/routing";
 import Link from "next/link";
 import { AuthLink } from "@/components/auth-link";
 import { StudioCredit } from "@/components/studio-credit";
+import { siteConfig } from "@/config/site";
 
 const copy = {
   es: {
@@ -126,7 +127,7 @@ export default async function LandingPage({
           className="landing-brand"
           aria-label="Planora"
         >
-          <Image src="/assets/logo.webp" width={38} height={38} alt="" />
+          <Image src={siteConfig.logo.url} width={34} height={34} alt="" />
           <span>Planora</span>
         </Link>
         <nav aria-label={language === "es" ? "Principal" : "Main"}>
@@ -171,11 +172,11 @@ export default async function LandingPage({
           <div className="landing-orbit orbit-one" />
           <div className="landing-orbit orbit-two" />
           <Image
-            src="/assets/logo.webp"
-            width={220}
-            height={220}
+            src={siteConfig.logo.url}
+            width={176}
+            height={176}
             alt=""
-            sizes="(max-width: 900px) 160px, 220px"
+            sizes="(max-width: 900px) 128px, 176px"
             preload
           />
         </div>
