@@ -90,6 +90,7 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Explicit browser permission per device and a separate control to disable configured alerts.
 - Standalone alarms with a custom name, date, time and optional daily or weekly recurrence.
 - Task and event reminders at an exact time on the item's date, including all-day events, or at a configurable offset before the start.
+- Linked reminders follow changes to the item's date or start time and retain manual pauses.
 - Independent per-device filters for task, event, daily-summary and custom-alarm notifications.
 - Separate delivery controls for in-app popups, operating-system notifications, sound and vibration.
 - Individual editing, enable/disable, ten-minute snooze and deletion controls for every configured reminder.

@@ -17,6 +17,16 @@ select pg_temp.assert_true(
   and not has_function_privilege('authenticated', 'public.handle_new_user()', 'execute'),
   'Profile bootstrap must not be a client RPC'
 );
+select pg_temp.assert_true(
+  not has_function_privilege(
+    'anon', 'public.save_linked_reminder(uuid,uuid,uuid,integer,time,public.reminder_recurrence,text,boolean)', 'execute'
+  ) and has_function_privilege(
+    'authenticated', 'public.save_linked_reminder(uuid,uuid,uuid,integer,time,public.reminder_recurrence,text,boolean)', 'execute'
+  ) and not has_function_privilege(
+    'authenticated', 'planora_reminders.reschedule_linked_reminders()', 'execute'
+  ),
+  'Linked reminder writes require authentication and the internal trigger cannot be invoked directly'
+);
 insert into auth.users(id, raw_user_meta_data)
 values ('10000000-0000-4000-8000-000000000009', '{}'::jsonb);
 select pg_temp.assert_true(

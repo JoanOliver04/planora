@@ -336,6 +336,19 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      save_linked_reminder: {
+        Args: {
+          p_id: string | null;
+          p_task_id: string | null;
+          p_event_id: string | null;
+          p_minutes_before: number | null;
+          p_time_of_day: string | null;
+          p_recurrence: Database["public"]["Tables"]["reminders"]["Row"]["recurrence"];
+          p_timezone: string;
+          p_enabled: boolean;
+        };
+        Returns: string;
+      };
       push_configuration: { Args: Record<string, never>; Returns: Json };
       push_dispatch_configuration: {
         Args: Record<string, never>;

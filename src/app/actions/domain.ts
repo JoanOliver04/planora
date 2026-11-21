@@ -11,8 +11,6 @@ import {
   MAX_REMINDER_OFFSET,
   nextDailyTrigger,
   nextFutureTrigger,
-  nextLinkedTrigger,
-  relativeTrigger,
 } from "@/features/reminders/schedule";
 import { timezoneSchema } from "@/lib/validation/timezone";
 import {
@@ -212,17 +210,27 @@ const reminderSchema = z.union([
 export async function saveReminder(input: unknown) {
   const value = reminderSchema.parse(input);
   const { db, user } = await auth();
-  const kind =
-    value.targetType === "summary"
-      ? "daily_summary"
-      : value.targetType === "alarm"
-        ? "alarm"
-        : "relative";
+  if ("targetId" in value) {
+    const { error } = await db.rpc("save_linked_reminder", {
+      p_id: value.id ?? null,
+      p_task_id: value.targetType === "task" ? value.targetId : null,
+      p_event_id: value.targetType === "event" ? value.targetId : null,
+      p_minutes_before: value.minutesBefore,
+      p_time_of_day: value.timeOfDay,
+      p_recurrence: value.recurrence,
+      p_timezone: value.timezone,
+      p_enabled: value.enabled,
+    });
+    if (error) throw new Error("Unable to save linked reminder");
+    refresh();
+    return;
+  }
+  const kind = value.targetType === "summary" ? "daily_summary" : "alarm";
   let existing = null;
   if (value.id || kind === "daily_summary") {
     const query = db
       .from("reminders")
-      .select("id,task_id,timezone")
+      .select("id,timezone")
       .eq("user_id", user.id)
       .eq("kind", kind);
     const { data, error } = await (
@@ -232,79 +240,16 @@ export async function saveReminder(input: unknown) {
     existing = data;
   }
   const timezone = existing?.timezone ?? value.timezone;
-  let targetDate: string | undefined;
-  let targetTime: string | null = null;
-  if (value.targetType === "task") {
-    const { data: task, error: taskError } = await db
-      .from("tasks")
-      .select("scope,schedule_id,archived_at,is_active,start_date,start_time")
-      .eq("id", value.targetId)
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (taskError) throw new Error("Unable to validate reminder task");
-    if (!task) throw new Error("Task is unavailable");
-    if (existing?.task_id !== value.targetId) {
-      if (task.archived_at || !task.is_active)
-        throw new Error("Task is unavailable");
-      if (task.scope !== "global") {
-        const { data: profile, error: profileError } = await db
-          .from("profiles")
-          .select("active_schedule_id")
-          .eq("id", user.id)
-          .single();
-        if (
-          profileError ||
-          !task.schedule_id ||
-          task.schedule_id !== profile.active_schedule_id
-        )
-          throw new Error("Task is not available in the active schedule");
-      }
-    }
-    targetDate = task.start_date;
-    targetTime = task.start_time;
-  } else if (value.targetType === "event") {
-    const { data: event, error } = await db
-      .from("events")
-      .select("event_date,start_time")
-      .eq("id", value.targetId)
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (error || !event) throw new Error("Event is unavailable");
-    targetDate = event.event_date;
-    targetTime = event.start_time;
-  }
-
   const now = new Date();
-  let trigger: Date | null;
-  if (value.targetType === "summary") {
-    trigger = nextDailyTrigger(value.timeOfDay, timezone, now);
-  } else if (value.targetType === "alarm") {
-    trigger = exactTrigger(value.date, value.timeOfDay, timezone);
-  } else {
-    if (!targetDate) throw new Error("Reminder target is required");
-    const first =
-      value.minutesBefore === null
-        ? exactTrigger(targetDate, value.timeOfDay, timezone)
-        : relativeTrigger(
-            targetDate,
-            targetTime,
-            timezone,
-            value.minutesBefore,
-          );
-    trigger =
-      first && nextLinkedTrigger(first, value.recurrence, timezone, now);
-  }
+  const trigger =
+    value.targetType === "summary"
+      ? nextDailyTrigger(value.timeOfDay, timezone, now)
+      : exactTrigger(value.date, value.timeOfDay, timezone);
   if (!trigger || !(trigger > now)) throw new Error("Invalid reminder time");
 
   const payload = {
-    task_id: value.targetType === "task" ? value.targetId : null,
-    event_id: value.targetType === "event" ? value.targetId : null,
     kind,
     title: value.targetType === "alarm" ? value.title : null,
-    minutes_before:
-      value.targetType === "summary" || value.targetType === "alarm"
-        ? null
-        : value.minutesBefore,
     recurrence:
       value.targetType === "summary" ? ("daily" as const) : value.recurrence,
     time_of_day: value.targetType === "alarm" ? null : value.timeOfDay,

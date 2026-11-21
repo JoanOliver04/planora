@@ -316,3 +316,185 @@ test("expires missed alerts safely and keeps existing schedules when the device 
     await expect(recurringToggle).toHaveAttribute("aria-checked", "false");
   });
 });
+
+test("linked reminders follow a rescheduled event and a task's new start time", async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  test.setTimeout(90_000);
+  test.skip(!hasLocalCredentials, "Local integration credentials required");
+  await withLocalWorkspace(context, baseURL, async (db, userId) => {
+    const event = await db
+      .from("events")
+      .insert({
+        user_id: userId,
+        title: "QA event to move",
+        event_date: "2037-01-10",
+        all_day: false,
+        start_time: "10:00",
+        end_time: "12:00",
+      })
+      .select("id")
+      .single();
+    expect(event.error).toBeNull();
+    const eventId = event.data!.id;
+    const reminders = await db.from("reminders").insert([
+      {
+        user_id: userId,
+        event_id: eventId,
+        kind: "relative",
+        time_of_day: "17:45",
+        next_trigger_at: "2037-01-10T16:45Z",
+        snoozed_until: "2037-01-10T16:55Z",
+        delivery_status: "snoozed",
+        timezone: "Europe/Madrid",
+        enabled: true,
+      },
+      {
+        user_id: userId,
+        event_id: eventId,
+        kind: "relative",
+        minutes_before: 120,
+        next_trigger_at: "2037-01-10T07:00Z",
+        last_delivered_at: "2026-01-01T07:00Z",
+        delivery_status: "pending",
+        timezone: "Europe/Madrid",
+        enabled: false,
+      },
+      {
+        user_id: userId,
+        event_id: eventId,
+        kind: "relative",
+        minutes_before: 30,
+        next_trigger_at: "2026-01-01T09:00Z",
+        timezone: "Europe/Madrid",
+        enabled: false,
+        delivery_status: "delivered",
+        last_delivered_at: "2026-01-01T09:00Z",
+      },
+    ]);
+    expect(reminders.error).toBeNull();
+
+    await page.goto("/en/events");
+    await page.getByRole("button", { name: "Edit QA event to move" }).click();
+    const editor = page.getByRole("dialog", {
+      name: "Edit event",
+      exact: true,
+    });
+    await editor.getByLabel("Start time", { exact: true }).fill("11:30");
+    const allDay = editor.getByRole("checkbox", { name: "All day" });
+    await allDay.check();
+    await allDay.uncheck();
+    await expect(editor.getByLabel("Start time", { exact: true })).toHaveValue(
+      "11:30",
+    );
+    await editor.getByLabel("End time", { exact: true }).fill("11:00");
+    await editor.getByLabel("Date", { exact: true }).fill("2037-01-11");
+    await editor.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(editor.getByRole("alert")).toHaveText(
+      "The end time must be later than the start time.",
+    );
+    await expect(editor.getByLabel("Date", { exact: true })).toHaveValue(
+      "2037-01-11",
+    );
+    await editor.getByLabel("End time", { exact: true }).fill("12:30");
+    await editor.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(editor).toBeHidden();
+
+    const linked = await db
+      .from("reminders")
+      .select(
+        "time_of_day,minutes_before,next_trigger_at,snoozed_until,delivery_status,enabled",
+      )
+      .eq("event_id", eventId);
+    expect(linked.error).toBeNull();
+    const exact = linked.data!.find((row) => row.time_of_day !== null)!;
+    const paused = linked.data!.find((row) => row.minutes_before === 120)!;
+    const delivered = linked.data!.find((row) => row.minutes_before === 30)!;
+    expect(new Date(exact.next_trigger_at).toISOString()).toBe(
+      "2037-01-11T16:45:00.000Z",
+    );
+    expect(exact).toMatchObject({
+      enabled: true,
+      snoozed_until: null,
+      delivery_status: "pending",
+    });
+    expect(new Date(paused.next_trigger_at).toISOString()).toBe(
+      "2037-01-11T08:30:00.000Z",
+    );
+    expect(paused.enabled).toBe(false);
+    expect(new Date(delivered.next_trigger_at).toISOString()).toBe(
+      "2026-01-01T09:00:00.000Z",
+    );
+    expect(delivered.delivery_status).toBe("delivered");
+
+    const task = await db
+      .from("tasks")
+      .insert({
+        user_id: userId,
+        scope: "global",
+        title: "QA task to move",
+        start_date: "2037-01-10",
+        start_time: "09:00",
+        time_mode: "specific_time",
+        task_kind: "one_time",
+        recurrence_type: "once",
+        recurrence_config: { type: "once" },
+      })
+      .select("id")
+      .single();
+    expect(task.error).toBeNull();
+    const taskId = task.data!.id;
+    const linkedTask = await db.rpc("save_linked_reminder", {
+      p_id: null,
+      p_task_id: taskId,
+      p_event_id: null,
+      p_minutes_before: 120,
+      p_time_of_day: null,
+      p_recurrence: "once",
+      p_timezone: "Europe/Madrid",
+      p_enabled: true,
+    });
+    expect(linkedTask.error).toBeNull();
+    expect(
+      (await db.from("tasks").update({ start_time: "11:00" }).eq("id", taskId))
+        .error,
+    ).toBeNull();
+    const movedTask = await db
+      .from("reminders")
+      .select("next_trigger_at,enabled")
+      .eq("id", linkedTask.data!)
+      .single();
+    expect(movedTask.error).toBeNull();
+    expect(new Date(movedTask.data!.next_trigger_at).toISOString()).toBe(
+      "2037-01-10T08:00:00.000Z",
+    );
+    expect(movedTask.data!.enabled).toBe(true);
+
+    const [concurrentReminder, concurrentEvent] = await Promise.all([
+      db.rpc("save_linked_reminder", {
+        p_id: null,
+        p_task_id: null,
+        p_event_id: eventId,
+        p_minutes_before: null,
+        p_time_of_day: "21:00",
+        p_recurrence: "once",
+        p_timezone: "Europe/Madrid",
+        p_enabled: true,
+      }),
+      db.from("events").update({ event_date: "2037-01-12" }).eq("id", eventId),
+    ]);
+    expect(concurrentReminder.error).toBeNull();
+    expect(concurrentEvent.error).toBeNull();
+    const concurrent = await db
+      .from("reminders")
+      .select("next_trigger_at")
+      .eq("id", concurrentReminder.data!)
+      .single();
+    expect(concurrent.error).toBeNull();
+    expect(new Date(concurrent.data!.next_trigger_at).toISOString()).toBe(
+      "2037-01-12T20:00:00.000Z",
+    );
+  });
+});

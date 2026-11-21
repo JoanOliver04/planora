@@ -258,6 +258,60 @@ test("push outbox survives closed pages, retries and isolates devices", async ({
     );
     expect(recurring.data!.enabled).toBe(true);
 
+    const oneTime = await db
+      .from("reminders")
+      .insert({
+        user_id: userId,
+        event_id: event.data!.id,
+        kind: "relative",
+        recurrence: "once",
+        time_of_day: "19:15",
+        timezone: "UTC",
+        next_trigger_at: firedAt.toISOString(),
+        enabled: true,
+      })
+      .select("id")
+      .single();
+    expect(oneTime.error).toBeNull();
+    const oldDateBatch = await admin.rpc("claim_push_jobs");
+    expect(oldDateBatch.error).toBeNull();
+    const leasedForOldDate = (oldDateBatch.data as unknown as Job[]).find(
+      (item) =>
+        item.endpoint === endpoint &&
+        item.payload.tag.startsWith("push:" + oneTime.data!.id + ":"),
+    );
+    expect(leasedForOldDate).toBeDefined();
+    expect(
+      (
+        await db
+          .from("events")
+          .update({ event_date: "2037-02-21" })
+          .eq("id", event.data!.id)
+      ).error,
+    ).toBeNull();
+    expect(
+      (
+        await admin.rpc("finish_push_job", {
+          p_id: leasedForOldDate!.id,
+          p_lease: leasedForOldDate!.lease,
+          p_code: 201,
+        })
+      ).error,
+    ).toBeNull();
+    const rescheduled = await db
+      .from("reminders")
+      .select("next_trigger_at,enabled,last_delivered_at")
+      .eq("id", oneTime.data!.id)
+      .single();
+    expect(rescheduled.error).toBeNull();
+    expect(new Date(rescheduled.data!.next_trigger_at).toISOString()).toBe(
+      "2037-02-21T19:15:00.000Z",
+    );
+    expect(rescheduled.data).toMatchObject({
+      enabled: true,
+      last_delivered_at: null,
+    });
+
     // A second user cannot register/remove the first user's endpoint.
     await withLocalWorkspace(context, baseURL, async (other) => {
       expect(

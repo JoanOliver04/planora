@@ -14,9 +14,6 @@ import { toast } from "sonner";
 import { categoriesForSchedule } from "./categories";
 import type { Event, WorkspaceData } from "./types";
 
-const fail = (e: unknown, fallback: string) =>
-  toast.error(e instanceof Error ? e.message : fallback);
-
 export function EventsView({
   data,
   reload,
@@ -30,6 +27,7 @@ export function EventsView({
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Event | null>(null),
     [allDay, setAllDay] = useState(true),
+    [timeError, setTimeError] = useState(false),
     [eventSchedule, setEventSchedule] = useState(""),
     [visibility, setVisibility] = useState<EventVisibility>(
       initialSearch ? "all" : "active",
@@ -48,6 +46,13 @@ export function EventsView({
   );
   useHashTarget(events.length);
   function submit(fd: FormData) {
+    const startTime = allDay ? null : String(fd.get("startTime"));
+    const endTime = allDay ? null : String(fd.get("endTime") || "") || null;
+    if (startTime && endTime && startTime >= endTime) {
+      setTimeError(true);
+      return;
+    }
+    setTimeError(false);
     start(async () => {
       try {
         await saveEvent({
@@ -59,14 +64,14 @@ export function EventsView({
           scheduleId: String(fd.get("scheduleId") || "") || null,
           eventDate: String(fd.get("eventDate")),
           allDay,
-          startTime: allDay ? null : String(fd.get("startTime")),
-          endTime: allDay ? null : String(fd.get("endTime") || "") || null,
+          startTime,
+          endTime,
         });
         await reload();
         setOpen(false);
         toast.success(t("success"));
-      } catch (e) {
-        fail(e, t("error"));
+      } catch {
+        toast.error(t("error"));
       }
     });
   }
@@ -79,6 +84,7 @@ export function EventsView({
           onClick={() => {
             setEditing(null);
             setAllDay(true);
+            setTimeError(false);
             setEventSchedule("");
             setOpen(true);
           }}
@@ -135,6 +141,7 @@ export function EventsView({
                 onClick={() => {
                   setEditing(e);
                   setAllDay(e.all_day);
+                  setTimeError(false);
                   setEventSchedule(e.schedule_id ?? "");
                   setOpen(true);
                 }}
@@ -172,19 +179,38 @@ export function EventsView({
             await deleteEvent(deleting.id);
             await reload();
             setDeleting(null);
-          } catch (error) {
-            fail(error, t("error"));
+          } catch {
+            toast.error(t("error"));
           }
         }}
       />
-      <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Root
+        open={open}
+        onOpenChange={(next) => {
+          if (!pending) setOpen(next);
+        }}
+      >
         <Dialog.Portal>
           <Dialog.Overlay className="dialog-overlay" />
-          <Dialog.Content className="dialog-content">
+          <Dialog.Content
+            className="dialog-content"
+            {...(editing ? {} : { "aria-describedby": undefined })}
+          >
             <Dialog.Title>
-              {editing ? t("edit") : t("add")} {t("date")}
+              {t(editing ? "editEventTitle" : "addEventTitle")}
             </Dialog.Title>
-            <form action={submit} className="form-grid">
+            {editing && (
+              <Dialog.Description className="muted">
+                {t("editEventReminderHint")}
+              </Dialog.Description>
+            )}
+            <form
+              className="form-grid"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!pending) submit(new FormData(event.currentTarget));
+              }}
+            >
               <label>
                 {t("title")}
                 <input
@@ -244,31 +270,37 @@ export function EventsView({
                 <input
                   type="checkbox"
                   checked={allDay}
-                  onChange={(e) => setAllDay(e.target.checked)}
+                  onChange={(e) => {
+                    setAllDay(e.target.checked);
+                    setTimeError(false);
+                  }}
                 />
                 {t("allDay")}
               </label>
-              {!allDay && (
-                <div className="form-row">
-                  <label>
-                    {t("startTime")}
-                    <input
-                      name="startTime"
-                      type="time"
-                      required
-                      defaultValue={editing?.start_time?.slice(0, 5)}
-                    />
-                  </label>
-                  <label>
-                    {t("endTime")}
-                    <input
-                      name="endTime"
-                      type="time"
-                      defaultValue={editing?.end_time?.slice(0, 5)}
-                    />
-                  </label>
-                </div>
-              )}
+              <div className={allDay ? "hidden" : "form-row"}>
+                <label>
+                  {t("startTime")}
+                  <input
+                    name="startTime"
+                    type="time"
+                    required={!allDay}
+                    disabled={allDay}
+                    defaultValue={editing?.start_time?.slice(0, 5)}
+                    onChange={() => setTimeError(false)}
+                  />
+                </label>
+                <label>
+                  {t("endTime")}
+                  <input
+                    name="endTime"
+                    type="time"
+                    disabled={allDay}
+                    defaultValue={editing?.end_time?.slice(0, 5)}
+                    onChange={() => setTimeError(false)}
+                  />
+                </label>
+              </div>
+              {timeError && <p role="alert">{t("invalidEventTimeRange")}</p>}
               <label>
                 {t("description")}
                 <textarea
@@ -277,7 +309,7 @@ export function EventsView({
                 />
               </label>
               <div className="dialog-actions">
-                <Dialog.Close className="pill" type="button">
+                <Dialog.Close className="pill" type="button" disabled={pending}>
                   {t("cancel")}
                 </Dialog.Close>
                 <button className="primary" disabled={pending}>
