@@ -1824,16 +1824,43 @@ textarea:focus-visible {
 .reminder-form p {
   margin: 0;
 }
-.reminder-form label {
+.reminder-schedule-form,
+.reminder-editor-fields {
   display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.reminder-editor-fields,
+.custom-duration {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.reminder-editor-dialog {
+  max-height: 88dvh;
+}
+.reminder-editor-dialog .reminder-schedule-form {
+  margin-top: 1rem;
+}
+.reminder-exact-time p {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+}
+.reminder-schedule-form [role="alert"] {
+  color: var(--destructive);
+}
+.reminder-schedule-form label {
+  display: grid;
+  min-width: 0;
   gap: 7px;
   color: var(--muted-foreground);
   font-size: 0.8rem;
   font-weight: 700;
 }
-.reminder-form select,
-.reminder-form input {
+.reminder-schedule-form select,
+.reminder-schedule-form input {
   width: 100%;
+  min-width: 0;
   min-height: 44px;
   padding: 8px 11px;
   border: 1px solid var(--border);
@@ -1914,6 +1941,9 @@ textarea:focus-visible {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
+}
+.custom-duration[hidden] {
+  display: none;
 }
 .custom-duration label {
   min-width: 0;

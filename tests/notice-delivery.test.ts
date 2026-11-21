@@ -35,7 +35,7 @@ function summary(id = "summary-1"): DueNotice {
     eventId: null,
     recurrence: "daily",
     timezone: "UTC",
-    nextTriggerAt: "2026-10-01T20:00:00.000Z",
+    nextTriggerAt: "2026-10-06T20:00:00.000Z",
     title: "Tu resumen diario",
     body: "Consulta lo que has completado, lo pendiente y tus eventos de hoy.",
     actionLabel: "Ver resumen",
@@ -87,6 +87,7 @@ async function deliver(
   const inApp: PresentedNotice[] = [];
   const system: PresentedNotice[] = [];
   const advanced: Array<string | null> = [];
+  const outcomes: Array<"delivered" | "expired"> = [];
   await deliverNotices({
     notices,
     preferences: preferences(options.prefs),
@@ -97,13 +98,14 @@ async function deliver(
       system.push(notice);
       return options.system ? await options.system() : "shown";
     },
-    advance: async (_notice, next) => {
+    advance: async (_notice, next, outcome) => {
       advanced.push(next);
+      outcomes.push(outcome);
     },
     playAlarm: options.playAlarm,
     vibrate: options.vibrate,
   });
-  return { inApp, system, advanced };
+  return { inApp, system, advanced, outcomes };
 }
 
 afterEach(() => {
@@ -153,8 +155,12 @@ describe("daily summary delivery", () => {
   });
 
   it("can show the summary again on the next local day", async () => {
-    await deliver([summary()]);
-    const tomorrow = await deliver([summary()], { at: nextDay });
+    const today = await deliver([summary()]);
+    expect(today.advanced).toEqual(["2026-10-07T20:00:00.000Z"]);
+    const tomorrow = await deliver(
+      [{ ...summary(), nextTriggerAt: today.advanced[0]! }],
+      { at: nextDay },
+    );
     expect(tomorrow.inApp.map((notice) => notice.identity)).toEqual([
       "daily-summary:2026-10-07",
     ]);
@@ -170,7 +176,9 @@ describe("daily summary delivery", () => {
   });
 
   it("advances a missed summary to the next future occurrence", async () => {
-    const result = await deliver([summary()]);
+    const result = await deliver([
+      { ...summary(), nextTriggerAt: "2026-10-01T20:00:00.000Z" },
+    ]);
     expect(result.advanced).toEqual(["2026-10-07T20:00:00.000Z"]);
     expect(
       nextFutureTrigger(
@@ -181,9 +189,56 @@ describe("daily summary delivery", () => {
       )?.toISOString(),
     ).toBe("2026-10-07T20:00:00.000Z");
   });
+
+  it("settles week-old occurrences without showing a notification", async () => {
+    const result = await deliver([
+      { ...summary(), nextTriggerAt: "2026-10-01T20:00:00.000Z" },
+      { ...alarm(), nextTriggerAt: "2026-10-01T20:30:00.000Z" },
+    ]);
+    expect(result.inApp).toEqual([]);
+    expect(result.system).toEqual([]);
+    expect(result.advanced).toEqual(["2026-10-07T20:00:00.000Z", null]);
+    expect(result.outcomes).toEqual(["expired", "expired"]);
+  });
 });
 
 describe("reminder and alarm channels", () => {
+  it("uses the original weekday after delivering a weekly alarm snoozed past midnight", async () => {
+    const scheduled = "2026-10-06T23:55:00.000Z";
+    const snoozed = "2026-10-07T00:05:00.000Z";
+    const result = await deliver(
+      [
+        {
+          ...alarm(),
+          recurrence: "weekly",
+          scheduledTriggerAt: scheduled,
+          nextTriggerAt: snoozed,
+        },
+      ],
+      { at: new Date(snoozed) },
+    );
+    expect(result.advanced).toEqual(["2026-10-13T23:55:00.000Z"]);
+  });
+
+  it("returns to the chosen time after a daylight-saving gap", async () => {
+    const reminder = {
+      ...taskReminder(),
+      timezone: "Europe/Madrid",
+      recurrence: "daily" as const,
+      timeOfDay: "02:30:00",
+      nextTriggerAt: "2027-03-27T01:30:00.000Z",
+    };
+    const before = await deliver([reminder], {
+      at: new Date("2027-03-27T01:30:00.000Z"),
+    });
+    expect(before.advanced).toEqual(["2027-03-28T01:30:00.000Z"]);
+    const after = await deliver(
+      [{ ...reminder, nextTriggerAt: before.advanced[0]! }],
+      { at: new Date("2027-03-28T01:30:00.000Z") },
+    );
+    expect(after.advanced).toEqual(["2027-03-29T00:30:00.000Z"]);
+  });
+
   it("shows an in-app task reminder", async () => {
     const result = await deliver([taskReminder()], {
       prefs: { system: false },

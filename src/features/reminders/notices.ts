@@ -4,6 +4,7 @@ import type { NotificationPreferences } from "@/features/reminders/preferences";
 
 const ledgerKey = "planora-notice-ledger-v1";
 const maxUnavailableAttempts = 5;
+const maxOccurrenceAgeMs = 24 * 60 * 60 * 1000;
 const rank = { shown: 1, dismissed: 2, opened: 3 } as const;
 
 export type NoticeKind = "relative" | "daily_summary" | "alarm";
@@ -19,6 +20,8 @@ export type DueNotice = {
   recurrence: "once" | "daily" | "weekly";
   timezone: string;
   nextTriggerAt: string;
+  scheduledTriggerAt?: string;
+  timeOfDay?: string | null;
   title: string;
   body: string;
   actionLabel: string;
@@ -57,7 +60,11 @@ type DeliverInput = {
   visible: boolean;
   presentInApp: (notice: PresentedNotice) => void;
   presentSystem: (notice: PresentedNotice) => Promise<SystemNoticeResult>;
-  advance: (notice: DueNotice, nextTriggerAt: string | null) => Promise<void>;
+  advance: (
+    notice: DueNotice,
+    nextTriggerAt: string | null,
+    outcome: "delivered" | "expired",
+  ) => Promise<void>;
   playAlarm?: () => void;
   vibrate?: () => void;
 };
@@ -198,15 +205,17 @@ async function settleTrigger(
   notice: DueNotice,
   now: Date,
   advance: DeliverInput["advance"],
+  outcome: "delivered" | "expired" = "delivered",
 ) {
   const next = nextFutureTrigger(
-    new Date(notice.nextTriggerAt),
+    new Date(notice.scheduledTriggerAt ?? notice.nextTriggerAt),
     notice.recurrence,
     notice.timezone || "UTC",
     now,
+    notice.timeOfDay?.slice(0, 5),
   );
   try {
-    await advance(notice, next ? next.toISOString() : null);
+    await advance(notice, next ? next.toISOString() : null, outcome);
   } catch (error) {
     logNotice("advance", error instanceof Error ? error.name : "Error");
   }
@@ -230,6 +239,13 @@ export async function deliverNotices(input: DeliverInput) {
     deliveryInFlight.add(identity);
     let entry = noticeRecord(identity);
     try {
+      if (
+        now.getTime() - Date.parse(notice.nextTriggerAt) >=
+        maxOccurrenceAgeMs
+      ) {
+        await settleTrigger(notice, now, input.advance, "expired");
+        continue;
+      }
       if (entry?.inApp === "dismissed" || entry?.inApp === "opened") {
         await settleTrigger(notice, now, input.advance);
         continue;

@@ -66,6 +66,25 @@ describe("portable backups", () => {
     });
   });
 
+  it("round-trips an exact linked reminder and rejects a conflicting offset", () => {
+    const backup = createBackup(backupFixture());
+    const reminder = backup.data.reminders[0];
+    reminder.minutes_before = null;
+    reminder.time_of_day = "17:45:00";
+    reminder.next_trigger_at = "2026-08-03T15:45:00.000Z";
+    const parsed = parseBackup(backup);
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) throw new Error("Expected a valid backup");
+    expect(prepareRestorePayload(parsed.data).reminders[0]).toMatchObject({
+      kind: "relative",
+      minutes_before: null,
+      time_of_day: "17:45:00",
+      next_trigger_at: "2026-08-03T15:45:00.000Z",
+    });
+    reminder.minutes_before = 0;
+    expect(parseBackup(backup).success).toBe(false);
+  });
+
   it("migrates genuine version one backups deterministically", () => {
     const current = createBackup(backupFixture());
     const legacy = {

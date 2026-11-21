@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ReminderCenter } from "@/features/reminders/reminder-center";
+import type { ReminderTarget } from "@/features/reminders/reminder-forms";
+import { effectiveReminderTrigger } from "@/features/reminders/schedule";
 import { localDate } from "@/lib/dates/timezone";
 
 export default async function RemindersPage({
@@ -11,7 +13,7 @@ export default async function RemindersPage({
   const db = await createClient();
   const { data: user } = await db.auth.getUser();
   if (!user.user) return null;
-  const [{ data: profile }, { data: reminders }] = await Promise.all([
+  const [{ data: profile }, { data: configuredReminders }] = await Promise.all([
     db
       .from("profiles")
       .select("timezone,active_schedule_id")
@@ -19,10 +21,47 @@ export default async function RemindersPage({
       .single(),
     db
       .from("reminders")
-      .select("*")
+      .select(
+        "*,task:tasks(id,title,emoji,start_date,start_time,scope),event:events(id,title,emoji,event_date,start_time)",
+      )
       .eq("user_id", user.user.id)
       .order("next_trigger_at"),
   ]);
+  const linkedTargets = new Map<string, ReminderTarget>();
+  const reminders = (configuredReminders ?? [])
+    .map(({ task, event, ...reminder }) => {
+      if (task) {
+        linkedTargets.set("task:" + task.id, {
+          id: task.id,
+          title: task.title,
+          emoji: task.emoji,
+          date: task.start_date,
+          time: task.start_time,
+          type: "task",
+          scope: task.scope,
+        });
+      }
+      if (event) {
+        linkedTargets.set("event:" + event.id, {
+          id: event.id,
+          title: event.title,
+          emoji: event.emoji,
+          date: event.event_date,
+          time: event.start_time,
+          type: "event",
+        });
+      }
+      return reminder;
+    })
+    .sort(
+      (a, b) =>
+        Date.parse(
+          effectiveReminderTrigger(a.next_trigger_at, a.snoozed_until),
+        ) -
+        Date.parse(
+          effectiveReminderTrigger(b.next_trigger_at, b.snoozed_until),
+        ),
+    );
   const timezone = profile?.timezone ?? "Europe/Madrid";
   const activeScheduleId = profile?.active_schedule_id ?? null;
   const taskColumns = "id,title,emoji,start_date,start_time,schedule_id";
@@ -63,10 +102,7 @@ export default async function RemindersPage({
       ...task,
       scope: "schedule" as const,
     })),
-  ].filter(
-    (task, index, all) =>
-      all.findIndex((item) => item.id === task.id) === index,
-  );
+  ];
   if (taskError)
     console.error("[reminders] task target query failed", {
       code: taskError.code,
@@ -75,8 +111,9 @@ export default async function RemindersPage({
     <ReminderCenter
       locale={locale as "es" | "en"}
       timezone={timezone}
-      reminders={reminders ?? []}
-      tasks={tasks ?? []}
+      reminders={reminders}
+      tasks={tasks}
+      linkedTargets={[...linkedTargets.values()]}
       events={events ?? []}
       taskLoadError={Boolean(taskError)}
     />

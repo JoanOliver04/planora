@@ -188,6 +188,76 @@ test("push outbox survives closed pages, retries and isolates devices", async ({
         ).data?.delivery_status,
       ).toBe("pending");
     }
+    const firedAt = new Date(Date.now() - 2000);
+    const event = await db
+      .from("events")
+      .insert({
+        user_id: userId,
+        title: "QA recurring reminder",
+        event_date: firedAt.toISOString().slice(0, 10),
+        all_day: true,
+      })
+      .select("id")
+      .single();
+    expect(event.error).toBeNull();
+    const exactReminder = await db
+      .from("reminders")
+      .insert({
+        user_id: userId,
+        event_id: event.data!.id,
+        kind: "relative",
+        recurrence: "daily",
+        time_of_day: "23:57",
+        timezone: "UTC",
+        next_trigger_at: firedAt.toISOString(),
+        snoozed_until: new Date(firedAt.getTime() + 600_000).toISOString(),
+        enabled: true,
+      })
+      .select("id")
+      .single();
+    expect(exactReminder.error).toBeNull();
+    const snoozedBatch = await admin.rpc("claim_push_jobs");
+    expect(snoozedBatch.error).toBeNull();
+    expect(
+      (snoozedBatch.data as unknown as Job[]).some(
+        (item) =>
+          item.endpoint === endpoint &&
+          item.payload.body === "QA recurring reminder",
+      ),
+    ).toBe(false);
+    expect(
+      (
+        await db
+          .from("reminders")
+          .update({
+            snoozed_until: new Date(firedAt.getTime() + 1000).toISOString(),
+          })
+          .eq("id", exactReminder.data!.id)
+      ).error,
+    ).toBeNull();
+    const recurringBatch = await admin.rpc("claim_push_jobs");
+    expect(recurringBatch.error).toBeNull();
+    expect(
+      (recurringBatch.data as unknown as Job[]).some(
+        (item) =>
+          item.endpoint === endpoint &&
+          item.payload.body === "QA recurring reminder",
+      ),
+    ).toBe(true);
+    const recurring = await db
+      .from("reminders")
+      .select("next_trigger_at,enabled")
+      .eq("id", exactReminder.data!.id)
+      .single();
+    expect(recurring.error).toBeNull();
+    const nextDay = new Date(firedAt.getTime() + 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    expect(new Date(recurring.data!.next_trigger_at).toISOString()).toBe(
+      nextDay + "T23:57:00.000Z",
+    );
+    expect(recurring.data!.enabled).toBe(true);
+
     // A second user cannot register/remove the first user's endpoint.
     await withLocalWorkspace(context, baseURL, async (other) => {
       expect(

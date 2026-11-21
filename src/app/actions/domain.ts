@@ -5,7 +5,16 @@ import { taskSchema } from "@/lib/validation/task";
 import { z } from "zod";
 import { getTemplate } from "@/features/templates/catalog";
 import type { Json } from "@/types/database";
-import { nextDailyTrigger } from "@/features/reminders/schedule";
+import {
+  effectiveReminderTrigger,
+  exactTrigger,
+  MAX_REMINDER_OFFSET,
+  nextDailyTrigger,
+  nextFutureTrigger,
+  nextLinkedTrigger,
+  relativeTrigger,
+} from "@/features/reminders/schedule";
+import { timezoneSchema } from "@/lib/validation/timezone";
 import {
   MAX_BACKUP_BYTES,
   parseBackup,
@@ -165,74 +174,132 @@ export async function reorderResources(input: unknown) {
   if (error) throw new Error("Unable to save order");
   refresh();
 }
-const reminderSchema = z.object({
+const reminderBaseSchema = z.object({
   id: id.optional(),
-  targetType: z.enum(["task", "event", "summary", "alarm"]),
-  title: z.string().trim().min(1).max(140).optional().nullable(),
-  targetId: id.optional().nullable(),
-  minutesBefore: z.number().int().min(0).max(10080).optional().nullable(),
-  recurrence: z.enum(["once", "daily", "weekly"]),
-  timeOfDay: time.optional().nullable(),
-  timezone: z
-    .string()
-    .min(1)
-    .max(100)
-    .refine((value) => {
-      try {
-        Intl.DateTimeFormat(undefined, { timeZone: value });
-        return true;
-      } catch {
-        return false;
-      }
-    }),
-  nextTriggerAt: z.string().datetime(),
+  timezone: timezoneSchema,
   enabled: z.boolean(),
 });
+const reminderRecurrence = z.enum(["once", "daily", "weekly"]);
+const reminderSchema = z.union([
+  reminderBaseSchema.extend({
+    targetType: z.literal("alarm"),
+    title: z.string().trim().min(1).max(140),
+    date: z.iso.date(),
+    timeOfDay: time,
+    recurrence: reminderRecurrence,
+  }),
+  reminderBaseSchema.extend({
+    targetType: z.literal("summary"),
+    timeOfDay: time,
+  }),
+  reminderBaseSchema
+    .extend({
+      targetType: z.enum(["task", "event"]),
+      targetId: id,
+      recurrence: reminderRecurrence,
+    })
+    .and(
+      z.union([
+        z.object({ minutesBefore: z.null(), timeOfDay: time }),
+        z.object({
+          minutesBefore: z.number().int().min(0).max(MAX_REMINDER_OFFSET),
+          timeOfDay: z.null(),
+        }),
+      ]),
+    ),
+]);
+
 export async function saveReminder(input: unknown) {
   const value = reminderSchema.parse(input);
-  if (
-    value.targetType !== "summary" &&
-    value.targetType !== "alarm" &&
-    !value.targetId
-  )
-    throw new Error("Reminder target is required");
-  if (value.targetType === "alarm" && !value.title)
-    throw new Error("Alarm title is required");
   const { db, user } = await auth();
-  if (value.targetType === "task" && value.targetId) {
+  const kind =
+    value.targetType === "summary"
+      ? "daily_summary"
+      : value.targetType === "alarm"
+        ? "alarm"
+        : "relative";
+  let existing = null;
+  if (value.id || kind === "daily_summary") {
+    const query = db
+      .from("reminders")
+      .select("id,task_id,timezone")
+      .eq("user_id", user.id)
+      .eq("kind", kind);
+    const { data, error } = await (
+      value.id ? query.eq("id", value.id) : query
+    ).maybeSingle();
+    if (error || (value.id && !data)) throw new Error("Reminder not found");
+    existing = data;
+  }
+  const timezone = existing?.timezone ?? value.timezone;
+  let targetDate: string | undefined;
+  let targetTime: string | null = null;
+  if (value.targetType === "task") {
     const { data: task, error: taskError } = await db
       .from("tasks")
-      .select("id,scope,schedule_id,archived_at,is_active")
+      .select("scope,schedule_id,archived_at,is_active,start_date,start_time")
       .eq("id", value.targetId)
       .eq("user_id", user.id)
       .maybeSingle();
     if (taskError) throw new Error("Unable to validate reminder task");
-    if (!task || task.archived_at || !task.is_active)
-      throw new Error("Task is unavailable");
-    const { data: profile, error: profileError } = await db
-      .from("profiles")
-      .select("active_schedule_id")
-      .eq("id", user.id)
-      .single();
-    if (profileError) throw new Error("Unable to validate reminder task");
-    const allowed =
-      task.scope === "global"
-        ? task.schedule_id === null
-        : Boolean(profile.active_schedule_id) &&
-          task.schedule_id === profile.active_schedule_id;
-    if (!allowed)
-      throw new Error("Task is not available in the active schedule");
+    if (!task) throw new Error("Task is unavailable");
+    if (existing?.task_id !== value.targetId) {
+      if (task.archived_at || !task.is_active)
+        throw new Error("Task is unavailable");
+      if (task.scope !== "global") {
+        const { data: profile, error: profileError } = await db
+          .from("profiles")
+          .select("active_schedule_id")
+          .eq("id", user.id)
+          .single();
+        if (
+          profileError ||
+          !task.schedule_id ||
+          task.schedule_id !== profile.active_schedule_id
+        )
+          throw new Error("Task is not available in the active schedule");
+      }
+    }
+    targetDate = task.start_date;
+    targetTime = task.start_time;
+  } else if (value.targetType === "event") {
+    const { data: event, error } = await db
+      .from("events")
+      .select("event_date,start_time")
+      .eq("id", value.targetId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (error || !event) throw new Error("Event is unavailable");
+    targetDate = event.event_date;
+    targetTime = event.start_time;
   }
+
+  const now = new Date();
+  let trigger: Date | null;
+  if (value.targetType === "summary") {
+    trigger = nextDailyTrigger(value.timeOfDay, timezone, now);
+  } else if (value.targetType === "alarm") {
+    trigger = exactTrigger(value.date, value.timeOfDay, timezone);
+  } else {
+    if (!targetDate) throw new Error("Reminder target is required");
+    const first =
+      value.minutesBefore === null
+        ? exactTrigger(targetDate, value.timeOfDay, timezone)
+        : relativeTrigger(
+            targetDate,
+            targetTime,
+            timezone,
+            value.minutesBefore,
+          );
+    trigger =
+      first && nextLinkedTrigger(first, value.recurrence, timezone, now);
+  }
+  if (!trigger || !(trigger > now)) throw new Error("Invalid reminder time");
+
   const payload = {
-    user_id: user.id,
     task_id: value.targetType === "task" ? value.targetId : null,
     event_id: value.targetType === "event" ? value.targetId : null,
-    kind:
-      value.targetType === "summary"
-        ? ("daily_summary" as const)
-        : value.targetType === "alarm"
-          ? ("alarm" as const)
-          : ("relative" as const),
+    kind,
     title: value.targetType === "alarm" ? value.title : null,
     minutes_before:
       value.targetType === "summary" || value.targetType === "alarm"
@@ -240,60 +307,122 @@ export async function saveReminder(input: unknown) {
         : value.minutesBefore,
     recurrence:
       value.targetType === "summary" ? ("daily" as const) : value.recurrence,
-    time_of_day: value.targetType === "summary" ? value.timeOfDay : null,
-    timezone: value.timezone,
-    next_trigger_at: value.nextTriggerAt,
-    enabled: value.enabled,
+    time_of_day: value.targetType === "alarm" ? null : value.timeOfDay,
+    timezone,
+    next_trigger_at: trigger.toISOString(),
     delivery_status: "pending" as const,
     snoozed_until: null,
   };
-  if (value.targetType === "summary" && !value.id) {
-    const { data: existing } = await db
-      .from("reminders")
-      .select("id")
-      .eq("kind", "daily_summary")
-      .maybeSingle();
-    if (existing?.id) value.id = existing.id;
-  }
-  const result = value.id
+  const result = existing
     ? await db
         .from("reminders")
         .update(payload)
-        .eq("id", value.id)
+        .eq("id", existing.id)
         .eq("user_id", user.id)
-    : await db.from("reminders").insert(payload);
+        .eq("kind", kind)
+        .select("id")
+        .single()
+    : await db.from("reminders").insert({
+        ...payload,
+        user_id: user.id,
+        enabled: value.enabled,
+      });
   if (result.error) throw new Error("Unable to save reminder");
   refresh();
 }
 export async function setReminderEnabled(input: unknown) {
   const value = z.object({ id, enabled: z.boolean() }).parse(input);
   const { db, user } = await auth();
+  if (!value.enabled) {
+    const { error } = await db
+      .from("reminders")
+      .update({ enabled: false })
+      .eq("id", value.id)
+      .eq("user_id", user.id)
+      .select("id")
+      .single();
+    if (error) throw new Error("Unable to disable reminder");
+    refresh();
+    return { ok: true } as const;
+  }
+  const { data: reminder, error: readError } = await db
+    .from("reminders")
+    .select(
+      "next_trigger_at,snoozed_until,timezone,time_of_day,recurrence,updated_at,enabled",
+    )
+    .eq("id", value.id)
+    .eq("user_id", user.id)
+    .single();
+  if (readError || !reminder) throw new Error("Reminder not found");
+  if (reminder.enabled) return { ok: true } as const;
+  const now = new Date();
+  const effective = effectiveReminderTrigger(
+    reminder.next_trigger_at,
+    reminder.snoozed_until,
+  );
+  const expired = new Date(effective) <= now;
+  const next = expired
+    ? nextFutureTrigger(
+        new Date(reminder.next_trigger_at),
+        reminder.recurrence,
+        reminder.timezone,
+        now,
+        reminder.time_of_day?.slice(0, 5),
+      )
+    : null;
+  if (expired && !next) return { ok: false, reason: "expired" } as const;
   const { error } = await db
     .from("reminders")
     .update({
-      enabled: value.enabled,
-      delivery_status: "pending",
+      enabled: true,
+      delivery_status:
+        !expired && reminder.snoozed_until ? "snoozed" : "pending",
+      ...(next
+        ? { next_trigger_at: next.toISOString(), snoozed_until: null }
+        : {}),
     })
     .eq("id", value.id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .eq("updated_at", reminder.updated_at)
+    .select("id")
+    .single();
   if (error) throw new Error("Unable to update reminder");
   refresh();
+  return { ok: true } as const;
 }
 export async function snoozeReminder(input: unknown) {
   const value = z
     .object({ id, minutes: z.number().int().min(5).max(1440) })
     .parse(input);
   const { db, user } = await auth();
-  const until = new Date(Date.now() + value.minutes * 60_000).toISOString();
+  const { data: reminder, error: readError } = await db
+    .from("reminders")
+    .select("next_trigger_at,snoozed_until,updated_at")
+    .eq("id", value.id)
+    .eq("user_id", user.id)
+    .eq("enabled", true)
+    .single();
+  if (readError || !reminder) throw new Error("Reminder not found");
+
+  const scheduled = effectiveReminderTrigger(
+    reminder.next_trigger_at,
+    reminder.snoozed_until,
+  );
+  const until = new Date(
+    Math.max(Date.now(), Date.parse(scheduled)) + value.minutes * 60_000,
+  ).toISOString();
   const { error } = await db
     .from("reminders")
     .update({
       snoozed_until: until,
-      next_trigger_at: until,
       delivery_status: "snoozed",
     })
     .eq("id", value.id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .eq("enabled", true)
+    .eq("updated_at", reminder.updated_at)
+    .select("id")
+    .single();
   if (error) throw new Error("Unable to snooze reminder");
   refresh();
 }
@@ -307,51 +436,12 @@ export async function deleteReminder(value: string) {
   if (error) throw new Error("Unable to delete reminder");
   refresh();
 }
-export async function updateReminderTimezone(input: unknown) {
-  const value = z
-    .object({ timezone: reminderSchema.shape.timezone })
-    .parse(input);
-  const { db, user } = await auth();
-  const { data: reminders, error: readError } = await db
-    .from("reminders")
-    .select("id,kind,time_of_day")
-    .eq("user_id", user.id);
-  if (readError) throw new Error("Unable to update reminder timezone");
-  for (const reminder of reminders ?? []) {
-    const { error } = await db
-      .from("reminders")
-      .update({
-        timezone: value.timezone,
-        delivery_status: "pending",
-        ...(reminder.kind === "daily_summary" && reminder.time_of_day
-          ? {
-              next_trigger_at: nextDailyTrigger(
-                reminder.time_of_day.slice(0, 5),
-                value.timezone,
-              ).toISOString(),
-            }
-          : {}),
-      })
-      .eq("id", reminder.id)
-      .eq("user_id", user.id);
-    if (error) throw new Error("Unable to update reminder timezone");
-  }
-  const { error: profileError } = await db
-    .from("profiles")
-    .update({ timezone: value.timezone })
-    .eq("id", user.id);
-  if (profileError) throw new Error("Unable to update reminder timezone");
-  refresh();
-}
-export async function setRemindersEnabled(value: boolean) {
-  const enabled = z.boolean().parse(value);
+export async function disableAllReminders() {
   const { db, user } = await auth();
   const { error } = await db
     .from("reminders")
-    .update({
-      enabled,
-      delivery_status: "pending",
-    })
+    // Updating enabled also cancels queued deliveries for already claimed alarms.
+    .update({ enabled: false })
     .eq("user_id", user.id);
   if (error) throw new Error("Unable to update reminders");
   refresh();

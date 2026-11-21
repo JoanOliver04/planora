@@ -9,6 +9,7 @@ import {
   type DueNotice,
 } from "@/features/reminders/notices";
 import { showPlanoraSystemNotification } from "@/features/reminders/system-notification";
+import { effectiveReminderTrigger } from "@/features/reminders/schedule";
 import { startSoundPreview } from "@/lib/audio/shared-preview";
 import type { Database } from "@/types/database";
 
@@ -102,13 +103,24 @@ export function ReminderScheduler({ locale }: { locale: string }) {
       push.managed === true
     )
       return;
+    const preferences = loadNotificationPreferences();
+    const channels = [
+      preferences.alarms && "kind.eq.alarm",
+      preferences.summaries && "kind.eq.daily_summary",
+      preferences.tasks && "and(kind.eq.relative,task_id.not.is.null)",
+      preferences.events && "and(kind.eq.relative,event_id.not.is.null)",
+    ].filter(Boolean);
+    if (!channels.length || (!preferences.inApp && !preferences.system)) return;
+    const now = new Date().toISOString();
     const { data: reminders } = await db
       .from("reminders")
       .select(
-        "id,task_id,event_id,kind,title,recurrence,timezone,next_trigger_at",
+        "id,task_id,event_id,kind,title,recurrence,timezone,next_trigger_at,time_of_day,snoozed_until,updated_at",
       )
       .eq("enabled", true)
-      .lte("next_trigger_at", new Date().toISOString())
+      .or(channels.join(","))
+      .lte("next_trigger_at", now)
+      .or("snoozed_until.is.null,snoozed_until.lte." + now)
       .order("next_trigger_at")
       .limit(20);
     if (!reminders?.length) return;
@@ -141,7 +153,9 @@ export function ReminderScheduler({ locale }: { locale: string }) {
     const eventCopy = new Map(
       (eventResult.data ?? []).map((event) => [event.id, event]),
     );
-    const preferences = loadNotificationPreferences();
+    const reminderVersions = new Map(
+      reminders.map(({ id, updated_at }) => [id, updated_at]),
+    );
     const notices: DueNotice[] = reminders.map((reminder) => ({
       id: reminder.id,
       kind: reminder.kind,
@@ -149,7 +163,12 @@ export function ReminderScheduler({ locale }: { locale: string }) {
       eventId: reminder.event_id,
       recurrence: reminder.recurrence,
       timezone: reminder.timezone,
-      nextTriggerAt: reminder.next_trigger_at,
+      nextTriggerAt: effectiveReminderTrigger(
+        reminder.next_trigger_at,
+        reminder.snoozed_until,
+      ),
+      scheduledTriggerAt: reminder.next_trigger_at,
+      timeOfDay: reminder.time_of_day,
       ...noticeContent(reminder, locale, taskCopy, eventCopy),
     }));
 
@@ -184,17 +203,25 @@ export function ReminderScheduler({ locale }: { locale: string }) {
           silent: notice.silent,
           requireInteraction: notice.requireInteraction,
         }),
-      advance: async (notice, nextTriggerAt) => {
+      advance: async (notice, nextTriggerAt, outcome) => {
+        const version = reminderVersions.get(notice.id);
+        if (!version) return;
         const { error } = await db
           .from("reminders")
           .update({
-            last_delivered_at: new Date().toISOString(),
-            delivery_status: "delivered",
+            ...(outcome === "delivered"
+              ? {
+                  last_delivered_at: new Date().toISOString(),
+                  delivery_status: "delivered",
+                }
+              : { delivery_status: "pending" }),
             snoozed_until: null,
             enabled: Boolean(nextTriggerAt),
             ...(nextTriggerAt ? { next_trigger_at: nextTriggerAt } : {}),
           })
-          .eq("id", notice.id);
+          .eq("id", notice.id)
+          .eq("updated_at", version)
+          .eq("enabled", true);
         if (error) throw new Error("advance_failed");
       },
       playAlarm: playAlarmSound,

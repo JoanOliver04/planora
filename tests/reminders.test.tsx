@@ -4,13 +4,16 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   advanceTrigger,
   customTrigger,
+  exactTrigger,
   nextDailyTrigger,
+  nextLinkedTrigger,
   relativeTrigger,
 } from "@/features/reminders/schedule";
 import { ReminderCenter } from "@/features/reminders/reminder-center";
@@ -30,6 +33,9 @@ vi.mock("next-intl", () => ({
       customDurationSummary: `Te avisaremos ${values?.duration ?? ""} antes.`,
       customDurationInvalid: "Duración no válida",
       save: "Guardar",
+      createAlarm: "Crear alarma",
+      reminderTime: "Time",
+      reminderRepeat: "Repeat",
     };
     return messages[key] ?? key;
   },
@@ -38,13 +44,39 @@ vi.mock("next-intl", () => ({
 const enable = vi.fn().mockResolvedValue(undefined);
 const save = vi.fn().mockResolvedValue(undefined);
 const remove = vi.fn().mockResolvedValue(undefined);
+const alarm: Parameters<typeof ReminderCenter>[0]["reminders"][number] = {
+  id: "10000000-0000-4000-8000-000000000001",
+  user_id: "10000000-0000-4000-8000-000000000002",
+  task_id: null,
+  event_id: null,
+  kind: "alarm",
+  title: "Test alarm",
+  minutes_before: null,
+  recurrence: "once",
+  time_of_day: null,
+  timezone: "Europe/Madrid",
+  next_trigger_at: "2031-01-01T12:00:00Z",
+  snoozed_until: null,
+  enabled: true,
+  delivery_status: "pending",
+  last_delivered_at: null,
+  created_at: "2026-01-01T12:00:00Z",
+  updated_at: "2026-01-01T12:00:00Z",
+};
+const allDayEvent = {
+  id: "10000000-0000-4000-8000-000000000003",
+  title: "All-day event",
+  emoji: "📅",
+  event_date: "2031-01-01",
+  start_time: null,
+};
 vi.mock("@/app/actions/domain", () => ({
   deleteReminder: (...args: unknown[]) => remove(...args),
   saveReminder: (...args: unknown[]) => save(...args),
   setReminderEnabled: vi.fn(),
-  setRemindersEnabled: (...args: unknown[]) => enable(...args),
+  disableAllReminders: (...args: unknown[]) => enable(...args),
   snoozeReminder: vi.fn(),
-  updateReminderTimezone: vi.fn(),
+  updateProfile: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
@@ -53,8 +85,135 @@ vi.mock("next/navigation", () => ({
 describe("reminder scheduling", () => {
   afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
     vi.useRealTimers();
     vi.unstubAllGlobals();
+  });
+
+  it("opens an editor for a legacy all-day reminder and saves an exact time", async () => {
+    const reminder = {
+      ...alarm,
+      kind: "relative" as const,
+      title: null,
+      event_id: allDayEvent.id,
+      minutes_before: 120,
+    };
+    render(
+      <ReminderCenter
+        locale="en"
+        timezone="Europe/Madrid"
+        reminders={[reminder]}
+        tasks={[]}
+        events={[allDayEvent]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "edit" }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent(allDayEvent.title);
+    const form = within(dialog);
+    expect(form.getByLabelText("reminderTiming")).toHaveValue("120");
+    fireEvent.change(form.getByLabelText("reminderTiming"), {
+      target: { value: "exact" },
+    });
+    fireEvent.change(form.getByLabelText("Time"), {
+      target: { value: "17:45" },
+    });
+    await act(async () => {
+      fireEvent.click(form.getByRole("button", { name: "Guardar" }));
+    });
+    expect(save).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        id: reminder.id,
+        targetType: "event",
+        targetId: allDayEvent.id,
+        timeOfDay: "17:45",
+      }),
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("opens an editor with the existing alarm date and time", () => {
+    render(
+      <ReminderCenter
+        locale="en"
+        timezone="Europe/Madrid"
+        reminders={[alarm]}
+        tasks={[]}
+        events={[]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "edit" }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.querySelector('input[type="date"]')).toHaveValue(
+      "2031-01-01",
+    );
+    expect(dialog.querySelector('input[type="time"]')).toHaveValue("13:00");
+  });
+
+  it("restores the custom offset and recurrence and retains the draft after a failed save", async () => {
+    const reminder = {
+      ...alarm,
+      kind: "relative" as const,
+      event_id: allDayEvent.id,
+      minutes_before: 1567,
+      recurrence: "weekly" as const,
+      enabled: false,
+    };
+    save.mockRejectedValueOnce(new Error("Network unavailable"));
+    render(
+      <ReminderCenter
+        locale="en"
+        timezone="America/Los_Angeles"
+        reminders={[reminder]}
+        tasks={[]}
+        events={[allDayEvent]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "edit" }));
+    const form = within(screen.getByRole("dialog"));
+    expect(form.getByLabelText("reminderTiming")).toHaveValue("custom");
+    expect(form.getByLabelText("Días")).toHaveValue(1);
+    expect(form.getByLabelText("Horas")).toHaveValue(2);
+    expect(form.getByLabelText("Minutos")).toHaveValue(7);
+    expect(form.getByLabelText("Repeat")).toHaveValue("weekly");
+    fireEvent.change(form.getByLabelText("Minutos"), {
+      target: { value: "9" },
+    });
+    await act(async () => {
+      fireEvent.click(form.getByRole("button", { name: "Guardar" }));
+    });
+    expect(form.getByRole("alert")).toHaveTextContent("reminderSaveError");
+    expect(form.getByLabelText("Minutos")).toHaveValue(9);
+    expect(save).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        id: reminder.id,
+        minutesBefore: 1569,
+        recurrence: "weekly",
+        enabled: false,
+        timezone: "Europe/Madrid",
+      }),
+    );
+  });
+
+  it("rejects a nonexistent exact time during the spring clock change", () => {
+    expect(exactTrigger("2027-03-28", "02:30", "Europe/Madrid")).toBeNull();
+    expect(
+      exactTrigger("2027-03-28", "03:30", "Europe/Madrid")?.toISOString(),
+    ).toBe("2027-03-28T01:30:00.000Z");
+  });
+
+  it("finds the next weekly occurrence without walking through years of dates", () => {
+    const now = new Date("2026-10-25T20:00:00Z");
+    const initial = exactTrigger("2010-10-24", "20:30", "Europe/Madrid");
+    expect(initial).not.toBeNull();
+    expect(
+      nextLinkedTrigger(
+        initial!,
+        "weekly",
+        "Europe/Madrid",
+        now,
+      )?.toISOString(),
+    ).toBe("2026-11-01T19:30:00.000Z");
   });
 
   it("calculates timezone-safe relative and recurring triggers", () => {
@@ -118,27 +277,7 @@ describe("reminder scheduling", () => {
   );
 
   it("disables server-rendered reminder forms and actions until their handlers are hydrated", async () => {
-    const reminders: Parameters<typeof ReminderCenter>[0]["reminders"] = [
-      {
-        id: "10000000-0000-4000-8000-000000000001",
-        user_id: "10000000-0000-4000-8000-000000000002",
-        task_id: null,
-        event_id: null,
-        kind: "alarm",
-        title: "Test alarm",
-        minutes_before: null,
-        recurrence: "once",
-        time_of_day: null,
-        timezone: "Europe/Madrid",
-        next_trigger_at: "2031-01-01T12:00:00Z",
-        snoozed_until: null,
-        enabled: true,
-        delivery_status: "pending",
-        last_delivered_at: null,
-        created_at: "2026-01-01T12:00:00Z",
-        updated_at: "2026-01-01T12:00:00Z",
-      },
-    ];
+    const reminders = [alarm];
     const html = renderToStaticMarkup(
       <ReminderCenter
         locale="en"
@@ -227,8 +366,29 @@ describe("reminder scheduling", () => {
     );
     await act(async () => {});
     expect(requestPermission).toHaveBeenCalledOnce();
-    expect(enable).toHaveBeenCalledWith(true);
+    expect(enable).not.toHaveBeenCalled();
     expect(screen.getByText("Permiso pendiente")).toBeInTheDocument();
+  });
+
+  it("creates an active alert even when all existing reminders are individually off", async () => {
+    render(
+      <ReminderCenter
+        locale="es"
+        timezone="Europe/Madrid"
+        reminders={[{ ...alarm, enabled: false }]}
+        tasks={[]}
+        events={[]}
+      />,
+    );
+    fireEvent.change(screen.getByPlaceholderText(/Partido del/), {
+      target: { value: "New active alarm" },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Crear alarma" }));
+    });
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "New active alarm", enabled: true }),
+    );
   });
 
   it("explains a blocked permission without asking again", async () => {

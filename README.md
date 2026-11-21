@@ -87,12 +87,12 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 
 ### Notifications and alarms
 
-- Explicit, user-initiated browser permission flow with a global on/off control.
+- Explicit browser permission per device and a separate control to disable configured alerts.
 - Standalone alarms with a custom name, date, time and optional daily or weekly recurrence.
-- Relative reminders for tasks and events, including 5, 15 and 30 minutes, 1 or 2 hours, and 1 day before.
+- Task and event reminders at an exact time on the item's date, including all-day events, or at a configurable offset before the start.
 - Independent per-device filters for task, event, daily-summary and custom-alarm notifications.
 - Separate delivery controls for in-app popups, operating-system notifications, sound and vibration.
-- Individual enable/disable, ten-minute snooze and deletion controls for every configured reminder.
+- Individual editing, enable/disable, ten-minute snooze and deletion controls for every configured reminder.
 - Timezone-safe scheduling, mobile-sized touch targets and responsive forms.
 - Opt-in Web Push for reminders, daily summaries and custom alarms while Planora is closed, with encrypted VAPID delivery and a persistent server outbox.
 - Per-device registration, a delayed test for checking reception after closing the app, bounded retries, expired-subscription cleanup and cancellation of queued alerts when an alarm changes or is disabled.

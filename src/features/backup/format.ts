@@ -415,7 +415,8 @@ const backupDataSchema = z
         invalid("Standalone reminder cannot reference an item");
       if (
         (item.kind === "relative" &&
-          (item.minutes_before === null || item.time_of_day || item.title)) ||
+          ((item.minutes_before === null) === (item.time_of_day === null) ||
+            item.title)) ||
         (item.kind === "daily_summary" &&
           (!item.time_of_day || item.minutes_before !== null || item.title)) ||
         (item.kind === "alarm" &&

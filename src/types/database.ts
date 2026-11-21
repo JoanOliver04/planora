@@ -204,7 +204,22 @@ export type Database = {
         };
         Insert: Record<string, unknown>;
         Update: Record<string, unknown>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "reminders_task_id_user_id_fkey";
+            columns: ["task_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id", "user_id"];
+          },
+          {
+            foreignKeyName: "reminders_event_id_user_id_fkey";
+            columns: ["event_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id", "user_id"];
+          },
+        ];
       };
       focus_presets: {
         Row: {
