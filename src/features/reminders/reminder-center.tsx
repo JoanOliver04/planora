@@ -442,7 +442,6 @@ export function ReminderCenter({
               startTransition(async () => {
                 try {
                   await updateProfile({ timezone: browserTimezone });
-                  router.refresh();
                 } catch {
                   toast.error(t("error"));
                 }
@@ -524,7 +523,6 @@ export function ReminderCenter({
               startTransition(async () => {
                 try {
                   await disableAllReminders();
-                  router.refresh();
                 } catch {
                   toast.error(t("error"));
                 }
@@ -599,11 +597,7 @@ export function ReminderCenter({
                             id: reminder.id,
                             enabled,
                           });
-                          if (!result.ok) {
-                            toast.error(t("reminderExpired"));
-                            return;
-                          }
-                          router.refresh();
+                          if (!result.ok) toast.error(t("reminderExpired"));
                         } catch {
                           toast.error(t("error"));
                         }
@@ -622,7 +616,6 @@ export function ReminderCenter({
                               id: reminder.id,
                               minutes: 10,
                             });
-                            router.refresh();
                           } catch {
                             toast.error(t("error"));
                           }
@@ -641,8 +634,11 @@ export function ReminderCenter({
                     }
                     onClick={() =>
                       startTransition(async () => {
-                        await deleteReminder(reminder.id);
-                        router.refresh();
+                        try {
+                          await deleteReminder(reminder.id);
+                        } catch {
+                          toast.error(t("error"));
+                        }
                       })
                     }
                   >

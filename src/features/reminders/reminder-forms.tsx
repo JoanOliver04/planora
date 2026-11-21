@@ -72,7 +72,6 @@ function ScheduleForm({
   onSave: (data: FormData) => Promise<string | void>;
 }) {
   const t = useTranslations("Workspace");
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
@@ -94,7 +93,6 @@ function ScheduleForm({
             }
             toast.success(t("reminderSaved"));
             onSaved?.();
-            router.refresh();
           } catch {
             setError(t("reminderSaveError"));
           } finally {

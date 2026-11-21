@@ -43,6 +43,7 @@ vi.mock("next-intl", () => ({
 
 const enable = vi.fn().mockResolvedValue(undefined);
 const save = vi.fn().mockResolvedValue(undefined);
+const refresh = vi.fn();
 const remove = vi.fn().mockResolvedValue(undefined);
 const alarm: Parameters<typeof ReminderCenter>[0]["reminders"][number] = {
   id: "10000000-0000-4000-8000-000000000001",
@@ -79,7 +80,7 @@ vi.mock("@/app/actions/domain", () => ({
   updateProfile: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: vi.fn() }),
+  useRouter: () => ({ refresh }),
 }));
 
 describe("reminder scheduling", () => {
@@ -130,6 +131,7 @@ describe("reminder scheduling", () => {
       }),
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it("opens an editor with the existing alarm date and time", () => {
