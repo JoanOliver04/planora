@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     apple: {
-      url: "/apple-touch-icon.png",
+      url: "/apple-touch-icon.png?v=planora-launcher-2",
       sizes: "180x180",
       type: "image/png",
     },

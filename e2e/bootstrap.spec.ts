@@ -20,7 +20,10 @@ test("mobile landing paints product UI instead of a stuck logo splash", async ({
   const tabIcon = page.locator('head link[rel="icon"]');
   await expect(tabIcon).toHaveAttribute("href", /^\/favicon\.ico(?:\?|$)/);
   const appleIcon = page.locator('head link[rel="apple-touch-icon"]');
-  await expect(appleIcon).toHaveAttribute("href", "/apple-touch-icon.png");
+  await expect(appleIcon).toHaveAttribute(
+    "href",
+    /^\/apple-touch-icon\.png\?v=.+$/,
+  );
   await expect(appleIcon).toHaveAttribute("sizes", "180x180");
 });
 
@@ -90,9 +93,13 @@ test("production service worker is not cached and public HTML still works offlin
         const manifest = await fetch("/manifest.webmanifest").then((response) =>
           response.json(),
         );
+        const appleIcon = document.querySelector<HTMLLinkElement>(
+          'link[rel="apple-touch-icon"]',
+        );
+        if (!appleIcon) throw new Error("Missing Apple touch icon metadata");
         const paths = [
           "/favicon.ico?offline-check=1",
-          "/apple-touch-icon.png",
+          appleIcon.href,
           ...manifest.icons.map((icon: { src: string }) => icon.src),
         ];
         return Promise.all(

@@ -33,7 +33,7 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "any",
       },
       {
-        src: `/icon-maskable.png?v=${iconVersion}`,
+        src: "/icon-maskable.png?v=planora-launcher-2",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
