@@ -8,6 +8,7 @@ import {
   clientSessionGeneration,
   revokeClientSession,
   privateGlobalStorageKeys,
+  focusSessionCachePrefix,
 } from "@/lib/security/client-session";
 
 export const completionQueueKey = "planora-offline-completions-v1";
@@ -357,17 +358,7 @@ export async function clearPrivateOfflineData(userId: string) {
     // These legacy global stores contain titles, schedule drafts or complete
     // Focus snapshots. They cannot safely carry over to another account.
     for (const key of privateGlobalStorageKeys) localStorage.removeItem(key);
-    await withOfflineLock(queueKey, () => {
-      const stored = readStoredQueue();
-      if (stored.corrupt) localStorage.removeItem(queueKey);
-      else {
-        try {
-          persistQueue(stored.items.filter((item) => item.userId !== userId));
-        } catch {
-          localStorage.removeItem(queueKey);
-        }
-      }
-    });
+    localStorage.removeItem(focusSessionCachePrefix + userId);
     const draftPrefix = quickTaskDraftPrefix(userId);
     const workspacePrefix = cachePrefix + userId + ":";
     for (let index = localStorage.length - 1; index >= 0; index -= 1) {
@@ -385,6 +376,21 @@ export async function clearPrivateOfflineData(userId: string) {
     // Session storage availability is independent of local storage.
   }
 
+  try {
+    await withOfflineLock(queueKey, () => {
+      const stored = readStoredQueue();
+      if (stored.corrupt) localStorage.removeItem(queueKey);
+      else {
+        try {
+          persistQueue(stored.items.filter((item) => item.userId !== userId));
+        } catch {
+          localStorage.removeItem(queueKey);
+        }
+      }
+    });
+  } catch {
+    // Individual browser stores may be unavailable during sign-out.
+  }
   try {
     const { clearFocusOfflineData } =
       await import("@/features/focus/focus-offline");

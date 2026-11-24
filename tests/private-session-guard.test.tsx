@@ -32,30 +32,56 @@ afterEach(cleanup);
 describe("private session guard", () => {
   it("unmounts private children and stops their effects on a cross-tab sign-out", async () => {
     const stopPoll = vi.fn();
-    function PrivateChild() {
-      useEffect(() => stopPoll, []);
-      return <p>Private workspace</p>;
+    const draftKey = "planora-quick-task-draft-v1:guard-user:work";
+    localStorage.setItem(draftKey, "private draft");
+    const focusKey = "planora-focus-session-cache-v1:guard-user";
+    localStorage.setItem(focusKey, "private session");
+    let release!: () => void;
+    const busy = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const previous = Object.getOwnPropertyDescriptor(navigator, "locks");
+    Object.defineProperty(navigator, "locks", {
+      configurable: true,
+      value: {
+        request: async (_: string, work: () => unknown) => {
+          await busy;
+          return work();
+        },
+      },
+    });
+    try {
+      function PrivateChild() {
+        useEffect(() => stopPoll, []);
+        return <p>Private workspace</p>;
+      }
+      localStorage.setItem(
+        "planora-workspace-cache-v1:guard-user:today",
+        "private",
+      );
+      render(
+        <PrivateSessionGuard userId="guard-user" locale="en">
+          <PrivateChild />
+        </PrivateSessionGuard>,
+      );
+      expect(screen.getByText("Private workspace")).toBeInTheDocument();
+      act(() => auth.callback?.("SIGNED_OUT", null));
+      expect(screen.queryByText("Private workspace")).toBeNull();
+      expect(stopPoll).toHaveBeenCalledOnce();
+      expect(canUseClientSession("guard-user")).toBe(false);
+      // Unmount before navigation; the deferred cleanup still clears storage.
+      cleanup();
+      await Promise.resolve();
+      expect(
+        localStorage.getItem("planora-workspace-cache-v1:guard-user:today"),
+      ).toBeNull();
+      expect(localStorage.getItem(draftKey)).toBeNull();
+      expect(localStorage.getItem(focusKey)).toBeNull();
+    } finally {
+      release();
+      if (previous) Object.defineProperty(navigator, "locks", previous);
+      else Reflect.deleteProperty(navigator, "locks");
     }
-    localStorage.setItem(
-      "planora-workspace-cache-v1:guard-user:today",
-      "private",
-    );
-    render(
-      <PrivateSessionGuard userId="guard-user" locale="en">
-        <PrivateChild />
-      </PrivateSessionGuard>,
-    );
-    expect(screen.getByText("Private workspace")).toBeInTheDocument();
-    act(() => auth.callback?.("SIGNED_OUT", null));
-    expect(screen.queryByText("Private workspace")).toBeNull();
-    expect(stopPoll).toHaveBeenCalledOnce();
-    expect(canUseClientSession("guard-user")).toBe(false);
-    // Unmount before navigation; the deferred cleanup still clears storage.
-    cleanup();
-    await Promise.resolve();
-    expect(
-      localStorage.getItem("planora-workspace-cache-v1:guard-user:today"),
-    ).toBeNull();
   });
 
   it("fails closed when another identity signs in while private UI is open", () => {

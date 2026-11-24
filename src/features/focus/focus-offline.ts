@@ -17,6 +17,7 @@ import {
 import {
   canUseClientSession,
   clientSessionGeneration,
+  focusSessionCachePrefix,
 } from "@/lib/security/client-session";
 
 type TransitionFn = (
@@ -25,7 +26,6 @@ type TransitionFn = (
 
 export const focusQueueKey = "planora-focus-offline-queue-v1";
 const QUEUE_KEY = focusQueueKey;
-const SESSION_KEY_PREFIX = "planora-focus-session-cache-v1:";
 const PROCESSED_KEY = "planora-focus-offline-processed-v1";
 const MAX_QUEUE = 100;
 const MAX_PROCESSED = 200;
@@ -346,7 +346,7 @@ export function cacheFocusSession(
   session: FocusSession | null,
 ) {
   if (typeof window === "undefined" || !canUseClientSession(userId)) return;
-  const key = SESSION_KEY_PREFIX + userId;
+  const key = focusSessionCachePrefix + userId;
   try {
     if (!session || !isActiveStatus(session.status)) {
       window.localStorage.removeItem(key);
@@ -368,7 +368,7 @@ export function loadCachedFocusSession(userId: string): FocusSession | null {
   if (typeof window === "undefined" || !canUseClientSession(userId))
     return null;
   try {
-    const parsed = boundedJson(SESSION_KEY_PREFIX + userId) as {
+    const parsed = boundedJson(focusSessionCachePrefix + userId) as {
       savedAt?: number;
       session?: FocusSession;
     };
@@ -380,7 +380,7 @@ export function loadCachedFocusSession(userId: string): FocusSession | null {
     )
       return null;
     if (Date.now() - parsed.savedAt > CACHE_MAX_AGE_MS) {
-      window.localStorage.removeItem(SESSION_KEY_PREFIX + userId);
+      window.localStorage.removeItem(focusSessionCachePrefix + userId);
       return null;
     }
     return validCachedSession(parsed.session, userId);
@@ -392,10 +392,10 @@ export function loadCachedFocusSession(userId: string): FocusSession | null {
 export async function clearFocusOfflineData(userId: string) {
   if (typeof window === "undefined") return;
   try {
+    window.localStorage.removeItem(focusSessionCachePrefix + userId);
     await withOfflineLock(QUEUE_KEY, () =>
       writeQueue(parseQueue().filter((item) => item.userId !== userId)),
     );
-    window.localStorage.removeItem(SESSION_KEY_PREFIX + userId);
   } catch {
     // ignore
   }
@@ -524,7 +524,7 @@ export function __resetFocusOfflineForTests() {
   const keys: string[] = [];
   for (let i = 0; i < window.localStorage.length; i += 1) {
     const key = window.localStorage.key(i);
-    if (key?.startsWith(SESSION_KEY_PREFIX)) keys.push(key);
+    if (key?.startsWith(focusSessionCachePrefix)) keys.push(key);
   }
   for (const key of keys) window.localStorage.removeItem(key);
 }

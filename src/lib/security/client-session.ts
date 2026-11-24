@@ -7,6 +7,7 @@ const revocationKey = "planora-private-session-revoked-v1";
 let listening = false;
 let activeUserId: string | undefined;
 let privateStorageEpoch = 0;
+export const focusSessionCachePrefix = "planora-focus-session-cache-v1:";
 export const privateGlobalStorageKeys = [
   "planora-focus-recents",
   "planora-onboarding-v1",
