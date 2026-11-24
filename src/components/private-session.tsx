@@ -78,7 +78,7 @@ export async function PrivateSession({
         messages={messages}
       >
         <OfflineStatus key={user.id} locale={locale} userId={user.id} />
-        <ReminderScheduler locale={locale} />
+        <ReminderScheduler locale={locale} userId={user.id} />
         {!onboardingCompleted && (
           <GuidedOnboarding locale={locale as "es" | "en"} />
         )}

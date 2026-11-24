@@ -128,6 +128,23 @@ export function revokeClientSession(userId: string, broadcast = true) {
   }
 }
 
+// Pause private polling while sign-out is pending. A failed sign-out can resume
+// the same session without revoking it or removing its local data.
+const pausedUsers = new Set<string>();
+
+export function canPollPrivateSession(userId: string) {
+  return !pausedUsers.has(userId) && canUseClientSession(userId);
+}
+
+export function pausePrivatePolling(userId: string) {
+  pausedUsers.add(userId);
+  listeners.forEach((listener) => listener());
+  return () => {
+    pausedUsers.delete(userId);
+    listeners.forEach((listener) => listener());
+  };
+}
+
 export function subscribeClientSession(listener: () => void) {
   listeners.add(listener);
   return () => {

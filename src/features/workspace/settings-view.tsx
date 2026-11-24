@@ -6,6 +6,7 @@ import { AppAbout } from "@/components/app-about";
 import { useTheme } from "@/components/theme-provider";
 import { FocusSettingsPanel } from "@/features/focus/focus-settings";
 import { useRouter } from "@/i18n/routing";
+import { pausePrivatePolling } from "@/lib/security/client-session";
 import { clearPrivateOfflineData } from "@/lib/offline/queue";
 import {
   applyPreferences,
@@ -373,21 +374,26 @@ export function SettingsView({
         cancelLabel={t("cancel")}
         confirmLabel={t("signOut")}
         onConfirm={async () => {
-          const { disconnectPushDevice } =
-            await import("@/features/reminders/push-client");
+          const resumePolling = pausePrivatePolling(data.user.id);
           try {
-            await disconnectPushDevice();
-          } catch {
-            // Browser unsubscribe still runs if the network is unavailable.
-            // Server subscriptions also reference the revoked auth session.
+            const { disconnectPushDevice } =
+              await import("@/features/reminders/push-client");
+            try {
+              await disconnectPushDevice();
+            } catch {
+              // Browser unsubscribe still runs if the network is unavailable.
+              // Server subscriptions also reference the revoked auth session.
+            }
+            const { error } = await db.auth.signOut();
+            if (error) {
+              fail(error, t("error"));
+              return;
+            }
+            await clearPrivateOfflineData(data.user.id);
+            window.location.replace(`/${locale}/login`);
+          } finally {
+            resumePolling();
           }
-          const { error } = await db.auth.signOut();
-          if (error) {
-            fail(error, t("error"));
-            return;
-          }
-          await clearPrivateOfflineData(data.user.id);
-          window.location.replace(`/${locale}/login`);
         }}
       />
       <Alert.Root open={danger} onOpenChange={setDanger}>

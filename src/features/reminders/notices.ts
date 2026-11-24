@@ -54,6 +54,7 @@ type LedgerEntry = {
 };
 
 type DeliverInput = {
+  signal?: AbortSignal;
   notices: DueNotice[];
   preferences: NotificationPreferences;
   now?: Date;
@@ -224,6 +225,7 @@ async function settleTrigger(
 export async function deliverNotices(input: DeliverInput) {
   const now = input.now ?? new Date();
   for (const notice of input.notices) {
+    if (input.signal?.aborted) return;
     const channel =
       notice.kind === "alarm"
         ? "alarms"
@@ -279,6 +281,7 @@ export async function deliverNotices(input: DeliverInput) {
           systemResult = "failed";
           logNotice("show", error instanceof Error ? error.name : "Error");
         }
+        if (input.signal?.aborted) return;
         if (systemResult === "shown") {
           rememberSystem(identity, "shown");
           if (!input.visible) rememberNotice(identity, "shown");
