@@ -54,7 +54,7 @@ describe("critical domain action boundaries", () => {
   });
 
   it("authenticates and rate-limits before parsing a restore", async () => {
-    await expect(restoreBackup("not-a-backup")).rejects.toThrow(
+    await expect(restoreBackup("not-a-backup", "user-1")).rejects.toThrow(
       "Invalid or incompatible backup",
     );
 
@@ -65,7 +65,9 @@ describe("critical domain action boundaries", () => {
   it("stops restore parsing when rate limiting fails", async () => {
     mocks.restoreAllowed.mockRejectedValue(new Error("rate limited"));
 
-    await expect(restoreBackup("not-a-backup")).rejects.toThrow("rate limited");
+    await expect(restoreBackup("not-a-backup", "user-1")).rejects.toThrow(
+      "rate limited",
+    );
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
@@ -79,7 +81,7 @@ describe("critical domain action boundaries", () => {
     async (data) => {
       mocks.rpc.mockResolvedValue({ data, error: null });
       await expect(
-        restoreBackup(createBackup(backupFixture())),
+        restoreBackup(createBackup(backupFixture()), "user-1"),
       ).rejects.toThrow("Atomic restore failed");
       expect(mocks.revalidatePath).not.toHaveBeenCalled();
     },
@@ -87,9 +89,17 @@ describe("critical domain action boundaries", () => {
 
   it("returns restored counts only after explicit database success", async () => {
     mocks.rpc.mockResolvedValue({ data: { ok: true, tasks: 1 }, error: null });
-    await expect(restoreBackup(createBackup(backupFixture()))).resolves.toEqual(
-      { ok: true, tasks: 1 },
-    );
+    await expect(
+      restoreBackup(createBackup(backupFixture()), "user-1"),
+    ).resolves.toEqual({ ok: true, tasks: 1 });
     expect(mocks.revalidatePath).toHaveBeenCalledOnce();
+  });
+
+  it("stops before replacing data if the account changed after the safety download", async () => {
+    await expect(
+      restoreBackup(createBackup(backupFixture()), "other-user"),
+    ).rejects.toThrow("Account changed");
+    expect(mocks.calls).toEqual(["auth"]);
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 });

@@ -865,6 +865,7 @@
       "loading": "Preparando…",
       "success": "La descarga está lista.",
       "error": "No se pudo preparar la exportación. Inténtalo de nuevo.",
+      "tooLarge": "La copia supera el límite de restauración de 5 MiB incluso en formato compacto. Puedes descargar las tablas CSV para conservar los registros.",
       "json": {
         "title": "Copia completa",
         "description": "Guarda todos los datos compatibles con la restauración de Planora, incluidas sesiones de Enfoque, notas y objetivos.",
@@ -872,7 +873,7 @@
       },
       "csv": {
         "title": "Tablas de datos",
-        "description": "Tablas para analizar en hojas de cálculo. Las notas y distracciones de Enfoque no van en el CSV principal de sesiones; si existen, salen en un archivo PRIVATE aparte. Enfoque no se añade al ICS del calendario.",
+        "description": "Descarga un ZIP con una tabla CSV por archivo para abrirlas en tu hoja de cálculo. Las notas y distracciones de Enfoque se guardan en un archivo aparte marcado como PRIVATE.",
         "action": "Descargar CSV"
       },
       "ics": {
@@ -890,12 +891,17 @@
       "removeFile": "Quitar {name}",
       "validating": "Comprobando la copia…",
       "valid": "Copia compatible. Revisa el contenido antes de restaurarla.",
-      "invalid": "La copia no es válida, es demasiado grande, está incompleta o no es compatible con esta versión de Planora.",
+      "invalid": "Elige una copia JSON completa creada por Planora.",
+      "oversized": "El archivo supera el límite de restauración de 5 MiB.",
+      "futureVersion": "Esta copia se creó con una versión más reciente de Planora. Actualiza la aplicación para abrirla.",
+      "readError": "No se ha podido leer el archivo. Vuelve a seleccionarlo.",
       "summaryLabel": "Contenido de la copia",
       "behaviour": "La restauración sustituye los datos actuales de tu cuenta por los contenidos en la copia. Antes de continuar puedes revisar un resumen.",
       "action": "Restaurar copia",
       "success": "Restauración completada: {count} registros restaurados. Tus datos anteriores se han sustituido y los recordatorios importados están desactivados.",
-      "error": "La restauración ha fallado. La base de datos ha revertido la transacción y tus datos anteriores siguen intactos.",
+      "error": "No se ha podido confirmar la restauración. Revisa tus datos antes de volver a intentarlo.",
+      "safetyError": "No se ha podido preparar una copia de tus datos actuales. La restauración no ha comenzado. Comprueba la conexión y vuelve a intentarlo.",
+      "safetySize": "La copia de tus datos actuales supera los 5 MiB. La restauración se ha detenido antes de sustituir tus datos.",
       "confirmTitle": "¿Restaurar esta copia?",
       "confirmDescription": "Tus datos actuales se sustituirán por el contenido de esta copia. Planora valida el archivo antes de realizar cambios y descarga primero una copia de seguridad.",
       "fileName": "Archivo",

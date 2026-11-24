@@ -36,4 +36,13 @@ describe("backup export paging", () => {
     );
     expect(loadPage.mock.calls.length).toBe(101);
   });
+
+  it("rejects an incomplete response even after receiving a full first page", async () => {
+    const loadPage = vi.fn(async (from: number) => ({
+      data:
+        from === 0 ? Array.from({ length: 1000 }, (_, id) => ({ id })) : null,
+      error: null,
+    }));
+    await expect(fetchAllRows(loadPage)).rejects.toThrow("No data returned");
+  });
 });

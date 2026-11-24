@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import {
@@ -21,27 +21,35 @@ import {
 import { restoreBackup } from "@/app/actions/domain";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
+  canUsePrivateClientStorage,
+  clientSessionEpoch,
+} from "@/lib/security/client-session";
+import { loadAccountData } from "./load-account-data";
+import {
   buildCsvExportFiles,
   BACKUP_SCHEMA_VERSION,
-  createBackup,
+  BackupSizeError,
+  serializeBackupFile,
   MAX_BACKUP_BYTES,
   parseBackup,
   summarizeBackup,
   toIcs,
-  type BackupData,
   type PlanoraBackup,
 } from "./format";
 
 type ExportKind = "json" | "csv" | "ics";
 type Feedback = { tone: "success" | "error"; text: string } | null;
 
-function download(name: string, content: string, type: string) {
+function download(name: string, content: BlobPart, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = name;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  try {
+    anchor.click();
+  } finally {
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 }
 
 function readableSize(bytes: number, locale: string) {
@@ -60,24 +68,42 @@ function readableSize(bytes: number, locale: string) {
 }
 
 export function DataTools({
-  data,
+  userId,
   locale,
-  timezone,
 }: {
-  data: BackupData;
+  userId: string;
   locale: "es" | "en";
-  timezone: string;
 }) {
   const t = useTranslations("Data");
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const selection = useRef(0);
+  const busy = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const [exporting, setExporting] = useState<ExportKind | null>(null);
   const [exportFeedback, setExportFeedback] = useState<Feedback>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<PlanoraBackup | null>(null);
+  const [fileVersion, setFileVersion] = useState<number>();
   const [importState, setImportState] = useState<
-    "idle" | "reading" | "ready" | "invalid" | "success" | "error"
+    | "idle"
+    | "reading"
+    | "ready"
+    | "invalid"
+    | "oversized"
+    | "futureVersion"
+    | "readError"
+    | "success"
   >("idle");
+  const [restoreError, setRestoreError] = useState<
+    "safetyError" | "safetySize" | "error" | null
+  >(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [restoredSummary, setRestoredSummary] = useState<ReturnType<
     typeof summarizeBackup
@@ -124,54 +150,94 @@ export function DataTools({
   ];
 
   async function runExport(kind: ExportKind) {
-    if (exporting) return;
+    if (busy.current) return;
+    busy.current = true;
+    const epoch = clientSessionEpoch();
     setExporting(kind);
     setExportFeedback(null);
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
     try {
+      const [data, archive] = await Promise.all([
+        loadAccountData(userId),
+        kind === "csv" ? import("fflate") : null,
+      ]);
+      if (!mounted.current || !canUsePrivateClientStorage(epoch, userId))
+        return;
       if (kind === "json") {
         download(
           `planora-backup-v${BACKUP_SCHEMA_VERSION}.json`,
-          JSON.stringify(createBackup(data), null, 2),
+          serializeBackupFile(data),
           "application/json",
         );
-      } else if (kind === "csv") {
-        // Focus notes are exported only as a clearly named PRIVATE file.
-        for (const file of buildCsvExportFiles(data)) {
-          download(file.name, file.content, "text/csv;charset=utf-8");
-        }
+      } else if (archive) {
+        const encoder = new TextEncoder();
+        const tables = Object.fromEntries(
+          buildCsvExportFiles(data).map(({ name, content }) => [
+            name,
+            encoder.encode(content),
+          ]),
+        );
+        download(
+          "planora-csv.zip",
+          archive.zipSync(tables, { level: 1 }),
+          "application/zip",
+        );
       } else {
         download(
           "planora-calendar.ics",
-          toIcs(data, timezone),
+          toIcs(data, data.profile.timezone),
           "text/calendar;charset=utf-8",
         );
       }
       setExportFeedback({ tone: "success", text: t("export.success") });
-    } catch {
-      setExportFeedback({ tone: "error", text: t("export.error") });
+    } catch (error) {
+      setExportFeedback({
+        tone: "error",
+        text: t(
+          error instanceof BackupSizeError ? "export.tooLarge" : "export.error",
+        ),
+      });
     } finally {
+      busy.current = false;
       setExporting(null);
     }
   }
 
   async function readFile(file: File) {
+    const current = ++selection.current;
     setSelectedFile(file);
     setPreview(null);
+    setRestoredSummary(null);
+    setRestoreError(null);
+    setConfirmOpen(false);
     setImportState("reading");
-    if (
-      file.size > MAX_BACKUP_BYTES ||
-      !file.name.toLocaleLowerCase().endsWith(".json")
-    ) {
-      setImportState("invalid");
+    if (file.size > MAX_BACKUP_BYTES) {
+      setImportState("oversized");
       return;
     }
+    let content: string;
     try {
-      const result = parseBackup(JSON.parse(await file.text()));
+      content = await file.text();
+    } catch {
+      if (current === selection.current) setImportState("readError");
+      return;
+    }
+    if (current !== selection.current || !mounted.current) return;
+    try {
+      const raw = JSON.parse(content.replace(/^\uFEFF/, ""));
+      if (
+        raw?.format === "planora-backup" &&
+        typeof raw.schemaVersion === "number" &&
+        raw.schemaVersion > BACKUP_SCHEMA_VERSION
+      ) {
+        setImportState("futureVersion");
+        return;
+      }
+      const result = parseBackup(raw);
       if (!result.success) {
         setImportState("invalid");
         return;
       }
+      setFileVersion(raw.schemaVersion ?? raw.version);
       setPreview(result.data);
       setImportState("ready");
     } catch {
@@ -180,25 +246,39 @@ export function DataTools({
   }
 
   function clearFile() {
+    selection.current += 1;
     setSelectedFile(null);
     setPreview(null);
+    setRestoredSummary(null);
+    setRestoreError(null);
+    setConfirmOpen(false);
     setImportState("idle");
     if (inputRef.current) inputRef.current.value = "";
   }
 
   async function restore() {
-    if (!preview || restoring) return false;
+    if (!preview || busy.current) return false;
+    busy.current = true;
+    const epoch = clientSessionEpoch();
+    let submitted = false;
+    setRestoreError(null);
     setRestorePhase("preparing");
     try {
+      const data = await loadAccountData(userId);
+      if (!mounted.current || !canUsePrivateClientStorage(epoch, userId))
+        return false;
       setRestorePhase("safety-copy");
       download(
         `planora-before-restore-${new Date().toISOString().slice(0, 10)}.json`,
-        JSON.stringify(createBackup(data), null, 2),
+        serializeBackupFile(data),
         "application/json",
       );
       await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+      if (!mounted.current || !canUsePrivateClientStorage(epoch, userId))
+        return false;
       setRestorePhase("restoring");
-      await restoreBackup(preview);
+      submitted = true;
+      await restoreBackup(preview, userId);
       setRestoredSummary(summarizeBackup(preview));
       setSelectedFile(null);
       setPreview(null);
@@ -206,10 +286,17 @@ export function DataTools({
       if (inputRef.current) inputRef.current.value = "";
       router.refresh();
       return true;
-    } catch {
-      setImportState("error");
+    } catch (error) {
+      setRestoreError(
+        submitted
+          ? "error"
+          : error instanceof BackupSizeError
+            ? "safetySize"
+            : "safetyError",
+      );
       return false;
     } finally {
+      busy.current = false;
       setRestorePhase("idle");
     }
   }
@@ -283,7 +370,7 @@ export function DataTools({
                         : "pill data-action"
                     }
                     type="button"
-                    disabled={exporting !== null}
+                    disabled={exporting !== null || restoring}
                     aria-busy={pending}
                     onClick={() => void runExport(option.kind)}
                   >
@@ -346,10 +433,12 @@ export function DataTools({
             className="visually-hidden"
             id="planora-backup-file"
             type="file"
+            disabled={restoring}
             aria-label={t("restore.selectTitle")}
             accept="application/json,.json"
             onChange={(event) => {
               const file = event.target.files?.[0];
+              event.currentTarget.value = "";
               if (file) void readFile(file);
             }}
           />
@@ -368,6 +457,7 @@ export function DataTools({
                 className="icon-button"
                 type="button"
                 onClick={clearFile}
+                disabled={restoring}
                 aria-label={t("restore.removeFile", {
                   name: selectedFile.name,
                 })}
@@ -390,9 +480,12 @@ export function DataTools({
                 {t("restore.valid")}
               </p>
             )}
-            {importState === "invalid" && (
+            {(importState === "invalid" ||
+              importState === "oversized" ||
+              importState === "futureVersion" ||
+              importState === "readError") && (
               <p className="data-feedback" data-tone="error" role="alert">
-                {t("restore.invalid")}
+                {t(`restore.${importState}`)}
               </p>
             )}
             {importState === "success" && (
@@ -406,9 +499,9 @@ export function DataTools({
                 })}
               </p>
             )}
-            {importState === "error" && (
+            {restoreError && !confirmOpen && (
               <p className="data-feedback" data-tone="error" role="alert">
-                {t("restore.error")}
+                {t(`restore.${restoreError}`)}
               </p>
             )}
           </div>
@@ -430,7 +523,7 @@ export function DataTools({
           <button
             className="primary restore-button"
             type="button"
-            disabled={!preview || restoring}
+            disabled={!preview || restoring || exporting !== null}
             onClick={() => setConfirmOpen(true)}
           >
             <RotateCcw size={18} aria-hidden="true" />
@@ -471,7 +564,7 @@ export function DataTools({
                 </div>
                 <div>
                   <dt>{t("restore.version")}</dt>
-                  <dd>{preview.schemaVersion}</dd>
+                  <dd>{fileVersion}</dd>
                 </div>
               </dl>
               <div className="restore-confirm-summary">
@@ -485,6 +578,11 @@ export function DataTools({
                 )}
               </div>
               <p>{t("restore.replaceWarning")}</p>
+              {restoreError && (
+                <p role="alert" className="data-feedback" data-tone="error">
+                  {t(`restore.${restoreError}`)}
+                </p>
+              )}
             </div>
           ) : null
         }

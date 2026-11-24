@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -13,19 +14,23 @@ import messages from "@/messages/en.json";
 import { DataTools } from "@/features/backup/data-tools";
 import { createBackup, MAX_BACKUP_BYTES } from "@/features/backup/format";
 import { restoreBackup } from "@/app/actions/domain";
+import { loadAccountData } from "@/features/backup/load-account-data";
 import { backupFixture } from "./backup-fixture";
 
 vi.mock("@/i18n/routing", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
 }));
 vi.mock("@/app/actions/domain", () => ({ restoreBackup: vi.fn() }));
+vi.mock("@/features/backup/load-account-data", () => ({
+  loadAccountData: vi.fn(),
+}));
 
 const data = backupFixture();
 
 function renderTools() {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <DataTools data={data} locale="en" timezone="Europe/Madrid" />
+      <DataTools userId="test-user" locale="en" />
     </NextIntlClientProvider>,
   );
 }
@@ -65,7 +70,10 @@ describe("DataTools", () => {
     downloadClick = vi
       .spyOn(HTMLAnchorElement.prototype, "click")
       .mockImplementation(() => undefined);
-    vi.mocked(restoreBackup).mockResolvedValue({});
+    vi.mocked(restoreBackup).mockReset().mockResolvedValue({});
+    vi.mocked(loadAccountData)
+      .mockReset()
+      .mockResolvedValue({ ...data, profile: data.profile! });
   });
 
   afterEach(() => {
@@ -85,6 +93,7 @@ describe("DataTools", () => {
     expect(
       screen.getByRole("button", { name: "Restore backup" }),
     ).toBeDisabled();
+    expect(loadAccountData).not.toHaveBeenCalled();
   });
 
   it("rejects corrupt, incompatible and oversized files", async () => {
@@ -98,14 +107,19 @@ describe("DataTools", () => {
     fireEvent.change(screen.getByLabelText("Select a Planora backup"), {
       target: { files: [file] },
     });
-    expect(await screen.findByText(/invalid, too large/i)).toBeVisible();
+    expect(
+      await screen.findByText(/choose a complete JSON backup/i),
+    ).toBeVisible();
 
     const oversized = backupFile();
     Object.defineProperty(oversized, "size", { value: MAX_BACKUP_BYTES + 1 });
     fireEvent.change(screen.getByLabelText("Select a Planora backup"), {
       target: { files: [oversized] },
     });
-    expect(await screen.findByText(/invalid, too large/i)).toBeVisible();
+    expect(
+      await screen.findByText(/exceeds the 5 MiB restore limit/i),
+    ).toBeVisible();
+    expect(oversized.text).not.toHaveBeenCalled();
     expect(
       screen.getByRole("button", { name: "Restore backup" }),
     ).toBeDisabled();
@@ -143,7 +157,7 @@ describe("DataTools", () => {
     ).toBeVisible();
   });
 
-  it("reports transactional rollback failures clearly", async () => {
+  it("shows an unconfirmed result in the open dialog if the response is lost", async () => {
     const user = userEvent.setup();
     vi.mocked(restoreBackup).mockRejectedValue(new Error("insert failed"));
     renderTools();
@@ -155,8 +169,70 @@ describe("DataTools", () => {
       }),
     );
     expect(
-      await screen.findByText(/rolled back the transaction/i),
+      await within(screen.getByRole("alertdialog")).findByText(
+        /could not confirm the restore/i,
+      ),
     ).toBeVisible();
+  });
+
+  it.each(["clear", "replace"])(
+    "ignores a late file read after %s",
+    async (action) => {
+      renderTools();
+      let finish!: (value: string) => void;
+      const first = new File(["first"], "slow.json");
+      Object.defineProperty(first, "text", {
+        value: () =>
+          new Promise<string>((resolve) => {
+            finish = resolve;
+          }),
+      });
+      const picker = screen.getByLabelText("Select a Planora backup");
+      fireEvent.change(picker, { target: { files: [first] } });
+      if (action === "clear") {
+        fireEvent.click(
+          screen.getByRole("button", { name: "Remove slow.json" }),
+        );
+      } else {
+        const second = new File(["newer"], "future.json");
+        Object.defineProperty(second, "text", {
+          value: async () =>
+            JSON.stringify({ format: "planora-backup", schemaVersion: 99 }),
+        });
+        fireEvent.change(picker, { target: { files: [second] } });
+        await screen.findByText(/newer version/i);
+      }
+      await act(async () => {
+        finish(JSON.stringify(createBackup(data)));
+      });
+      expect(
+        screen.getByRole("button", { name: "Restore backup" }),
+      ).toBeDisabled();
+      expect(screen.queryByText(/Compatible backup\./)).toBeNull();
+    },
+  );
+
+  it("keeps the selected backup available to retry if the safety copy cannot be read", async () => {
+    const user = userEvent.setup();
+    vi.mocked(loadAccountData).mockRejectedValueOnce(new Error("offline"));
+    renderTools();
+    await selectValidBackup();
+    await user.click(screen.getByRole("button", { name: "Restore backup" }));
+    const dialog = within(screen.getByRole("alertdialog"));
+    const confirm = dialog.getByRole("button", {
+      name: "Restore and replace data",
+    });
+    await user.click(confirm);
+    expect(await dialog.findByText(/restore has not started/i)).toBeVisible();
+    expect(restoreBackup).not.toHaveBeenCalled();
+    expect(downloadClick).not.toHaveBeenCalled();
+    await user.click(confirm);
+    await screen.findByText(/previous data was replaced/i);
+    expect(loadAccountData).toHaveBeenCalledTimes(2);
+    expect(restoreBackup).toHaveBeenCalledWith(
+      expect.objectContaining({ format: "planora-backup" }),
+      "test-user",
+    );
   });
 
   it("names the full JSON backup for its current schema version", async () => {

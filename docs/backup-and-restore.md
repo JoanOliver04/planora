@@ -6,9 +6,11 @@ Planora exports UTF-8 JSON backups with explicit metadata (`format`, `schemaVers
 
 ## Restore semantics
 
+The CSV export downloads all tables together in `planora-csv.zip`. Extract the archive to open individual tables in a spreadsheet. The JSON backup is the file to select for a restore.
+
 **Restore backup** is replacement, not merge. The selected file is fully parsed and validated in the browser before confirmation, including its version, field types, required values, entity limits, unique identifiers and internal relationships. Files larger than 5 MiB and future schema versions are rejected before any write.
 
-Before restoring, Planora downloads a fresh safety copy of the currently loaded account data. The confirmed backup is normalized on the server, all entity IDs are regenerated, and references are rebuilt through old-to-new maps. Exported `user_id` values are discarded.
+Planora reads the signed-in account when you request an export and reads it again when you confirm a restore. It downloads that second copy before submitting the replacement. If the profile or a page of records cannot be read, or the safety copy exceeds the 5 MiB import limit even as compact JSON, the replacement stops. The confirmation shows the format version of the file you selected. The server checks that the same account is still signed in, normalizes the confirmed backup, regenerates entity IDs, and rebuilds references through old-to-new maps. Exported `user_id` values are discarded.
 
 The database replacement runs through `public.restore_planora_backup(jsonb)`. This PostgreSQL function:
 

@@ -865,6 +865,7 @@
       "loading": "Preparing…",
       "success": "Your download is ready.",
       "error": "The export could not be prepared. Please try again.",
+      "tooLarge": "The backup exceeds the 5 MiB restore limit even in compact form. You can download the CSV tables to keep a copy of your records.",
       "json": {
         "title": "Full backup",
         "description": "Save all data supported by Planora restore, including Focus sessions, notes and goals.",
@@ -872,7 +873,7 @@
       },
       "csv": {
         "title": "Data tables",
-        "description": "Spreadsheet tables for analysis. Focus notes and distractions are omitted from the main session CSV and only appear in a separate PRIVATE notes file when present. Focus is not added to calendar ICS.",
+        "description": "Download a ZIP containing one CSV file per table for your spreadsheet. Focus notes and distractions are stored in a separate file marked PRIVATE.",
         "action": "Download CSV"
       },
       "ics": {
@@ -890,12 +891,17 @@
       "removeFile": "Remove {name}",
       "validating": "Checking backup…",
       "valid": "Compatible backup. Review its contents before restoring.",
-      "invalid": "This backup is invalid, too large, incomplete or incompatible with this version of Planora.",
+      "invalid": "Choose a complete JSON backup created by Planora.",
+      "oversized": "The file exceeds the 5 MiB restore limit.",
+      "futureVersion": "This backup was created with a newer version of Planora. Update the app to open it.",
+      "readError": "The file could not be read. Select it again.",
       "summaryLabel": "Backup contents",
       "behaviour": "Restore replaces your current account data with the contents of the backup. You can review a summary before continuing.",
       "action": "Restore backup",
       "success": "Restore complete: {count} records restored. Your previous data was replaced and imported reminders are disabled.",
-      "error": "Restore failed. The database rolled back the transaction and your previous data remains unchanged.",
+      "error": "Planora could not confirm the restore. Check your data before trying again.",
+      "safetyError": "Planora could not prepare a copy of your current data. Restore has not started. Check your connection and try again.",
+      "safetySize": "The backup of your current data exceeds 5 MiB. Restore stopped before replacing your data.",
       "confirmTitle": "Restore this backup?",
       "confirmDescription": "Your current data will be replaced by this backup. Planora validates the file before making any change and downloads a safety copy first.",
       "fileName": "File",

@@ -1,6 +1,9 @@
 import { loadEnvConfig } from "@next/env";
 import { createClient } from "@supabase/supabase-js";
+import type { Download } from "@playwright/test";
+import { strFromU8, unzipSync } from "fflate";
 import { expect, test } from "./fixtures";
+import { hasLocalCredentials, withLocalWorkspace } from "./local-workspace";
 import {
   createBackup,
   prepareRestorePayload,
@@ -14,6 +17,83 @@ loadEnvConfig(process.cwd());
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+async function downloadContents(download: Download) {
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  return Buffer.concat(chunks);
+}
+
+test("exports current changes and saves newer work in the safety copy before replacing it", async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  test.setTimeout(90_000);
+  test.skip(!hasLocalCredentials, "Local integration credentials required");
+  await withLocalWorkspace(context, baseURL, async (db, userId) => {
+    await page.goto("/en/data");
+    const exportBackup = page.getByRole("button", { name: "Download JSON" });
+    await expect(exportBackup).toBeVisible();
+    const addEvent = async (title: string) => {
+      const { error } = await db.from("events").insert({
+        user_id: userId,
+        title,
+        event_date: "2036-05-03",
+        all_day: true,
+      });
+      expect(error).toBeNull();
+    };
+    await addEvent("After opening Your data");
+    const fullDownload = page.waitForEvent("download");
+    await exportBackup.click();
+    const buffer = await downloadContents(await fullDownload);
+    expect(JSON.parse(buffer.toString("utf8")).data.events).toEqual([
+      expect.objectContaining({ title: "After opening Your data" }),
+    ]);
+    const csvDownload = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download CSV" }).click();
+    const archive = await csvDownload;
+    expect(archive.suggestedFilename()).toBe("planora-csv.zip");
+    const csv = unzipSync(await downloadContents(archive));
+    expect(Object.keys(csv)).toHaveLength(11);
+    expect(strFromU8(csv["planora-events.csv"])).toContain(
+      "After opening Your data",
+    );
+    await page.getByLabel("Select a Planora backup").setInputFiles({
+      name: "original.json",
+      mimeType: "application/json",
+      buffer,
+    });
+    await page.getByRole("button", { name: "Restore backup" }).click();
+    await addEvent("While the confirmation was open");
+    const safetyDownload = page.waitForEvent("download");
+    await page
+      .getByRole("button", { name: "Restore and replace data" })
+      .click();
+    const safety = await safetyDownload;
+    expect(safety.suggestedFilename()).toMatch(/^planora-before-restore-/);
+    const safetyBackup = JSON.parse(
+      (await downloadContents(safety)).toString("utf8"),
+    );
+    expect(safetyBackup.data.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: "After opening Your data" }),
+        expect.objectContaining({ title: "While the confirmation was open" }),
+      ]),
+    );
+    await expect(page.getByText(/previous data was replaced/i)).toBeVisible({
+      timeout: 15_000,
+    });
+    const restored = await db
+      .from("events")
+      .select("title")
+      .eq("user_id", userId);
+    expect(restored.error).toBeNull();
+    expect(restored.data).toEqual([{ title: "After opening Your data" }]);
+  });
+});
 
 test("restoring the same backup replaces data without duplicates", async () => {
   test.skip(
@@ -140,6 +220,10 @@ test("restoring the same backup replaces data without duplicates", async () => {
       completions: completions.data ?? [],
       templates: templates.data ?? [],
       reminders: reminders.data ?? [],
+      focus_presets: [],
+      focus_sessions: [],
+      focus_intervals: [],
+      focus_goals: [],
     } as unknown as BackupData);
 
     await db.from("tasks").insert({

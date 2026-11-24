@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   BACKUP_SCHEMA_VERSION,
+  BackupSizeError,
+  MAX_BACKUP_BYTES,
+  serializeBackupFile,
   buildCsvExportFiles,
   createBackup,
   focusSessionNotesCsvRows,
@@ -15,6 +18,49 @@ import {
 import { backupFixture, backupIds } from "./backup-fixture";
 
 describe("portable backups", () => {
+  it.each([undefined, null, "5", 1, 3.5, 6])(
+    "refuses an unrecognized portable version %s",
+    (schemaVersion) => {
+      const backup = { ...createBackup(backupFixture()), schemaVersion };
+      expect(parseBackup(JSON.parse(JSON.stringify(backup))).success).toBe(
+        false,
+      );
+    },
+  );
+
+  it.each([
+    "focus_sessions",
+    "focus_intervals",
+    "focus_presets",
+    "focus_goals",
+  ] as const)("refuses a current backup missing %s", (key) => {
+    const backup = createBackup(backupFixture());
+    expect(
+      parseBackup({ ...backup, data: { ...backup.data, [key]: undefined } })
+        .success,
+    ).toBe(false);
+  });
+
+  it("fits the readable JSON to the import byte limit without dropping content", () => {
+    const data = backupFixture();
+    const preferences = { padding: "" };
+    data.profile!.preferences = preferences;
+    const overhead = new TextEncoder().encode(
+      JSON.stringify(createBackup(data)),
+    ).length;
+    preferences.padding = "ñ".repeat(
+      Math.floor((MAX_BACKUP_BYTES - overhead) / 2),
+    );
+    const file = serializeBackupFile(data);
+    expect(new TextEncoder().encode(file).length).toBeLessThanOrEqual(
+      MAX_BACKUP_BYTES,
+    );
+    expect(
+      JSON.parse(file).data.profile.preferences.padding === preferences.padding,
+    ).toBe(true);
+    preferences.padding += "😀";
+    expect(() => serializeBackupFile(data)).toThrow(BackupSizeError);
+  });
   it.each(["metadata", "profile", "reminder", "focus goal"])(
     "rejects an unsupported timezone in %s before restoring",
     (field) => {

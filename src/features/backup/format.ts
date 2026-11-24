@@ -253,10 +253,10 @@ const backupDataSchema = z
     completions: z.array(completionSchema).max(20000),
     templates: z.array(templateSchema).max(500),
     reminders: z.array(reminderSchema).max(1000),
-    focus_presets: z.array(focusPresetSchema).max(200).default([]),
-    focus_sessions: z.array(focusSessionSchema).max(5000).default([]),
-    focus_intervals: z.array(focusIntervalSchema).max(50000).default([]),
-    focus_goals: z.array(focusGoalSchema).max(50).default([]),
+    focus_presets: z.array(focusPresetSchema).max(200),
+    focus_sessions: z.array(focusSessionSchema).max(5000),
+    focus_intervals: z.array(focusIntervalSchema).max(50000),
+    focus_goals: z.array(focusGoalSchema).max(50),
   })
   .superRefine((data, context) => {
     const unique = (name: string, values: string[]) => {
@@ -541,6 +541,21 @@ export function createBackup(data: BackupData): PlanoraBackup {
   });
 }
 
+export class BackupSizeError extends Error {}
+
+/** Keep the JSON readable when possible, and always within the import limit. */
+export function serializeBackupFile(data: BackupData) {
+  const backup = createBackup(data);
+  const encoder = new TextEncoder();
+  const formatted = JSON.stringify(backup, null, 2);
+  if (encoder.encode(formatted).byteLength <= MAX_BACKUP_BYTES)
+    return formatted;
+  const compact = JSON.stringify(backup);
+  if (encoder.encode(compact).byteLength > MAX_BACKUP_BYTES)
+    throw new BackupSizeError("Backup exceeds the restore size limit");
+  return compact;
+}
+
 function legacyBackupId(value: string) {
   const seeds = [2166136261, 2246822519, 3266489917, 668265263];
   const hex = seeds
@@ -725,73 +740,45 @@ export function sanitizeFocusReferences<T extends Record<string, unknown>>(
 }
 
 export function parseBackup(value: unknown) {
-  // Reject unknown future formats before any upgrade path rewrites the version.
-  if (
-    value &&
-    typeof value === "object" &&
-    typeof (value as { schemaVersion?: unknown }).schemaVersion === "number" &&
-    ((value as { schemaVersion: number }).schemaVersion >
-      BACKUP_SCHEMA_VERSION ||
-      (value as { schemaVersion: number }).schemaVersion < 1)
-  ) {
-    return backupSchema.safeParse(value);
-  }
-
-  const normalize = (candidate: unknown) => {
-    if (!candidate || typeof candidate !== "object") return candidate;
-    const root = candidate as Record<string, unknown>;
-    if (!root.data || typeof root.data !== "object") return candidate;
-    return {
-      ...root,
+  if (!value || typeof value !== "object") return backupSchema.safeParse(value);
+  if ("schemaVersion" in value) {
+    const version = value.schemaVersion;
+    if (
+      (version !== 2 &&
+        version !== 3 &&
+        version !== 4 &&
+        version !== BACKUP_SCHEMA_VERSION) ||
+      !("data" in value) ||
+      !value.data ||
+      typeof value.data !== "object"
+    )
+      return backupSchema.safeParse(value);
+    const data = value.data as Record<string, unknown>;
+    return backupSchema.safeParse({
+      ...value,
       schemaVersion: BACKUP_SCHEMA_VERSION,
       data: sanitizeFocusReferences(
-        withFocusDefaults(root.data as Record<string, unknown>),
+        version === BACKUP_SCHEMA_VERSION ? data : withFocusDefaults(data),
       ),
-    };
-  };
-
-  const current = backupSchema.safeParse(normalize(value));
-  if (current.success) return current;
-
-  // Upgrade v2 / v3 portable backups to the current schema.
-  if (
-    value &&
-    typeof value === "object" &&
-    ((value as { schemaVersion?: number }).schemaVersion === 2 ||
-      (value as { schemaVersion?: number }).schemaVersion === 3)
-  ) {
-    const prior = value as {
-      format: string;
-      schemaVersion: number;
-      backupId: string;
-      createdAt: string;
-      exportedBy: string;
-      locale: "es" | "en";
-      timezone: string;
-      data: Record<string, unknown>;
-    };
-    const upgraded = backupSchema.safeParse(normalize(prior));
-    if (upgraded.success) return upgraded;
+    });
   }
 
   const legacy = legacyBackupSchema.safeParse(value);
-  if (!legacy.success) return current;
+  if (!legacy.success) return backupSchema.safeParse(value);
   const profile = legacy.data.data.profile;
-  return backupSchema.safeParse(
-    normalize({
-      format: "planora-backup",
-      schemaVersion: BACKUP_SCHEMA_VERSION,
-      backupId: legacyBackupId(legacy.data.exportedAt),
-      createdAt: legacy.data.exportedAt,
-      exportedBy: "planora",
-      locale: profile?.locale === "en" ? "en" : "es",
-      timezone:
-        typeof profile?.timezone === "string"
-          ? profile.timezone
-          : "Europe/Madrid",
-      data: legacy.data.data,
-    }),
-  );
+  return backupSchema.safeParse({
+    format: "planora-backup",
+    schemaVersion: BACKUP_SCHEMA_VERSION,
+    backupId: legacyBackupId(legacy.data.exportedAt),
+    createdAt: legacy.data.exportedAt,
+    exportedBy: "planora",
+    locale: profile?.locale === "en" ? "en" : "es",
+    timezone:
+      typeof profile?.timezone === "string"
+        ? profile.timezone
+        : "Europe/Madrid",
+    data: sanitizeFocusReferences(withFocusDefaults(legacy.data.data)),
+  });
 }
 
 export function prepareRestorePayload(backup: PlanoraBackup) {

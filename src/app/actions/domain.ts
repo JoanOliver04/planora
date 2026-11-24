@@ -791,8 +791,10 @@ export async function deleteEmptySchedule(value: string) {
   refresh();
 }
 
-export async function restoreBackup(input: unknown) {
+export async function restoreBackup(input: unknown, expectedUserId: string) {
   const { db, user } = await auth();
+  if (user.id !== expectedUserId)
+    throw new Error("Account changed before restore");
   const { assertRestoreAllowed } =
     await import("@/features/backup/restore-security");
   await assertRestoreAllowed(user.id);
