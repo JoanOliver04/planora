@@ -1,77 +1,147 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Cloud, CloudOff, RefreshCw, TriangleAlert } from "lucide-react";
+import { withOfflineLock } from "@/lib/offline/lock";
+import {
+  canUseClientSession,
+  clientSessionGeneration,
+} from "@/lib/security/client-session";
 import { createClient } from "@/lib/supabase/client";
 import {
+  completionQueueKey,
   flushCompletionQueue,
   getQueuedCompletions,
 } from "@/lib/offline/queue";
 import {
+  focusQueueKey,
   flushFocusOfflineQueue,
   getFocusOfflinePendingCount,
 } from "@/features/focus/focus-offline";
 
-export function OfflineStatus({ locale }: { locale: string }) {
+export function OfflineStatus({
+  locale,
+  userId,
+}: {
+  locale: string;
+  userId: string;
+}) {
   const es = locale === "es";
   const [online, setOnline] = useState(true);
   const [pending, setPending] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [conflicts, setConflicts] = useState(0);
-  const syncingRef = useRef(false);
-
-  const countPending = useCallback((userId?: string) => {
-    return (
-      getQueuedCompletions(userId).length + getFocusOfflinePendingCount(userId)
-    );
-  }, []);
-
-  const sync = useCallback(async () => {
-    setOnline(navigator.onLine);
-    setPending(countPending());
-    if (!navigator.onLine || syncingRef.current) return;
-    const db = createClient();
-    const {
-      data: { session },
-    } = await db.auth.getSession();
-    if (!session?.user) return;
-    const ownPending = countPending(session.user.id);
-    setPending(ownPending);
-    if (!ownPending) return;
-    syncingRef.current = true;
-    setSyncing(true);
-    try {
-      const [completions, focus] = await Promise.all([
-        flushCompletionQueue(db, session.user.id),
-        flushFocusOfflineQueue(db, session.user.id),
-      ]);
-      setPending(countPending(session.user.id));
-      setConflicts(completions.conflicts + focus.conflicts);
-      if (!countPending(session.user.id)) {
-        window.dispatchEvent(new CustomEvent("planora-sync-complete"));
-      }
-      if (focus.blocked) {
-        window.dispatchEvent(new CustomEvent("planora-focus-offline-conflict"));
-      }
-    } finally {
-      syncingRef.current = false;
-      setSyncing(false);
-    }
-  }, [countPending]);
-
+  const retry = useRef<() => void>(() => {});
   useEffect(() => {
-    const update = () => void sync();
-    window.addEventListener("online", update);
+    let active = true;
+    let running = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let delay = 5000;
+    let lastCount = 0;
+    const count = () =>
+      getQueuedCompletions(userId).length + getFocusOfflinePendingCount(userId);
+    const updateCount = () => {
+      lastCount = count();
+      setPending(lastCount);
+      setOnline(navigator.onLine);
+      return lastCount;
+    };
+    const sync = async () => {
+      if (!active || !navigator.onLine || running || !updateCount()) return;
+      running = true;
+      setSyncing(true);
+      const generation = clientSessionGeneration(userId);
+      const current = () => active && canUseClientSession(userId, generation);
+      try {
+        await withOfflineLock("sync:" + userId, async () => {
+          if (!current() || !count() || !navigator.onLine) return;
+          const db = createClient();
+          const {
+            data: { session },
+          } = await db.auth.getSession();
+          if (!current() || session?.user.id !== userId) return;
+          const [tasks, focus] = await Promise.allSettled([
+            flushCompletionQueue(db, userId),
+            flushFocusOfflineQueue(db, userId),
+          ]);
+          if (!current()) return;
+          const taskResult =
+            tasks.status === "fulfilled" ? tasks.value : undefined;
+          const focusResult =
+            focus.status === "fulfilled" ? focus.value : undefined;
+          const conflicts =
+            (taskResult?.conflicts ?? 0) + (focusResult?.conflicts ?? 0);
+          if (conflicts) setConflicts((value) => value + conflicts);
+          if (conflicts || taskResult?.synced || focusResult?.synced) {
+            window.dispatchEvent(new CustomEvent("planora-sync-complete"));
+            delay = 5000;
+          }
+          if (focusResult?.blocked)
+            window.dispatchEvent(
+              new CustomEvent("planora-focus-offline-conflict"),
+            );
+        });
+      } catch {
+        // Auth and connectivity can fail before a queue is reached. Retry below.
+      } finally {
+        running = false;
+        if (active) {
+          setSyncing(false);
+          if (
+            updateCount() &&
+            navigator.onLine &&
+            canUseClientSession(userId)
+          ) {
+            timer = setTimeout(() => {
+              timer = undefined;
+              void sync();
+            }, delay);
+            delay = Math.min(delay * 2, 60000);
+          }
+        }
+      }
+    };
+    const update = () => {
+      if (!active) return;
+      const pending = updateCount();
+      if (!navigator.onLine || !pending) {
+        clearTimeout(timer);
+        timer = undefined;
+        delay = 5000;
+      } else if (!timer) void sync();
+    };
+    const retryNow = () => {
+      clearTimeout(timer);
+      timer = undefined;
+      delay = 5000;
+      update();
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (
+        event.key !== completionQueueKey &&
+        event.key !== focusQueueKey &&
+        event.key !== null
+      )
+        return;
+      const previous = lastCount;
+      update();
+      if (previous > lastCount)
+        window.dispatchEvent(new CustomEvent("planora-sync-complete"));
+    };
+    retry.current = retryNow;
+    window.addEventListener("online", retryNow);
     window.addEventListener("offline", update);
     window.addEventListener("planora-offline-queue", update);
-    window.addEventListener("planora-focus-offline", update);
+    window.addEventListener("storage", onStorage);
     queueMicrotask(update);
     return () => {
-      window.removeEventListener("online", update);
+      active = false;
+      clearTimeout(timer);
+      window.removeEventListener("online", retryNow);
       window.removeEventListener("offline", update);
       window.removeEventListener("planora-offline-queue", update);
-      window.removeEventListener("planora-focus-offline", update);
+      window.removeEventListener("storage", onStorage);
     };
-  }, [sync]);
+  }, [userId]);
 
   if (online && !pending && !conflicts) return null;
   return (
@@ -92,7 +162,7 @@ export function OfflineStatus({ locale }: { locale: string }) {
         {!online
           ? es
             ? pending
-              ? `Sin conexión · ${pending} guardado(s) en el dispositivo`
+              ? `Sin conexión · ${pending} ${pending === 1 ? "cambio guardado" : "cambios guardados"} en el dispositivo`
               : "Sin conexión"
             : pending
               ? `Offline · ${pending} saved on this device`
@@ -103,16 +173,16 @@ export function OfflineStatus({ locale }: { locale: string }) {
               : "Syncing…"
             : conflicts
               ? es
-                ? conflicts +
-                  " conflicto(s) de sincronización (se usó el estado del servidor)"
-                : conflicts + " sync conflict(s) (server state was kept)"
+                ? `${conflicts} ${conflicts === 1 ? "conflicto de sincronización" : "conflictos de sincronización"} · Se conservó el estado del servidor`
+                : `${conflicts} sync ${conflicts === 1 ? "conflict" : "conflicts"} · Server state kept`
               : es
-                ? pending + " cambio(s) pendientes de sincronizar"
-                : pending + " pending change(s) to sync"}
+                ? `${pending} ${pending === 1 ? "cambio pendiente" : "cambios pendientes"} de sincronizar`
+                : `${pending} pending ${pending === 1 ? "change" : "changes"} to sync`}
       </span>
       {online && pending > 0 && (
         <button
-          onClick={() => void sync()}
+          disabled={syncing}
+          onClick={() => retry.current()}
           aria-label={es ? "Reintentar sincronización" : "Retry sync"}
         >
           <RefreshCw size={14} />

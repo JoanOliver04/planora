@@ -29,10 +29,7 @@ import {
   fetchActiveFocusSessionFull,
   reconcileFocusSessionFromServer,
 } from "./focus-sync-poll";
-import {
-  clearFocusOfflineQueue,
-  loadCachedFocusSession,
-} from "./focus-offline";
+import { loadCachedFocusSession } from "./focus-offline";
 import { isActiveStatus } from "./time";
 import { createClient } from "@/lib/supabase/client";
 
@@ -253,10 +250,10 @@ export function FocusSessionProvider({
       try {
         const db = createClient();
         const {
-          data: { user },
-        } = await db.auth.getUser();
-        if (!user) return;
-        const cached = loadCachedFocusSession(user.id);
+          data: { session },
+        } = await db.auth.getSession();
+        if (!session?.user) return;
+        const cached = loadCachedFocusSession(session.user.id);
         if (cached && isActiveStatus(cached.status)) {
           setSeed(cached);
           setSeedKey(sessionKey(cached));
@@ -269,18 +266,13 @@ export function FocusSessionProvider({
     })();
   }, [t]);
 
-  // Offline sync conflict: drop local queue tail and re-fetch server authority.
+  // The queue has reconciled its conflicting chain; refresh the visible session.
   useEffect(() => {
     const onConflict = () => {
       toast.error(t("offline.conflict"));
       setControlMode("follower");
       void (async () => {
         try {
-          const db = createClient();
-          const {
-            data: { user },
-          } = await db.auth.getUser();
-          if (user) clearFocusOfflineQueue(user.id);
           const remote = await fetchActiveFocusSessionFull();
           applyRemoteSession(remote, "conflict");
         } catch {

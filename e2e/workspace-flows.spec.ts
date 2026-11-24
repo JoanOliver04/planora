@@ -602,6 +602,14 @@ test("offline completions synchronize once and sign-out closes the private UI", 
         exact: true,
       }),
     ).toBeVisible();
+    const secondTab = await context.newPage();
+    await secondTab.goto("/en/today");
+    await expect(
+      secondTab.getByRole("button", {
+        name: "Mark as complete: QA offline task",
+        exact: true,
+      }),
+    ).toBeVisible();
     await context.setOffline(true);
     await page
       .getByRole("button", {
@@ -615,6 +623,13 @@ test("offline completions synchronize once and sign-out closes the private UI", 
         exact: true,
       }),
     ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      secondTab.getByRole("button", {
+        name: "Completed: QA offline task",
+        exact: true,
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await secondTab.close();
     expect(await count()).toBe(0);
     await context.setOffline(false);
     await expect.poll(count, { timeout: 20_000 }).toBe(1);

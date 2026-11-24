@@ -5,6 +5,7 @@ import { isActiveStatus } from "./time";
 import type { FocusActionResult } from "./errors";
 import type { FocusTransitionInput } from "./validation";
 import { z } from "zod";
+import { withOfflineLock } from "@/lib/offline/lock";
 import {
   focusModeSchema,
   focusPhaseKindSchema,
@@ -22,7 +23,8 @@ type TransitionFn = (
   input: unknown,
 ) => Promise<FocusActionResult<FocusSession>>;
 
-const QUEUE_KEY = "planora-focus-offline-queue-v1";
+export const focusQueueKey = "planora-focus-offline-queue-v1";
+const QUEUE_KEY = focusQueueKey;
 const SESSION_KEY_PREFIX = "planora-focus-session-cache-v1:";
 const PROCESSED_KEY = "planora-focus-offline-processed-v1";
 const MAX_QUEUE = 100;
@@ -182,17 +184,17 @@ function parseQueue(): QueuedFocusTransition[] {
 }
 
 function writeQueue(items: QueuedFocusTransition[]) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") return false;
   try {
-    const bounded = items
-      .filter((item) => canUseClientSession(item.userId))
-      .slice(-MAX_QUEUE);
-    while (bounded.length && JSON.stringify(bounded).length > MAX_STORAGE_SIZE)
-      bounded.shift();
-    window.localStorage.setItem(QUEUE_KEY, JSON.stringify(bounded));
+    const bounded = items.filter((item) => canUseClientSession(item.userId));
+    const raw = JSON.stringify(bounded);
+    if (bounded.length > MAX_QUEUE || raw.length > MAX_STORAGE_SIZE)
+      return false;
+    window.localStorage.setItem(QUEUE_KEY, raw);
     notify();
+    return true;
   } catch {
-    // Quota / private mode — best effort; UI still has in-memory session.
+    return false;
   }
 }
 
@@ -271,56 +273,61 @@ export function getFocusOfflinePendingCount(userId?: string): number {
  * Enqueue a Focus transition for later sync.
  * Dedupes by actionId. Does not create per-second rows — one entry per user action.
  */
-export function enqueueFocusTransition(input: {
+export async function enqueueFocusTransition(input: {
   userId: string;
   actionId: string;
   session: FocusSession;
   expectedRevision: number;
   clientTimestamp?: string | number | Date;
   transition: FocusTransitionInput;
-}): { ok: true } | { ok: false; reason: "duplicate" | "storage" } {
-  if (
-    !canUseClientSession(input.userId) ||
-    input.session.userId !== input.userId ||
-    input.transition.sessionId !== input.session.id ||
-    input.transition.expectedRevision !== input.expectedRevision ||
-    (input.transition.actionId !== undefined &&
-      input.transition.actionId !== input.actionId)
-  )
-    return { ok: false, reason: "storage" };
-  if (wasProcessed(input.actionId)) {
-    return { ok: false, reason: "duplicate" };
-  }
-  const queue = parseQueue();
-  if (queue.some((item) => item.actionId === input.actionId)) {
-    return { ok: false, reason: "duplicate" };
-  }
-
-  const clientTimestamp = toIso(input.clientTimestamp ?? Date.now());
-  const entry: QueuedFocusTransition = {
-    actionId: input.actionId,
-    userId: input.userId,
-    sessionId: input.session.id,
-    expectedRevision: input.expectedRevision,
-    clientTimestamp,
-    queuedAt: new Date().toISOString(),
-    transition: {
-      ...input.transition,
-      sessionId: input.session.id,
-      expectedRevision: input.expectedRevision,
-      clientAt: clientTimestamp,
-      actionId: input.actionId,
-    },
-  };
-
-  if (!isQueuedFocusTransition(entry)) return { ok: false, reason: "storage" };
-
+}): Promise<{ ok: true } | { ok: false; reason: "duplicate" | "storage" }> {
+  const generation = clientSessionGeneration(input.userId);
   try {
-    writeQueue([...queue, entry]);
-    cacheFocusSession(input.userId, input.session);
-    return { ok: true };
+    return await withOfflineLock(QUEUE_KEY, () => {
+      if (
+        !canUseClientSession(input.userId, generation) ||
+        input.session.userId !== input.userId ||
+        input.transition.sessionId !== input.session.id ||
+        input.transition.expectedRevision !== input.expectedRevision ||
+        (input.transition.actionId !== undefined &&
+          input.transition.actionId !== input.actionId)
+      )
+        return { ok: false, reason: "storage" } as const;
+      if (wasProcessed(input.actionId)) {
+        return { ok: false, reason: "duplicate" } as const;
+      }
+      const queue = parseQueue();
+      if (queue.some((item) => item.actionId === input.actionId)) {
+        return { ok: false, reason: "duplicate" } as const;
+      }
+
+      const clientTimestamp = toIso(input.clientTimestamp ?? Date.now());
+      const entry: QueuedFocusTransition = {
+        actionId: input.actionId,
+        userId: input.userId,
+        sessionId: input.session.id,
+        expectedRevision: input.expectedRevision,
+        clientTimestamp,
+        queuedAt: new Date().toISOString(),
+        transition: {
+          ...input.transition,
+          sessionId: input.session.id,
+          expectedRevision: input.expectedRevision,
+          clientAt: clientTimestamp,
+          actionId: input.actionId,
+        },
+      };
+
+      if (!isQueuedFocusTransition(entry))
+        return { ok: false, reason: "storage" } as const;
+
+      if (!writeQueue([...queue, entry]))
+        return { ok: false, reason: "storage" } as const;
+      cacheFocusSession(input.userId, input.session);
+      return { ok: true } as const;
+    });
   } catch {
-    return { ok: false, reason: "storage" };
+    return { ok: false, reason: "storage" } as const;
   }
 }
 
@@ -382,25 +389,13 @@ export function loadCachedFocusSession(userId: string): FocusSession | null {
   }
 }
 
-export function clearFocusOfflineQueue(userId?: string) {
-  if (!userId) {
-    writeQueue([]);
-    return;
-  }
-  writeQueue(parseQueue().filter((item) => item.userId !== userId));
-}
-
-export function clearFocusOfflineData(userId: string) {
-  clearFocusOfflineQueue(userId);
+export async function clearFocusOfflineData(userId: string) {
   if (typeof window === "undefined") return;
   try {
+    await withOfflineLock(QUEUE_KEY, () =>
+      writeQueue(parseQueue().filter((item) => item.userId !== userId)),
+    );
     window.localStorage.removeItem(SESSION_KEY_PREFIX + userId);
-    // Drop processed ids — they are not sensitive but keep storage lean.
-    const processed = parseProcessed();
-    if (processed.length) {
-      // Keep global processed set; actionIds are UUIDs without user prefix.
-      // Safe to leave — bounded list.
-    }
   } catch {
     // ignore
   }
@@ -429,13 +424,11 @@ export async function flushFocusOfflineQueue(
   if (!current()) return stopped();
   const all = parseQueue();
   const own = all.filter((item) => item.userId === userId);
-  const others = all.filter((item) => item.userId !== userId);
 
   let synced = 0;
   let conflicts = 0;
   let blocked = false;
-  const remaining: QueuedFocusTransition[] = [...others];
-  const failed: QueuedFocusTransition[] = [];
+  const settled = new Set<string>();
 
   // Resolve transition only when we actually need the network.
   let transition: TransitionFn | null = deps?.transition ?? null;
@@ -450,13 +443,12 @@ export async function flushFocusOfflineQueue(
     if (!current()) return stopped();
     const item = own[index]!;
     if (wasProcessed(item.actionId)) {
+      settled.add(item.actionId);
       synced += 1;
       continue;
     }
 
     if (typeof navigator !== "undefined" && !navigator.onLine) {
-      failed.push(item);
-      remaining.push(...own.slice(index + 1));
       break;
     }
 
@@ -472,12 +464,20 @@ export async function flushFocusOfflineQueue(
     if (!current()) return stopped();
 
     if (result.ok) {
+      settled.add(item.actionId);
       markProcessed(item.actionId);
       synced += 1;
-      if (isActiveStatus(result.data.status)) {
-        cacheFocusSession(userId, result.data);
-      } else {
-        cacheFocusSession(userId, null);
+      // A newer queued pause/resume has already advanced the local timer.
+      if (
+        !getQueuedFocusTransitions(userId).some(
+          (row) =>
+            row.sessionId === item.sessionId && !settled.has(row.actionId),
+        )
+      ) {
+        cacheFocusSession(
+          userId,
+          isActiveStatus(result.data.status) ? result.data : null,
+        );
       }
       continue;
     }
@@ -487,22 +487,23 @@ export async function flushFocusOfflineQueue(
       conflicts += 1;
       blocked = true;
       // Drop this action and later ones for same session — remote is authority.
-      const restOther = own
-        .slice(index + 1)
-        .filter((entry) => entry.sessionId !== item.sessionId);
-      remaining.push(...restOther);
+      for (const entry of own.slice(index)) {
+        if (entry.sessionId === item.sessionId) settled.add(entry.actionId);
+      }
       markProcessed(item.actionId);
       break;
     }
 
     // Transient / network — stop and keep remaining including this one.
-    failed.push(item);
-    remaining.push(...own.slice(index + 1));
     break;
   }
 
   if (!current()) return stopped();
-  writeQueue([...remaining, ...failed]);
+  if (settled.size)
+    await withOfflineLock(QUEUE_KEY, () => {
+      if (current())
+        writeQueue(parseQueue().filter((item) => !settled.has(item.actionId)));
+    });
   return {
     synced,
     conflicts,

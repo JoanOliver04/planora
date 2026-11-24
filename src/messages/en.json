@@ -1179,7 +1179,8 @@
     "saveError": "The task could not be saved. Your text is still here; check your connection and try again.",
     "refreshError": "The task was saved, but the list could not refresh. Reload the page to see it.",
     "created": "Task created",
-    "offline": "You are offline. Your text stays in this form; reconnect to save it.",
+    "offline": "You are offline. Reconnect to create the task.",
+    "draftUnavailable": "Your browser could not save this draft. Keep this page open to keep your text.",
     "dayChanged": "The day has changed. Review the updated date and save again."
   }
 }

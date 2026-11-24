@@ -14,6 +14,7 @@ import messages from "@/messages/en.json";
 import { QuickTaskCapture } from "@/features/workspace/quick-task-capture";
 import type { WorkspaceData } from "@/features/workspace/types";
 import { saveTask } from "@/app/actions/domain";
+import { quickTaskDraftKey } from "@/lib/workspace/quick-task-draft";
 import * as dates from "@/lib/dates/timezone";
 
 vi.mock("@/app/actions/domain", () => ({ saveTask: vi.fn() }));
@@ -34,14 +35,17 @@ const data = {
   focusPresets: [],
 } as unknown as WorkspaceData;
 let online = true;
-function view(onSaved = vi.fn().mockResolvedValue(undefined)) {
+function view(
+  onSaved = vi.fn().mockResolvedValue(undefined),
+  workspace: WorkspaceData = data,
+) {
   const element = (visible = true) => (
     <NextIntlClientProvider
       locale="en"
       messages={messages}
       timeZone="Europe/Madrid"
     >
-      <QuickTaskCapture data={data} onSaved={onSaved} visible={visible} />
+      <QuickTaskCapture data={workspace} onSaved={onSaved} visible={visible} />
     </NextIntlClientProvider>
   );
   const { rerender } = render(element());
@@ -53,6 +57,7 @@ function view(onSaved = vi.fn().mockResolvedValue(undefined)) {
 }
 beforeEach(() => {
   online = true;
+  localStorage.clear();
   vi.spyOn(navigator, "onLine", "get").mockImplementation(() => online);
   vi.mocked(saveTask)
     .mockReset()
@@ -64,6 +69,76 @@ afterEach(() => {
 });
 
 describe("QuickTaskCapture", () => {
+  it("keeps independent drafts for each account and schedule", async () => {
+    const user = userEvent.setup();
+    await user.type(view().input, "Work draft");
+    cleanup();
+    const otherSchedule = {
+      ...data,
+      profile: { ...data.profile, active_schedule_id: data.schedules[0].id },
+    };
+    const second = view(undefined, otherSchedule);
+    expect(second.input).toHaveValue("");
+    await user.type(second.input, "Evening draft");
+    cleanup();
+    expect(
+      view(undefined, { ...data, user: { id: "other-user" } }).input,
+    ).toHaveValue("");
+    cleanup();
+    expect(view().input).toHaveValue("Work draft");
+    cleanup();
+    expect(view(undefined, otherSchedule).input).toHaveValue("Evening draft");
+  });
+  it("restores literal text and its original day after remounting", async () => {
+    const clock = vi.spyOn(dates, "localDate").mockReturnValue("2026-12-31");
+    const user = userEvent.setup();
+    await user.type(view().input, "Read tomorrow");
+    await user.click(screen.getByRole("checkbox"));
+    cleanup();
+    clock.mockReturnValue("2027-01-01");
+    expect(view().input).toHaveValue("Read tomorrow");
+    expect(screen.getByRole("checkbox")).not.toBeChecked();
+    expect(screen.getByRole("status")).toHaveTextContent("31 Dec 2026");
+  });
+  it("keeps the newer draft from another tab when the submitted version finishes", async () => {
+    let finish!: (value: Awaited<ReturnType<typeof saveTask>>) => void;
+    vi.mocked(saveTask).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    const { input } = view();
+    await user.type(input, "First");
+    await user.click(screen.getByRole("button", { name: "Create task" }));
+    const key = quickTaskDraftKey(data.user.id, active);
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        text: "Second",
+        detect: true,
+        referenceDate: "2026-11-24",
+        revision: "other-tab",
+      }),
+    );
+    await act(async () => {
+      finish({ ok: true, taskId: "first" });
+    });
+    await waitFor(() => expect(input).toHaveValue("Second"));
+    cleanup();
+    expect(view().input).toHaveValue("Second");
+  });
+  it("warns and keeps editable text when the device cannot store a draft", async () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("quota");
+    });
+    const user = userEvent.setup();
+    const { input } = view();
+    await user.type(input, "Read");
+    expect(input).toHaveValue("Read");
+    expect(screen.getByText(messages.QuickAdd.draftUnavailable)).toBeVisible();
+  });
   it("preserves an unfinished capture when day navigation hides empty captures", async () => {
     const user = userEvent.setup(),
       { input, setVisible } = view();

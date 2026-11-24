@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
-import type { WorkspaceData } from "@/features/workspace/types";
+import type { Completion, WorkspaceData } from "@/features/workspace/types";
+import { quickTaskDraftPrefix } from "@/lib/workspace/quick-task-draft";
+import { withOfflineLock } from "./lock";
 import {
   canUseClientSession,
   clientSessionGeneration,
@@ -8,7 +10,8 @@ import {
   privateGlobalStorageKeys,
 } from "@/lib/security/client-session";
 
-const queueKey = "planora-offline-completions-v1";
+export const completionQueueKey = "planora-offline-completions-v1";
+const queueKey = completionQueueKey;
 const cachePrefix = "planora-workspace-cache-v1:";
 const MAX_OFFLINE_STORAGE_BYTES = 500_000;
 const MAX_OFFLINE_ITEMS = 2_000;
@@ -25,7 +28,7 @@ export type QueuedCompletion = {
 
 const MAX_FLUSH_ATTEMPTS = 8;
 const PERMANENT_ERROR =
-  /weekly target|invalid |not found|future occurrence|archived|check violation|23514|23505/i;
+  /weekly target|invalid (one-time |weekday |interval )?occurrence|occurrence outside task dates|task not found|future occurrence|task is archived|check violation|23514|23503/i;
 function isQueuedCompletion(value: unknown): value is QueuedCompletion {
   if (!value || typeof value !== "object") return false;
   const item = value as Record<string, unknown>;
@@ -60,7 +63,13 @@ function trimQueue(items: QueuedCompletion[]): QueuedCompletion[] {
     if (left.queuedAt === right.queuedAt) return left.id < right.id ? -1 : 1;
     return left.queuedAt < right.queuedAt ? -1 : 1;
   });
-  const capped = ordered.slice(-MAX_OFFLINE_ITEMS);
+  const latest = new Map<string, QueuedCompletion>();
+  for (const item of ordered) {
+    const key = JSON.stringify([item.userId, item.taskId, item.occurrenceDate]);
+    latest.delete(key);
+    latest.set(key, item);
+  }
+  const capped = Array.from(latest.values()).slice(-MAX_OFFLINE_ITEMS);
   if (JSON.stringify(capped).length <= MAX_OFFLINE_STORAGE_BYTES) return capped;
   let low = 0;
   let high = capped.length;
@@ -111,25 +120,63 @@ export function getQueuedCompletions(userId?: string) {
   const queue = parseQueue();
   return userId ? queue.filter((item) => item.userId === userId) : queue;
 }
-export function enqueueCompletion(
+export function projectQueuedCompletions(
+  remote: Completion[],
+  queued: QueuedCompletion[],
+): Completion[] {
+  if (!queued.length) return remote;
+  const key = (taskId: string, day: string) => JSON.stringify([taskId, day]);
+  const rows = new Map(
+    remote.map((row) => [key(row.task_id, row.occurrence_date), row]),
+  );
+  for (const item of queued) {
+    const occurrence = key(item.taskId, item.occurrenceDate);
+    if (!item.completed) rows.delete(occurrence);
+    else if (!rows.has(occurrence))
+      rows.set(occurrence, {
+        id: item.id,
+        user_id: item.userId,
+        task_id: item.taskId,
+        occurrence_date: item.occurrenceDate,
+        completed_at: item.queuedAt,
+        task_snapshot: item.snapshot,
+      });
+  }
+  return [...rows.values()];
+}
+
+export async function enqueueCompletion(
   item: Omit<QueuedCompletion, "id" | "queuedAt">,
 ) {
-  if (!canUseClientSession(item.userId)) return;
-  const stored = readStoredQueue();
-  const queue = (stored.corrupt ? [] : stored.items).filter(
-    (queued) =>
-      !(
-        queued.userId === item.userId &&
-        queued.taskId === item.taskId &&
-        queued.occurrenceDate === item.occurrenceDate
-      ),
-  );
-  queue.push({
-    ...item,
-    id: crypto.randomUUID(),
-    queuedAt: new Date().toISOString(),
-  });
-  persistQueue(trimQueue(queue));
+  const generation = clientSessionGeneration(item.userId);
+  try {
+    return await withOfflineLock(queueKey, () => {
+      if (!canUseClientSession(item.userId, generation)) return false;
+      const stored = readStoredQueue();
+      const queue = (stored.corrupt ? [] : stored.items).filter(
+        (queued) =>
+          !(
+            queued.userId === item.userId &&
+            queued.taskId === item.taskId &&
+            queued.occurrenceDate === item.occurrenceDate
+          ),
+      );
+      queue.push({
+        ...item,
+        id: crypto.randomUUID(),
+        queuedAt: new Date().toISOString(),
+      });
+      if (
+        queue.length > MAX_OFFLINE_ITEMS ||
+        JSON.stringify(queue).length > MAX_OFFLINE_STORAGE_BYTES
+      )
+        return false;
+      persistQueue(queue);
+      return true;
+    });
+  } catch {
+    return false;
+  }
 }
 export async function flushCompletionQueue(
   db: SupabaseClient<Database>,
@@ -143,9 +190,10 @@ export async function flushCompletionQueue(
   if (stored.corrupt) {
     return { synced: 0, conflicts: 0, remaining: 0 };
   }
-  const all = stored.items,
-    own = all.filter((item) => item.userId === userId);
-  const remaining = all.filter((item) => item.userId !== userId);
+  const own = stored.items.filter((item) => item.userId === userId);
+  const settled = new Set<string>();
+  // A new toggle can be queued while its predecessor is writing to the server.
+  const acknowledged = new Map<string, string>();
   let synced = 0,
     conflicts = 0;
   for (const item of own) {
@@ -153,15 +201,16 @@ export async function flushCompletionQueue(
     const { data: existing, error: readError } = await db
       .from("task_completions")
       .select("id,completed_at")
+      .eq("user_id", userId)
       .eq("task_id", item.taskId)
       .eq("occurrence_date", item.occurrenceDate)
       .maybeSingle();
     if (!current()) return stopped();
     if (readError) {
-      remaining.push(item);
       continue;
     }
     if (Boolean(existing) === item.completed) {
+      settled.add(item.id);
       synced += 1;
       continue;
     }
@@ -169,22 +218,26 @@ export async function flushCompletionQueue(
       existing?.completed_at &&
       new Date(existing.completed_at) > new Date(item.queuedAt)
     ) {
+      settled.add(item.id);
       conflicts += 1;
       continue;
     }
-    const { data: observed } = await db
+    const { data: observed, error: stateError } = await db
       .from("task_occurrence_state")
       .select("last_action, changed_at")
+      .eq("user_id", userId)
       .eq("task_id", item.taskId)
       .eq("occurrence_date", item.occurrenceDate)
       .maybeSingle();
     if (!current()) return stopped();
+    if (stateError) continue;
     if (
       observed?.changed_at &&
       new Date(observed.changed_at) > new Date(item.queuedAt) &&
       ((item.completed && observed.last_action === "uncomplete") ||
         (!item.completed && observed.last_action === "complete"))
     ) {
+      settled.add(item.id);
       conflicts += 1;
       continue;
     }
@@ -198,27 +251,54 @@ export async function flushCompletionQueue(
       : await db
           .from("task_completions")
           .delete()
+          .eq("user_id", userId)
+          .eq("id", existing!.id)
           .eq("task_id", item.taskId)
           .eq("occurrence_date", item.occurrenceDate);
     if (!current()) return stopped();
     if (!result.error) {
+      acknowledged.set(
+        JSON.stringify([item.taskId, item.occurrenceDate]),
+        new Date().toISOString(),
+      );
+      settled.add(item.id);
       synced += 1;
       continue;
     }
     const message = `${result.error.code ?? ""} ${result.error.message ?? ""}`;
-    const attempts = (item.attempts ?? 0) + 1;
-    if (PERMANENT_ERROR.test(message) || attempts >= MAX_FLUSH_ATTEMPTS) {
+    if (PERMANENT_ERROR.test(message)) {
+      settled.add(item.id);
       conflicts += 1;
       continue;
     }
-    remaining.push({ ...item, attempts });
   }
   if (!current()) return stopped();
-  persistQueue(remaining.filter((item) => canUseClientSession(item.userId)));
+  const remaining = await withOfflineLock(queueKey, () => {
+    if (!current()) return 0;
+    const latest = readStoredQueue();
+    let changed = false;
+    const kept = latest.items
+      .filter((item) => !settled.has(item.id))
+      .map((item) => {
+        const ack =
+          item.userId === userId
+            ? acknowledged.get(
+                JSON.stringify([item.taskId, item.occurrenceDate]),
+              )
+            : undefined;
+        if (!ack || ack <= item.queuedAt) return item;
+        // Order this later local intent after the write that just completed.
+        changed = true;
+        return { ...item, queuedAt: ack };
+      });
+    if (!latest.corrupt && (changed || kept.length !== latest.items.length))
+      persistQueue(kept);
+    return kept.filter((item) => item.userId === userId).length;
+  });
   return {
     synced,
     conflicts,
-    remaining: remaining.filter((item) => item.userId === userId).length,
+    remaining,
   };
 }
 export function cacheWorkspace(scope: string, data: WorkspaceData) {
@@ -277,20 +357,23 @@ export async function clearPrivateOfflineData(userId: string) {
     // These legacy global stores contain titles, schedule drafts or complete
     // Focus snapshots. They cannot safely carry over to another account.
     for (const key of privateGlobalStorageKeys) localStorage.removeItem(key);
-    const stored = readStoredQueue();
-    if (stored.corrupt) localStorage.removeItem(queueKey);
-    else {
-      try {
-        persistQueue(stored.items.filter((item) => item.userId !== userId));
-      } catch {
-        localStorage.removeItem(queueKey);
+    await withOfflineLock(queueKey, () => {
+      const stored = readStoredQueue();
+      if (stored.corrupt) localStorage.removeItem(queueKey);
+      else {
+        try {
+          persistQueue(stored.items.filter((item) => item.userId !== userId));
+        } catch {
+          localStorage.removeItem(queueKey);
+        }
       }
-    }
-
+    });
+    const draftPrefix = quickTaskDraftPrefix(userId);
     const workspacePrefix = cachePrefix + userId + ":";
     for (let index = localStorage.length - 1; index >= 0; index -= 1) {
       const key = localStorage.key(index);
-      if (key?.startsWith(workspacePrefix)) localStorage.removeItem(key);
+      if (key?.startsWith(workspacePrefix) || key?.startsWith(draftPrefix))
+        localStorage.removeItem(key);
     }
   } catch {
     // Storage may be unavailable; still clear the other private stores below.
@@ -305,7 +388,7 @@ export async function clearPrivateOfflineData(userId: string) {
   try {
     const { clearFocusOfflineData } =
       await import("@/features/focus/focus-offline");
-    clearFocusOfflineData(userId);
+    await clearFocusOfflineData(userId);
   } catch {
     // Focus module optional during early boot
   }

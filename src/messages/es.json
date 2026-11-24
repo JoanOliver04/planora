@@ -1179,7 +1179,8 @@
     "saveError": "No se ha podido guardar la tarea. El texto sigue aquí; comprueba tu conexión y vuelve a intentarlo.",
     "refreshError": "La tarea está guardada, pero no se ha podido actualizar la lista. Recarga la página para verla.",
     "created": "Tarea creada",
-    "offline": "Sin conexión. El texto se mantiene en este formulario; vuelve a conectarte para guardarlo.",
+    "offline": "Sin conexión. Podrás crear la tarea cuando vuelvas a conectarte.",
+    "draftUnavailable": "El navegador no puede guardar este borrador. Mantén abierta esta página para conservarlo.",
     "dayChanged": "Ha cambiado el día. Revisa la fecha actualizada y vuelve a guardar."
   }
 }

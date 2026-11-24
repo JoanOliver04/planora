@@ -41,11 +41,13 @@ export function TaskCard({
     [optimisticCompletion, setOptimisticCompletion] = useState<{
       occurrenceDate?: string;
       done: boolean;
+      source: boolean;
     } | null>(null),
     [noteOpen, setNoteOpen] = useState(false),
     [togglePending, setTogglePending] = useState(false),
     done =
       optimisticCompletion &&
+      optimisticCompletion.source === Boolean(completion) &&
       optimisticCompletion.occurrenceDate === occurrenceDate
         ? optimisticCompletion.done
         : Boolean(completion),
@@ -68,6 +70,14 @@ export function TaskCard({
       progress,
       task.scope === "global" ? t("global") : null,
     ]);
+
+  if (
+    optimisticCompletion &&
+    (optimisticCompletion.source !== Boolean(completion) ||
+      optimisticCompletion.occurrenceDate !== occurrenceDate)
+  ) {
+    setOptimisticCompletion(null);
+  }
 
   const categoryColor = category?.colour;
   const categoryAccent = categoryColor ? accessibleAccent(categoryColor) : null;
@@ -99,14 +109,15 @@ export function TaskCard({
           aria-label={`${done ? t("completed") : t("markComplete")}: ${task.title}`}
           onClick={async () => {
             const previous = done;
-            setOptimisticCompletion({ occurrenceDate, done: !previous });
+            setOptimisticCompletion({
+              occurrenceDate,
+              done: !previous,
+              source: Boolean(completion),
+            });
             setTogglePending(true);
             try {
               const success = await onToggle(!previous);
-              setOptimisticCompletion({
-                occurrenceDate,
-                done: success ? !previous : previous,
-              });
+              if (!success) setOptimisticCompletion(null);
             } finally {
               setTogglePending(false);
             }

@@ -9,12 +9,18 @@ import { isTaskFocusActionAvailable } from "@/features/focus/task-link";
 import { useRouter } from "@/i18n/routing";
 import { localDate, localWeek, zonedDate } from "@/lib/dates/timezone";
 import { isCalendarDay, shiftCalendarDay } from "@/lib/dates/calendar-day";
-import { enqueueCompletion } from "@/lib/offline/queue";
+import {
+  completionQueueKey,
+  enqueueCompletion,
+  getQueuedCompletions,
+  projectQueuedCompletions,
+  type QueuedCompletion,
+} from "@/lib/offline/queue";
 import { normalizePreferences } from "@/lib/preferences";
 import { calculateWeeklyProgress, classifyDayPart } from "@/lib/recurrence";
 import { Plus, RotateCcw } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   canToggleOccurrence,
@@ -46,7 +52,10 @@ async function toggle(
       task,
       day,
       localDate(data.profile.timezone),
-      data.completions,
+      projectQueuedCompletions(
+        data.completions,
+        getQueuedCompletions(data.user.id),
+      ),
       data.profile.week_starts_on === 0 ? 0 : 1,
     )
   ) {
@@ -64,15 +73,21 @@ async function toggle(
     category_name: cat?.name ?? null,
     category_colour: cat?.colour ?? null,
   };
-  if (!navigator.onLine) {
-    enqueueCompletion({
+  if (
+    !navigator.onLine ||
+    getQueuedCompletions(data.user.id).some(
+      (item) => item.taskId === task.id && item.occurrenceDate === day,
+    )
+  ) {
+    const saved = await enqueueCompletion({
       userId: data.user.id,
       taskId: task.id,
       occurrenceDate: day,
       completed,
       snapshot,
     });
-    return true;
+    if (!saved) toast.error(errorMessage);
+    return saved;
   }
   if (Boolean(old) === completed) return true;
   const q = old
@@ -93,7 +108,7 @@ async function toggle(
 }
 
 export function TodayView({
-  data,
+  data: remote,
   db,
   reload,
   loadDate,
@@ -103,6 +118,30 @@ export function TodayView({
   reload: () => Promise<void>;
   loadDate: (day: string, weekStartsOn: 0 | 1) => Promise<boolean>;
 }) {
+  const [queued, setQueued] = useState<QueuedCompletion[]>([]);
+  useEffect(() => {
+    const update = () => setQueued(getQueuedCompletions(remote.user.id));
+    const storage = (event: StorageEvent) => {
+      if (event.key === completionQueueKey || event.key === null) update();
+    };
+    update();
+    window.addEventListener("planora-offline-queue", update);
+    window.addEventListener("storage", storage);
+    return () => {
+      window.removeEventListener("planora-offline-queue", update);
+      window.removeEventListener("storage", storage);
+    };
+  }, [remote.user.id]);
+  const data = useMemo(
+    () => ({
+      ...remote,
+      completions: projectQueuedCompletions(
+        remote.completions,
+        queued.filter((item) => item.userId === remote.user.id),
+      ),
+    }),
+    [remote, queued],
+  );
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
     router = useRouter(),
@@ -345,7 +384,7 @@ export function TodayView({
                   onToggle={(completed) =>
                     toggle(
                       db,
-                      data,
+                      remote,
                       task,
                       task.start_date,
                       completed,
@@ -435,7 +474,7 @@ export function TodayView({
                     onToggle={(completed) =>
                       toggle(
                         db,
-                        data,
+                        remote,
                         task,
                         day,
                         completed,

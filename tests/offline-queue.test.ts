@@ -57,21 +57,68 @@ describe("offline queue", () => {
     activateClientSession("other");
   });
 
-  it("keeps only the latest intent for each task occurrence", () => {
+  it("keeps only the latest intent for each task occurrence", async () => {
     const base = {
       userId: "user",
       taskId: "task",
       occurrenceDate: "2026-08-01",
       snapshot: { title: "Read" },
     };
-    enqueueCompletion({ ...base, completed: true });
-    enqueueCompletion({ ...base, completed: false });
+    await enqueueCompletion({ ...base, completed: true });
+    await enqueueCompletion({ ...base, completed: false });
     expect(getQueuedCompletions("user")).toHaveLength(1);
     expect(getQueuedCompletions("user")[0].completed).toBe(false);
   });
 
+  it("keeps edits made while an earlier completion is being sent", async () => {
+    const item = {
+      userId: "user",
+      taskId: "first",
+      occurrenceDate: "2026-08-01",
+      completed: true,
+      snapshot: {},
+    };
+    await enqueueCompletion(item);
+    let finish!: (value: { error: null }) => void;
+    const { db, insert } = database(null);
+    insert.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const sync = flushCompletionQueue(db, "user");
+    await vi.waitFor(() => expect(insert).toHaveBeenCalledOnce());
+    await enqueueCompletion({ ...item, completed: false });
+    await enqueueCompletion({ ...item, taskId: "second" });
+    finish({ error: null });
+    expect((await sync).remaining).toBe(2);
+    expect(getQueuedCompletions("user")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ taskId: "first", completed: false }),
+        expect.objectContaining({ taskId: "second", completed: true }),
+      ]),
+    );
+  });
+  it("keeps a pending change through repeated temporary failures", async () => {
+    await enqueueCompletion({
+      userId: "user",
+      taskId: "first",
+      occurrenceDate: "2026-08-01",
+      completed: true,
+      snapshot: {},
+    });
+    const { db, insert } = database(null);
+    insert.mockResolvedValue({
+      error: { code: "503", message: "Upstream host not found" },
+    });
+    for (let attempt = 0; attempt < 10; attempt++)
+      expect((await flushCompletionQueue(db, "user")).remaining).toBe(1);
+    insert.mockResolvedValue({ error: null });
+    expect((await flushCompletionQueue(db, "user")).synced).toBe(1);
+  });
   it("flushes supported changes and reports newer remote conflicts", async () => {
-    enqueueCompletion({
+    await enqueueCompletion({
       userId: "user",
       taskId: "task",
       occurrenceDate: "2026-08-01",
@@ -97,20 +144,22 @@ describe("offline queue", () => {
       "planora-notice-ledger-v1",
     ])
       localStorage.setItem(key, "private title or snapshot");
-    enqueueCompletion({
+    await enqueueCompletion({
       userId: "user",
       taskId: "private-task",
       occurrenceDate: "2026-08-01",
       completed: true,
       snapshot: { title: "Private" },
     });
-    enqueueCompletion({
+    await enqueueCompletion({
       userId: "other",
       taskId: "other-task",
       occurrenceDate: "2026-08-01",
       completed: true,
       snapshot: {},
     });
+    localStorage.setItem("planora-quick-task-draft-v1:user:work", "private");
+    localStorage.setItem("planora-quick-task-draft-v1:other:work", "other");
     localStorage.setItem("planora-workspace-cache-v1:user:today", "private");
     localStorage.setItem("planora-workspace-cache-v1:other:today", "other");
 
@@ -130,6 +179,12 @@ describe("offline queue", () => {
     expect(
       localStorage.getItem("planora-workspace-cache-v1:user:today"),
     ).toBeNull();
+    expect(
+      localStorage.getItem("planora-quick-task-draft-v1:user:work"),
+    ).toBeNull();
+    expect(localStorage.getItem("planora-quick-task-draft-v1:other:work")).toBe(
+      "other",
+    );
     expect(localStorage.getItem("planora-workspace-cache-v1:other:today")).toBe(
       "other",
     );
@@ -150,7 +205,7 @@ describe("offline queue", () => {
   });
 
   it("drops permanently rejected completions instead of looping them", async () => {
-    enqueueCompletion({
+    await enqueueCompletion({
       userId: "user",
       taskId: "task",
       occurrenceDate: "2026-08-01",
@@ -176,7 +231,7 @@ describe("offline queue", () => {
   });
 
   it("does not resurrect a completion after a newer remote uncomplete", async () => {
-    enqueueCompletion({
+    await enqueueCompletion({
       userId: "user",
       taskId: "task",
       occurrenceDate: "2026-08-01",
@@ -193,7 +248,7 @@ describe("offline queue", () => {
     expect(getQueuedCompletions("user")).toHaveLength(0);
   });
 
-  it("trims an oversized queue instead of wiping it", () => {
+  it("trims an oversized queue instead of wiping it", async () => {
     const items = Array.from({ length: 2_000 }, (_, index) => ({
       id: String(index).padStart(4, "0"),
       userId: "user",
@@ -216,7 +271,7 @@ describe("offline queue", () => {
     expect(queued.some((item) => item.id === "0000")).toBe(false);
     expect(JSON.parse(stored)).toHaveLength(queued.length);
 
-    enqueueCompletion({
+    await enqueueCompletion({
       userId: "user",
       taskId: "fresh",
       occurrenceDate: "2026-08-02",
@@ -245,7 +300,7 @@ describe("offline queue", () => {
     expect(getQueuedCompletions()).toEqual([]);
     expect(localStorage.getItem("planora-offline-completions-v1")).toBe("{");
 
-    enqueueCompletion({
+    await enqueueCompletion({
       userId: "user",
       taskId: "task",
       occurrenceDate: "2026-08-01",
@@ -289,7 +344,7 @@ describe("offline queue", () => {
   });
 
   it("does not let a stale flush restore private data after logout and a new sign-in", async () => {
-    enqueueCompletion({
+    await enqueueCompletion({
       userId: "user",
       taskId: "old",
       occurrenceDate: "2026-08-01",
@@ -316,7 +371,7 @@ describe("offline queue", () => {
       localStorage.getItem("planora-workspace-cache-v1:user:today"),
     ).toBeNull();
     activateClientSession("user");
-    enqueueCompletion({
+    await enqueueCompletion({
       userId: "user",
       taskId: "fresh",
       occurrenceDate: "2026-08-01",

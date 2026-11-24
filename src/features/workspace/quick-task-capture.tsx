@@ -7,6 +7,14 @@ import {
   parseQuickTask,
   type QuickTaskValues,
 } from "@/lib/workspace/quick-task";
+import {
+  finishQuickTaskDraft,
+  quickTaskDraftKey,
+  readQuickTaskDraft,
+  writeQuickTaskDraft,
+  type QuickTaskDraft,
+} from "@/lib/workspace/quick-task-draft";
+import { canUseClientSession } from "@/lib/security/client-session";
 import { Plus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -21,15 +29,26 @@ import { toast } from "sonner";
 import { TaskForm } from "./task-form";
 import type { WorkspaceData } from "./types";
 
-export function QuickTaskCapture({
-  data,
-  onSaved,
-  visible = true,
-}: {
+type CaptureProps = {
   data: WorkspaceData;
   onSaved: () => Promise<void>;
   visible?: boolean;
-}) {
+};
+
+export function QuickTaskCapture(props: CaptureProps) {
+  const key = quickTaskDraftKey(
+    props.data.user.id,
+    props.data.profile.active_schedule_id,
+  );
+  return <CaptureForm key={key} storageKey={key} {...props} />;
+}
+
+function CaptureForm({
+  data,
+  onSaved,
+  visible = true,
+  storageKey,
+}: CaptureProps & { storageKey: string }) {
   const t = useTranslations("QuickAdd");
   const workspace = useTranslations("Workspace");
   const locale = useLocale() as "es" | "en";
@@ -37,15 +56,89 @@ export function QuickTaskCapture({
   const input = useRef<HTMLInputElement>(null);
   const submitting = useRef(false);
   const focusAfterSave = useRef(false);
-  const [text, setText] = useState("");
-  const [detect, setDetect] = useState(true);
+  const userId = data.user.id;
+  const today = () => localDate(data.profile.timezone);
+  const [entry, setEntry] = useState<QuickTaskDraft>(() => ({
+    text: "",
+    detect: true,
+    referenceDate: today(),
+    revision: "",
+  }));
+  const { text, detect, referenceDate } = entry;
+  const [storageFailed, setStorageFailed] = useState(false);
+  const writes = useRef(0);
   const [online, setOnline] = useState(true);
   const [error, setError] = useState("");
-  const [advanced, setAdvanced] = useState<QuickTaskValues | null>(null);
+  const [advanced, setAdvanced] = useState<{
+    values: QuickTaskValues;
+    revision: string;
+  } | null>(null);
   const [pending, startTransition] = useTransition();
-  const [referenceDate, setReferenceDate] = useState(() =>
-    localDate(data.profile.timezone),
-  );
+  useEffect(() => {
+    const restore = () => {
+      if (writes.current || !canUseClientSession(userId)) return;
+      try {
+        const saved = readQuickTaskDraft(storageKey);
+        setEntry(
+          saved ?? {
+            text: "",
+            detect: true,
+            referenceDate: localDate(data.profile.timezone),
+            revision: "",
+          },
+        );
+        setStorageFailed(false);
+        setError("");
+      } catch {
+        setStorageFailed(true);
+      }
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === storageKey || event.key === null) restore();
+    };
+    restore();
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [storageKey, userId, data.profile.timezone]);
+
+  function editDraft(
+    update: Partial<Pick<QuickTaskDraft, "text" | "detect" | "referenceDate">>,
+  ) {
+    const next = { ...entry, ...update, revision: crypto.randomUUID() };
+    setEntry(next);
+    writes.current++;
+    void writeQuickTaskDraft(storageKey, userId, next)
+      .then(
+        () => setStorageFailed(false),
+        () => setStorageFailed(true),
+      )
+      .finally(() => {
+        writes.current--;
+      });
+  }
+
+  async function clearSubmitted(revision: string) {
+    try {
+      const latest = await finishQuickTaskDraft(storageKey, userId, revision);
+      setEntry((current) =>
+        current.revision === revision
+          ? (latest ?? {
+              text: "",
+              detect: true,
+              referenceDate: today(),
+              revision: "",
+            })
+          : current,
+      );
+    } catch {
+      setStorageFailed(true);
+      setEntry((current) =>
+        current.revision === revision
+          ? { text: "", detect: true, referenceDate: today(), revision: "" }
+          : current,
+      );
+    }
+  }
   const draft = parseQuickTask(text, referenceDate, detect);
   const schedule = data.schedules.find(
     (item) => item.id === data.profile.active_schedule_id && !item.is_archived,
@@ -99,7 +192,7 @@ export function QuickTaskCapture({
       parseQuickTask(text, currentDate, detect).values.startDate !==
         values.startDate
     ) {
-      setReferenceDate(currentDate);
+      editDraft({ referenceDate: currentDate });
       setError(t("dayChanged"));
       return;
     }
@@ -118,8 +211,7 @@ export function QuickTaskCapture({
           setError(t("saveError"));
           return;
         }
-        setText("");
-        setDetect(true);
+        await clearSubmitted(entry.revision);
         focusAfterSave.current = true;
         toast.success(t("created"));
         try {
@@ -152,12 +244,13 @@ export function QuickTaskCapture({
             }
             onClick={(event) => {
               event.currentTarget.focus();
-              setAdvanced(
-                text.trim()
+              setAdvanced({
+                revision: entry.revision,
+                values: text.trim()
                   ? values
                   : parseQuickTask("", localDate(data.profile.timezone), detect)
                       .values,
-              );
+              });
             }}
           >
             {t("more")}
@@ -180,9 +273,10 @@ export function QuickTaskCapture({
             }
             aria-invalid={Boolean(issue)}
             onChange={(event) => {
-              if (!text.trim())
-                setReferenceDate(localDate(data.profile.timezone));
-              setText(event.target.value);
+              editDraft({
+                text: event.target.value,
+                referenceDate: text.trim() ? referenceDate : today(),
+              });
               setError("");
             }}
           />
@@ -217,6 +311,11 @@ export function QuickTaskCapture({
             {message}
           </p>
         )}
+        {storageFailed && text && (
+          <p className="quick-task-error" role="status">
+            {t("draftUnavailable")}
+          </p>
+        )}
         {!online && (
           <p className="quick-task-error" role="status">
             {t("offline")}
@@ -231,7 +330,7 @@ export function QuickTaskCapture({
                 checked={detect}
                 disabled={pending}
                 onChange={(event) => {
-                  setDetect(event.target.checked);
+                  editDraft({ detect: event.target.checked });
                   setError("");
                 }}
               />
@@ -250,11 +349,10 @@ export function QuickTaskCapture({
           categories={data.categories}
           focusPresets={data.focusPresets ?? []}
           timezone={data.profile.timezone}
-          defaultDraft={advanced}
+          defaultDraft={advanced.values}
           defaultScheduleId={schedule?.id}
           onSaved={async () => {
-            setText("");
-            setDetect(true);
+            await clearSubmitted(advanced.revision);
             setError("");
             try {
               await onSaved();

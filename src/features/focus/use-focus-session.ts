@@ -27,7 +27,11 @@ import {
   reacquireFocusWakeLockIfNeeded,
   syncFocusWakeLock,
 } from "./focus-wake-lock";
-import { cacheFocusSession, enqueueFocusTransition } from "./focus-offline";
+import {
+  cacheFocusSession,
+  enqueueFocusTransition,
+  getQueuedFocusTransitions,
+} from "./focus-offline";
 import type { FocusTransitionInput } from "./validation";
 
 export type UseFocusSessionOptions = {
@@ -168,9 +172,8 @@ export function useFocusSession(
         const offline =
           typeof navigator !== "undefined" && navigator.onLine === false;
 
-        if (offline) {
-          // Policy: continue known sessions offline; never invent remote rows per tick.
-          const queued = enqueueFocusTransition({
+        const saveLocally = async () => {
+          const queued = await enqueueFocusTransition({
             userId: current.userId,
             actionId,
             session: nextLocal,
@@ -180,6 +183,7 @@ export function useFocusSession(
           });
           if (!queued.ok && queued.reason === "storage") {
             toast.error(t("offline.storageFull"));
+            return;
           } else {
             toast.message(t("offline.savedLocally"));
           }
@@ -195,10 +199,24 @@ export function useFocusSession(
             cacheFocusSession(current.userId, null);
             optionsRef.current.onTerminal?.(nextLocal);
           }
+        };
+        if (
+          offline ||
+          getQueuedFocusTransitions(current.userId).some(
+            (item) => item.sessionId === current.id,
+          )
+        ) {
+          await saveLocally();
           return;
         }
 
-        const result = await transitionFocusSessionAction(payload);
+        let result;
+        try {
+          result = await transitionFocusSessionAction(payload);
+        } catch {
+          await saveLocally();
+          return;
+        }
         if (!result?.ok) {
           const code = result && !result.ok ? result.error.code : null;
           if (code === "REVISION_CONFLICT") {
@@ -219,27 +237,7 @@ export function useFocusSession(
             return;
           }
           if (code === "DATABASE_ERROR") {
-            enqueueFocusTransition({
-              userId: current.userId,
-              actionId,
-              session: nextLocal,
-              expectedRevision: current.revision,
-              clientTimestamp: clientAt,
-              transition: payload,
-            });
-            setSession(nextLocal);
-            sessionRef.current = nextLocal;
-            setNow(wall);
-            cacheFocusSession(current.userId, nextLocal);
-            optionsRef.current.onSessionCommitted?.(nextLocal, action.type);
-            toast.message(t("offline.savedLocally"));
-            if (
-              nextLocal.status === "completed" ||
-              nextLocal.status === "cancelled"
-            ) {
-              cacheFocusSession(current.userId, null);
-              optionsRef.current.onTerminal?.(nextLocal);
-            }
+            await saveLocally();
             return;
           }
           toast.error(t("engine.persistError"));
@@ -283,14 +281,19 @@ export function useFocusSession(
     void (async () => {
       const offline =
         typeof navigator !== "undefined" && navigator.onLine === false;
-      if (offline) {
+      if (
+        offline ||
+        getQueuedFocusTransitions(current.userId).some(
+          (item) => item.sessionId === current.id,
+        )
+      ) {
         // Continue known session offline: project recovery locally and queue.
         const actionId =
           typeof crypto !== "undefined" && "randomUUID" in crypto
             ? crypto.randomUUID()
             : `recover-${wall}`;
         const clientAt = new Date(wall).toISOString();
-        enqueueFocusTransition({
+        const queued = await enqueueFocusTransition({
           userId: current.userId,
           actionId,
           session: prep.session,
@@ -305,6 +308,10 @@ export function useFocusSession(
           },
         });
         if (cancelled) return;
+        if (!queued.ok && queued.reason === "storage") {
+          toast.error(t("offline.storageFull"));
+          return;
+        }
         setSession(prep.session);
         sessionRef.current = prep.session;
         setRecoveredNotice(true);
@@ -356,7 +363,7 @@ export function useFocusSession(
     return () => {
       cancelled = true;
     };
-  }, [session, router]);
+  }, [session, router, t]);
 
   // UI ticker only — never writes to Supabase.
   useEffect(() => {

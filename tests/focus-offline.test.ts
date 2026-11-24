@@ -65,7 +65,7 @@ describe("focus offline policy", () => {
 });
 
 describe("focus offline queue", () => {
-  it("rejects oversized storage before parsing and mismatched transition identifiers", () => {
+  it("rejects oversized storage before parsing and mismatched transition identifiers", async () => {
     localStorage.setItem("planora-focus-offline-queue-v1", " ".repeat(500_001));
     const parse = vi.spyOn(JSON, "parse");
     expect(getQueuedFocusTransitions()).toEqual([]);
@@ -73,7 +73,7 @@ describe("focus offline queue", () => {
     parse.mockRestore();
     localStorage.removeItem("planora-focus-offline-queue-v1");
     const session = startSession();
-    enqueueFocusTransition({
+    await enqueueFocusTransition({
       userId: "user-1",
       actionId: "11111111-1111-4111-8111-111111111111",
       session,
@@ -114,7 +114,7 @@ describe("focus offline queue", () => {
     cacheFocusSession("user-1", { ...session, userId: "other" });
     expect(localStorage.getItem(key)).toBeNull();
   });
-  it("enqueues pause transitions with idempotent action ids", () => {
+  it("enqueues pause transitions with idempotent action ids", async () => {
     const session = startSession();
     const paused = applyFocusAction(
       session,
@@ -126,7 +126,7 @@ describe("focus offline queue", () => {
       },
     ).session;
 
-    const first = enqueueFocusTransition({
+    const first = await enqueueFocusTransition({
       userId: "user-1",
       actionId: "11111111-1111-4111-8111-111111111111",
       session: paused,
@@ -138,7 +138,7 @@ describe("focus offline queue", () => {
         expectedRevision: session.revision,
       },
     });
-    const dup = enqueueFocusTransition({
+    const dup = await enqueueFocusTransition({
       userId: "user-1",
       actionId: "11111111-1111-4111-8111-111111111111",
       session: paused,
@@ -158,7 +158,7 @@ describe("focus offline queue", () => {
     ).toBe(true);
   });
 
-  it("queues several pauses in order without per-second rows", () => {
+  it("queues several pauses in order without per-second rows", async () => {
     let session = startSession();
     for (let i = 0; i < 3; i += 1) {
       const before = session;
@@ -171,7 +171,7 @@ describe("focus offline queue", () => {
           createId: idFactory(`t${i}`),
         },
       ).session;
-      enqueueFocusTransition({
+      await enqueueFocusTransition({
         userId: "user-1",
         actionId: `22222222-2222-4222-8222-22222222222${i}`,
         session,
@@ -191,11 +191,11 @@ describe("focus offline queue", () => {
     ).toEqual([1, 2, 3]);
   });
 
-  it("restores a cached session after close/reopen", () => {
+  it("restores a cached session after close/reopen", async () => {
     const session = startSession();
     cacheFocusSession("user-1", session);
     expect(loadCachedFocusSession("user-1")?.id).toBe(session.id);
-    clearFocusOfflineData("user-1");
+    await clearFocusOfflineData("user-1");
     expect(loadCachedFocusSession("user-1")).toBeNull();
   });
 
@@ -209,15 +209,15 @@ describe("focus offline queue", () => {
     expect(getQueuedFocusTransitions()).toEqual([]);
   });
 
-  it("handles storage failures without throwing", () => {
+  it("handles storage failures without throwing", async () => {
     const setItem = vi
       .spyOn(Storage.prototype, "setItem")
       .mockImplementation(() => {
         throw new Error("QuotaExceededError");
       });
     const session = startSession();
-    expect(() =>
-      enqueueFocusTransition({
+    expect(
+      await enqueueFocusTransition({
         userId: "user-1",
         actionId: "33333333-3333-4333-8333-333333333333",
         session,
@@ -228,7 +228,7 @@ describe("focus offline queue", () => {
           expectedRevision: session.revision,
         },
       }),
-    ).not.toThrow();
+    ).toEqual({ ok: false, reason: "storage" });
     setItem.mockRestore();
   });
 });
@@ -247,7 +247,7 @@ describe("flushFocusOfflineQueue", () => {
         expectedRevision: 1,
       },
     };
-    enqueueFocusTransition(input);
+    await enqueueFocusTransition(input);
     let finish!: (value: FocusActionResult<FocusSession>) => void;
     const transition = vi.fn(
       () =>
@@ -263,9 +263,9 @@ describe("flushFocusOfflineQueue", () => {
     );
     await Promise.resolve();
     revokeClientSession("user-1");
-    clearFocusOfflineData("user-1");
+    await clearFocusOfflineData("user-1");
     activateClientSession("user-1");
-    enqueueFocusTransition({
+    await enqueueFocusTransition({
       ...input,
       actionId: "99999999-9999-4999-8999-999999999999",
     });
@@ -277,6 +277,51 @@ describe("flushFocusOfflineQueue", () => {
     expect(loadCachedFocusSession("user-1")?.title).not.toBe(
       "stale private result",
     );
+  });
+  it("keeps pause before resume after a temporary failure and preserves a new action during replay", async () => {
+    const session = startSession();
+    const enqueue = (type: "resume" | "pause", revision: number) =>
+      enqueueFocusTransition({
+        userId: session.userId,
+        actionId: crypto.randomUUID(),
+        session: { ...session, revision: revision + 1 },
+        expectedRevision: revision,
+        transition: { type, sessionId: session.id, expectedRevision: revision },
+      });
+    await enqueue("pause", 1);
+    await enqueue("resume", 2);
+    vi.stubGlobal("navigator", { onLine: true });
+    const db = {} as SupabaseClient<Database>;
+    await flushFocusOfflineQueue(db, session.userId, {
+      transition: async () => ({
+        ok: false,
+        error: { code: "DATABASE_ERROR", message: "temporary" },
+      }),
+    });
+    expect(
+      getQueuedFocusTransitions(session.userId).map(
+        (row) => row.transition.type,
+      ),
+    ).toEqual(["pause", "resume"]);
+    const calls: number[] = [];
+    await flushFocusOfflineQueue(db, session.userId, {
+      transition: async (input) => {
+        const { expectedRevision } = input as { expectedRevision: number };
+        calls.push(expectedRevision);
+        if (expectedRevision === 2) await enqueue("pause", 3);
+        return {
+          ok: true,
+          data: { ...session, revision: expectedRevision + 1 },
+        };
+      },
+    });
+    expect(calls).toEqual([1, 2]);
+    expect(
+      getQueuedFocusTransitions(session.userId).map(
+        (row) => row.expectedRevision,
+      ),
+    ).toEqual([3]);
+    expect(loadCachedFocusSession(session.userId)?.revision).toBe(4);
   });
   it("replays actions in order when online", async () => {
     const session = startSession();
@@ -290,7 +335,7 @@ describe("flushFocusOfflineQueue", () => {
       },
     ).session;
 
-    enqueueFocusTransition({
+    await enqueueFocusTransition({
       userId: "user-1",
       actionId: "44444444-4444-4444-8444-444444444444",
       session: paused,
@@ -327,7 +372,7 @@ describe("flushFocusOfflineQueue", () => {
 
   it("stops on revision conflict and does not invent further times", async () => {
     const session = startSession();
-    enqueueFocusTransition({
+    await enqueueFocusTransition({
       userId: "user-1",
       actionId: "55555555-5555-4555-8555-555555555555",
       session,
@@ -338,7 +383,7 @@ describe("flushFocusOfflineQueue", () => {
         expectedRevision: session.revision,
       },
     });
-    enqueueFocusTransition({
+    await enqueueFocusTransition({
       userId: "user-1",
       actionId: "66666666-6666-4666-8666-666666666666",
       session: { ...session, revision: session.revision + 1 },
@@ -374,7 +419,7 @@ describe("flushFocusOfflineQueue", () => {
 
   it("keeps the queue when still offline", async () => {
     const session = startSession();
-    enqueueFocusTransition({
+    await enqueueFocusTransition({
       userId: "user-1",
       actionId: "77777777-7777-4777-8777-777777777777",
       session,

@@ -41,6 +41,10 @@ test("quick capture previews, preserves, and saves bilingual task plans", async 
     await page.locator(".go-today-button").click();
     await expect(page.locator(".go-today-button")).toBeHidden();
     await expect(input).toHaveValue("Read tomorrow at 6 pm");
+    await page.reload();
+    await expect(input).toHaveValue("Read tomorrow at 6 pm");
+    await page.goto("/en/tasks");
+    await expect(input).toHaveValue("Read tomorrow at 6 pm");
     await input.press("Enter");
     await expect(input).toHaveValue("");
     await expect(capture.locator("form")).toHaveAttribute("aria-busy", "false");
@@ -71,6 +75,7 @@ test("quick capture previews, preserves, and saves bilingual task plans", async 
       name: "Captura rápida",
       exact: true,
     });
+    await expect(entry).toHaveValue("");
     await entry.fill("Piano lunes y miércoles a las 18:00");
     await spanish
       .getByRole("button", { name: "Más opciones", exact: true })
