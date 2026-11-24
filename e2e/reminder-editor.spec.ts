@@ -1,8 +1,21 @@
 import AxeBuilder from "@axe-core/playwright";
+import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { hasLocalCredentials, withLocalWorkspace } from "./local-workspace";
 
 test.use({ timezoneId: "America/New_York" });
+
+// A hard navigation must wait for the server action's streamed body, even
+// when the updated values are already visible in the page and database.
+function reminderActionFinished(page: Page) {
+  return page.waitForEvent(
+    "requestfinished",
+    (request) =>
+      new URL(request.url()).pathname === "/en/reminders" &&
+      request.method() === "POST" &&
+      Boolean(request.headers()["next-action"]),
+  );
+}
 
 test("resumes a long-paused daily alarm at its original local time", async ({
   page,
@@ -115,7 +128,10 @@ test("creates and edits linked reminders and alarms with exact times", async ({
       .analyze();
     expect(accessibility.violations).toEqual([]);
     await editor.getByLabel("Time", { exact: true }).fill("17:45");
-    await editor.getByRole("button", { name: "Save", exact: true }).click();
+    await Promise.all([
+      reminderActionFinished(page),
+      editor.getByRole("button", { name: "Save", exact: true }).click(),
+    ]);
     await expect(editor).toBeHidden();
     await expect(editReminder).toBeFocused();
     const stored = await db
@@ -209,7 +225,10 @@ test("creates and edits linked reminders and alarms with exact times", async ({
     await expect(
       alarmRow.getByRole("switch", { name: "Enable QA alarm" }),
     ).toHaveAttribute("aria-checked", "true");
-    await alarmRow.getByRole("button", { name: "Snooze 10 min" }).click();
+    await Promise.all([
+      reminderActionFinished(page),
+      alarmRow.getByRole("button", { name: "Snooze 10 min" }).click(),
+    ]);
     await expect(alarmRow).toContainText("Snoozed");
     const snoozed = await db
       .from("reminders")

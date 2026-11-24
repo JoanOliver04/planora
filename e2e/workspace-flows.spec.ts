@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import type { Page } from "@playwright/test";
+import messages from "../src/messages/en.json";
 import { localDate, nextLocalDate } from "../src/lib/dates/timezone";
 import { hasLocalCredentials, withLocalWorkspace } from "./local-workspace";
 import { expect, offlineNetworkError, test } from "./fixtures";
@@ -342,7 +343,9 @@ test("workspace CRUD, schedule copies, history, search and backup round trip", a
       buffer: Buffer.from(JSON.stringify(invalid)),
     });
     await expect(
-      page.getByRole("alert").filter({ hasText: /backup is invalid/ }),
+      page
+        .getByRole("alert")
+        .filter({ hasText: messages.Data.restore.invalid }),
     ).toBeVisible();
     const restore = page.getByRole("button", {
       name: "Restore backup",
