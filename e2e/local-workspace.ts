@@ -15,6 +15,29 @@ export const hasLocalCredentials = Boolean(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
+export async function prepareLocalProfile(
+  client: SupabaseClient<Database>,
+  includeStarters: boolean,
+) {
+  await expect
+    .poll(async () => {
+      const { error } = await client.rpc("complete_onboarding", {
+        include_starters: includeStarters,
+        detected_timezone: "Europe/Madrid",
+      });
+      // Local Auth and PostgREST can briefly disagree on the issue time.
+      // PostgREST rejects this request before the onboarding function runs.
+      if (
+        error?.code === "PGRST303" &&
+        error.message === "JWT issued at future"
+      )
+        return error.message;
+      expect(error).toBeNull();
+      return null;
+    })
+    .toBeNull();
+}
+
 export async function withLocalWorkspace(
   context: BrowserContext,
   baseURL: string | undefined,
@@ -49,11 +72,7 @@ export async function withLocalWorkspace(
       type: "email",
     });
     expect(verified.error).toBeNull();
-    const onboarding = await client.rpc("complete_onboarding", {
-      include_starters: false,
-      detected_timezone: "Europe/Madrid",
-    });
-    expect(onboarding.error).toBeNull();
+    await prepareLocalProfile(client, false);
     const profile = await client
       .from("profiles")
       .update({ locale: "en", preferences: { showCompleted: true } })

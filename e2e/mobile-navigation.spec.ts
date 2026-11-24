@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 import { beginBrowserCleanup } from "./browser-diagnostics";
+import { prepareLocalProfile } from "./local-workspace";
 import AxeBuilder from "@axe-core/playwright";
 import type { Database } from "../src/types/database";
 import { assertLocalTestEnvironment } from "../scripts/assert-local-test-env.mjs";
@@ -59,11 +60,7 @@ test("mobile More navigation reaches every secondary area naturally", async ({
     });
     expect(verified.error).toBeNull();
     expect(verified.data.session).not.toBeNull();
-    const preparedProfile = await authClient.rpc("complete_onboarding", {
-      include_starters: true,
-      detected_timezone: "Europe/Madrid",
-    });
-    expect(preparedProfile.error).toBeNull();
+    await prepareLocalProfile(authClient, true);
 
     let cookieJar: Array<{ name: string; value: string }> = [];
     const ssr = createServerClient<Database>(url!, anonKey!, {

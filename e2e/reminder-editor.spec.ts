@@ -9,6 +9,7 @@ test("resumes a long-paused daily alarm at its original local time", async ({
   context,
   baseURL,
 }) => {
+  test.setTimeout(90_000);
   test.skip(!hasLocalCredentials, "Local integration credentials required");
   await withLocalWorkspace(context, baseURL, async (db, userId) => {
     const result = await db
