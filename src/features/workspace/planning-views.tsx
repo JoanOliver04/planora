@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   CalendarDays,
@@ -8,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Circle,
-  Search,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
@@ -21,7 +19,6 @@ import {
 } from "./calendar-events-status";
 import { isWithinWeeklyTarget, tasksForDay } from "./daily-occurrences";
 import { getMonthEventRange } from "./workspace-data";
-import { normalizeTaskSearch } from "@/lib/workspace/task-search";
 import { formatTaskTime } from "./presentation";
 import type { WorkspaceData } from "./types";
 
@@ -181,103 +178,6 @@ export function MonthView({
           );
         })}
       </div>
-    </section>
-  );
-}
-
-export function GlobalSearchView({ data }: { data: WorkspaceData }) {
-  const t = useTranslations("Planning"),
-    [query, setQuery] = useState("");
-  const results = useMemo(() => {
-    const q = normalizeTaskSearch(query);
-    if (q.length < 2) return [];
-    const matches = (value: string | null | undefined) =>
-      normalizeTaskSearch(value ?? "").includes(q);
-    return [
-      ...data.tasks
-        .filter((item) => matches(`${item.title} ${item.description ?? ""}`))
-        .map((item) => ({
-          id: `task-${item.id}`,
-          type: t("task"),
-          title: item.title,
-          meta: item.description,
-          href: `/tasks?q=${encodeURIComponent(item.title)}#task-${item.id}`,
-        })),
-      ...data.events
-        .filter((item) => matches(`${item.title} ${item.description ?? ""}`))
-        .map((item) => ({
-          id: `event-${item.id}`,
-          type: t("event"),
-          title: item.title,
-          meta: item.event_date,
-          href: `/events?q=${encodeURIComponent(item.title)}#event-${item.id}`,
-        })),
-      ...data.categories
-        .filter((item) => matches(item.name))
-        .map((item) => ({
-          id: `category-${item.id}`,
-          type: t("category"),
-          title: item.name,
-          meta: null,
-          href: `/categories#category-${item.id}`,
-        })),
-      ...data.schedules
-        .filter((item) => matches(`${item.name} ${item.description ?? ""}`))
-        .map((item) => ({
-          id: `schedule-${item.id}`,
-          type: t("schedule"),
-          title: item.name,
-          meta: item.description,
-          href: `/schedules#schedule-${item.id}`,
-        })),
-    ].slice(0, 50);
-  }, [data, query, t]);
-  return (
-    <section className="global-search-page" aria-labelledby="search-title">
-      <header className="topbar">
-        <div>
-          <div className="eyebrow">{t("searchEyebrow")}</div>
-          <h1 className="title" id="search-title">
-            {t("searchTitle")}
-          </h1>
-        </div>
-      </header>
-      <label className="global-search-input surface">
-        <Search size={21} />
-        <input
-          autoFocus
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={t("searchPlaceholder")}
-          aria-label={t("searchTitle")}
-        />
-      </label>
-      {query.trim().length < 2 ? (
-        <div className="empty surface">
-          <Search size={28} />
-          <h2>{t("searchHintTitle")}</h2>
-          <p>{t("searchHint")}</p>
-        </div>
-      ) : results.length ? (
-        <div className="search-results" aria-live="polite">
-          {results.map((result) => (
-            <Link
-              className="search-result surface"
-              href={result.href}
-              key={result.id}
-            >
-              <span className="search-result-type">{result.type}</span>
-              <strong>{result.title}</strong>
-              {result.meta && <small>{result.meta}</small>}
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="empty surface">
-          <h2>{t("noResults")}</h2>
-          <p>{t("noResultsHint")}</p>
-        </div>
-      )}
     </section>
   );
 }

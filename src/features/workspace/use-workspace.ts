@@ -308,13 +308,22 @@ export function useWorkspace(mode: WorkspaceMode) {
     try {
       [s, c, t, e, h, p] = await withTimeout(
         Promise.all([
-          db
-            .from("schedules")
-            .select("*")
-            .order("sort_order")
-            .order("created_at"),
+          readWorkspaceRows(
+            db
+              .from("schedules")
+              .select("*")
+              .order("sort_order")
+              .order("created_at")
+              .order("id"),
+          ),
           needed.has("categories")
-            ? db.from("categories").select("*").order("sort_order")
+            ? readWorkspaceRows(
+                db
+                  .from("categories")
+                  .select("*")
+                  .order("sort_order")
+                  .order("id"),
+              )
             : empty,
           needed.has("tasks")
             ? readWorkspaceRows(
@@ -331,12 +340,15 @@ export function useWorkspace(mode: WorkspaceMode) {
           needed.has("completions") && mode !== "tasks"
             ? readWorkspaceRows(completionsQuery)
             : empty,
-          needed.has("tasks")
-            ? db
-                .from("focus_presets")
-                .select("id,name,emoji,archived_at")
-                .is("archived_at", null)
-                .order("sort_order")
+          mode === "tasks" || mode === "today" || mode === "week"
+            ? readWorkspaceRows(
+                db
+                  .from("focus_presets")
+                  .select("id,name,emoji,archived_at")
+                  .is("archived_at", null)
+                  .order("sort_order")
+                  .order("id"),
+              )
             : empty,
         ]),
         QUERY_TIMEOUT_MS,

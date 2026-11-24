@@ -34,4 +34,29 @@ describe("useHashTarget", () => {
     window.history.replaceState(null, "", "/tasks#%E0%A4%A");
     expect(() => renderHook(() => useHashTarget(1))).not.toThrow();
   });
+
+  it("keeps keyboard focus in a filter after the target has been revealed and follows a new hash", async () => {
+    const first = document.createElement("button");
+    first.id = "task-first";
+    const second = document.createElement("button");
+    second.id = "task-second";
+    const field = document.createElement("input");
+    first.scrollIntoView = vi.fn();
+    second.scrollIntoView = vi.fn();
+    document.body.append(first, second, field);
+    window.history.replaceState(null, "", "/tasks#task-first");
+    const { rerender } = renderHook(({ count }) => useHashTarget(count), {
+      initialProps: { count: 2 },
+    });
+    await waitFor(() => expect(first).toHaveFocus());
+    field.focus();
+    rerender({ count: 3 });
+    await act(async () => {
+      await new Promise<void>((done) => requestAnimationFrame(() => done()));
+    });
+    expect(field).toHaveFocus();
+    window.history.replaceState(null, "", "/tasks#task-second");
+    window.dispatchEvent(new Event("hashchange"));
+    await waitFor(() => expect(second).toHaveFocus());
+  });
 });

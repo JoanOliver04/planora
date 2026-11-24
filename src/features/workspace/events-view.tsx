@@ -8,7 +8,7 @@ import { filterEvents, type EventVisibility } from "@/lib/workspace/visibility";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Edit3, Plus, Search, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useItemSearch } from "@/lib/workspace/use-item-search";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { categoriesForSchedule } from "./categories";
@@ -22,29 +22,35 @@ export function EventsView({
   reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
-    searchParams = useSearchParams(),
-    initialSearch = searchParams.get("q") ?? "",
+    {
+      query: search,
+      setQuery: setSearch,
+      selectedId,
+      fromLink,
+    } = useItemSearch(data.events),
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Event | null>(null),
     [allDay, setAllDay] = useState(true),
     [timeError, setTimeError] = useState(false),
     [eventSchedule, setEventSchedule] = useState(""),
     [visibility, setVisibility] = useState<EventVisibility>(
-      initialSearch ? "all" : "active",
+      fromLink ? "all" : "active",
     ),
-    [search, setSearch] = useState(initialSearch),
     [deleting, setDeleting] = useState<Event | null>(null),
     [pending, start] = useTransition();
+  const needle = normalizeTaskSearch(search);
   const events = filterEvents(
     data.events,
     visibility,
     data.profile.timezone,
   ).filter((event) =>
-    normalizeTaskSearch(`${event.title} ${event.description ?? ""}`).includes(
-      normalizeTaskSearch(search),
-    ),
+    selectedId
+      ? event.id === selectedId
+      : normalizeTaskSearch(
+          `${event.title} ${event.description ?? ""}`,
+        ).includes(needle),
   );
-  useHashTarget(events.length);
+  useHashTarget(events);
   function submit(fd: FormData) {
     const startTime = allDay ? null : String(fd.get("startTime"));
     const endTime = allDay ? null : String(fd.get("endTime") || "") || null;
@@ -97,6 +103,7 @@ export function EventsView({
         <label className="search-field">
           <Search size={17} />
           <input
+            aria-label={t("searchEvent")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder={t("searchEvent")}
@@ -164,6 +171,18 @@ export function EventsView({
           <span className="empty-icon">{"\u{1F4C5}"}</span>
           <h2>{t("empty")}</h2>
           <p>{t("noMatchingEvents")}</p>
+          {selectedId && (
+            <button
+              className="pill"
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setVisibility("all");
+              }}
+            >
+              {t("showAllEvents")}
+            </button>
+          )}
         </div>
       )}
       <ConfirmDialog

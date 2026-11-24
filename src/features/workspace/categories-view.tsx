@@ -29,7 +29,7 @@ export function CategoriesView({
     [editing, setEditing] = useState<Category | null>(null),
     [open, setOpen] = useState(false),
     [deleting, setDeleting] = useState<Category | null>(null);
-  useHashTarget(data.categories.length);
+  useHashTarget(data.categories);
   async function submit(fd: FormData) {
     try {
       await saveCategory({

@@ -16,7 +16,7 @@ import {
   CalendarEventsStatus,
   type LoadCalendarEvents,
 } from "./calendar-events-status";
-import { formatTaskTime } from "./presentation";
+import { formatTaskTime, workspaceItemHref } from "./presentation";
 import type { WorkspaceData } from "./types";
 
 const TaskForm = dynamic(
@@ -123,7 +123,7 @@ export function WeekView({
                       ? entry.item.day_part
                       : "anytime",
                   ));
-            const href = `/${kind === "event" ? "events" : "tasks"}?q=${encodeURIComponent(item.title)}#${kind}-${item.id}`;
+            const href = workspaceItemHref(kind, item.id);
             return (
               <div
                 className={`mini-task agenda-entry ${kind === "event" ? "mini-event" : ""}`}

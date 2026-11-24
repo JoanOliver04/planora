@@ -224,7 +224,7 @@ export function TaskForm({
                   onChange={(event) => setScheduleId(event.target.value)}
                 >
                   {schedules
-                    .filter((s) => !s.is_archived)
+                    .filter((s) => !s.is_archived || s.id === task?.schedule_id)
                     .map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.emoji} {s.name}

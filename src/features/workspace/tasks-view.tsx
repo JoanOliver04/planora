@@ -24,7 +24,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useItemSearch } from "@/lib/workspace/use-item-search";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { categoriesForSchedule } from "./categories";
@@ -44,29 +44,46 @@ export function TasksView({
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
-    searchParams = useSearchParams(),
+    {
+      query: search,
+      setQuery: setSearch,
+      selectedId,
+      fromLink,
+    } = useItemSearch(data.tasks),
     [open, setOpen] = useState(false),
     [editing, setEditing] = useState<Task | null>(null),
-    [search, setSearch] = useState(searchParams.get("q") ?? ""),
+    [allSchedules, setAllSchedules] = useState(fromLink),
     [category, setCategory] = useState("all"),
-    [status, setStatus] = useState<TaskVisibility>("active"),
+    [status, setStatus] = useState<TaskVisibility>(fromLink ? "all" : "active"),
     [sort, setSort] = useState("manual"),
     [selectedNote, setSelectedNote] = useState<Task | null>(null),
     [confirmTask, setConfirmTask] = useState<Task | null>(null),
     [deleteTask, setDeleteTask] = useState<Task | null>(null);
+  const categoriesById = useMemo(
+    () => new Map(data.categories.map((item) => [item.id, item])),
+    [data.categories],
+  );
+  const scheduleNames = useMemo(
+    () => new Map(data.schedules.map((item) => [item.id, item.name])),
+    [data.schedules],
+  );
   const tasks = useMemo(() => {
+    const needle = normalizeTaskSearch(search);
     const filtered = filterTasks(data.tasks, data.completions, status).filter(
       (task) =>
-        (task.scope === "global" ||
+        (allSchedules ||
+          task.scope === "global" ||
           task.schedule_id === data.profile.active_schedule_id) &&
         (category === "all" || task.category_id === category) &&
-        normalizeTaskSearch(`${task.title} ${task.description ?? ""}`).includes(
-          normalizeTaskSearch(search),
-        ),
+        (selectedId
+          ? task.id === selectedId
+          : normalizeTaskSearch(
+              `${task.title} ${task.description ?? ""}`,
+            ).includes(needle)),
     );
     if (sort === "manual") return filtered;
     const categoryName = (task: Task) =>
-      data.categories.find((item) => item.id === task.category_id)?.name ?? "";
+      categoriesById.get(task.category_id ?? "")?.name ?? "";
     return [...filtered].sort((left, right) => {
       const values: Record<string, [string, string]> = {
         name: [left.title, right.title],
@@ -85,14 +102,20 @@ export function TasksView({
     data.tasks,
     data.completions,
     data.profile.active_schedule_id,
+    allSchedules,
     category,
     status,
     search,
+    selectedId,
     sort,
     locale,
-    data.categories,
+    categoriesById,
   ]);
-  useHashTarget(tasks.length);
+  const canReorder =
+    sort === "manual" &&
+    !allSchedules &&
+    !tasks.some((task) => task.archived_at);
+  useHashTarget(tasks);
   return (
     <>
       <header className="topbar">
@@ -112,13 +135,14 @@ export function TasksView({
           {t("add")}
         </button>
       </header>
-      {(status === "active" || status === "all") && (
+      {!allSchedules && (status === "active" || status === "all") && (
         <QuickTaskCapture data={data} onSaved={reload} />
       )}
-      <div className="filterbar surface">
+      <div className="filterbar surface task-filterbar">
         <label className="search-field">
           <Search size={17} />
           <input
+            aria-label={t("search")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder={t("search")}
@@ -126,14 +150,29 @@ export function TasksView({
         </label>
         <select
           className="pill"
+          aria-label={t("taskScheduleFilter")}
+          value={allSchedules ? "all" : "current"}
+          onChange={(event) => {
+            setAllSchedules(event.target.value === "all");
+            setCategory("all");
+          }}
+        >
+          <option value="current">{t("activeSchedule")}</option>
+          <option value="all">{t("allSchedules")}</option>
+        </select>
+        <select
+          className="pill"
           aria-label={t("category")}
           value={category}
           onChange={(event) => setCategory(event.target.value)}
         >
           <option value="all">{t("allCategories")}</option>
-          {categoriesForSchedule(
-            data.categories,
-            data.profile.active_schedule_id,
+          {(allSchedules
+            ? data.categories
+            : categoriesForSchedule(
+                data.categories,
+                data.profile.active_schedule_id,
+              )
           ).map((item) => (
             <option key={item.id} value={item.id}>
               {item.emoji} {item.name}
@@ -170,10 +209,10 @@ export function TasksView({
         items={tasks}
         className="task-list management-list"
         locale={locale}
-        disabled={sort !== "manual"}
+        disabled={!canReorder}
         getLabel={(item) => item.title}
         onCommit={async (ids) => {
-          if (sort !== "manual") return;
+          if (!canReorder) return;
           const visible = new Set(ids);
           const iterator = ids[Symbol.iterator]();
           const merged = data.tasks
@@ -190,9 +229,7 @@ export function TasksView({
         }}
         onError={() => toast.error(t("error"))}
         renderItem={(task) => {
-          const categoryItem = data.categories.find(
-              (item) => item.id === task.category_id,
-            ),
+          const categoryItem = categoriesById.get(task.category_id ?? ""),
             timing =
               formatTaskTime(
                 task.start_time,
@@ -211,8 +248,13 @@ export function TasksView({
                 locale,
               ),
               timing,
+              task.archived_at ? t("archived") : null,
               task.focus_enabled ? t("focusEnabledBadge") : null,
-              task.scope === "global" ? t("global") : null,
+              task.scope === "global"
+                ? t("global")
+                : allSchedules
+                  ? scheduleNames.get(task.schedule_id ?? "")
+                  : null,
             ]);
           return (
             <article
@@ -296,6 +338,20 @@ export function TasksView({
           <span className="empty-icon">📋</span>
           <h2>{t("empty")}</h2>
           <p>{t("noMatchingTasks")}</p>
+          {selectedId && (
+            <button
+              className="pill"
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setStatus("all");
+                setCategory("all");
+                setAllSchedules(true);
+              }}
+            >
+              {t("showAllTasks")}
+            </button>
+          )}
         </div>
       )}
       {open && (

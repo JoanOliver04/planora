@@ -102,7 +102,7 @@ test("plans a dated task from Month and keeps the selected week, times and focus
     await page.getByRole("button", { name: "Previous week" }).click();
     await expect(links.nth(0)).toHaveAccessibleName("09:00 Prepare notes");
     await links.nth(0).click();
-    await expect(page).toHaveURL(/\/tasks\?q=Prepare(?:%20|\+)notes#task-/);
+    await expect(page).toHaveURL(/\/tasks\?item=([\da-f-]+)#task-\1$/);
     await expect(
       page.locator(".task").filter({ hasText: "Prepare notes" }),
     ).toBeFocused();

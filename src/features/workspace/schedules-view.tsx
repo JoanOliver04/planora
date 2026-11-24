@@ -36,7 +36,7 @@ export function SchedulesView({
       action: "delete" | "archive";
       schedule: Schedule;
     } | null>(null);
-  useHashTarget(data.schedules.length);
+  useHashTarget(data.schedules);
   async function submit(fd: FormData) {
     try {
       await saveSchedule({

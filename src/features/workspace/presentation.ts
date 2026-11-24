@@ -1,3 +1,7 @@
+export function workspaceItemHref(kind: "task" | "event", id: string) {
+  return `/${kind}s?item=${encodeURIComponent(id)}#${kind}-${id}`;
+}
+
 export function uniqueMetadata(
   parts: Array<string | null | undefined | false>,
 ): string[] {
