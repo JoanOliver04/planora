@@ -1,4 +1,22 @@
-import { addDays } from "date-fns";
+import { shiftCalendarDay } from "@/lib/dates/calendar-day";
+import { fetchAllRows } from "@/lib/backup/fetch-all";
+
+export async function readWorkspaceRows<Row>(query: {
+  range: (
+    from: number,
+    to: number,
+  ) => PromiseLike<{ data: Row[] | null; error: { message: string } | null }>;
+}) {
+  try {
+    const data = await fetchAllRows((from, to) => query.range(from, to));
+    return { data, error: null };
+  } catch (cause) {
+    return {
+      data: null,
+      error: { message: cause instanceof Error ? cause.message : "query" },
+    };
+  }
+}
 
 export function mergeRowsById<T extends { id: string }>(
   base: T[],
@@ -10,15 +28,9 @@ export function mergeRowsById<T extends { id: string }>(
 }
 
 export function getMonthEventRange(today: string, weekStartsOn: 0 | 1) {
-  const todayDate = new Date(`${today}T12:00:00Z`);
-  const monthStart = new Date(
-    Date.UTC(todayDate.getUTCFullYear(), todayDate.getUTCMonth(), 1, 12),
-  );
+  const first = `${today.slice(0, 7)}-01`;
+  const monthStart = new Date(`${first}T12:00:00Z`);
   const offset = (monthStart.getUTCDay() - weekStartsOn + 7) % 7;
-  const start = addDays(monthStart, -offset);
-  const end = addDays(start, 41);
-  return {
-    start: start.toISOString().slice(0, 10),
-    end: end.toISOString().slice(0, 10),
-  };
+  const start = shiftCalendarDay(first, -offset);
+  return { start, end: shiftCalendarDay(start, 41) };
 }

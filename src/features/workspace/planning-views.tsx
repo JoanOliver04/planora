@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { addDays, addMonths } from "date-fns";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   CalendarDays,
   CheckCircle2,
@@ -13,43 +13,41 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { localDate } from "@/lib/dates/timezone";
-import { isTaskExpectedOnDate } from "@/lib/recurrence";
+import { isCalendarDay, shiftCalendarDay } from "@/lib/dates/calendar-day";
+import { agendaForDay } from "./calendar-agenda";
+import {
+  CalendarEventsStatus,
+  type LoadCalendarEvents,
+} from "./calendar-events-status";
+import { isWithinWeeklyTarget, tasksForDay } from "./daily-occurrences";
+import { getMonthEventRange } from "./workspace-data";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
 import { formatTaskTime } from "./presentation";
-import { recurrenceFromJson, type WorkspaceData } from "./types";
-
-const iso = (date: Date) => date.toISOString().slice(0, 10);
-const taskAdapter = (task: WorkspaceData["tasks"][number]) => ({
-  startDate: task.start_date,
-  endDate: task.end_date,
-  archivedAt: task.archived_at?.slice(0, 10),
-  recurrence: recurrenceFromJson(task.recurrence_config, task.recurrence_type),
-});
+import type { WorkspaceData } from "./types";
 
 export function MonthView({
   data,
   loadEventRange,
 }: {
   data: WorkspaceData;
-  loadEventRange: (start: string, end: string) => Promise<boolean>;
+  loadEventRange: LoadCalendarEvents;
 }) {
   const t = useTranslations("Planning"),
     locale = useLocale(),
     today = localDate(data.profile.timezone),
-    [anchor, setAnchor] = useState(`${today.slice(0, 7)}-01`),
+    requested = `${useSearchParams().get("month")}-01`,
+    anchor = isCalendarDay(requested) ? requested : `${today.slice(0, 7)}-01`,
     first = new Date(`${anchor}T12:00:00Z`),
     weekStartsOn = data.profile.week_starts_on === 0 ? 0 : 1,
-    offset = (first.getUTCDay() - weekStartsOn + 7) % 7,
-    gridStart = addDays(first, -offset),
-    days = Array.from({ length: 42 }, (_, index) =>
-      iso(addDays(gridStart, index)),
+    { start: rangeStart, end: rangeEnd } = getMonthEventRange(
+      anchor,
+      weekStartsOn,
     ),
-    activeSchedule = data.profile.active_schedule_id,
-    rangeStart = days[0],
-    rangeEnd = days[days.length - 1];
-  useEffect(() => {
-    void loadEventRange(rangeStart, rangeEnd);
-  }, [loadEventRange, rangeEnd, rangeStart]);
+    range = `${rangeStart}:${rangeEnd}`,
+    eventsReady = data.eventRange === range,
+    days = Array.from({ length: 42 }, (_, index) =>
+      shiftCalendarDay(rangeStart, index),
+    );
   const formatter = new Intl.DateTimeFormat(
     locale === "es" ? "es-ES" : "en-GB",
     {
@@ -65,8 +63,20 @@ export function MonthView({
       timeZone: "UTC",
     },
   );
+  const fullDate = new Intl.DateTimeFormat(locale, {
+    dateStyle: "full",
+    timeZone: "UTC",
+  });
+  function selectMonth(month: string) {
+    const url = new URL(window.location.href);
+    if (month === today.slice(0, 7)) url.searchParams.delete("month");
+    else url.searchParams.set("month", month);
+    window.history.replaceState(null, "", url);
+  }
   function move(delta: number) {
-    setAnchor(iso(addMonths(first, delta)).slice(0, 7) + "-01");
+    const next = new Date(first);
+    next.setUTCMonth(next.getUTCMonth() + delta);
+    selectMonth(next.toISOString().slice(0, 7));
   }
   return (
     <section className="month-page" aria-labelledby="month-title">
@@ -77,7 +87,14 @@ export function MonthView({
             {t("title")}
           </h1>
         </div>
-        <Link className="pill" href="/week">
+        <Link
+          className="pill"
+          href={
+            anchor.slice(0, 7) === today.slice(0, 7)
+              ? "/week"
+              : `/week?date=${anchor}`
+          }
+        >
           {t("weekView")}
         </Link>
       </header>
@@ -89,11 +106,8 @@ export function MonthView({
         >
           <ChevronLeft size={20} />
         </button>
-        <strong>{formatter.format(first)}</strong>
-        <button
-          className="pill"
-          onClick={() => setAnchor(`${today.slice(0, 7)}-01`)}
-        >
+        <strong aria-live="polite">{formatter.format(first)}</strong>
+        <button className="pill" onClick={() => selectMonth(today.slice(0, 7))}>
           {t("today")}
         </button>
         <button
@@ -104,6 +118,14 @@ export function MonthView({
           <ChevronRight size={20} />
         </button>
       </div>
+      {!eventsReady && (
+        <CalendarEventsStatus
+          key={range}
+          start={rangeStart}
+          end={rangeEnd}
+          load={loadEventRange}
+        />
+      )}
       <div
         className="month-grid"
         role="group"
@@ -115,19 +137,10 @@ export function MonthView({
           </div>
         ))}
         {days.map((day) => {
-          const tasks = data.tasks.filter(
-            (task) =>
-              !task.archived_at &&
-              task.is_active &&
-              (task.scope === "global" ||
-                task.schedule_id === activeSchedule) &&
-              isTaskExpectedOnDate(taskAdapter(task), day),
-          );
-          const events = data.events.filter(
-            (event) =>
-              event.event_date === day &&
-              (!event.schedule_id || event.schedule_id === activeSchedule),
-          );
+          const { entries, taskCount, eventCount } = agendaForDay(data, day);
+          const openDay = t("openDay", {
+            date: fullDate.format(new Date(`${day}T12:00:00Z`)),
+          });
           return (
             <Link
               className="month-day surface"
@@ -136,24 +149,34 @@ export function MonthView({
               key={day}
               href={`/week?date=${day}`}
               prefetch={false}
-              aria-label={`${t("openDay", { date: day })}. ${t("dayContents", { tasks: tasks.length, events: events.length })}`}
+              aria-current={day === today ? "date" : undefined}
+              aria-label={
+                eventsReady
+                  ? `${openDay}. ${t("dayContents", { tasks: taskCount, events: eventCount })}`
+                  : openDay
+              }
             >
               <time dateTime={day}>{Number(day.slice(8))}</time>
               <div className="month-items">
-                {tasks.slice(0, 3).map((task) => (
-                  <span className="month-item" key={task.id}>
-                    {task.emoji} {task.title}
+                {entries.slice(0, 5).map(({ kind, item }) => (
+                  <span
+                    className={
+                      kind === "event" ? "month-item month-event" : "month-item"
+                    }
+                    key={`${kind}-${item.id}`}
+                  >
+                    {item.emoji} {item.title}
                   </span>
                 ))}
-                {events.slice(0, 2).map((event) => (
-                  <span className="month-item month-event" key={event.id}>
-                    <CalendarDays size={12} /> {event.title}
-                  </span>
-                ))}
-                {tasks.length + events.length > 5 && (
-                  <small>+{tasks.length + events.length - 5}</small>
+                {eventsReady && entries.length > 5 && (
+                  <small>+{entries.length - 5}</small>
                 )}
               </div>
+              {eventsReady && entries.length > 0 && (
+                <span className="month-mobile-count" aria-hidden="true">
+                  {entries.length}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -264,12 +287,13 @@ export function DailySummaryView({ data }: { data: WorkspaceData }) {
     locale = useLocale(),
     today = localDate(data.profile.timezone),
     activeSchedule = data.profile.active_schedule_id,
-    tasks = data.tasks.filter(
-      (task) =>
-        !task.archived_at &&
-        task.is_active &&
-        (task.scope === "global" || task.schedule_id === activeSchedule) &&
-        isTaskExpectedOnDate(taskAdapter(task), today),
+    tasks = tasksForDay(data.tasks, today, activeSchedule).filter((task) =>
+      isWithinWeeklyTarget(
+        task,
+        today,
+        data.completions,
+        data.profile.week_starts_on === 0 ? 0 : 1,
+      ),
     ),
     completedIds = new Set(
       data.completions

@@ -1,4 +1,8 @@
 import type { RecurrenceConfig } from "@/lib/validation/task";
+import {
+  isCalendarDay,
+  shiftCalendarDay as addDays,
+} from "@/lib/dates/calendar-day";
 
 export type QuickTaskValues = {
   title: string;
@@ -42,19 +46,6 @@ const dayToken = new RegExp(day, "giu");
 const timeSuffix =
   /(?:^|\s)(?:(a\s+las?|at)\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)?$/iu;
 
-function validDate(value: string) {
-  if (!/^(?!0000)\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const instant = new Date(`${value}T12:00:00Z`);
-  return (
-    Number.isFinite(instant.getTime()) &&
-    instant.toISOString().slice(0, 10) === value
-  );
-}
-function addDays(value: string, amount: number) {
-  const instant = new Date(`${value}T12:00:00Z`);
-  instant.setUTCDate(instant.getUTCDate() + amount);
-  return instant.toISOString().slice(0, 10);
-}
 function weekday(value: string) {
   return new Date(`${value}T12:00:00Z`).getUTCDay();
 }
@@ -66,7 +57,7 @@ export function parseQuickTask(
   today: string,
   detect = true,
 ): ParsedQuickTask {
-  if (!validDate(today))
+  if (!isCalendarDay(today))
     throw new Error("A valid local calendar date is required");
   const values: QuickTaskValues = {
     title: raw.normalize("NFC").trim(),
@@ -143,7 +134,7 @@ export function parseQuickTask(
               : 1,
         );
       } else if (absolute) {
-        if (validDate(absolute[1])) values.startDate = absolute[1];
+        if (isCalendarDay(absolute[1])) values.startDate = absolute[1];
         else result.issue = "invalidDate";
       } else if (days) {
         const selected = [...days[2].matchAll(dayToken)].map(([token]) => {

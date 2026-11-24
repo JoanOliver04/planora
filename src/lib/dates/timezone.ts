@@ -14,8 +14,10 @@ export function localWeek(
   instant: Date = new Date(),
   weekStartsOn: 0 | 1 = 1,
 ) {
-  const calendarDay = localDate(timezone, instant),
-    day = new Date(calendarDay + "T00:00:00Z"),
+  return calendarWeek(localDate(timezone, instant), weekStartsOn);
+}
+export function calendarWeek(calendarDay: string, weekStartsOn: 0 | 1) {
+  const day = new Date(calendarDay + "T00:00:00Z"),
     offset = (day.getUTCDay() - weekStartsOn + 7) % 7,
     start = new Date(day);
   start.setUTCDate(start.getUTCDate() - offset);

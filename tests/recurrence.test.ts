@@ -5,6 +5,7 @@ import {
   formatRecurrenceDescription,
   getExpectedTaskOccurrences,
   getWeekRange,
+  getWeeklyTarget,
   isTaskExpectedOnDate,
 } from "@/lib/recurrence";
 import { recurrenceConfigSchema } from "@/lib/validation/task";
@@ -123,5 +124,17 @@ describe("recurrence", () => {
       "2026-07-29",
     );
     expect(result).toEqual({ completed: 2, expected: 2, percentage: 100 });
+  });
+  it("only counts attainable days of a weekly habit, including partial first and last weeks", () => {
+    const habit = {
+      startDate: "2026-08-02", // Sunday
+      endDate: "2026-08-04",
+      recurrence: { type: "times_per_week" as const, target: 4 },
+    };
+    expect(getWeeklyTarget(habit, "2026-07-20")).toBe(0);
+    expect(getWeeklyTarget(habit, "2026-08-02")).toBe(1);
+    expect(getWeeklyTarget(habit, "2026-08-04")).toBe(2);
+    expect(getWeeklyTarget(habit, "2026-08-02", 0)).toBe(3);
+    expect(getWeeklyTarget(habit, "2026-08-10")).toBe(0);
   });
 });

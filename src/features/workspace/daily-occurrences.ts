@@ -3,7 +3,7 @@ import { getWeekRange, isTaskExpectedOnDate } from "@/lib/recurrence";
 import type { Completion, Task } from "./types";
 import { recurrenceFromJson } from "./types";
 
-const recurrenceTask = (task: Task) => ({
+export const recurrenceTask = (task: Task) => ({
   startDate: task.start_date,
   endDate: task.end_date,
   archivedAt: task.archived_at?.slice(0, 10),
@@ -62,6 +62,15 @@ export function canToggleOccurrence(
   ) {
     return false;
   }
+  return isWithinWeeklyTarget(task, day, completions, weekStartsOn);
+}
+
+export function isWithinWeeklyTarget(
+  task: Task,
+  day: string,
+  completions: Completion[],
+  weekStartsOn: 0 | 1,
+) {
   const recurrence = recurrenceFromJson(
     task.recurrence_config,
     task.recurrence_type,

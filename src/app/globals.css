@@ -2529,7 +2529,7 @@ select:disabled,
 }
 .day-empty {
   margin: 1.2rem 0;
-  color: color-mix(in srgb, var(--foreground) 42%, transparent);
+  color: var(--muted-foreground);
   font-size: 0.8rem;
   text-align: center;
 }
@@ -2812,6 +2812,9 @@ select:disabled,
 .month-event {
   background: color-mix(in srgb, var(--warning) 14%, transparent);
 }
+.month-mobile-count {
+  display: none;
+}
 
 .global-search-input {
   display: flex;
@@ -2888,26 +2891,18 @@ select:disabled,
     text-align: center;
   }
   .month-items {
-    display: flex;
-    justify-content: center;
-    gap: 3px;
-  }
-  .month-item {
-    display: block;
-    font-size: 0;
-    width: 5px;
-    height: 5px;
-    flex: 0 0 5px;
-    padding: 0;
-    border-radius: 999px;
-    background: var(--primary);
-    color: transparent;
-  }
-  .month-event {
-    background: var(--warning);
-  }
-  .month-items small {
     display: none;
+  }
+  .month-mobile-count {
+    display: table;
+    margin-inline: auto;
+    padding: 0.05rem 0.35rem;
+    border-radius: 0.4rem;
+    color: var(--primary-text);
+    background: var(--primary-2);
+    font-size: 0.72rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
   }
   .month-toolbar {
     grid-template-columns: auto 1fr auto;
@@ -3125,6 +3120,7 @@ select:disabled,
   }
   .week-desktop .day {
     min-height: 360px;
+    padding-inline: clamp(0.45rem, 0.6vw, 0.8rem);
   }
 }
 @media (hover: hover) and (pointer: fine) {
@@ -5764,26 +5760,74 @@ button.mini-task {
   font: inherit;
   min-height: 36px;
 }
-.mini-task-with-focus {
+.agenda-entry {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+}
+.agenda-detail {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.45rem;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 650;
+}
+.agenda-detail small {
+  color: var(--foreground);
+  font-size: 0.72rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.agenda-detail:hover span,
+.agenda-focus:hover {
+  text-decoration: underline;
+}
+.agenda-focus,
+.agenda-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 36px;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+.agenda-focus {
+  color: inherit;
+  border-top: 1px solid var(--border);
+}
+.agenda-day-heading {
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+.agenda-add {
+  min-width: 38px;
+  min-height: 44px;
+  margin-inline-start: auto;
+  padding-inline: 0.5rem;
+  color: var(--primary-text);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 0.65rem;
+}
+.week-desktop .agenda-add span {
+  display: none;
+}
+.agenda-add:hover {
+  background: var(--primary-2);
+}
+.week-desktop .day[data-selected="true"] {
+  border-color: var(--primary);
+}
+.calendar-events-status {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-  min-height: 40px;
-}
-.mini-task-with-focus .mini-task-title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.mini-task-focus {
-  flex-shrink: 0;
-  min-width: 36px;
-  min-height: 36px;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: 0.75rem;
 }
 .task-focus-option {
   padding: 0.8rem;

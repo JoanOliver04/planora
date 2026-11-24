@@ -140,7 +140,7 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
     mode === "today" ? (
       <TodayView data={data} db={db} reload={reload} loadDate={loadDate} />
     ) : mode === "week" ? (
-      <WeekView data={data} loadEventRange={loadEventRange} />
+      <WeekView data={data} loadEventRange={loadEventRange} reload={reload} />
     ) : mode === "month" ? (
       <MonthView data={data} loadEventRange={loadEventRange} />
     ) : mode === "search" ? (

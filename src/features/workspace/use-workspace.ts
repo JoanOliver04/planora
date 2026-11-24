@@ -3,9 +3,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { WorkspaceData } from "./types";
 import type { WorkspaceMode } from "./types";
-import { localDate, localWeek } from "@/lib/dates/timezone";
+import { calendarWeek, localDate, localWeek } from "@/lib/dates/timezone";
 import { cacheWorkspace, loadCachedWorkspace } from "@/lib/offline/queue";
-import { getMonthEventRange, mergeRowsById } from "./workspace-data";
+import {
+  getMonthEventRange,
+  mergeRowsById,
+  readWorkspaceRows,
+} from "./workspace-data";
 import {
   decideBootstrapPhase,
   type BootstrapPhase,
@@ -42,7 +46,6 @@ export function useWorkspace(mode: WorkspaceMode) {
     [loading, setLoading] = useState(true),
     [error, setError] = useState<string | null>(null),
     [phase, setPhase] = useState<BootstrapPhase>("loading"),
-    pendingEventRanges = useRef(new Set<string>()),
     presentedRef = useRef(false);
   const finish = useCallback(
     (next: {
@@ -90,26 +93,24 @@ export function useWorkspace(mode: WorkspaceMode) {
     [],
   );
   const loadEventRange = useCallback(
-    async (start: string, end: string) => {
-      const range = `${start}:${end}`;
-      if (pendingEventRanges.current.has(range)) return true;
-      pendingEventRanges.current.add(range);
-      const { data: events, error: rangeError } = await db
-        .from("events")
-        .select("*")
-        .gte("event_date", start)
-        .lte("event_date", end)
-        .order("event_date");
-      if (rangeError) {
-        pendingEventRanges.current.delete(range);
-        return false;
-      }
-      pendingEventRanges.current.delete(range);
+    async (start: string, end: string, signal: AbortSignal) => {
+      const { data: events, error: rangeError } = await readWorkspaceRows(
+        db
+          .from("events")
+          .select("*")
+          .gte("event_date", start)
+          .lte("event_date", end)
+          .order("event_date")
+          .order("id")
+          .abortSignal(signal),
+      );
+      if (rangeError || signal.aborted) return false;
       setData((current) => {
-        if (!current) return current;
+        if (!current || signal.aborted) return current;
         const next = {
           ...current,
-          events: mergeRowsById(current.events, events ?? []),
+          events: events ?? [],
+          eventRange: `${start}:${end}`,
         };
         cacheWorkspace(mode, next);
         return next;
@@ -119,20 +120,37 @@ export function useWorkspace(mode: WorkspaceMode) {
     [db, mode],
   );
   const loadDate = useCallback(
-    async (day: string) => {
+    async (day: string, weekStartsOn: 0 | 1) => {
       if (mode !== "today") return true;
+      const week = calendarWeek(day, weekStartsOn);
       const [events, completions] = await Promise.all([
-        db.from("events").select("*").eq("event_date", day),
-        db.from("task_completions").select("*").eq("occurrence_date", day),
+        readWorkspaceRows(
+          db.from("events").select("*").eq("event_date", day).order("id"),
+        ),
+        readWorkspaceRows(
+          db
+            .from("task_completions")
+            .select("*")
+            .gte("occurrence_date", week.start)
+            .lte("occurrence_date", week.end)
+            .order("id"),
+        ),
       ]);
       if (events.error || completions.error) return false;
       setData((current) => {
         if (!current) return current;
         const next = {
           ...current,
-          events: mergeRowsById(current.events, events.data ?? []),
+          events: mergeRowsById(
+            current.events.filter((event) => event.event_date !== day),
+            events.data ?? [],
+          ),
           completions: mergeRowsById(
-            current.completions,
+            current.completions.filter(
+              (row) =>
+                row.occurrence_date < week.start ||
+                row.occurrence_date > week.end,
+            ),
             completions.data ?? [],
           ),
         };
@@ -256,7 +274,11 @@ export function useWorkspace(mode: WorkspaceMode) {
     );
     const needed = requirements[mode];
     const empty = Promise.resolve({ data: [], error: null });
-    const eventsQuery = db.from("events").select("*").order("event_date");
+    const eventsQuery = db
+      .from("events")
+      .select("*")
+      .order("event_date")
+      .order("id");
     if (mode === "summary") eventsQuery.eq("event_date", today);
     else if (mode === "today")
       eventsQuery
@@ -271,18 +293,17 @@ export function useWorkspace(mode: WorkspaceMode) {
     let completionsQuery = db
       .from("task_completions")
       .select("*")
-      .order("completed_at", { ascending: false });
+      .order("completed_at", { ascending: false })
+      .order("id");
     if (mode === "summary")
-      completionsQuery = completionsQuery.eq("occurrence_date", today);
-    else if (mode !== "tasks")
+      completionsQuery = completionsQuery
+        .gte("occurrence_date", week.start)
+        .lte("occurrence_date", today);
+    else
       completionsQuery = completionsQuery.gte(
         "occurrence_date",
         historyFrom.toISOString().slice(0, 10),
       );
-    // The task list only uses completions to tell whether a one-time task is
-    // done. Recurring history is unused there; once-tasks are loaded below
-    // with no date cutoff, so this query must not download every row.
-    else completionsQuery = completionsQuery.limit(0);
     let s, c, t, e, h, p;
     try {
       [s, c, t, e, h, p] = await withTimeout(
@@ -296,14 +317,20 @@ export function useWorkspace(mode: WorkspaceMode) {
             ? db.from("categories").select("*").order("sort_order")
             : empty,
           needed.has("tasks")
-            ? db
-                .from("tasks")
-                .select("*")
-                .order("sort_order")
-                .order("created_at")
+            ? readWorkspaceRows(
+                db
+                  .from("tasks")
+                  .select("*")
+                  .order("sort_order")
+                  .order("created_at")
+                  .order("id"),
+              )
             : empty,
-          needed.has("events") ? eventsQuery : empty,
-          needed.has("completions") ? completionsQuery : empty,
+          needed.has("events") ? readWorkspaceRows(eventsQuery) : empty,
+          // Tasks loads one-time completions below, without downloading recurring history.
+          needed.has("completions") && mode !== "tasks"
+            ? readWorkspaceRows(completionsQuery)
+            : empty,
           needed.has("tasks")
             ? db
                 .from("focus_presets")
@@ -385,6 +412,12 @@ export function useWorkspace(mode: WorkspaceMode) {
         categories: c.data ?? [],
         tasks: t.data ?? [],
         events: e.data ?? [],
+        eventRange:
+          mode === "week"
+            ? `${week.start}:${week.end}`
+            : mode === "month"
+              ? `${monthRange.start}:${monthRange.end}`
+              : undefined,
         completions,
         focusPresets: p.data ?? [],
       };

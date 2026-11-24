@@ -1,200 +1,192 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { Plus, Timer } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { buildFocusHref } from "@/features/focus/focus-deep-link";
 import { useOptionalFocusSessionState } from "@/features/focus/focus-session-context";
 import { isTaskFocusActionAvailable } from "@/features/focus/task-link";
-import { useRouter } from "@/i18n/routing";
-import { localDate, localWeek, zonedDate } from "@/lib/dates/timezone";
-import { isTaskExpectedOnDate } from "@/lib/recurrence";
-import { addDays } from "date-fns";
-import { Timer } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import type { Task, WorkspaceData } from "./types";
-import { recurrenceFromJson } from "./types";
+import { Link } from "@/i18n/routing";
+import { isCalendarDay, shiftCalendarDay } from "@/lib/dates/calendar-day";
+import { calendarWeek, localDate } from "@/lib/dates/timezone";
+import { agendaForDay } from "./calendar-agenda";
+import {
+  CalendarEventsStatus,
+  type LoadCalendarEvents,
+} from "./calendar-events-status";
+import { formatTaskTime } from "./presentation";
+import type { WorkspaceData } from "./types";
 
-const adapter = (task: Task) => ({
-  startDate: task.start_date,
-  endDate: task.end_date,
-  archivedAt: task.archived_at?.slice(0, 10),
-  recurrence: recurrenceFromJson(task.recurrence_config, task.recurrence_type),
-});
+const TaskForm = dynamic(
+  () => import("./task-form").then((module) => module.TaskForm),
+  { loading: () => null },
+);
 
 export function WeekView({
   data,
   loadEventRange,
+  reload,
 }: {
   data: WorkspaceData;
-  loadEventRange: (start: string, end: string) => Promise<boolean>;
+  loadEventRange: LoadCalendarEvents;
+  reload: () => Promise<void>;
 }) {
-  const t = useTranslations("Workspace"),
-    locale = useLocale() as "es" | "en",
-    searchParams = useSearchParams(),
-    router = useRouter(),
-    liveFocus = useOptionalFocusSessionState(),
-    hasActiveFocus =
-      Boolean(liveFocus) &&
-      (liveFocus?.status === "running" ||
-        liveFocus?.status === "paused" ||
-        liveFocus?.status === "on_break"),
-    focusActionLabel = hasActiveFocus ? t("continueFocus") : t("startFocus"),
-    today = localDate(data.profile.timezone),
-    requestedDate = searchParams.get("date"),
-    initialDate =
-      requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)
-        ? requestedDate
-        : today,
-    [viewDate, setViewDate] = useState(initialDate),
-    week = localWeek(
-      data.profile.timezone,
-      zonedDate(viewDate, data.profile.timezone),
-      data.profile.week_starts_on === 0 ? 0 : 1,
-    ),
-    currentWeek = localWeek(
-      data.profile.timezone,
-      new Date(),
-      data.profile.week_starts_on === 0 ? 0 : 1,
-    ),
-    active = data.profile.active_schedule_id,
-    [selectedDay, setSelectedDay] = useState(
-      week.days.includes(initialDate) ? initialDate : week.start,
-    );
-  useEffect(() => {
-    void loadEventRange(week.start, week.end);
-  }, [loadEventRange, week.end, week.start]);
-  const moveWeek = (amount: number) => {
-    const next = localDate(
-      data.profile.timezone,
-      addDays(zonedDate(week.start, data.profile.timezone), amount * 7),
-    );
-    setViewDate(next);
-    setSelectedDay(next);
-  };
-  const goToToday = () => {
-    setViewDate(today);
-    setSelectedDay(today);
-  };
-  const dayContent = (day: string) => {
-    const tasks = data.tasks.filter(
-        (task) =>
-          (task.scope === "global" || task.schedule_id === active) &&
-          !task.archived_at &&
-          isTaskExpectedOnDate(adapter(task), day),
-      ),
-      events = data.events.filter(
-        (event) =>
-          event.event_date === day &&
-          (!event.schedule_id || event.schedule_id === active),
-      );
+  const t = useTranslations("Workspace");
+  const locale = useLocale() === "es" ? "es-ES" : "en-GB";
+  const today = localDate(data.profile.timezone);
+  const requested = useSearchParams().get("date");
+  const selected = isCalendarDay(requested) ? requested : today;
+  const week = calendarWeek(
+    selected,
+    data.profile.week_starts_on === 0 ? 0 : 1,
+  );
+  const range = `${week.start}:${week.end}`;
+  const eventsReady = range === data.eventRange;
+  const [editor, setEditor] = useState<{
+    day: string;
+    trigger: HTMLButtonElement;
+  } | null>(null);
+  const focus = useOptionalFocusSessionState();
+  const activeFocus =
+    focus && ["running", "paused", "on_break"].includes(focus.status);
+  const focusLabel = t(activeFocus ? "continueFocus" : "startFocus");
+  const fullDate = new Intl.DateTimeFormat(locale, {
+    dateStyle: "full",
+    timeZone: "UTC",
+  });
+  const shortDate = new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  });
+  const weekday = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    timeZone: "UTC",
+  });
+  const narrowDay = new Intl.DateTimeFormat(locale, {
+    weekday: "narrow",
+    timeZone: "UTC",
+  });
+  const date = (day: string) => new Date(`${day}T12:00:00Z`);
+
+  function selectDay(day: string) {
+    if (!isCalendarDay(day)) return;
+    const url = new URL(window.location.href);
+    if (day === today) url.searchParams.delete("date");
+    else url.searchParams.set("date", day);
+    window.history.replaceState(null, "", url);
+  }
+
+  function renderDay(day: string) {
+    const { entries } = agendaForDay(data, day);
+    const label = fullDate.format(date(day));
     return (
-      <article className="day surface" data-today={day === today} key={day}>
-        <div className="day-heading">
+      <article
+        className="day surface"
+        key={day}
+        aria-label={label}
+        data-today={day === today}
+        data-selected={selected === day}
+      >
+        <div className="day-heading agenda-day-heading">
           <div>
-            <span className="day-name">
-              {new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", {
-                weekday: "short",
-                timeZone: "UTC",
-              }).format(new Date(`${day}T12:00:00Z`))}
-            </span>
-            <strong>{day.slice(8)}</strong>
+            <span className="day-name">{weekday.format(date(day))}</span>
+            <strong>{Number(day.slice(8))}</strong>
           </div>
           {day === today && <span className="today-badge">{t("today")}</span>}
+          <button
+            type="button"
+            className="agenda-add"
+            title={t("addTaskOn", { date: label })}
+            aria-label={t("addTaskOn", { date: label })}
+            onClick={(event) => {
+              event.currentTarget.focus();
+              setEditor({ day, trigger: event.currentTarget });
+            }}
+          >
+            <Plus size={16} aria-hidden="true" /> <span>{t("add")}</span>
+          </button>
         </div>
         <div className="day-agenda">
-          {events.map((event) => {
+          {entries.map((entry) => {
+            const { item, kind } = entry;
             const category = data.categories.find(
-              (item) => item.id === event.category_id,
+              (row) => row.id === item.category_id,
             );
+            const timing =
+              entry.kind === "event" && entry.item.all_day
+                ? t("allDay")
+                : (formatTaskTime(item.start_time, item.end_time) ??
+                  t(
+                    entry.kind === "task" && entry.item.day_part
+                      ? entry.item.day_part
+                      : "anytime",
+                  ));
+            const href = `/${kind === "event" ? "events" : "tasks"}?q=${encodeURIComponent(item.title)}#${kind}-${item.id}`;
             return (
               <div
-                className="mini-task mini-event"
-                key={event.id}
+                className={`mini-task agenda-entry ${kind === "event" ? "mini-event" : ""}`}
+                key={`${kind}-${item.id}`}
                 style={
                   {
-                    "--accent": category?.colour ?? "var(--warning)",
+                    "--accent":
+                      category?.colour ??
+                      (kind === "event" ? "var(--warning)" : "var(--primary)"),
                   } as React.CSSProperties
                 }
               >
-                <span>{event.emoji || "📅"}</span>
-                <span>{event.title}</span>
-              </div>
-            );
-          })}
-          {tasks.map((task) => {
-            const category = data.categories.find(
-              (item) => item.id === task.category_id,
-            );
-            return (
-              <div
-                className="mini-task mini-task-with-focus"
-                key={task.id}
-                style={
-                  {
-                    "--accent": category?.colour ?? "var(--primary)",
-                  } as React.CSSProperties
-                }
-              >
-                <span>{task.emoji || "•"}</span>
-                <span className="mini-task-title">{task.title}</span>
-                {isTaskFocusActionAvailable({
-                  focusEnabled: task.focus_enabled,
-                  occurrenceDate: day,
-                  today,
-                }) ? (
-                  <button
-                    type="button"
-                    className="icon-button mini-task-focus"
-                    onClick={() =>
-                      router.push(
-                        hasActiveFocus
+                <Link className="agenda-detail" href={href} prefetch={false}>
+                  <small>{timing}</small>
+                  <span>
+                    {item.emoji && (
+                      <span aria-hidden="true">{item.emoji} </span>
+                    )}
+                    {item.title}
+                  </span>
+                </Link>
+                {entry.kind === "task" &&
+                  isTaskFocusActionAvailable({
+                    focusEnabled: entry.item.focus_enabled,
+                    occurrenceDate: day,
+                    today,
+                  }) && (
+                    <Link
+                      className="agenda-focus"
+                      href={
+                        activeFocus
                           ? "/focus"
-                          : buildFocusHref({
-                              taskId: task.id,
-                              date: day,
-                            }),
-                      )
-                    }
-                    aria-label={`${focusActionLabel}: ${task.title}`}
-                    title={focusActionLabel}
-                  >
-                    <Timer size={15} aria-hidden="true" />
-                  </button>
-                ) : null}
+                          : buildFocusHref({ taskId: item.id, date: day })
+                      }
+                      prefetch={false}
+                      aria-label={`${focusLabel}: ${item.title}`}
+                    >
+                      <Timer size={15} aria-hidden="true" /> {focusLabel}
+                    </Link>
+                  )}
               </div>
             );
           })}
-          {!events.length && !tasks.length && (
+          {eventsReady && !entries.length && (
             <p className="day-empty">{t("clearDay")}</p>
           )}
         </div>
       </article>
     );
-  };
+  }
+
   return (
     <>
       <header className="topbar week-header">
         <div>
           <div className="eyebrow">{t("weeklyAgenda")}</div>
           <h1 className="title">{t("week")}</h1>
-          <p className="header-context">
-            {new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-              timeZone: "UTC",
-            }).format(new Date(`${week.start}T12:00:00Z`))}
-            {" – "}
-            {new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-              timeZone: "UTC",
-            }).format(new Date(`${week.end}T12:00:00Z`))}
+          <p className="header-context" aria-live="polite">
+            {shortDate.formatRange(date(week.start), date(week.end))}
           </p>
         </div>
-        {(week.start !== currentWeek.start || selectedDay !== today) && (
-          <button className="pill" onClick={goToToday}>
+        {selected !== today && (
+          <button className="pill" onClick={() => selectDay(today)}>
             {t("goToday")}
           </button>
         )}
@@ -203,7 +195,7 @@ export function WeekView({
         <button
           className="pill"
           type="button"
-          onClick={() => moveWeek(-1)}
+          onClick={() => selectDay(shiftCalendarDay(selected, -7))}
           aria-label={t("previousWeek")}
         >
           ← {t("previous")}
@@ -213,46 +205,65 @@ export function WeekView({
           <input
             className="pill"
             type="date"
-            value={viewDate}
-            onChange={(event) => {
-              if (!event.target.value) return;
-              setViewDate(event.target.value);
-              setSelectedDay(event.target.value);
-            }}
+            value={selected}
+            onChange={(event) => selectDay(event.target.value)}
           />
         </label>
         <button
           className="pill"
           type="button"
-          onClick={() => moveWeek(1)}
+          onClick={() => selectDay(shiftCalendarDay(selected, 7))}
           aria-label={t("nextWeek")}
         >
           {t("next")} →
         </button>
       </div>
+      {!eventsReady && (
+        <CalendarEventsStatus
+          key={range}
+          start={week.start}
+          end={week.end}
+          load={loadEventRange}
+        />
+      )}
       <div className="week-mobile">
-        <div className="day-selector" aria-label={t("selectDay")}>
+        <div className="day-selector" role="group" aria-label={t("selectDay")}>
           {week.days.map((day) => (
             <button
+              type="button"
               className="day-tab"
-              data-selected={selectedDay === day}
+              data-selected={selected === day}
+              aria-pressed={selected === day}
               data-today={today === day}
+              aria-current={day === today ? "date" : undefined}
+              aria-label={fullDate.format(date(day))}
               key={day}
-              onClick={() => setSelectedDay(day)}
+              onClick={() => selectDay(day)}
             >
-              <span>
-                {new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", {
-                  weekday: "narrow",
-                  timeZone: "UTC",
-                }).format(new Date(`${day}T12:00:00Z`))}
-              </span>
+              <span>{narrowDay.format(date(day))}</span>
               <strong>{day.slice(8)}</strong>
             </button>
           ))}
         </div>
-        {dayContent(selectedDay)}
+        {renderDay(selected)}
       </div>
-      <div className="week-grid week-desktop">{week.days.map(dayContent)}</div>
+      <div className="week-grid week-desktop">{week.days.map(renderDay)}</div>
+      {editor && (
+        <TaskForm
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditor(null);
+          }}
+          schedules={data.schedules}
+          categories={data.categories}
+          focusPresets={data.focusPresets}
+          timezone={data.profile.timezone}
+          defaultScheduleId={data.profile.active_schedule_id ?? undefined}
+          defaultStartDate={editor.day}
+          trigger={editor.trigger}
+          onSaved={reload}
+        />
+      )}
     </>
   );
 }

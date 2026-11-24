@@ -68,9 +68,11 @@ export function getWeeklyTarget(
   week: string | Date,
   weekStartsOn: 0 | 1 = 1,
 ) {
-  if (task.recurrence.type === "times_per_week") return task.recurrence.target;
   const w = getWeekRange(week, weekStartsOn);
-  return getExpectedTaskOccurrences(task, w.start, w.end).length;
+  const available = getExpectedTaskOccurrences(task, w.start, w.end).length;
+  return task.recurrence.type === "times_per_week"
+    ? Math.min(task.recurrence.target, available)
+    : available;
 }
 export function calculateWeeklyProgress(
   tasks: RecurringTask[],
@@ -125,14 +127,12 @@ export function formatRecurrenceDescription(
   );
   return names.join(", ");
 }
-export function classifyDayPart(
-  time: string,
-  b = {
-    morning: { start: "05:00", end: "12:00" },
-    afternoon: { start: "12:00", end: "18:00" },
-    night: { start: "18:00", end: "05:00" },
-  },
-) {
+export const defaultDayParts = {
+  morning: { start: "05:00", end: "12:00" },
+  afternoon: { start: "12:00", end: "18:00" },
+  night: { start: "18:00", end: "05:00" },
+};
+export function classifyDayPart(time: string, b = defaultDayParts) {
   if (time >= b.morning.start && time < b.morning.end) return "morning";
   if (time >= b.afternoon.start && time < b.afternoon.end) return "afternoon";
   return "night";

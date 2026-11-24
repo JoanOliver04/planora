@@ -8,17 +8,19 @@ import { FocusTodayShortcuts } from "@/features/focus/focus-today-shortcuts";
 import { isTaskFocusActionAvailable } from "@/features/focus/task-link";
 import { useRouter } from "@/i18n/routing";
 import { localDate, localWeek, zonedDate } from "@/lib/dates/timezone";
+import { isCalendarDay, shiftCalendarDay } from "@/lib/dates/calendar-day";
 import { enqueueCompletion } from "@/lib/offline/queue";
 import { normalizePreferences } from "@/lib/preferences";
 import { calculateWeeklyProgress, classifyDayPart } from "@/lib/recurrence";
-import { addDays } from "date-fns";
 import { Plus, RotateCcw } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   canToggleOccurrence,
+  isWithinWeeklyTarget,
   overdueOneTimeTasks,
+  recurrenceTask,
   shouldShowOccurrence,
   tasksForDay,
 } from "./daily-occurrences";
@@ -30,12 +32,6 @@ import { QuickTaskCapture } from "./quick-task-capture";
 import type { Task, WorkspaceData } from "./types";
 import { recurrenceFromJson } from "./types";
 
-const adapter = (task: Task) => ({
-  startDate: task.start_date,
-  endDate: task.end_date,
-  archivedAt: task.archived_at?.slice(0, 10),
-  recurrence: recurrenceFromJson(task.recurrence_config, task.recurrence_type),
-});
 async function toggle(
   db: ReturnType<typeof import("@/lib/supabase/client").createClient>,
   data: WorkspaceData,
@@ -105,7 +101,7 @@ export function TodayView({
   data: WorkspaceData;
   db: ReturnType<typeof import("@/lib/supabase/client").createClient>;
   reload: () => Promise<void>;
-  loadDate: (day: string) => Promise<boolean>;
+  loadDate: (day: string, weekStartsOn: 0 | 1) => Promise<boolean>;
 }) {
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
@@ -124,34 +120,19 @@ export function TodayView({
     today = localDate(data.profile.timezone),
     day = viewDate,
     isToday = day === today,
+    weekStartsOn = data.profile.week_starts_on === 0 ? 0 : 1,
     week = localWeek(
       data.profile.timezone,
       zonedDate(day, data.profile.timezone),
-      data.profile.week_starts_on === 0 ? 0 : 1,
+      weekStartsOn,
     ),
     active = data.profile.active_schedule_id,
     activeSchedule = data.schedules.find((item) => item.id === active),
     preferences = normalizePreferences(data.profile.preferences),
     tasks = tasksForDay(data.tasks, day, active)
-      .filter((task) => {
-        const recurrence = recurrenceFromJson(
-          task.recurrence_config,
-          task.recurrence_type,
-        );
-        if (recurrence.type !== "times_per_week") return true;
-        const completed = data.completions.filter(
-          (item) =>
-            item.task_id === task.id &&
-            item.occurrence_date >= week.start &&
-            item.occurrence_date <= week.end,
-        ).length;
-        return (
-          completed < recurrence.target ||
-          data.completions.some(
-            (item) => item.task_id === task.id && item.occurrence_date === day,
-          )
-        );
-      })
+      .filter((task) =>
+        isWithinWeeklyTarget(task, day, data.completions, weekStartsOn),
+      )
       .filter((task) =>
         shouldShowOccurrence(
           isToday,
@@ -175,7 +156,7 @@ export function TodayView({
         !task.archived_at &&
         task.is_active,
     ),
-    recurring = weeklyTasks.map(adapter),
+    recurring = weeklyTasks.map(recurrenceTask),
     completionMap = new Map(
       recurring.map((recurrence, index) => [
         recurrence,
@@ -203,26 +184,22 @@ export function TodayView({
   }, []);
   const groups = ["morning", "afternoon", "night", "anytime"] as const;
   const selectDay = async (next: string) => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(next) || next > today || next === day)
-      return;
+    if (!isCalendarDay(next) || next > today || next === day) return;
     setDatePending(true);
     try {
-      if (await loadDate(next)) setViewDate(next);
+      if (await loadDate(next, weekStartsOn)) setViewDate(next);
       else toast.error(t("error"));
     } finally {
       setDatePending(false);
     }
   };
   const moveDay = (amount: number) => {
-    const next = localDate(
-      data.profile.timezone,
-      addDays(zonedDate(day, data.profile.timezone), amount),
-    );
+    const next = shiftCalendarDay(day, amount);
     void selectDay(next);
   };
   const reloadSelected = async () => {
     await reload();
-    if (!isToday) await loadDate(day);
+    if (!isToday) await loadDate(day, weekStartsOn);
   };
   return (
     <>

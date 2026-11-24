@@ -20,6 +20,8 @@ export function TaskForm({
   task,
   defaultTitle,
   defaultDraft,
+  defaultStartDate,
+  trigger,
   defaultScheduleId,
   onSaved,
 }: {
@@ -33,6 +35,8 @@ export function TaskForm({
   /** Prefill title when creating a new task (e.g. from a parked distraction). */
   defaultTitle?: string;
   defaultDraft?: QuickTaskValues;
+  defaultStartDate?: string;
+  trigger?: HTMLElement;
   defaultScheduleId?: string;
   onSaved: () => Promise<void>;
 }) {
@@ -57,8 +61,10 @@ export function TaskForm({
     [categoryId, setCategoryId] = useState(task?.category_id ?? ""),
     [focusEnabled, setFocusEnabled] = useState(task?.focus_enabled ?? false),
     [pending, startTransition] = useTransition();
-  const [returnFocus] = useState(() =>
-    typeof document === "undefined" ? null : document.activeElement,
+  const [returnFocus] = useState(
+    () =>
+      trigger ??
+      (typeof document === "undefined" ? null : document.activeElement),
   );
 
   const weekdays = existing?.type === "weekdays" ? existing.weekdays : [];
@@ -422,7 +428,10 @@ export function TaskForm({
                   name="startDate"
                   type="date"
                   defaultValue={
-                    task?.start_date ?? defaultDraft?.startDate ?? ""
+                    task?.start_date ??
+                    defaultDraft?.startDate ??
+                    defaultStartDate ??
+                    ""
                   }
                 />
               </label>

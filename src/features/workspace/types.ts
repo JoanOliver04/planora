@@ -17,6 +17,7 @@ export type WorkspaceData = {
   categories: Category[];
   tasks: Task[];
   events: Event[];
+  eventRange?: string;
   completions: Completion[];
   focusPresets?: FocusPresetOption[];
 };
