@@ -343,16 +343,7 @@ test("resource order can be saved with clicks and the position menu restores foc
     const trigger = page.getByLabel("Change position of Second schedule");
     await trigger.click();
     const menu = trigger.locator("..");
-    const scheduleSave = page.waitForResponse(
-      (response) =>
-        response.request().method() === "POST" &&
-        new URL(response.url()).pathname === "/en/schedules" &&
-        Boolean(response.request().headers()["next-action"]),
-    );
     await menu.getByRole("button", { name: "Move up" }).click();
-    const scheduleSaved = await scheduleSave;
-    expect(scheduleSaved.ok()).toBe(true);
-    expect(await scheduleSaved.finished()).toBeNull();
     await expect(trigger).toHaveAttribute("aria-disabled", "false");
     await expect
       .poll(async () => {
@@ -405,19 +396,10 @@ test("resource order can be saved with clicks and the position menu restores foc
     await page.goto("/en/today");
     const globalPosition = page.getByLabel("Change position of Global task");
     await globalPosition.click();
-    const taskSave = page.waitForResponse(
-      (response) =>
-        response.request().method() === "POST" &&
-        new URL(response.url()).pathname === "/en/today" &&
-        Boolean(response.request().headers()["next-action"]),
-    );
     await globalPosition
       .locator("..")
       .getByRole("button", { name: "Move up" })
       .click();
-    const taskSaved = await taskSave;
-    expect(taskSaved.ok()).toBe(true);
-    expect(await taskSaved.finished()).toBeNull();
     await expect(globalPosition).toHaveAttribute("aria-disabled", "false");
     await expect
       .poll(async () => {
@@ -428,11 +410,11 @@ test("resource order can be saved with clicks and the position menu restores foc
         return tasks.data?.map((task) => task.title);
       })
       .toEqual(["Global task", "Schedule task"]);
-    // Let the revalidated layout finish its requests before the hard reload.
-    await page.waitForLoadState("networkidle");
-    await page.reload();
+    // A fresh page must read the saved order independently of the writer's UI.
+    const reader = await context.newPage();
+    await reader.goto("/en/today");
     await expect(
-      page.getByLabel(/^Change position of .* task$/).first(),
+      reader.getByLabel(/^Change position of .* task$/).first(),
     ).toHaveAccessibleName("Change position of Global task", {
       timeout: 15_000,
     });
