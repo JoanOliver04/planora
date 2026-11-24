@@ -1,21 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
-import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { hasLocalCredentials, withLocalWorkspace } from "./local-workspace";
+import {
+  hasLocalCredentials,
+  withFreshPage,
+  withLocalWorkspace,
+} from "./local-workspace";
 
 test.use({ timezoneId: "America/New_York" });
-
-// A hard navigation must wait for the server action's streamed body, even
-// when the updated values are already visible in the page and database.
-function reminderActionFinished(page: Page) {
-  return page.waitForEvent(
-    "requestfinished",
-    (request) =>
-      new URL(request.url()).pathname === "/en/reminders" &&
-      request.method() === "POST" &&
-      Boolean(request.headers()["next-action"]),
-  );
-}
 
 test("resumes a long-paused daily alarm at its original local time", async ({
   page,
@@ -128,10 +119,7 @@ test("creates and edits linked reminders and alarms with exact times", async ({
       .analyze();
     expect(accessibility.violations).toEqual([]);
     await editor.getByLabel("Time", { exact: true }).fill("17:45");
-    await Promise.all([
-      reminderActionFinished(page),
-      editor.getByRole("button", { name: "Save", exact: true }).click(),
-    ]);
+    await editor.getByRole("button", { name: "Save", exact: true }).click();
     await expect(editor).toBeHidden();
     await expect(editReminder).toBeFocused();
     const stored = await db
@@ -154,7 +142,18 @@ test("creates and edits linked reminders and alarms with exact times", async ({
       "2037-02-10T16:45:00.000Z",
     );
 
-    await page.reload();
+    await withFreshPage(context, async (verification) => {
+      await verification.goto("/en/reminders");
+      await verification
+        .getByRole("region", { name: "Configured" })
+        .getByRole("button", { name: "Edit", exact: true })
+        .click();
+      const saved = verification.getByRole("dialog", { name: "Edit reminder" });
+      await expect(saved.getByLabel("When to notify")).toHaveValue("exact");
+      await expect(saved.getByLabel("Time", { exact: true })).toHaveValue(
+        "17:45",
+      );
+    });
     await editReminder.click();
     await expect(editor.getByLabel("When to notify")).toHaveValue("exact");
     await expect(editor.getByLabel("Time", { exact: true })).toHaveValue(
@@ -225,10 +224,7 @@ test("creates and edits linked reminders and alarms with exact times", async ({
     await expect(
       alarmRow.getByRole("switch", { name: "Enable QA alarm" }),
     ).toHaveAttribute("aria-checked", "true");
-    await Promise.all([
-      reminderActionFinished(page),
-      alarmRow.getByRole("button", { name: "Snooze 10 min" }).click(),
-    ]);
+    await alarmRow.getByRole("button", { name: "Snooze 10 min" }).click();
     await expect(alarmRow).toContainText("Snoozed");
     const snoozed = await db
       .from("reminders")
@@ -266,26 +262,28 @@ test("creates and edits linked reminders and alarms with exact times", async ({
         })
       ).error,
     ).toBeNull();
-    await page.goto("/es/reminders");
-    const pastReminder = page
-      .getByRole("region", { name: "Configurados" })
-      .getByRole("article")
-      .filter({ hasText: "QA past event" });
-    await pastReminder
-      .getByRole("button", { name: "Editar", exact: true })
-      .click();
-    const spanishEditor = page.getByRole("dialog", {
-      name: "Editar recordatorio",
+    await withFreshPage(context, async (verification) => {
+      await verification.goto("/es/reminders");
+      const pastReminder = verification
+        .getByRole("region", { name: "Configurados" })
+        .getByRole("article")
+        .filter({ hasText: "QA past event" });
+      await pastReminder
+        .getByRole("button", { name: "Editar", exact: true })
+        .click();
+      const spanishEditor = verification.getByRole("dialog", {
+        name: "Editar recordatorio",
+      });
+      await expect(
+        spanishEditor.getByRole("combobox", { name: "Buscar un evento…" }),
+      ).toHaveValue("QA past event");
+      await spanishEditor
+        .getByLabel("Cuándo avisar")
+        .selectOption({ label: "A una hora exacta" });
+      await expect(
+        spanishEditor.getByLabel("Hora", { exact: true }),
+      ).toBeVisible();
     });
-    await expect(
-      spanishEditor.getByRole("combobox", { name: "Buscar un evento…" }),
-    ).toHaveValue("QA past event");
-    await spanishEditor
-      .getByLabel("Cuándo avisar")
-      .selectOption({ label: "A una hora exacta" });
-    await expect(
-      spanishEditor.getByLabel("Hora", { exact: true }),
-    ).toBeVisible();
   });
 });
 

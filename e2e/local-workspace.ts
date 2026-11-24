@@ -1,11 +1,11 @@
 import { loadEnvConfig } from "@next/env";
 import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { BrowserContext } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
 import type { Database } from "../src/types/database";
 import { assertLocalTestEnvironment } from "../scripts/assert-local-test-env.mjs";
 import { expect } from "./fixtures";
-import { beginBrowserCleanup } from "./browser-diagnostics";
+import { beginBrowserCleanup, isBrowserCleanup } from "./browser-diagnostics";
 
 loadEnvConfig(process.cwd());
 
@@ -14,6 +14,39 @@ export const hasLocalCredentials = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
+
+// Read persisted state in a new document without interrupting a mutation
+// or its streamed revalidation response in the page that performed it.
+export async function withFreshPage(
+  context: BrowserContext,
+  check: (page: Page) => Promise<void>,
+) {
+  const page = await context.newPage();
+  const errors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error" && !isBrowserCleanup(page))
+      errors.push("console.error");
+  });
+  page.on("pageerror", (error) => {
+    if (!isBrowserCleanup(page)) errors.push(`pageerror: ${error.name}`);
+  });
+  page.on("response", (response) => {
+    if (response.status() >= 500 && !isBrowserCleanup(page))
+      errors.push(
+        `HTTP ${response.status()} ${new URL(response.url()).pathname}`,
+      );
+  });
+  try {
+    await check(page);
+    await page.waitForLoadState("networkidle");
+    expect(errors, "No errors in the independent persistence check").toEqual(
+      [],
+    );
+  } finally {
+    beginBrowserCleanup(page);
+    await page.close();
+  }
+}
 
 export async function prepareLocalProfile(
   client: SupabaseClient<Database>,
