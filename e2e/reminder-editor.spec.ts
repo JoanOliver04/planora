@@ -4,6 +4,56 @@ import { hasLocalCredentials, withLocalWorkspace } from "./local-workspace";
 
 test.use({ timezoneId: "America/New_York" });
 
+test("resumes a long-paused daily alarm at its original local time", async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  test.skip(!hasLocalCredentials, "Local integration credentials required");
+  await withLocalWorkspace(context, baseURL, async (db, userId) => {
+    const result = await db
+      .from("reminders")
+      .insert({
+        user_id: userId,
+        title: "Long-paused alarm",
+        kind: "alarm",
+        timezone: "Europe/Madrid",
+        recurrence: "daily",
+        next_trigger_at: "2000-01-02T09:15:00Z",
+        enabled: false,
+      })
+      .select("id")
+      .single();
+    expect(result.error).toBeNull();
+    await page.goto("/en/reminders");
+    const toggle = page.getByRole("switch", {
+      name: "Enable Long-paused alarm",
+      exact: true,
+    });
+    const resumedAt = Date.now();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-checked", "true");
+    const { data, error } = await db
+      .from("reminders")
+      .select("next_trigger_at")
+      .eq("id", result.data!.id)
+      .single();
+    expect(error).toBeNull();
+    const next = new Date(data!.next_trigger_at);
+    expect(next.getTime()).toBeGreaterThan(resumedAt);
+    expect(next.getTime() - Date.now()).toBeLessThanOrEqual(
+      25 * 60 * 60 * 1000,
+    );
+    expect(
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/Madrid",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(next),
+    ).toBe("10:15");
+  });
+});
+
 test("creates and edits linked reminders and alarms with exact times", async ({
   page,
   context,

@@ -82,6 +82,9 @@ export function ReminderCenter({
   tasks,
   events,
   taskLoadError = false,
+  eventLoadError = false,
+  remindersLoadError = false,
+  profileLoadError = false,
   linkedTargets = [],
 }: {
   locale: "es" | "en";
@@ -96,6 +99,9 @@ export function ReminderCenter({
     scope: "schedule" | "global";
   }>;
   taskLoadError?: boolean;
+  eventLoadError?: boolean;
+  remindersLoadError?: boolean;
+  profileLoadError?: boolean;
   linkedTargets?: ReminderTarget[];
   events: Array<{
     id: string;
@@ -159,6 +165,15 @@ export function ReminderCenter({
         : "event:" + reminder.event_id,
     );
   const summary = reminders.find((item) => item.kind === "daily_summary");
+  const loadFailed =
+    taskLoadError || eventLoadError || remindersLoadError || profileLoadError;
+
+  useEffect(() => {
+    if (!loadFailed) return;
+    const retry = () => router.refresh();
+    window.addEventListener("online", retry);
+    return () => window.removeEventListener("online", retry);
+  }, [loadFailed, router]);
 
   useEffect(() => {
     const syncLocalState = () => {
@@ -419,43 +434,58 @@ export function ReminderCenter({
         </div>
       </section>
 
-      {hydrated && browserTimezone && browserTimezone !== timezone && (
-        <aside className="surface timezone-warning">
-          <Clock3 />
-          <span>
-            {es
-              ? "Tu dispositivo usa " +
-                browserTimezone +
-                ", pero tu perfil usa " +
-                timezone +
-                "."
-              : "Your device uses " +
-                browserTimezone +
-                ", but your profile uses " +
-                timezone +
-                "."}
-          </span>
+      {hydrated &&
+        !profileLoadError &&
+        browserTimezone &&
+        browserTimezone !== timezone && (
+          <aside className="surface timezone-warning">
+            <Clock3 />
+            <span>
+              {es
+                ? "Tu dispositivo usa " +
+                  browserTimezone +
+                  ", pero tu perfil usa " +
+                  timezone +
+                  "."
+                : "Your device uses " +
+                  browserTimezone +
+                  ", but your profile uses " +
+                  timezone +
+                  "."}
+            </span>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  try {
+                    await updateProfile({ timezone: browserTimezone });
+                  } catch {
+                    toast.error(t("error"));
+                  }
+                })
+              }
+            >
+              {t("reminderUseDeviceZone")}
+            </button>
+          </aside>
+        )}
+
+      {profileLoadError && (
+        <p className="surface" role="alert">
+          {t("reminderProfileLoadError")}{" "}
           <button
             type="button"
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () => {
-                try {
-                  await updateProfile({ timezone: browserTimezone });
-                } catch {
-                  toast.error(t("error"));
-                }
-              })
-            }
+            className="pill"
+            onClick={() => router.refresh()}
           >
-            {t("reminderUseDeviceZone")}
+            {t("retry")}
           </button>
-        </aside>
+        </p>
       )}
-
       <fieldset
         className="reminder-forms reminder-forms-expanded"
-        disabled={!hydrated}
+        disabled={!hydrated || profileLoadError}
       >
         <legend className="visually-hidden">
           {es ? "Notificaciones y alarmas" : "Notifications and alarms"}
@@ -480,6 +510,7 @@ export function ReminderCenter({
             locale={locale}
             targets={targets}
             taskLoadError={taskLoadError}
+            eventLoadError={eventLoadError}
           />
         </section>
 
@@ -491,13 +522,15 @@ export function ReminderCenter({
               ? "Un aviso para revisar tu día y lo que queda pendiente."
               : "One notification to review your day and remaining work."}
           </p>
-          <SummaryForm
-            key={summary?.time_of_day}
-            timezone={summary?.timezone ?? timezone}
-            enabled
-            locale={locale}
-            reminder={summary}
-          />
+          {!remindersLoadError && (
+            <SummaryForm
+              key={summary?.time_of_day}
+              timezone={summary?.timezone ?? timezone}
+              enabled
+              locale={locale}
+              reminder={summary}
+            />
+          )}
         </section>
       </fieldset>
 
@@ -514,6 +547,18 @@ export function ReminderCenter({
 
       <section aria-labelledby="configured-reminders">
         <h2 id="configured-reminders">{es ? "Configurados" : "Configured"}</h2>
+        {remindersLoadError && (
+          <p className="surface" role="alert">
+            {t("remindersLoadError")}{" "}
+            <button
+              type="button"
+              className="pill"
+              onClick={() => router.refresh()}
+            >
+              {t("retry")}
+            </button>
+          </p>
+        )}
         {reminders.length > 0 && (
           <button
             type="button"
@@ -648,7 +693,7 @@ export function ReminderCenter({
               </article>
             );
           })}
-          {!reminders.length && (
+          {!remindersLoadError && !reminders.length && (
             <div className="empty empty-compact surface">
               <span className="empty-icon">🔕</span>
               <h3>
@@ -671,6 +716,7 @@ export function ReminderCenter({
           target={getTarget(editing)}
           targets={targets}
           taskLoadError={taskLoadError}
+          eventLoadError={eventLoadError}
           onClose={() => setEditing(null)}
           triggerRef={editTrigger}
         />

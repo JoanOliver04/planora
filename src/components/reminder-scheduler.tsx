@@ -240,7 +240,10 @@ export function ReminderScheduler({
                     last_delivered_at: new Date().toISOString(),
                     delivery_status: "delivered",
                   }
-                : { delivery_status: "pending" }),
+                : {
+                    delivery_status:
+                      outcome === "failed" ? "failed" : "pending",
+                  }),
               snoozed_until: null,
               enabled: Boolean(nextTriggerAt),
               ...(nextTriggerAt ? { next_trigger_at: nextTriggerAt } : {}),

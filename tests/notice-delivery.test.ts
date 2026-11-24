@@ -2,6 +2,10 @@ import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defaultNotificationPreferences } from "@/features/reminders/preferences";
 import {
+  activateClientSession,
+  revokeClientSession,
+} from "@/lib/security/client-session";
+import {
   __resetNoticesForTests,
   deliverNotices,
   noticeIdentity,
@@ -79,6 +83,7 @@ async function deliver(
     prefs?: Partial<typeof defaultNotificationPreferences>;
     at?: Date;
     visible?: boolean;
+    presentInApp?: (notice: PresentedNotice) => void;
     system?: () => Promise<SystemNoticeResult> | SystemNoticeResult;
     playAlarm?: () => void;
     vibrate?: () => void;
@@ -87,13 +92,16 @@ async function deliver(
   const inApp: PresentedNotice[] = [];
   const system: PresentedNotice[] = [];
   const advanced: Array<string | null> = [];
-  const outcomes: Array<"delivered" | "expired"> = [];
+  const outcomes: Array<"delivered" | "expired" | "failed"> = [];
   await deliverNotices({
     notices,
     preferences: preferences(options.prefs),
     now: options.at ?? now,
     visible: options.visible ?? true,
-    presentInApp: (notice) => inApp.push(notice),
+    presentInApp: (notice) => {
+      options.presentInApp?.(notice);
+      inApp.push(notice);
+    },
     presentSystem: async (notice) => {
       system.push(notice);
       return options.system ? await options.system() : "shown";
@@ -203,6 +211,72 @@ describe("daily summary delivery", () => {
 });
 
 describe("reminder and alarm channels", () => {
+  it("deduplicates a delivered alarm in the open tab when storage rejects writes", async () => {
+    const blocked = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("quota");
+      });
+    try {
+      const first = await deliver([alarm()]);
+      expect(first.inApp).toHaveLength(1);
+      expect(first.system).toHaveLength(1);
+      expect(first.outcomes).toEqual(["delivered"]);
+      const again = await deliver([alarm()]);
+      expect(again.inApp).toHaveLength(0);
+      expect(again.system).toHaveLength(0);
+    } finally {
+      blocked.mockRestore();
+    }
+  });
+  it("retries a popup that could not be displayed", async () => {
+    const first = await deliver([alarm()], {
+      prefs: { system: false },
+      presentInApp: () => {
+        throw new Error("unavailable");
+      },
+    });
+    expect(first.advanced).toEqual([]);
+    const again = await deliver([alarm()], { prefs: { system: false } });
+    expect(again.inApp).toHaveLength(1);
+    expect(again.outcomes).toEqual(["delivered"]);
+  });
+  it("forgets tab-only receipts and ignores old toast callbacks after a session change", async () => {
+    activateClientSession("previous-owner");
+    const blocked = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("quota");
+      });
+    try {
+      const first = await deliver([summary()]);
+      revokeClientSession("previous-owner", false);
+      activateClientSession("current-owner");
+      first.inApp[0].onOpen();
+      expect(noticeRecord(first.inApp[0].identity)).toBeNull();
+      expect((await deliver([summary()])).inApp).toHaveLength(1);
+    } finally {
+      blocked.mockRestore();
+    }
+  });
+  it("keeps a system failure pending for the foreground when popups are enabled", async () => {
+    const hidden = await deliver([alarm()], {
+      visible: false,
+      system: () => "failed",
+    });
+    expect(hidden.outcomes).toEqual([]);
+    const visible = await deliver([alarm()]);
+    expect(visible.inApp).toHaveLength(1);
+    expect(visible.system).toEqual([]);
+    expect(visible.outcomes).toEqual(["delivered"]);
+  });
+  it("records failure when the only enabled channel cannot deliver", async () => {
+    const failed = await deliver([alarm()], {
+      prefs: { inApp: false },
+      system: () => "unsupported",
+    });
+    expect(failed.outcomes).toEqual(["failed"]);
+  });
   it("uses the original weekday after delivering a weekly alarm snoozed past midnight", async () => {
     const scheduled = "2026-10-06T23:55:00.000Z";
     const snoozed = "2026-10-07T00:05:00.000Z";

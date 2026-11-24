@@ -273,7 +273,7 @@ function TargetCombobox({
   const emptyLabel =
     type === "task"
       ? t(targets.length ? "noTasksMatch" : "noTasksFound")
-      : t("noEventsFound");
+      : t(targets.length ? "noEventsMatch" : "noEventsFound");
   const showList = open && results.length > 0;
 
   function choose(item: ReminderTarget) {
@@ -361,7 +361,7 @@ function TargetCombobox({
       </div>
       {hasError && (
         <p className="target-unavailable">
-          {t("tasksLoadError")}{" "}
+          {t(type === "task" ? "tasksLoadError" : "eventsLoadError")}{" "}
           <button
             type="button"
             className="pill"
@@ -477,11 +477,13 @@ export function LinkedReminderForm({
   targets,
   originalTarget,
   taskLoadError,
+  eventLoadError,
   ...callbacks
 }: FormProps & {
   targets: ReminderTarget[];
   originalTarget?: ReminderTarget;
   taskLoadError: boolean;
+  eventLoadError: boolean;
 }) {
   const t = useTranslations("Workspace");
   const initialTarget = reminder
@@ -592,7 +594,7 @@ export function LinkedReminderForm({
         value={value}
         onChange={setValue}
         type={type}
-        hasError={type === "task" && taskLoadError}
+        hasError={type === "task" ? taskLoadError : eventLoadError}
       />
       <label>
         {t("reminderTiming")}
@@ -658,6 +660,7 @@ export function ReminderEditor({
   target,
   targets,
   taskLoadError,
+  eventLoadError,
   locale,
   onClose,
   triggerRef,
@@ -666,6 +669,7 @@ export function ReminderEditor({
   target?: ReminderTarget;
   targets: ReminderTarget[];
   taskLoadError: boolean;
+  eventLoadError: boolean;
   locale: Locale;
   onClose: () => void;
   triggerRef: RefObject<HTMLButtonElement | null>;
@@ -725,6 +729,7 @@ export function ReminderEditor({
               targets={targets}
               originalTarget={target}
               taskLoadError={taskLoadError}
+              eventLoadError={eventLoadError}
             />
           )}
         </Dialog.Content>

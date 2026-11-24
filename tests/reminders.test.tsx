@@ -13,6 +13,7 @@ import {
   customTrigger,
   exactTrigger,
   nextDailyTrigger,
+  nextFutureTrigger,
   nextLinkedTrigger,
   relativeTrigger,
 } from "@/features/reminders/schedule";
@@ -197,6 +198,29 @@ describe("reminder scheduling", () => {
     );
   });
 
+  it("shows a retry when the saved list fails and recovers on reconnect", async () => {
+    const props = {
+      locale: "en" as const,
+      timezone: "UTC",
+      reminders: [],
+      tasks: [],
+      events: [],
+    };
+    const view = render(<ReminderCenter {...props} remindersLoadError />);
+    const list = screen.getByRole("region", { name: "Configured" });
+    expect(within(list).getByRole("alert")).toHaveTextContent(
+      "remindersLoadError",
+    );
+    expect(within(list).queryByText("No reminders yet")).toBeNull();
+    refresh.mockClear();
+    fireEvent.click(within(list).getByRole("button", { name: "retry" }));
+    window.dispatchEvent(new Event("online"));
+    expect(refresh).toHaveBeenCalledTimes(2);
+    view.rerender(<ReminderCenter {...props} />);
+    expect(within(list).getByText("No reminders yet")).toBeVisible();
+    window.dispatchEvent(new Event("online"));
+    expect(refresh).toHaveBeenCalledTimes(2);
+  });
   it("rejects a nonexistent exact time during the spring clock change", () => {
     expect(exactTrigger("2027-03-28", "02:30", "Europe/Madrid")).toBeNull();
     expect(
@@ -218,6 +242,43 @@ describe("reminder scheduling", () => {
     ).toBe("2026-11-01T19:30:00.000Z");
   });
 
+  it("resumes old daily and weekly reminders on the first future local occurrence", () => {
+    const old = new Date("2000-01-02T01:30:12Z");
+    for (const recurrence of ["daily", "weekly"] as const) {
+      expect(
+        nextFutureTrigger(
+          old,
+          recurrence,
+          "Europe/Madrid",
+          new Date("2027-03-27T20:00:00Z"),
+        )?.toISOString(),
+      ).toBe("2027-03-28T01:30:12.000Z");
+    }
+    expect(
+      nextFutureTrigger(
+        old,
+        "daily",
+        "Europe/Madrid",
+        new Date("2027-03-29T00:30:00Z"),
+        "02:30",
+      )?.toISOString(),
+    ).toBe("2027-03-30T00:30:00.000Z");
+  });
+  it("never replays a one-off alarm when recovering an old schedule", () => {
+    expect(
+      nextFutureTrigger(new Date("1990-02-01T12:00:00Z"), "once"),
+    ).toBeNull();
+  });
+  it("uses the size of a half-hour clock change before applying a relative offset", () => {
+    expect(
+      relativeTrigger(
+        "2026-10-04",
+        "02:15",
+        "Australia/Lord_Howe",
+        10,
+      ).toISOString(),
+    ).toBe("2026-10-03T15:35:00.000Z");
+  });
   it("calculates timezone-safe relative and recurring triggers", () => {
     expect(
       relativeTrigger("2026-08-03", "10:00", "Europe/Madrid", 15).toISOString(),

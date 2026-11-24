@@ -3,6 +3,7 @@ import { ReminderCenter } from "@/features/reminders/reminder-center";
 import type { ReminderTarget } from "@/features/reminders/reminder-forms";
 import { effectiveReminderTrigger } from "@/features/reminders/schedule";
 import { localDate } from "@/lib/dates/timezone";
+import { readWorkspaceRows } from "@/features/workspace/workspace-data";
 
 export default async function RemindersPage({
   params,
@@ -13,19 +14,25 @@ export default async function RemindersPage({
   const db = await createClient();
   const { data: user } = await db.auth.getUser();
   if (!user.user) return null;
-  const [{ data: profile }, { data: configuredReminders }] = await Promise.all([
+  const [
+    { data: profile },
+    { data: configuredReminders, error: reminderError },
+  ] = await Promise.all([
     db
       .from("profiles")
       .select("timezone,active_schedule_id")
       .eq("id", user.user.id)
       .single(),
-    db
-      .from("reminders")
-      .select(
-        "*,task:tasks(id,title,emoji,start_date,start_time,scope),event:events(id,title,emoji,event_date,start_time)",
-      )
-      .eq("user_id", user.user.id)
-      .order("next_trigger_at"),
+    readWorkspaceRows(
+      db
+        .from("reminders")
+        .select(
+          "*,task:tasks(id,title,emoji,start_date,start_time,scope),event:events(id,title,emoji,event_date,start_time)",
+        )
+        .eq("user_id", user.user.id)
+        .order("next_trigger_at")
+        .order("id"),
+    ),
   ]);
   const linkedTargets = new Map<string, ReminderTarget>();
   const reminders = (configuredReminders ?? [])
@@ -71,7 +78,9 @@ export default async function RemindersPage({
     .eq("user_id", user.user.id)
     .is("schedule_id", null)
     .is("archived_at", null)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .order("title")
+    .order("id");
   const scheduleTasksQuery = activeScheduleId
     ? db
         .from("tasks")
@@ -80,18 +89,28 @@ export default async function RemindersPage({
         .eq("schedule_id", activeScheduleId)
         .is("archived_at", null)
         .eq("is_active", true)
+        .order("title")
+        .order("id")
     : null;
-  const [globalTasksResult, scheduleTasksResult, { data: events }] =
-    await Promise.all([
-      globalTasksQuery,
-      scheduleTasksQuery ?? Promise.resolve({ data: [], error: null }),
+  const [
+    globalTasksResult,
+    scheduleTasksResult,
+    { data: events, error: eventError },
+  ] = await Promise.all([
+    readWorkspaceRows(globalTasksQuery),
+    scheduleTasksQuery
+      ? readWorkspaceRows(scheduleTasksQuery)
+      : Promise.resolve({ data: [], error: null }),
+    readWorkspaceRows(
       db
         .from("events")
         .select("id,title,emoji,event_date,start_time")
         .eq("user_id", user.user.id)
         .gte("event_date", localDate(timezone))
-        .order("event_date"),
-    ]);
+        .order("event_date")
+        .order("id"),
+    ),
+  ]);
   const taskError = globalTasksResult.error ?? scheduleTasksResult.error;
   const tasks = [
     ...(globalTasksResult.data ?? []).map((task) => ({
@@ -103,10 +122,6 @@ export default async function RemindersPage({
       scope: "schedule" as const,
     })),
   ];
-  if (taskError)
-    console.error("[reminders] task target query failed", {
-      code: taskError.code,
-    });
   return (
     <ReminderCenter
       locale={locale as "es" | "en"}
@@ -116,6 +131,9 @@ export default async function RemindersPage({
       linkedTargets={[...linkedTargets.values()]}
       events={events ?? []}
       taskLoadError={Boolean(taskError)}
+      eventLoadError={Boolean(eventError)}
+      remindersLoadError={Boolean(reminderError)}
+      profileLoadError={!profile}
     />
   );
 }

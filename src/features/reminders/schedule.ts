@@ -1,5 +1,5 @@
-import { addDays, addWeeks, format, parseISO } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import { shiftCalendarDay } from "@/lib/dates/calendar-day";
 
 export type ReminderRecurrence = "once" | "daily" | "weekly";
 export const MAX_REMINDER_OFFSET = 7 * 1440;
@@ -21,11 +21,7 @@ export function nextDailyTrigger(
   const day = formatInTimeZone(now, timezone, "yyyy-MM-dd");
   let trigger = recurringClockTrigger(day, time, timezone);
   if (trigger <= now)
-    trigger = recurringClockTrigger(
-      format(addDays(parseISO(day), 1), "yyyy-MM-dd"),
-      time,
-      timezone,
-    );
+    trigger = recurringClockTrigger(shiftCalendarDay(day, 1), time, timezone);
   return trigger;
 }
 export function relativeTrigger(
@@ -34,8 +30,9 @@ export function relativeTrigger(
   timezone: string,
   minutesBefore: number,
 ) {
-  const target = fromZonedTime(
-    date + "T" + (time?.slice(0, 5) ?? "09:00") + ":00",
+  const target = recurringClockTrigger(
+    date,
+    time?.slice(0, 5) ?? "09:00",
     timezone,
   );
   return new Date(target.getTime() - minutesBefore * 60_000);
@@ -46,20 +43,16 @@ export function advanceTrigger(
   timezone = "UTC",
   preferredTime?: string | null,
 ) {
-  if (recurrence === "once") return null;
-  const localDate = formatInTimeZone(trigger, timezone, "yyyy-MM-dd");
-  const localTime = formatInTimeZone(trigger, timezone, "HH:mm:ss");
-  const nextDate =
-    recurrence === "daily"
-      ? addDays(parseISO(localDate), 1)
-      : addWeeks(parseISO(localDate), 1);
-  const nextDay = format(nextDate, "yyyy-MM-dd");
-  return preferredTime
-    ? recurringClockTrigger(nextDay, preferredTime, timezone)
-    : fromZonedTime(nextDay + "T" + localTime, timezone);
+  return nextFutureTrigger(
+    trigger,
+    recurrence,
+    timezone,
+    trigger,
+    preferredTime,
+  );
 }
 
-/** Walks past missed occurrences so a stale reminder is not delivered once per skipped day. */
+/** Advance at least one occurrence, calculating missed periods in local calendar days. */
 export function nextFutureTrigger(
   trigger: Date,
   recurrence: ReminderRecurrence,
@@ -67,14 +60,23 @@ export function nextFutureTrigger(
   now = new Date(),
   preferredTime?: string | null,
 ) {
-  if (recurrence === "once") return null;
-  let next = advanceTrigger(trigger, recurrence, timezone, preferredTime);
-  for (let step = 0; step < 3660 && next && next <= now; step += 1) {
-    const following = advanceTrigger(next, recurrence, timezone, preferredTime);
-    if (!following || following.getTime() === next.getTime()) return null;
-    next = following;
-  }
-  return next && next > now ? next : null;
+  if (
+    recurrence === "once" ||
+    !Number.isFinite(trigger.getTime()) ||
+    !Number.isFinite(now.getTime())
+  )
+    return null;
+  const start = formatInTimeZone(trigger, timezone, "yyyy-MM-dd");
+  const today = formatInTimeZone(now, timezone, "yyyy-MM-dd");
+  const elapsed = (Date.parse(today) - Date.parse(start)) / 86_400_000;
+  const period = recurrence === "weekly" ? 7 : 1;
+  const periods = Math.max(1, Math.floor(elapsed / period));
+  const day = shiftCalendarDay(start, periods * period);
+  const time = preferredTime || formatInTimeZone(trigger, timezone, "HH:mm:ss");
+  const candidate = recurringClockTrigger(day, time, timezone);
+  return candidate > now
+    ? candidate
+    : recurringClockTrigger(shiftCalendarDay(day, period), time, timezone);
 }
 
 export function customTrigger(date: string, time: string, timezone: string) {
@@ -92,13 +94,16 @@ export function exactTrigger(date: string, time: string, timezone: string) {
 }
 
 function recurringClockTrigger(date: string, time: string, timezone: string) {
-  const trigger = customTrigger(date, time, timezone);
-  const displayed = formatInTimeZone(trigger, timezone, "yyyy-MM-dd'T'HH:mm");
-  const requested = `${date}T${time}`;
+  const requested = date + "T" + (time.length === 5 ? time + ":00" : time);
+  const trigger = fromZonedTime(requested, timezone);
+  const displayed = formatInTimeZone(
+    trigger,
+    timezone,
+    "yyyy-MM-dd'T'HH:mm:ss",
+  );
   // If the clock jumps over this time, move this occurrence forward by the gap.
   // The following occurrence still uses the preferred wall-clock time.
-  const difference =
-    Date.parse(requested + ":00Z") - Date.parse(displayed + ":00Z");
+  const difference = Date.parse(requested + "Z") - Date.parse(displayed + "Z");
   return difference > 0 ? new Date(trigger.getTime() + difference) : trigger;
 }
 
@@ -110,29 +115,5 @@ export function nextLinkedTrigger(
 ) {
   if (!Number.isFinite(trigger.getTime())) return null;
   if (trigger > now) return trigger;
-  if (recurrence === "once") return null;
-
-  const dayInZone = (instant: Date) =>
-    new Date(formatInTimeZone(instant, timezone, "yyyy-MM-dd") + "T00:00:00Z");
-  const startDay = dayInZone(trigger);
-  const daysElapsed =
-    (dayInZone(now).getTime() - startDay.getTime()) / 86_400_000;
-  const period = recurrence === "daily" ? 1 : 7;
-  // Jump to the current period, retaining the local wall-clock time.
-  startDay.setUTCDate(
-    startDay.getUTCDate() + Math.floor(daysElapsed / period) * period,
-  );
-  const time = formatInTimeZone(trigger, timezone, "HH:mm");
-  const candidate = recurringClockTrigger(
-    startDay.toISOString().slice(0, 10),
-    time,
-    timezone,
-  );
-  if (candidate > now) return candidate;
-  startDay.setUTCDate(startDay.getUTCDate() + period);
-  return recurringClockTrigger(
-    startDay.toISOString().slice(0, 10),
-    time,
-    timezone,
-  );
+  return nextFutureTrigger(trigger, recurrence, timezone, now);
 }

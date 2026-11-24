@@ -1,6 +1,10 @@
 import { formatInTimeZone } from "date-fns-tz";
 import { nextFutureTrigger } from "@/features/reminders/schedule";
 import type { NotificationPreferences } from "@/features/reminders/preferences";
+import {
+  canUsePrivateClientStorage,
+  clientSessionEpoch,
+} from "@/lib/security/client-session";
 
 const ledgerKey = "planora-notice-ledger-v1";
 const maxUnavailableAttempts = 5;
@@ -64,7 +68,7 @@ type DeliverInput = {
   advance: (
     notice: DueNotice,
     nextTriggerAt: string | null,
-    outcome: "delivered" | "expired",
+    outcome: "delivered" | "expired" | "failed",
   ) => Promise<void>;
   playAlarm?: () => void;
   vibrate?: () => void;
@@ -72,6 +76,9 @@ type DeliverInput = {
 
 let deliveryFlight: Promise<void> | null = null;
 const deliveryInFlight = new Set<string>();
+let memoryLedger: Record<string, LedgerEntry> = Object.create(null);
+let ledgerEpoch = clientSessionEpoch();
+let lastStoredLedger: string | null = null;
 
 function emptyEntry(): LedgerEntry {
   return { unavailable: 0, at: Date.now() };
@@ -101,25 +108,72 @@ export function noticeIdentity(notice: DueNotice, now = new Date()) {
 }
 
 function readLedger(): Record<string, LedgerEntry> {
-  if (typeof localStorage === "undefined") return {};
-  try {
-    const parsed = JSON.parse(
-      localStorage.getItem(ledgerKey) ?? "{}",
-    ) as Record<string, LedgerEntry>;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
+  if (ledgerEpoch !== clientSessionEpoch()) {
+    memoryLedger = Object.create(null);
+    lastStoredLedger = null;
+    ledgerEpoch = clientSessionEpoch();
   }
+  if (!canUsePrivateClientStorage()) return {};
+  try {
+    const raw = localStorage.getItem(ledgerKey);
+    if (raw === lastStoredLedger) return memoryLedger;
+    lastStoredLedger = raw;
+    const stored = raw && raw.length < 128_000 ? JSON.parse(raw) : null;
+    if (stored && typeof stored === "object" && !Array.isArray(stored)) {
+      for (const [id, entry] of Object.entries(stored) as [
+        string,
+        LedgerEntry,
+      ][]) {
+        if (
+          !entry ||
+          !Number.isFinite(entry.at) ||
+          !Number.isInteger(entry.unavailable) ||
+          (entry.inApp !== undefined && !Object.hasOwn(rank, entry.inApp)) ||
+          (entry.system !== undefined &&
+            entry.system !== "shown" &&
+            entry.system !== "failed")
+        )
+          continue;
+        const local = memoryLedger[id];
+        if (!local) memoryLedger[id] = entry;
+        else {
+          if (
+            entry.inApp &&
+            rank[entry.inApp] > (local.inApp ? rank[local.inApp] : 0)
+          )
+            local.inApp = entry.inApp;
+          if (entry.system === "shown" || !local.system)
+            local.system = entry.system;
+          local.unavailable = Math.max(local.unavailable, entry.unavailable);
+          local.unavailableAt = Math.max(
+            local.unavailableAt ?? 0,
+            entry.unavailableAt ?? 0,
+          );
+          local.at = Math.max(local.at, entry.at);
+        }
+      }
+      trimLedger(memoryLedger);
+    }
+  } catch {
+    // The tab can still deduplicate alerts when browser storage is blocked.
+  }
+  return memoryLedger;
 }
 
-function writeLedger(entries: Record<string, LedgerEntry>) {
+function trimLedger(entries: Record<string, LedgerEntry>) {
   const keys = Object.keys(entries);
   if (keys.length > 80) {
     keys.sort((left, right) => entries[left].at - entries[right].at);
     for (const key of keys.slice(0, keys.length - 80)) delete entries[key];
   }
+}
+function writeLedger(entries: Record<string, LedgerEntry>) {
+  trimLedger(entries);
+  if (!canUsePrivateClientStorage()) return;
   try {
-    localStorage.setItem(ledgerKey, JSON.stringify(entries));
+    const raw = JSON.stringify(entries);
+    localStorage.setItem(ledgerKey, raw);
+    lastStoredLedger = raw;
   } catch {
     // A full or private store must not block the rest of delivery.
   }
@@ -184,6 +238,7 @@ function presentable(
 ): PresentedNotice {
   const identity = noticeIdentity(notice, now);
   const summary = notice.kind === "daily_summary";
+  const epoch = clientSessionEpoch();
   return {
     ...notice,
     identity,
@@ -197,8 +252,13 @@ function presentable(
       closeButton: summary,
       className: summary ? "planora-daily-summary" : undefined,
     },
-    onOpen: () => rememberNotice(identity, "opened"),
-    onDismiss: () => rememberNotice(identity, "dismissed"),
+    onOpen: () => {
+      if (canUsePrivateClientStorage(epoch)) rememberNotice(identity, "opened");
+    },
+    onDismiss: () => {
+      if (canUsePrivateClientStorage(epoch))
+        rememberNotice(identity, "dismissed");
+    },
   };
 }
 
@@ -206,7 +266,7 @@ async function settleTrigger(
   notice: DueNotice,
   now: Date,
   advance: DeliverInput["advance"],
-  outcome: "delivered" | "expired" = "delivered",
+  outcome: "delivered" | "expired" | "failed" = "delivered",
 ) {
   const next = nextFutureTrigger(
     new Date(notice.scheduledTriggerAt ?? notice.nextTriggerAt),
@@ -257,16 +317,18 @@ export async function deliverNotices(input: DeliverInput) {
         input.preferences.inApp && input.visible && !inAppBlocked(entry);
       const wantSystem = input.preferences.system && !systemBlocked(entry);
       if (!wantInApp && !wantSystem) {
-        if (entry?.inApp || entry?.system)
+        if (entry?.inApp || entry?.system === "shown")
           await settleTrigger(notice, now, input.advance);
+        else if (entry?.system === "failed" && !input.preferences.inApp)
+          await settleTrigger(notice, now, input.advance, "failed");
         continue;
       }
 
       const presented = presentable(notice, input.preferences, now);
       if (wantInApp) {
-        rememberNotice(identity, "shown");
         try {
           input.presentInApp(presented);
+          rememberNotice(identity, "shown");
         } catch (error) {
           logNotice("in_app", error instanceof Error ? error.name : "Error");
         }
@@ -308,19 +370,23 @@ export async function deliverNotices(input: DeliverInput) {
         systemBlocked(entry) ||
         ((systemResult === "denied" || systemResult === "default") &&
           Boolean(entry?.inApp));
-      const handedOff =
-        Boolean(entry?.inApp) ||
-        systemResult === "shown" ||
-        systemBlocked(entry);
+      const handedOff = Boolean(entry?.inApp) || entry?.system === "shown";
       if (inAppFinished && systemFinished && handedOff) {
         await settleTrigger(notice, now, input.advance);
         if (
           notice.kind === "alarm" &&
-          (wantInApp || systemResult === "shown")
+          !input.signal?.aborted &&
+          ((wantInApp && Boolean(entry?.inApp)) || systemResult === "shown")
         ) {
           if (input.preferences.sound && input.visible) input.playAlarm?.();
           if (input.preferences.vibration) input.vibrate?.();
         }
+      } else if (
+        !handedOff &&
+        entry?.system === "failed" &&
+        !input.preferences.inApp
+      ) {
+        await settleTrigger(notice, now, input.advance, "failed");
       }
     } finally {
       deliveryInFlight.delete(identity);
@@ -345,6 +411,8 @@ export function deliverNoticesOnce(input: DeliverInput) {
 }
 
 export function __resetNoticesForTests() {
+  memoryLedger = Object.create(null);
+  lastStoredLedger = null;
   deliveryFlight = null;
   deliveryInFlight.clear();
   try {
