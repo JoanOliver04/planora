@@ -329,8 +329,6 @@ test("resource order can be saved with clicks and the position menu restores foc
   page,
   context,
   baseURL,
-  browserName,
-  browserDiagnostics,
 }) => {
   test.setTimeout(90_000);
   test.skip(!hasLocalCredentials, "Disposable local account required");
@@ -354,6 +352,7 @@ test("resource order can be saved with clicks and the position menu restores foc
     await menu.getByRole("button", { name: "Move up" }).click();
     const scheduleSaved = await scheduleSave;
     expect(scheduleSaved.ok()).toBe(true);
+    expect(await scheduleSaved.finished()).toBeNull();
     await expect(trigger).toHaveAttribute("aria-disabled", "false");
     await expect
       .poll(async () => {
@@ -418,6 +417,7 @@ test("resource order can be saved with clicks and the position menu restores foc
       .click();
     const taskSaved = await taskSave;
     expect(taskSaved.ok()).toBe(true);
+    expect(await taskSaved.finished()).toBeNull();
     await expect(globalPosition).toHaveAttribute("aria-disabled", "false");
     await expect
       .poll(async () => {
@@ -428,18 +428,9 @@ test("resource order can be saved with clicks and the position menu restores foc
         return tasks.data?.map((task) => task.title);
       })
       .toEqual(["Global task", "Schedule task"]);
-    // WebKit can report cancellation of a completed action's remaining Flight
-    // stream during a hard reload. Allow one such console entry only while
-    // this navigation runs; earlier/later errors and unhandled errors still fail.
-    const endExpectedCancellation =
-      browserName === "webkit"
-        ? browserDiagnostics.allowNextConsoleError(/^TypeError: Load failed$/)
-        : () => {};
-    try {
-      await page.reload();
-    } finally {
-      endExpectedCancellation();
-    }
+    // Let the revalidated layout finish its requests before the hard reload.
+    await page.waitForLoadState("networkidle");
+    await page.reload();
     await expect(
       page.getByLabel(/^Change position of .* task$/).first(),
     ).toHaveAccessibleName("Change position of Global task", {
