@@ -564,14 +564,13 @@ test("offline completions synchronize once and sign-out closes the private UI", 
   page,
   context,
   baseURL,
-  browserName,
   browserDiagnostics,
 }) => {
   browserDiagnostics.allowConsoleError(offlineNetworkError);
   test.setTimeout(90_000);
   test.skip(
-    !hasLocalCredentials || browserName !== "chromium",
-    "Run on Chromium with a disposable local backend",
+    !hasLocalCredentials,
+    "Disposable local integration account required",
   );
   await withLocalWorkspace(context, baseURL, async (db, userId) => {
     const inserted = await db
