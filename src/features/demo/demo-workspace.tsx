@@ -58,18 +58,26 @@ export function DemoWorkspace({
     [restored, setRestored] = useState(false);
   useEffect(() => {
     queueMicrotask(() => {
+      let saved: string | null = null;
+      try {
+        saved = localStorage.getItem(DEMO_STORAGE_KEY);
+      } catch {
+        // A browser that blocks storage can still run the demo in memory.
+      }
       setState(
-        parseDemoState(
-          localStorage.getItem(DEMO_STORAGE_KEY),
-          Date.now(),
-          locale,
-        ) ?? createDemoState(new Date(), locale),
+        parseDemoState(saved, Date.now(), locale) ??
+          createDemoState(new Date(), locale),
       );
       setRestored(true);
     });
   }, [initialState, locale]);
   useEffect(() => {
-    if (restored) localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state));
+    if (!restored) return;
+    try {
+      localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Keep the current session usable when storage is unavailable or full.
+    }
   }, [restored, state]);
   useEffect(() => {
     const remaining = state.expiresAt - Date.now();
@@ -93,7 +101,6 @@ export function DemoWorkspace({
   function reset() {
     const fresh = createDemoState(new Date(), locale);
     setState(fresh);
-    localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(fresh));
   }
   return (
     <div className="app-shell demo-shell">
@@ -108,7 +115,12 @@ export function DemoWorkspace({
           <span>{copy.demoHint}</span>
         </div>
       </aside>
-      <main className="main" id="main-content" tabIndex={-1}>
+      <main
+        className="main"
+        id="main-content"
+        tabIndex={-1}
+        aria-busy={!restored}
+      >
         <header className="demo-topbar surface">
           <div>
             <b>{copy.demo}</b>
@@ -118,71 +130,77 @@ export function DemoWorkspace({
             {copy.create}
           </AuthLink>
         </header>
-        {view === "today" && (
-          <TodayDemo
-            state={state}
-            setState={setState}
-            today={today}
-            copy={copy}
-            activeTasks={activeTasks}
-            completed={completedToday}
-          />
-        )}
-        {view === "week" && (
-          <WeekDemo state={state} copy={copy} today={today} />
-        )}
-        {view === "month" && (
-          <MonthDemo state={state} copy={copy} today={today} />
-        )}
-        {view === "search" && <SearchDemo state={state} copy={copy} />}
-        {view === "tasks" && (
-          <TasksDemo state={state} setState={setState} copy={copy} />
-        )}
-        {view === "focus" && <FocusDemo state={state} copy={copy} />}
-        {view === "events" && (
-          <EventsDemo state={state} setState={setState} copy={copy} />
-        )}
-        {view === "history" && <HistoryDemo state={state} copy={copy} />}
-        {view === "statistics" && (
-          <StatisticsDemo state={state} copy={copy} today={today} />
-        )}
-        {view === "reminders" && <RemindersDemo copy={copy} />}
-        {view === "schedules" && (
-          <SimpleResourceDemo
-            kind="schedules"
-            state={state}
-            setState={setState}
-            copy={copy}
-          />
-        )}
-        {view === "categories" && (
-          <SimpleResourceDemo
-            kind="categories"
-            state={state}
-            setState={setState}
-            copy={copy}
-          />
-        )}
-        {view === "templates" && (
-          <TemplatesDemo state={state} setState={setState} copy={copy} />
-        )}
-        {view === "settings" && (
-          <section>
-            <h1 className="title">{copy.settings}</h1>
-            <div className="surface demo-settings">
-              <p>{copy.isolated}</p>
-              <p className="muted">{copy.protected}</p>
-              <button className="pill" onClick={reset}>
-                <RotateCcw size={17} /> {copy.reset}
-              </button>
-            </div>
-            <AppAbout locale={locale} source="demo-settings" />
-          </section>
-        )}
-        {view === "data" && (
-          <DataDemo state={state} copy={copy} reset={reset} />
-        )}
-        {view === "more" && <MoreDemo locale={locale} copy={copy} />}
+        <fieldset
+          className="demo-controls"
+          disabled={!restored}
+          aria-label={copy.demo}
+        >
+          {view === "today" && (
+            <TodayDemo
+              state={state}
+              setState={setState}
+              today={today}
+              copy={copy}
+              activeTasks={activeTasks}
+              completed={completedToday}
+            />
+          )}
+          {view === "week" && (
+            <WeekDemo state={state} copy={copy} today={today} />
+          )}
+          {view === "month" && (
+            <MonthDemo state={state} copy={copy} today={today} />
+          )}
+          {view === "search" && <SearchDemo state={state} copy={copy} />}
+          {view === "tasks" && (
+            <TasksDemo state={state} setState={setState} copy={copy} />
+          )}
+          {view === "focus" && <FocusDemo state={state} copy={copy} />}
+          {view === "events" && (
+            <EventsDemo state={state} setState={setState} copy={copy} />
+          )}
+          {view === "history" && <HistoryDemo state={state} copy={copy} />}
+          {view === "statistics" && (
+            <StatisticsDemo state={state} copy={copy} today={today} />
+          )}
+          {view === "reminders" && <RemindersDemo copy={copy} />}
+          {view === "schedules" && (
+            <SimpleResourceDemo
+              kind="schedules"
+              state={state}
+              setState={setState}
+              copy={copy}
+            />
+          )}
+          {view === "categories" && (
+            <SimpleResourceDemo
+              kind="categories"
+              state={state}
+              setState={setState}
+              copy={copy}
+            />
+          )}
+          {view === "templates" && (
+            <TemplatesDemo state={state} setState={setState} copy={copy} />
+          )}
+          {view === "settings" && (
+            <section>
+              <h1 className="title">{copy.settings}</h1>
+              <div className="surface demo-settings">
+                <p>{copy.isolated}</p>
+                <p className="muted">{copy.protected}</p>
+                <button className="pill" onClick={reset}>
+                  <RotateCcw size={17} /> {copy.reset}
+                </button>
+              </div>
+              <AppAbout locale={locale} source="demo-settings" />
+            </section>
+          )}
+          {view === "data" && (
+            <DataDemo state={state} copy={copy} reset={reset} />
+          )}
+          {view === "more" && <MoreDemo locale={locale} copy={copy} />}
+        </fieldset>
       </main>
       <nav className="mobile-nav">
         <DemoNav locale={locale} view={view} mobile />

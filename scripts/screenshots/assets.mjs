@@ -16,6 +16,15 @@ import { FIXTURE_VERSION } from "./fixtures.mjs";
 
 export const OUT = join(ROOT, "docs", "images");
 export const MANIFEST = join(OUT, "manifest.json");
+export function readmeFeaturesHash(readme) {
+  const text = readme.replace(/\r\n/g, "\n");
+  const start = text.indexOf("\n## Features\n");
+  const end = text.indexOf("\n## Product preview\n", start + 1);
+  if (start < 0 || end < 0) throw new Error("Missing README feature section.");
+  return createHash("sha256")
+    .update(text.slice(start + 1, end + 1))
+    .digest("hex");
+}
 export async function readManifest() {
   try {
     return JSON.parse(await readFile(MANIFEST, "utf8"));
@@ -601,14 +610,7 @@ export async function checkLibrary() {
     if (!(await exists(join(ROOT, match[1]))))
       issues.push("Broken README image link: " + match[1]);
   }
-  const featureText = readme.slice(
-    readme.indexOf("## Features"),
-    readme.indexOf("## Product preview"),
-  );
-  if (
-    createHash("sha256").update(featureText).digest("hex") !==
-    manifest.source.readmeFeaturesSha256
-  )
+  if (readmeFeaturesHash(readme) !== manifest.source.readmeFeaturesSha256)
     issues.push("README feature truth changed since capture.");
   if (issues.length)
     throw new Error("Library checks failed:\n- " + issues.join("\n- "));

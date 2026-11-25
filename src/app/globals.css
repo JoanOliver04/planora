@@ -3334,6 +3334,9 @@ select:disabled,
   text-align: center;
   font-size: 0.78rem;
 }
+.demo-controls {
+  display: contents;
+}
 .demo-topbar {
   display: flex;
   align-items: center;
@@ -5889,12 +5892,17 @@ button.mini-task {
 .agenda-add {
   min-width: 38px;
   min-height: 44px;
-  margin-inline-start: auto;
   padding-inline: 0.5rem;
   color: var(--primary-text);
   background: transparent;
   border: 1px dashed var(--border);
   border-radius: 0.65rem;
+}
+.agenda-day-heading > .agenda-day-actions {
+  align-items: center;
+  flex-wrap: wrap;
+  margin-inline-start: auto;
+  gap: 0.25rem;
 }
 .week-desktop .agenda-add span {
   display: none;

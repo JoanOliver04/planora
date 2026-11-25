@@ -136,6 +136,67 @@ test("plans a dated task from Month and keeps the selected week, times and focus
   });
 });
 
+test("creates an appointment in its selected week and returns to the same month", async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  test.setTimeout(100_000);
+  test.skip(!hasLocalCredentials, "Local integration credentials required");
+  const expectReady = expect.configure({ timeout: 25_000 });
+  await withLocalWorkspace(context, baseURL, async (db, userId) => {
+    const day = shiftCalendarDay(localDate("Europe/Madrid"), 48);
+    const month = day.slice(0, 7);
+    const { data: profile, error } = await db
+      .from("profiles")
+      .select("active_schedule_id")
+      .eq("id", userId)
+      .single();
+    expect(error).toBeNull();
+    expect(profile?.active_schedule_id).toBeTruthy();
+
+    await page.goto(`/es/week?date=${day}`);
+    const column = page.locator(".day[data-selected=true]:visible");
+    const add = column.getByRole("button", { name: /Añadir un evento para/ });
+    await add.focus();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog");
+    const title = dialog.locator('[name="title"]');
+    await expectReady(title).toBeFocused();
+    await expectReady(dialog.locator('[name="eventDate"]')).toHaveValue(day);
+    await expectReady(dialog.locator('[name="scheduleId"]')).toHaveValue(
+      profile!.active_schedule_id!,
+    );
+    await page.keyboard.press("Escape");
+    await expectReady(add).toBeFocused();
+    await page.keyboard.press("Enter");
+    await title.fill("Revisión del calendario");
+    await dialog.getByRole("checkbox").uncheck();
+    await dialog.locator('[name="startTime"]').fill("16:30");
+    const end = dialog.locator('[name="endTime"]');
+    await end.fill("15:00");
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expectReady(dialog.getByRole("alert")).toBeVisible();
+    await end.fill("17:00");
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    await expectReady(dialog).toBeHidden();
+    await expectReady(add).toBeFocused();
+    await expectReady(
+      column.getByRole("link", { name: "16:30–17:00 Revisión del calendario" }),
+    ).toBeVisible();
+    await page.getByRole("link", { name: "Ver mes", exact: true }).click();
+    await expectReady(page).toHaveURL(
+      new RegExp(`/es/month\\?month=${month}$`),
+    );
+    await page.reload();
+    const cell = page.locator(`a.month-day[href$="date=${day}"]`);
+    await expectReady(cell).toHaveAccessibleName(/1 evento/);
+    await expectReady(cell.locator(".month-item")).toHaveText(
+      "Revisión del calendario",
+    );
+  });
+});
+
 test("Today and Daily summary agree after the last weekly habit completion", async ({
   page,
   context,

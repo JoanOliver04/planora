@@ -26,6 +26,7 @@ import {
 import { captureScene, openBrowser } from "./screenshots/capture.mjs";
 import {
   OUT,
+  readmeFeaturesHash,
   readManifest,
   saveManifest,
   generateAssets,
@@ -135,10 +136,6 @@ export async function main(args = process.argv.slice(2)) {
     })
   ).stdout;
   const readme = await readFile(join(ROOT, "README.md"), "utf8");
-  const featureText = readme.slice(
-    readme.indexOf("## Features"),
-    readme.indexOf("## Product preview"),
-  );
   const captureFiles = [
     "scripts/capture-docs-screenshots.mjs",
     ...(await readdir(join(ROOT, "scripts", "screenshots")))
@@ -163,7 +160,7 @@ export async function main(args = process.argv.slice(2)) {
     source: {
       commit,
       appDiffSha256: hash(appDiff),
-      readmeFeaturesSha256: hash(featureText),
+      readmeFeaturesSha256: readmeFeaturesHash(readme),
       captureCodeSha256,
     },
     images: previous.images || [],

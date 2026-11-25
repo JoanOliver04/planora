@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Plus, Timer } from "lucide-react";
+import { CalendarPlus, ListPlus, Timer } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -23,6 +23,9 @@ const TaskForm = dynamic(
   () => import("./task-form").then((module) => module.TaskForm),
   { loading: () => null },
 );
+const EventForm = dynamic(() =>
+  import("./event-form").then((module) => module.EventForm),
+);
 
 export function WeekView({
   data,
@@ -34,6 +37,7 @@ export function WeekView({
   reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace");
+  const planning = useTranslations("Planning");
   const locale = useLocale() === "es" ? "es-ES" : "en-GB";
   const today = localDate(data.profile.timezone);
   const requested = useSearchParams().get("date");
@@ -45,6 +49,7 @@ export function WeekView({
   const range = `${week.start}:${week.end}`;
   const eventsReady = range === data.eventRange;
   const [editor, setEditor] = useState<{
+    kind: "task" | "event";
     day: string;
     trigger: HTMLButtonElement;
   } | null>(null);
@@ -95,18 +100,29 @@ export function WeekView({
             <strong>{Number(day.slice(8))}</strong>
           </div>
           {day === today && <span className="today-badge">{t("today")}</span>}
-          <button
-            type="button"
-            className="agenda-add"
-            title={t("addTaskOn", { date: label })}
-            aria-label={t("addTaskOn", { date: label })}
-            onClick={(event) => {
-              event.currentTarget.focus();
-              setEditor({ day, trigger: event.currentTarget });
-            }}
-          >
-            <Plus size={16} aria-hidden="true" /> <span>{t("add")}</span>
-          </button>
+          <div className="agenda-day-actions">
+            {(["task", "event"] as const).map((kind) => {
+              const name = t(kind === "task" ? "addTaskOn" : "addEventOn", {
+                date: label,
+              });
+              const Icon = kind === "task" ? ListPlus : CalendarPlus;
+              return (
+                <button
+                  key={kind}
+                  type="button"
+                  className="agenda-add"
+                  title={name}
+                  aria-label={name}
+                  onClick={(event) =>
+                    setEditor({ kind, day, trigger: event.currentTarget })
+                  }
+                >
+                  <Icon size={16} aria-hidden="true" />
+                  <span>{planning(kind)}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div className="day-agenda">
           {entries.map((entry) => {
@@ -185,11 +201,16 @@ export function WeekView({
             {shortDate.formatRange(date(week.start), date(week.end))}
           </p>
         </div>
-        {selected !== today && (
-          <button className="pill" onClick={() => selectDay(today)}>
-            {t("goToday")}
-          </button>
-        )}
+        <div className="row-actions">
+          <Link className="pill" href={`/month?month=${selected.slice(0, 7)}`}>
+            {planning("monthView")}
+          </Link>
+          {selected !== today && (
+            <button className="pill" onClick={() => selectDay(today)}>
+              {t("goToday")}
+            </button>
+          )}
+        </div>
       </header>
       <div className="week-controls surface">
         <button
@@ -249,7 +270,7 @@ export function WeekView({
         {renderDay(selected)}
       </div>
       <div className="week-grid week-desktop">{week.days.map(renderDay)}</div>
-      {editor && (
+      {editor?.kind === "task" && (
         <TaskForm
           open
           onOpenChange={(open) => {
@@ -262,6 +283,17 @@ export function WeekView({
           defaultScheduleId={data.profile.active_schedule_id ?? undefined}
           defaultStartDate={editor.day}
           trigger={editor.trigger}
+          onSaved={reload}
+        />
+      )}
+      {editor?.kind === "event" && (
+        <EventForm
+          defaultDate={editor.day}
+          defaultScheduleId={data.profile.active_schedule_id}
+          schedules={data.schedules}
+          categories={data.categories}
+          trigger={editor.trigger}
+          onClose={() => setEditor(null)}
           onSaved={reload}
         />
       )}

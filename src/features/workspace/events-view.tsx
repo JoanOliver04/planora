@@ -1,17 +1,16 @@
 "use client";
 
-import { deleteEvent, saveEvent } from "@/app/actions/domain";
+import { deleteEvent } from "@/app/actions/domain";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
 import { useHashTarget } from "@/lib/workspace/use-hash-target";
 import { filterEvents, type EventVisibility } from "@/lib/workspace/visibility";
-import * as Dialog from "@radix-ui/react-dialog";
+import { EventForm } from "./event-form";
 import { Edit3, Plus, Search, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useItemSearch } from "@/lib/workspace/use-item-search";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { categoriesForSchedule } from "./categories";
 import type { Event, WorkspaceData } from "./types";
 
 export function EventsView({
@@ -28,16 +27,14 @@ export function EventsView({
       selectedId,
       fromLink,
     } = useItemSearch(data.events),
-    [open, setOpen] = useState(false),
-    [editing, setEditing] = useState<Event | null>(null),
-    [allDay, setAllDay] = useState(true),
-    [timeError, setTimeError] = useState(false),
-    [eventSchedule, setEventSchedule] = useState(""),
+    [editor, setEditor] = useState<{
+      editing?: Event;
+      trigger: HTMLButtonElement;
+    } | null>(null),
     [visibility, setVisibility] = useState<EventVisibility>(
       fromLink ? "all" : "active",
     ),
-    [deleting, setDeleting] = useState<Event | null>(null),
-    [pending, start] = useTransition();
+    [deleting, setDeleting] = useState<Event | null>(null);
   const needle = normalizeTaskSearch(search);
   const events = filterEvents(
     data.events,
@@ -51,49 +48,13 @@ export function EventsView({
         ).includes(needle),
   );
   useHashTarget(events);
-  function submit(fd: FormData) {
-    const startTime = allDay ? null : String(fd.get("startTime"));
-    const endTime = allDay ? null : String(fd.get("endTime") || "") || null;
-    if (startTime && endTime && startTime >= endTime) {
-      setTimeError(true);
-      return;
-    }
-    setTimeError(false);
-    start(async () => {
-      try {
-        await saveEvent({
-          id: editing?.id,
-          title: String(fd.get("title")),
-          description: String(fd.get("description") || "") || null,
-          emoji: String(fd.get("emoji") || "") || null,
-          categoryId: String(fd.get("categoryId") || "") || null,
-          scheduleId: String(fd.get("scheduleId") || "") || null,
-          eventDate: String(fd.get("eventDate")),
-          allDay,
-          startTime,
-          endTime,
-        });
-        await reload();
-        setOpen(false);
-        toast.success(t("success"));
-      } catch {
-        toast.error(t("error"));
-      }
-    });
-  }
   return (
     <>
       <header className="topbar">
         <h1 className="title">{t("events")}</h1>
         <button
           className="primary"
-          onClick={() => {
-            setEditing(null);
-            setAllDay(true);
-            setTimeError(false);
-            setEventSchedule("");
-            setOpen(true);
-          }}
+          onClick={(event) => setEditor({ trigger: event.currentTarget })}
         >
           <Plus size={18} />
           {t("add")}
@@ -145,13 +106,9 @@ export function EventsView({
               <button
                 className="icon-button"
                 aria-label={`${t("edit")} ${e.title}`}
-                onClick={() => {
-                  setEditing(e);
-                  setAllDay(e.all_day);
-                  setTimeError(false);
-                  setEventSchedule(e.schedule_id ?? "");
-                  setOpen(true);
-                }}
+                onClick={(event) =>
+                  setEditor({ editing: e, trigger: event.currentTarget })
+                }
               >
                 <Edit3 size={16} />
               </button>
@@ -203,142 +160,16 @@ export function EventsView({
           }
         }}
       />
-      <Dialog.Root
-        open={open}
-        onOpenChange={(next) => {
-          if (!pending) setOpen(next);
-        }}
-      >
-        <Dialog.Portal>
-          <Dialog.Overlay className="dialog-overlay" />
-          <Dialog.Content
-            className="dialog-content"
-            {...(editing ? {} : { "aria-describedby": undefined })}
-          >
-            <Dialog.Title>
-              {t(editing ? "editEventTitle" : "addEventTitle")}
-            </Dialog.Title>
-            {editing && (
-              <Dialog.Description className="muted">
-                {t("editEventReminderHint")}
-              </Dialog.Description>
-            )}
-            <form
-              className="form-grid"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (!pending) submit(new FormData(event.currentTarget));
-              }}
-            >
-              <label>
-                {t("title")}
-                <input
-                  name="title"
-                  required
-                  maxLength={140}
-                  defaultValue={editing?.title}
-                />
-              </label>
-              <div className="form-row">
-                <label>
-                  {t("emoji")}
-                  <input name="emoji" defaultValue={editing?.emoji ?? ""} />
-                </label>
-                <label>
-                  {t("date")}
-                  <input
-                    name="eventDate"
-                    type="date"
-                    required
-                    defaultValue={editing?.event_date}
-                  />
-                </label>
-              </div>
-              <label>
-                {t("schedule")}
-                <select
-                  name="scheduleId"
-                  value={eventSchedule}
-                  onChange={(event) => setEventSchedule(event.target.value)}
-                >
-                  <option value="">{t("global")}</option>
-                  {data.schedules.map((s) => (
-                    <option value={s.id} key={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                {t("category")}
-                <select
-                  name="categoryId"
-                  defaultValue={editing?.category_id ?? ""}
-                >
-                  <option value="">—</option>
-                  {categoriesForSchedule(data.categories, eventSchedule).map(
-                    (c) => (
-                      <option value={c.id} key={c.id}>
-                        {c.name}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </label>
-              <label className="check-row">
-                <input
-                  type="checkbox"
-                  checked={allDay}
-                  onChange={(e) => {
-                    setAllDay(e.target.checked);
-                    setTimeError(false);
-                  }}
-                />
-                {t("allDay")}
-              </label>
-              <div className={allDay ? "hidden" : "form-row"}>
-                <label>
-                  {t("startTime")}
-                  <input
-                    name="startTime"
-                    type="time"
-                    required={!allDay}
-                    disabled={allDay}
-                    defaultValue={editing?.start_time?.slice(0, 5)}
-                    onChange={() => setTimeError(false)}
-                  />
-                </label>
-                <label>
-                  {t("endTime")}
-                  <input
-                    name="endTime"
-                    type="time"
-                    disabled={allDay}
-                    defaultValue={editing?.end_time?.slice(0, 5)}
-                    onChange={() => setTimeError(false)}
-                  />
-                </label>
-              </div>
-              {timeError && <p role="alert">{t("invalidEventTimeRange")}</p>}
-              <label>
-                {t("description")}
-                <textarea
-                  name="description"
-                  defaultValue={editing?.description ?? ""}
-                />
-              </label>
-              <div className="dialog-actions">
-                <Dialog.Close className="pill" type="button" disabled={pending}>
-                  {t("cancel")}
-                </Dialog.Close>
-                <button className="primary" disabled={pending}>
-                  {t("save")}
-                </button>
-              </div>
-            </form>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
+      {editor && (
+        <EventForm
+          editing={editor.editing}
+          schedules={data.schedules}
+          categories={data.categories}
+          trigger={editor.trigger}
+          onClose={() => setEditor(null)}
+          onSaved={reload}
+        />
+      )}
     </>
   );
 }

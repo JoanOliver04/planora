@@ -72,16 +72,20 @@ function notifyClients() {
     });
 }
 
+function cacheResponse(event, request, response) {
+  // The page can consume the network body while the cache is opening.
+  const copy = response.clone();
+  event.waitUntil(
+    caches.open(VERSION).then((cache) => cache.put(request, copy)),
+  );
+}
+
 function networkFirstPublicNavigation(event, request) {
   return fetch(request)
     .then((response) => {
       const cacheControl = response.headers.get("cache-control") ?? "";
       if (response.ok && !/private|no-store/i.test(cacheControl))
-        event.waitUntil(
-          caches
-            .open(VERSION)
-            .then((cache) => cache.put(request, response.clone())),
-        );
+        cacheResponse(event, request, response);
       return response;
     })
     .catch(
@@ -96,12 +100,7 @@ function networkFirstPublicNavigation(event, request) {
 function networkFirstAsset(event, request, offlineSource) {
   return fetch(request)
     .then((response) => {
-      if (response.ok)
-        event.waitUntil(
-          caches
-            .open(VERSION)
-            .then((cache) => cache.put(request, response.clone())),
-        );
+      if (response.ok) cacheResponse(event, request, response);
       return response;
     })
     .catch(
@@ -117,12 +116,7 @@ function cacheFirstImmutable(event, request) {
     if (cached) return cached;
     return fetch(request)
       .then((response) => {
-        if (response.ok)
-          event.waitUntil(
-            caches
-              .open(VERSION)
-              .then((cache) => cache.put(request, response.clone())),
-          );
+        if (response.ok) cacheResponse(event, request, response);
         return response;
       })
       .catch(async () => (await caches.match(request)) || Response.error());

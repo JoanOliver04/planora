@@ -1,7 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { assertCaptureBase } from "./environment.mjs";
+import { readmeFeaturesHash } from "./assets.mjs";
 import { createFixture, cleanupFixtureAccounts } from "./fixtures.mjs";
+
+test("feature changes invalidate the gallery across checkout line endings", () => {
+  const readme =
+    "# Planora\n\n## Features\n\n- Calendar\n\n## Product preview\n";
+  assert.equal(
+    readmeFeaturesHash(readme),
+    readmeFeaturesHash(readme.replaceAll("\n", "\r\n")),
+  );
+  assert.notEqual(
+    readmeFeaturesHash(readme),
+    readmeFeaturesHash(readme.replace("Calendar", "Search")),
+  );
+  assert.throws(() => readmeFeaturesHash("# Planora"));
+});
 
 test("capture refuses remote origins, credentials and app paths", () => {
   for (const url of [

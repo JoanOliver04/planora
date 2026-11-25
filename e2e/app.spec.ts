@@ -68,6 +68,9 @@ test("demo is public, interactive and persists locally", async ({ page }) => {
   await task.click();
   await expect(task).toHaveAttribute("aria-pressed", "true");
   await page.reload();
+  await expect(page.locator("main")).toHaveAttribute("aria-busy", "false", {
+    timeout: 25_000,
+  });
   await expect(
     page.getByRole("button", { name: /Revisar prioridades del día/ }),
   ).toHaveAttribute("aria-pressed", "true");
@@ -78,6 +81,42 @@ test("demo disables real account actions", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: /eliminar cuenta/i }),
   ).toHaveCount(0);
+});
+
+test("the demo enables its controls after startup when browser storage is blocked", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const original = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (key) {
+      if (key === "planora-demo-v1")
+        throw new DOMException("Storage blocked", "SecurityError");
+      return original.call(this, key);
+    };
+    const write = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === "planora-demo-v1")
+        throw new DOMException("Storage blocked", "SecurityError");
+      write.call(this, key, value);
+    };
+  });
+  let resume!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    resume = resolve;
+  });
+  await page.route("**/_next/static/chunks/*.js*", async (route) => {
+    await ready;
+    await route.continue();
+  });
+  const start = page.getByRole("button", { name: "Iniciar", exact: true });
+  try {
+    await page.goto("/es/demo/focus", { waitUntil: "commit" });
+    await expect(start).toBeDisabled();
+  } finally {
+    resume();
+  }
+  await start.click();
+  await expect(page.getByRole("button", { name: "Pausar" })).toBeVisible();
 });
 
 test("demo exposes the current product areas without registration", async ({

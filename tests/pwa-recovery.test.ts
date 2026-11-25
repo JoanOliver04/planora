@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { runInNewContext } from "node:vm";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   canAttemptAssetReload,
@@ -30,6 +31,40 @@ afterEach(() => {
 });
 
 describe("service worker update safety", () => {
+  it("caches an immutable asset even when the page consumes its body first", async () => {
+    let release!: () => void;
+    const cacheReady = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let cached: string | undefined;
+    const put = async (_url: string, copy: Response) => {
+      cached = await copy.text();
+    };
+    const waits: Promise<void>[] = [];
+    const load = runInNewContext(worker + "\ncacheFirstImmutable", {
+      self: {
+        location: { href: "https://planora.test/sw.js" },
+        addEventListener: () => {},
+      },
+      URL,
+      fetch: async () => new Response("calendar bundle"),
+      caches: {
+        match: async () => undefined,
+        open: async () => {
+          await cacheReady;
+          return { put };
+        },
+      },
+    });
+    const response: Response = await load(
+      { waitUntil: (p: Promise<void>) => waits.push(p) },
+      "/_next/static/calendar.js",
+    );
+    expect(await response.text()).toBe("calendar bundle");
+    release();
+    await Promise.all(waits);
+    expect(cached).toBe("calendar bundle");
+  });
   it("versions caches per build and skips RSC plus private navigations", () => {
     expect(worker).toContain("planora-assets-");
     expect(worker).toContain('searchParams.get("v")');
