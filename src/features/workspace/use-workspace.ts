@@ -1,10 +1,15 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { WorkspaceData } from "./types";
 import type { WorkspaceMode } from "./types";
 import { calendarWeek, localDate } from "@/lib/dates/timezone";
-import { cacheWorkspace, loadCachedWorkspace } from "@/lib/offline/queue";
+import {
+  cacheWorkspace,
+  loadCachedWorkspace,
+  projectQueuedCompletions,
+} from "@/lib/offline/queue";
+import { usePendingCompletions } from "@/lib/offline/use-pending-completions";
 import {
   getHistoryRange,
   getRequestedEventRange,
@@ -47,8 +52,23 @@ export function useWorkspace(mode: WorkspaceMode) {
     [loading, setLoading] = useState(true),
     [error, setError] = useState<string | null>(null),
     [phase, setPhase] = useState<BootstrapPhase>("loading"),
-    presentedRef = useRef(false);
-  const finish = useCallback(
+    presentedRef = useRef(false),
+    latestLoad = useRef<symbol | null>(null);
+  const queued = usePendingCompletions(
+    requirements[mode].has("completions") ? data?.user.id : undefined,
+  );
+  // Only confirmed data goes into the persistent workspace cache.
+  const visibleData = useMemo(
+    () =>
+      data && queued.length
+        ? {
+            ...data,
+            completions: projectQueuedCompletions(data.completions, queued),
+          }
+        : data,
+    [data, queued],
+  );
+  const present = useCallback(
     (next: {
       timedOut?: boolean;
       online?: boolean;
@@ -163,6 +183,11 @@ export function useWorkspace(mode: WorkspaceMode) {
     [db, mode],
   );
   const load = useCallback(async () => {
+    const request = Symbol();
+    latestLoad.current = request;
+    const finish = (next: Parameters<typeof present>[0]) => {
+      if (request === latestLoad.current) present(next);
+    };
     setError(null);
     if (!presentedRef.current) {
       setPhase("loading");
@@ -185,7 +210,7 @@ export function useWorkspace(mode: WorkspaceMode) {
     const cached = sessionUserId
       ? loadCachedWorkspace(sessionUserId, mode)
       : null;
-    if (cached)
+    if (cached && (!presentedRef.current || !navigator.onLine))
       finish({
         hasSession: true,
         hasCache: true,
@@ -437,6 +462,7 @@ export function useWorkspace(mode: WorkspaceMode) {
         historyRange: mode === "history" ? historyRange : undefined,
         focusPresets: p.data ?? [],
       };
+      if (request !== latestLoad.current) return;
       cacheWorkspace(mode, workspace);
       finish({
         hasSession: true,
@@ -454,9 +480,12 @@ export function useWorkspace(mode: WorkspaceMode) {
         errorCode: isTimeoutError(error) ? "timeout" : "query",
       });
     }
-  }, [db, finish, mode]);
+  }, [db, present, mode]);
   useEffect(() => {
-    queueMicrotask(() => void load());
+    let mounted = true;
+    queueMicrotask(() => {
+      if (mounted) void load();
+    });
     const synced = () => void load();
     const reconnect = () => {
       if (navigator.onLine) void load();
@@ -464,13 +493,16 @@ export function useWorkspace(mode: WorkspaceMode) {
     window.addEventListener("planora-sync-complete", synced);
     window.addEventListener("online", reconnect);
     return () => {
+      mounted = false;
+      latestLoad.current = null;
       window.removeEventListener("planora-sync-complete", synced);
       window.removeEventListener("online", reconnect);
     };
   }, [load]);
   return {
     db,
-    data,
+    data: visibleData,
+    queued,
     loading,
     error,
     phase,

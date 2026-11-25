@@ -1,16 +1,41 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { registerPlanoraServiceWorker } from "@/lib/pwa/register-sw";
+import {
+  registerPlanoraServiceWorker,
+  scheduleServiceWorkerRegistration,
+} from "@/lib/pwa/register-sw";
 
 const { log } = vi.hoisted(() => ({ log: vi.fn() }));
 vi.mock("@/lib/bootstrap/log", () => ({ logBootstrap: log }));
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
   vi.clearAllMocks();
 });
 
 describe("service worker registration", () => {
+  it("waits for reconnection after offline startup and cancels a dismissed registration", () => {
+    vi.useFakeTimers();
+    vi.stubEnv("NODE_ENV", "production");
+    const register = vi.fn().mockResolvedValue({ update: async () => {} });
+    const network = {
+      onLine: false,
+      serviceWorker: { addEventListener: vi.fn(), register },
+    };
+    vi.stubGlobal("navigator", network);
+    const cancelFirst = scheduleServiceWorkerRegistration();
+    const cancelSecond = scheduleServiceWorkerRegistration();
+    vi.advanceTimersByTime(2_500);
+    expect(register).not.toHaveBeenCalled();
+    cancelFirst();
+    network.onLine = true;
+    window.dispatchEvent(new Event("online"));
+    window.dispatchEvent(new Event("online"));
+    expect(register).toHaveBeenCalledOnce();
+    cancelSecond();
+  });
+
   it("keeps the registered worker when its background update fails", async () => {
     vi.stubEnv("NODE_ENV", "production");
     const registration = {

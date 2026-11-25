@@ -1,10 +1,14 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { isCalendarDay } from "@/lib/dates/calendar-day";
+import {
+  projectQueuedCompletions,
+  type QueuedCompletion,
+} from "@/lib/offline/queue";
 import { calendarWeek, localDate } from "@/lib/dates/timezone";
 import type { createClient } from "@/lib/supabase/client";
 import { formatNaturalDate } from "./presentation";
@@ -158,13 +162,43 @@ function ArchivedHistory({
   userId,
   range,
   timezone,
+  queued,
 }: {
   db: HistoryClient;
   userId: string;
   range: HistoryRange;
   timezone: string;
+  queued: QueuedCompletion[];
 }) {
-  const [rows, setRows] = useState<Completion[] | null>(null);
+  const [revision, setRevision] = useState(0);
+  const [loaded, setLoaded] = useState<{
+    rows: Completion[];
+    revision: number;
+  } | null>(null);
+  useEffect(() => {
+    const refresh = () => {
+      setRevision((value) => value + 1);
+    };
+    window.addEventListener("planora-sync-complete", refresh);
+    window.addEventListener("online", refresh);
+    return () => {
+      window.removeEventListener("planora-sync-complete", refresh);
+      window.removeEventListener("online", refresh);
+    };
+  }, []);
+  const visible = useMemo(
+    () =>
+      loaded &&
+      projectQueuedCompletions(
+        loaded.rows,
+        queued.filter(
+          (item) =>
+            item.occurrenceDate >= range.start &&
+            item.occurrenceDate <= range.end,
+        ),
+      ),
+    [loaded, queued, range.start, range.end],
+  );
   const load = useCallback(
     async (start: string, end: string, signal: AbortSignal) => {
       const result = await readWorkspaceRows(
@@ -180,29 +214,35 @@ function ArchivedHistory({
           .abortSignal(signal),
       );
       if (signal.aborted || result.error || !result.data) return false;
-      setRows(result.data);
+      setLoaded({ rows: result.data, revision });
       return true;
     },
-    [db, userId],
+    [db, userId, revision],
   );
-  return rows ? (
-    <HistoryList rows={rows} timezone={timezone} />
-  ) : (
-    <WorkspaceRangeStatus
-      resource="history"
-      start={range.start}
-      end={range.end}
-      load={load}
-    />
+  return (
+    <>
+      {loaded?.revision !== revision && (
+        <WorkspaceRangeStatus
+          key={revision}
+          resource="history"
+          start={range.start}
+          end={range.end}
+          load={load}
+        />
+      )}
+      {visible && <HistoryList rows={visible} timezone={timezone} />}
+    </>
   );
 }
 
 export function HistoryView({
   data,
   db,
+  queued,
 }: {
   data: WorkspaceData;
   db: HistoryClient;
+  queued: QueuedCompletion[];
 }) {
   const t = useTranslations("Workspace");
   const locale = useLocale();
@@ -320,6 +360,7 @@ export function HistoryView({
           userId={data.user.id}
           range={range}
           timezone={timezone}
+          queued={queued}
         />
       )}
     </>

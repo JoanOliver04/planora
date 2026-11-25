@@ -69,8 +69,17 @@ const SettingsView = dynamic(() =>
 export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
   const t = useTranslations("Workspace"),
     locale = useLocale(),
-    { db, data, loading, error, phase, reload, loadDate, loadEventRange } =
-      useWorkspace(mode),
+    {
+      db,
+      data,
+      queued,
+      loading,
+      error,
+      phase,
+      reload,
+      loadDate,
+      loadEventRange,
+    } = useWorkspace(mode),
     [starters, setStarters] = useState(true),
     [starting, setStarting] = useState(false),
     [switchingSchedule, startScheduleTransition] = useTransition();
@@ -152,7 +161,7 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
     ) : mode === "events" ? (
       <EventsView data={data} reload={reload} />
     ) : mode === "history" ? (
-      <HistoryView key={data.user.id} data={data} db={db} />
+      <HistoryView key={data.user.id} data={data} db={db} queued={queued} />
     ) : mode === "statistics" ? (
       <StatisticsView data={data} />
     ) : mode === "schedules" ? (

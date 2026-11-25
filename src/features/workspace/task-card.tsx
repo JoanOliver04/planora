@@ -3,6 +3,7 @@
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useLocale, useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { Check, Edit3, StickyNote, Timer } from "lucide-react";
 import { formatRecurrenceDescription } from "@/lib/recurrence";
 import type { Category, Completion, Task } from "./types";
@@ -118,6 +119,9 @@ export function TaskCard({
             try {
               const success = await onToggle(!previous);
               if (!success) setOptimisticCompletion(null);
+            } catch {
+              setOptimisticCompletion(null);
+              toast.error(t("error"));
             } finally {
               setTogglePending(false);
             }

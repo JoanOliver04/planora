@@ -13,7 +13,7 @@ export function StatisticsView({ data }: { data: WorkspaceData }) {
     afternoon: es ? "Tarde" : "Afternoon",
     night: es ? "Noche" : "Night",
   };
-  const empty = data.completions.length === 0;
+  const empty = stats.heatmap.every((day) => day.count === 0);
   return (
     <div className="statistics">
       <header className="topbar">

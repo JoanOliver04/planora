@@ -10,18 +10,21 @@ import { useRouter } from "@/i18n/routing";
 import { localDate, localWeek, zonedDate } from "@/lib/dates/timezone";
 import { isCalendarDay, shiftCalendarDay } from "@/lib/dates/calendar-day";
 import {
-  completionQueueKey,
   enqueueCompletion,
   getQueuedCompletions,
+  notifyOtherCompletionViews,
   projectQueuedCompletions,
-  type QueuedCompletion,
 } from "@/lib/offline/queue";
+import {
+  canUseClientSession,
+  clientSessionGeneration,
+} from "@/lib/security/client-session";
 import { normalizePreferences } from "@/lib/preferences";
 import { calculateWeeklyProgress } from "@/lib/recurrence";
 import { classifyDayPart, normalizeDayParts } from "@/lib/dates/day-parts";
 import { Plus, RotateCcw } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   canToggleOccurrence,
@@ -48,25 +51,22 @@ async function toggle(
   reload: () => Promise<void>,
   errorMessage: string,
 ) {
+  const queuedAt = new Date().toISOString();
+  const generation = clientSessionGeneration(data.user.id);
+  const pending = getQueuedCompletions(data.user.id);
   if (
     !canToggleOccurrence(
       task,
       day,
       localDate(data.profile.timezone),
-      projectQueuedCompletions(
-        data.completions,
-        getQueuedCompletions(data.user.id),
-      ),
+      projectQueuedCompletions(data.completions, pending),
       data.profile.week_starts_on === 0 ? 0 : 1,
     )
   ) {
     toast.error(errorMessage);
     return false;
   }
-  const old = data.completions.find(
-      (c) => c.task_id === task.id && c.occurrence_date === day,
-    ),
-    cat = data.categories.find((c) => c.id === task.category_id);
+  const cat = data.categories.find((c) => c.id === task.category_id);
   const snapshot = {
     title: task.title,
     emoji: task.emoji,
@@ -74,42 +74,59 @@ async function toggle(
     category_name: cat?.name ?? null,
     category_colour: cat?.colour ?? null,
   };
-  if (
-    !navigator.onLine ||
-    getQueuedCompletions(data.user.id).some(
-      (item) => item.taskId === task.id && item.occurrenceDate === day,
-    )
-  ) {
-    const saved = await enqueueCompletion({
-      userId: data.user.id,
-      taskId: task.id,
-      occurrenceDate: day,
-      completed,
-      snapshot,
-    });
+  async function saveForSync() {
+    if (!canUseClientSession(data.user.id, generation)) return false;
+    const saved = await enqueueCompletion(
+      {
+        userId: data.user.id,
+        taskId: task.id,
+        occurrenceDate: day,
+        completed,
+        snapshot,
+      },
+      queuedAt,
+    );
     if (!saved) toast.error(errorMessage);
     return saved;
   }
-  if (Boolean(old) === completed) return true;
-  const q = old
-    ? db.from("task_completions").delete().eq("id", old.id)
-    : db.from("task_completions").insert({
+  if (
+    !navigator.onLine ||
+    pending.some(
+      (item) => item.taskId === task.id && item.occurrenceDate === day,
+    )
+  )
+    return saveForSync();
+  const result = completed
+    ? await db.from("task_completions").insert({
         user_id: data.user.id,
         task_id: task.id,
         occurrence_date: day,
+        completed_at: queuedAt,
         task_snapshot: snapshot,
-      });
-  const { error } = await q;
-  if (error) {
+      })
+    : await db
+        .from("task_completions")
+        .delete()
+        .eq("user_id", data.user.id)
+        .eq("task_id", task.id)
+        .eq("occurrence_date", day);
+  if (!canUseClientSession(data.user.id, generation)) return false;
+  if (
+    result.error &&
+    (result.status === 0 || [408, 502, 503, 504].includes(result.status))
+  )
+    return saveForSync();
+  if (result.error && !(completed && result.error.code === "23505")) {
     toast.error(errorMessage);
     return false;
   }
+  notifyOtherCompletionViews(data.user.id);
   await reload();
   return true;
 }
 
 export function TodayView({
-  data: remote,
+  data,
   db,
   reload,
   loadDate,
@@ -119,30 +136,6 @@ export function TodayView({
   reload: () => Promise<void>;
   loadDate: (day: string, weekStartsOn: 0 | 1) => Promise<boolean>;
 }) {
-  const [queued, setQueued] = useState<QueuedCompletion[]>([]);
-  useEffect(() => {
-    const update = () => setQueued(getQueuedCompletions(remote.user.id));
-    const storage = (event: StorageEvent) => {
-      if (event.key === completionQueueKey || event.key === null) update();
-    };
-    update();
-    window.addEventListener("planora-offline-queue", update);
-    window.addEventListener("storage", storage);
-    return () => {
-      window.removeEventListener("planora-offline-queue", update);
-      window.removeEventListener("storage", storage);
-    };
-  }, [remote.user.id]);
-  const data = useMemo(
-    () => ({
-      ...remote,
-      completions: projectQueuedCompletions(
-        remote.completions,
-        queued.filter((item) => item.userId === remote.user.id),
-      ),
-    }),
-    [remote, queued],
-  );
   const t = useTranslations("Workspace"),
     locale = useLocale() as "es" | "en",
     router = useRouter(),
@@ -386,7 +379,7 @@ export function TodayView({
                   onToggle={(completed) =>
                     toggle(
                       db,
-                      remote,
+                      data,
                       task,
                       task.start_date,
                       completed,
@@ -471,7 +464,7 @@ export function TodayView({
                     onToggle={(completed) =>
                       toggle(
                         db,
-                        remote,
+                        data,
                         task,
                         day,
                         completed,

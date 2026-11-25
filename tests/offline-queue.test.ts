@@ -6,6 +6,7 @@ import {
   flushCompletionQueue,
   getQueuedCompletions,
   loadCachedWorkspace,
+  projectQueuedCompletions,
 } from "@/lib/offline/queue";
 import type { WorkspaceData } from "@/features/workspace/types";
 import type { Database } from "@/types/database";
@@ -21,6 +22,7 @@ function database(
 ) {
   const insert = vi.fn().mockResolvedValue({ error: null });
   const remove = vi.fn();
+  const removeResult = vi.fn().mockResolvedValue({ error: null });
   const builder: Record<string, unknown> = {};
   builder.select = vi.fn(() => builder);
   remove.mockReturnValue(builder);
@@ -30,7 +32,7 @@ function database(
     .fn()
     .mockResolvedValue({ data: existing, error: null });
   builder.then = (resolve: (value: unknown) => void) =>
-    Promise.resolve({ error: null }).then(resolve);
+    removeResult().then(resolve);
   const stateBuilder: Record<string, unknown> = {};
   stateBuilder.select = vi.fn(() => stateBuilder);
   stateBuilder.eq = vi.fn(() => stateBuilder);
@@ -47,6 +49,7 @@ function database(
     } as unknown as SupabaseClient<Database>,
     insert,
     remove,
+    removeResult,
   };
 }
 
@@ -99,6 +102,60 @@ describe("offline queue", () => {
         expect.objectContaining({ taskId: "second", completed: true }),
       ]),
     );
+  });
+
+  it("keeps the time of a tap through reconciliation and retries a later edit against the acknowledged write", async () => {
+    const original = "2024-03-30T22:59:00.000Z";
+    const next = "2024-03-30T23:01:00.000Z";
+    const item = {
+      userId: "user",
+      taskId: "task",
+      occurrenceDate: "2024-03-30",
+      snapshot: { title: "Read" },
+    };
+    const prior = database({ id: "old", completed_at: "2024-03-30T20:00:00Z" });
+    let finish!: (value: { error: null }) => void;
+    const wait = new Promise<{ error: null }>((resolve) => {
+      finish = resolve;
+    });
+    prior.removeResult.mockReturnValueOnce(wait);
+    await enqueueCompletion({ ...item, completed: false }, original);
+    const sync = flushCompletionQueue(prior.db, "user");
+    await vi.waitFor(() => expect(prior.remove).toHaveBeenCalled());
+    await enqueueCompletion({ ...item, completed: true }, next);
+    finish({ error: null });
+    expect((await sync).remaining).toBe(1);
+    const queued = getQueuedCompletions("user");
+    expect(queued[0].queuedAt).toBe(next);
+    expect(projectQueuedCompletions([], queued)[0].completed_at).toBe(next);
+    const replay = database(null, {
+      last_action: "uncomplete",
+      changed_at: queued[0].afterSyncAt!,
+    });
+    expect(await flushCompletionQueue(replay.db, "user")).toMatchObject({
+      synced: 1,
+      remaining: 0,
+    });
+    expect(replay.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ completed_at: next }),
+    );
+  });
+  it("does not replace a newer undo when an older network request times out", async () => {
+    const item = {
+      userId: "user",
+      taskId: "task",
+      occurrenceDate: "2024-03-30",
+      snapshot: {},
+    };
+    await enqueueCompletion(
+      { ...item, completed: false },
+      "2024-03-30T12:05:00.000Z",
+    );
+    await enqueueCompletion(
+      { ...item, completed: true },
+      "2024-03-30T12:04:00.000Z",
+    );
+    expect(getQueuedCompletions("user")).toMatchObject([{ completed: false }]);
   });
   it("keeps a pending change through repeated temporary failures", async () => {
     await enqueueCompletion({

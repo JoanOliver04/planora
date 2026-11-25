@@ -9,6 +9,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import {
   completionQueueKey,
+  completionSyncKey,
   flushCompletionQueue,
   getQueuedCompletions,
 } from "@/lib/offline/queue";
@@ -116,6 +117,10 @@ export function OfflineStatus({
       update();
     };
     const onStorage = (event: StorageEvent) => {
+      if (event.key === completionSyncKey(userId) && event.newValue) {
+        window.dispatchEvent(new CustomEvent("planora-sync-complete"));
+        return;
+      }
       if (
         event.key !== completionQueueKey &&
         event.key !== focusQueueKey &&

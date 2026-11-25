@@ -17,6 +17,22 @@ export async function readyServiceWorker(ms = 4_000) {
   }
 }
 
+export function scheduleServiceWorkerRegistration() {
+  const run = () => {
+    if (!navigator.onLine) {
+      window.addEventListener("online", run, { once: true });
+      return;
+    }
+    void registerPlanoraServiceWorker();
+  };
+  // Let initial rendering finish before precaching the shell.
+  const timer = window.setTimeout(run, 2_500);
+  return () => {
+    window.clearTimeout(timer);
+    window.removeEventListener("online", run);
+  };
+}
+
 export async function registerPlanoraServiceWorker() {
   if (process.env.NODE_ENV !== "production") return null;
   if (typeof navigator === "undefined" || !("serviceWorker" in navigator))
@@ -32,12 +48,13 @@ export async function registerPlanoraServiceWorker() {
       serviceWorkerUrl(),
       { scope: "/", updateViaCache: "none" },
     );
-    void registration.update().catch((error: unknown) => {
-      logBootstrap({
-        phase: "service_worker",
-        errorType: error instanceof Error ? error.name : "update_failed",
+    if (navigator.onLine !== false)
+      void registration.update().catch((error: unknown) => {
+        logBootstrap({
+          phase: "service_worker",
+          errorType: error instanceof Error ? error.name : "update_failed",
+        });
       });
-    });
     return registration;
   } catch (error) {
     logBootstrap({

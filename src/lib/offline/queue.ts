@@ -12,6 +12,19 @@ import {
 } from "@/lib/security/client-session";
 
 export const completionQueueKey = "planora-offline-completions-v1";
+export const completionSyncKey = (userId: string) =>
+  "planora-completions-synced:" + userId;
+
+export function notifyOtherCompletionViews(userId: string) {
+  try {
+    // A transient storage event wakes other tabs without storing task data.
+    const key = completionSyncKey(userId);
+    localStorage.setItem(key, crypto.randomUUID());
+    localStorage.removeItem(key);
+  } catch {
+    // The originating tab can still reload the confirmed change.
+  }
+}
 const queueKey = completionQueueKey;
 const cachePrefix = "planora-workspace-cache-v1:";
 const MAX_OFFLINE_STORAGE_BYTES = 500_000;
@@ -24,6 +37,7 @@ export type QueuedCompletion = {
   completed: boolean;
   snapshot: Json;
   queuedAt: string;
+  afterSyncAt?: string;
   attempts?: number;
 };
 
@@ -45,6 +59,9 @@ function isQueuedCompletion(value: unknown): value is QueuedCompletion {
     typeof item.completed === "boolean" &&
     typeof item.queuedAt === "string" &&
     !Number.isNaN(Date.parse(item.queuedAt)) &&
+    (item.afterSyncAt === undefined ||
+      (typeof item.afterSyncAt === "string" &&
+        Number.isFinite(Date.parse(item.afterSyncAt)))) &&
     (item.attempts === undefined ||
       (Number.isInteger(item.attempts) &&
         Number(item.attempts) >= 0 &&
@@ -114,7 +131,13 @@ function persistQueue(items: QueuedCompletion[]) {
 const parseQueue = (): QueuedCompletion[] => {
   const stored = readStoredQueue();
   if (stored.corrupt) return [];
-  if (stored.rewrite) persistQueue(stored.items);
+  if (stored.rewrite) {
+    try {
+      persistQueue(stored.items);
+    } catch {
+      // A full or read-only store can still supply its valid pending changes.
+    }
+  }
   return stored.items;
 };
 export function getQueuedCompletions(userId?: string) {
@@ -140,32 +163,38 @@ export function projectQueuedCompletions(
         task_id: item.taskId,
         occurrence_date: item.occurrenceDate,
         completed_at: item.queuedAt,
-        task_snapshot: item.snapshot,
+        task_snapshot: item.snapshot ?? {},
       });
   }
   return [...rows.values()];
 }
 
 export async function enqueueCompletion(
-  item: Omit<QueuedCompletion, "id" | "queuedAt">,
+  item: Pick<
+    QueuedCompletion,
+    "userId" | "taskId" | "occurrenceDate" | "completed" | "snapshot"
+  >,
+  queuedAt = new Date().toISOString(),
 ) {
   const generation = clientSessionGeneration(item.userId);
   try {
     return await withOfflineLock(queueKey, () => {
       if (!canUseClientSession(item.userId, generation)) return false;
       const stored = readStoredQueue();
-      const queue = (stored.corrupt ? [] : stored.items).filter(
+      const previous = stored.items.find(
         (queued) =>
-          !(
-            queued.userId === item.userId &&
-            queued.taskId === item.taskId &&
-            queued.occurrenceDate === item.occurrenceDate
-          ),
+          queued.userId === item.userId &&
+          queued.taskId === item.taskId &&
+          queued.occurrenceDate === item.occurrenceDate,
       );
+      // A delayed network failure can arrive after a newer edit in another tab.
+      if (previous && previous.queuedAt > queuedAt) return true;
+      const queue = stored.items.filter((queued) => queued !== previous);
       queue.push({
         ...item,
         id: crypto.randomUUID(),
-        queuedAt: new Date().toISOString(),
+        queuedAt,
+        afterSyncAt: previous?.afterSyncAt,
       });
       if (
         queue.length > MAX_OFFLINE_ITEMS ||
@@ -198,6 +227,10 @@ export async function flushCompletionQueue(
   let synced = 0,
     conflicts = 0;
   for (const item of own) {
+    const conflictCutoff = Math.max(
+      Date.parse(item.queuedAt),
+      Date.parse(item.afterSyncAt ?? item.queuedAt),
+    );
     if (!current()) return stopped();
     const { data: existing, error: readError } = await db
       .from("task_completions")
@@ -217,7 +250,7 @@ export async function flushCompletionQueue(
     }
     if (
       existing?.completed_at &&
-      new Date(existing.completed_at) > new Date(item.queuedAt)
+      Date.parse(existing.completed_at) > conflictCutoff
     ) {
       settled.add(item.id);
       conflicts += 1;
@@ -234,7 +267,7 @@ export async function flushCompletionQueue(
     if (stateError) continue;
     if (
       observed?.changed_at &&
-      new Date(observed.changed_at) > new Date(item.queuedAt) &&
+      Date.parse(observed.changed_at) > conflictCutoff &&
       ((item.completed && observed.last_action === "uncomplete") ||
         (!item.completed && observed.last_action === "complete"))
     ) {
@@ -247,6 +280,7 @@ export async function flushCompletionQueue(
           user_id: userId,
           task_id: item.taskId,
           occurrence_date: item.occurrenceDate,
+          completed_at: item.queuedAt,
           task_snapshot: item.snapshot,
         })
       : await db
@@ -287,10 +321,10 @@ export async function flushCompletionQueue(
                 JSON.stringify([item.taskId, item.occurrenceDate]),
               )
             : undefined;
-        if (!ack || ack <= item.queuedAt) return item;
+        if (!ack || ack <= (item.afterSyncAt ?? item.queuedAt)) return item;
         // Order this later local intent after the write that just completed.
         changed = true;
-        return { ...item, queuedAt: ack };
+        return { ...item, afterSyncAt: ack };
       });
     if (!latest.corrupt && (changed || kept.length !== latest.items.length))
       persistQueue(kept);

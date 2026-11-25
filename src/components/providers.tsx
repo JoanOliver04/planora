@@ -2,7 +2,7 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import { useEffect } from "react";
 import { PublicConnectivityStatus } from "@/components/public-connectivity-status";
-import { registerPlanoraServiceWorker } from "@/lib/pwa/register-sw";
+import { scheduleServiceWorkerRegistration } from "@/lib/pwa/register-sw";
 
 export function Providers({
   children,
@@ -13,12 +13,7 @@ export function Providers({
 }) {
   useEffect(() => {
     document.documentElement.lang = locale;
-    // Shell precaching downloads several brand assets. Let first paint and
-    // hydration finish before competing with the hero image on mobile networks.
-    const timer = window.setTimeout(() => {
-      void registerPlanoraServiceWorker();
-    }, 2_500);
-    return () => window.clearTimeout(timer);
+    return scheduleServiceWorkerRegistration();
   }, [locale]);
 
   return (
