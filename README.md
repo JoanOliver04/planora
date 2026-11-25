@@ -373,7 +373,7 @@ The suite covers recurrence rules, date boundaries, month endings, timezones, bi
 
 Browser tests run in desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. The calendar journeys check date and schedule defaults, invalid time ranges, keyboard focus and persistence after a reload. The main-branch CI log lists the current test counts and browser-specific exclusions. The November quality review records the earlier account-deletion regression and its database checks. [Latest CI runs](https://github.com/JoanOliver04/planora/actions/workflows/ci.yml?query=branch%3Amain) · [November quality review](docs/quality-review-2026-11-11.md).
 
-The authenticated browser suite uses disposable local accounts. Google OAuth and notification display on a physical phone need a real device. The delayed notification test lets you check delivery on yours.
+The authenticated browser suite uses disposable local accounts. Signing in through Google requires a real Google account. The delayed notification test lets you check delivery on your phone after you close the app.
 
 The real product screenshot library lives under docs/images/. Its [inventory and repeatable capture workflow](docs/screenshots.md) cover desktop/mobile, both languages, themes and all major Focus states. The runner creates disposable accounts in an isolated local Supabase project and keeps the application's real CSP.
 
