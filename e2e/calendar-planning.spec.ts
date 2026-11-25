@@ -39,10 +39,18 @@ test("plans a dated task from Month and keeps the selected week, times and focus
   baseURL,
 }) => {
   test.setTimeout(100_000);
+  const expectReady = expect.configure({ timeout: 25_000 });
   test.skip(!hasLocalCredentials, "Local integration credentials required");
   await withLocalWorkspace(context, baseURL, async (db, userId) => {
     const day = shiftCalendarDay(localDate("Europe/Madrid"), 48);
     const month = day.slice(0, 7);
+    const eventRanges: string[][] = [];
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (url.pathname.endsWith("/rest/v1/events")) {
+        eventRanges.push(url.searchParams.getAll("event_date"));
+      }
+    });
     const result = await db.from("events").insert(
       ["18:30", "11:00", "15:00", "12:30", "09:30", "14:00"].map((time) => ({
         user_id: userId,
@@ -56,25 +64,26 @@ test("plans a dated task from Month and keeps the selected week, times and focus
 
     await page.goto(`/en/month?month=${month}`);
     const cell = page.locator(`a.month-day[href$="date=${day}"]`);
-    await expect(cell).toHaveAccessibleName(/6 events/, { timeout: 25_000 });
-    await expect(cell.locator(".month-items small")).toHaveText("+1");
-    await expect(cell.locator(".month-mobile-count")).toHaveText("6");
+    await expectReady(cell).toHaveAccessibleName(/6 events/);
+    expect(eventRanges.length).toBeGreaterThan(0);
+    await expectReady(cell.locator(".month-items small")).toHaveText("+1");
+    await expectReady(cell.locator(".month-mobile-count")).toHaveText("6");
     await cell.focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(new RegExp(`/en/week\\?date=${day}$`));
+    await expectReady(page).toHaveURL(new RegExp(`/en/week\\?date=${day}$`));
     const column = page.locator(".day[data-selected=true]:visible");
-    await expect(column.getByRole("link", { name: /Appointment/ })).toHaveCount(
-      6,
-    );
+    await expectReady(
+      column.getByRole("link", { name: /Appointment/ }),
+    ).toHaveCount(6);
     const add = column.getByRole("button", { name: /Add a task for/ });
     await add.focus();
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog");
-    await expect(dialog.locator('[name="startDate"]')).toHaveValue(day);
-    await expect(dialog.locator('[name="title"]')).toBeFocused();
+    await expectReady(dialog.locator('[name="startDate"]')).toHaveValue(day);
+    await expectReady(dialog.locator('[name="title"]')).toBeFocused();
     await page.keyboard.press("Escape");
-    await expect(dialog).toBeHidden();
-    await expect(add).toBeFocused();
+    await expectReady(dialog).toBeHidden();
+    await expectReady(add).toBeFocused();
     await page.keyboard.press("Enter");
     await dialog
       .getByRole("textbox", { name: "Title", exact: true })
@@ -82,12 +91,22 @@ test("plans a dated task from Month and keeps the selected week, times and focus
     await dialog.locator('[name="timing"]').selectOption("specific_time");
     await dialog.locator('[name="startTime"]').fill("09:00");
     await dialog.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(dialog).toBeHidden();
+    await expectReady(dialog).toBeHidden();
     const links = column.locator(".agenda-detail");
-    await expect(links).toHaveCount(7);
-    await expect(links.nth(0)).toHaveAccessibleName("09:00 Prepare notes");
-    await expect(links.nth(1)).toHaveAccessibleName("09:30 Appointment 09:30");
-    await expect(links.nth(6)).toHaveAccessibleName("18:30 Appointment 18:30");
+    await expectReady(links).toHaveCount(7);
+    // Opening a future month/week and saving in it should only read dates on display.
+    for (const filters of eventRanges) {
+      const start = filters.find((value) => value.startsWith("gte."))?.slice(4);
+      const end = filters.find((value) => value.startsWith("lte."))?.slice(4);
+      expect(start && start <= day && end && end >= day).toBe(true);
+    }
+    await expectReady(links.nth(0)).toHaveAccessibleName("09:00 Prepare notes");
+    await expectReady(links.nth(1)).toHaveAccessibleName(
+      "09:30 Appointment 09:30",
+    );
+    await expectReady(links.nth(6)).toHaveAccessibleName(
+      "18:30 Appointment 18:30",
+    );
     const accessibility = await new AxeBuilder({ page })
       .include("main")
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
@@ -95,23 +114,23 @@ test("plans a dated task from Month and keeps the selected week, times and focus
     expect(accessibility.violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath("agenda.png") });
     await page.getByRole("button", { name: "Next week" }).click();
-    await expect(page.locator(".week-picker input")).toHaveValue(
+    await expectReady(page.locator(".week-picker input")).toHaveValue(
       shiftCalendarDay(day, 7),
     );
     await page.reload();
     await page.getByRole("button", { name: "Previous week" }).click();
-    await expect(links.nth(0)).toHaveAccessibleName("09:00 Prepare notes");
+    await expectReady(links.nth(0)).toHaveAccessibleName("09:00 Prepare notes");
     await links.nth(0).click();
-    await expect(page).toHaveURL(/\/tasks\?item=([\da-f-]+)#task-\1$/);
-    await expect(
+    await expectReady(page).toHaveURL(/\/tasks\?item=([\da-f-]+)#task-\1$/);
+    await expectReady(
       page.locator(".task").filter({ hasText: "Prepare notes" }),
     ).toBeFocused();
     await page.goBack();
-    await expect(page.locator(".week-picker input")).toHaveValue(day);
+    await expectReady(page.locator(".week-picker input")).toHaveValue(day);
     await page.goBack();
-    await expect(cell).toHaveAccessibleName(/1 task and 6 events/);
+    await expectReady(cell).toHaveAccessibleName(/1 task and 6 events/);
     await page.goto("/en/week?date=2026-02-31");
-    await expect(page.locator(".week-picker input")).toHaveValue(
+    await expectReady(page.locator(".week-picker input")).toHaveValue(
       localDate("Europe/Madrid"),
     );
   });

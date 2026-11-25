@@ -1,4 +1,5 @@
-import { shiftCalendarDay } from "@/lib/dates/calendar-day";
+import { isCalendarDay, shiftCalendarDay } from "@/lib/dates/calendar-day";
+import { calendarWeek } from "@/lib/dates/timezone";
 import { fetchAllRows } from "@/lib/backup/fetch-all";
 
 export async function readWorkspaceRows<Row>(query: {
@@ -33,6 +34,20 @@ export function getMonthEventRange(today: string, weekStartsOn: 0 | 1) {
   const offset = (monthStart.getUTCDay() - weekStartsOn + 7) % 7;
   const start = shiftCalendarDay(first, -offset);
   return { start, end: shiftCalendarDay(start, 41) };
+}
+
+export function getRequestedEventRange(
+  mode: "week" | "month",
+  today: string,
+  weekStartsOn: 0 | 1,
+  params: URLSearchParams,
+) {
+  if (mode === "week") {
+    const day = params.get("date");
+    return calendarWeek(isCalendarDay(day) ? day : today, weekStartsOn);
+  }
+  const first = params.get("month") + "-01";
+  return getMonthEventRange(isCalendarDay(first) ? first : today, weekStartsOn);
 }
 
 export function getHistoryRange(today: string, month?: string | null) {

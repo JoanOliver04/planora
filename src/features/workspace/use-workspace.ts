@@ -3,11 +3,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { WorkspaceData } from "./types";
 import type { WorkspaceMode } from "./types";
-import { calendarWeek, localDate, localWeek } from "@/lib/dates/timezone";
+import { calendarWeek, localDate } from "@/lib/dates/timezone";
 import { cacheWorkspace, loadCachedWorkspace } from "@/lib/offline/queue";
 import {
   getHistoryRange,
-  getMonthEventRange,
+  getRequestedEventRange,
   mergeRowsById,
   readWorkspaceRows,
 } from "./workspace-data";
@@ -262,17 +262,19 @@ export function useWorkspace(mode: WorkspaceMode) {
       return;
     }
     const today = localDate(profile.timezone);
-    const week = localWeek(
-      profile.timezone,
-      new Date(),
-      profile.week_starts_on === 0 ? 0 : 1,
-    );
+    const weekStartsOn = profile.week_starts_on === 0 ? 0 : 1;
+    const week = calendarWeek(today, weekStartsOn);
     const historyFrom = new Date(`${week.start}T00:00:00Z`);
     historyFrom.setUTCDate(historyFrom.getUTCDate() - 90);
-    const monthRange = getMonthEventRange(
-      today,
-      profile.week_starts_on === 0 ? 0 : 1,
-    );
+    const eventRange =
+      mode === "week" || mode === "month"
+        ? getRequestedEventRange(
+            mode,
+            today,
+            weekStartsOn,
+            new URLSearchParams(window.location.search),
+          )
+        : null;
     const needed = requirements[mode];
     const empty = Promise.resolve({ data: [], error: null });
     const eventsQuery = db
@@ -285,12 +287,10 @@ export function useWorkspace(mode: WorkspaceMode) {
       eventsQuery
         .gte("event_date", historyFrom.toISOString().slice(0, 10))
         .lte("event_date", today);
-    else if (mode === "week")
-      eventsQuery.gte("event_date", week.start).lte("event_date", week.end);
-    else if (mode === "month")
+    else if (eventRange)
       eventsQuery
-        .gte("event_date", monthRange.start)
-        .lte("event_date", monthRange.end);
+        .gte("event_date", eventRange.start)
+        .lte("event_date", eventRange.end);
     let completionsQuery = db
       .from("task_completions")
       .select("*")
@@ -430,12 +430,9 @@ export function useWorkspace(mode: WorkspaceMode) {
         categories: c.data ?? [],
         tasks: t.data ?? [],
         events: e.data ?? [],
-        eventRange:
-          mode === "week"
-            ? `${week.start}:${week.end}`
-            : mode === "month"
-              ? `${monthRange.start}:${monthRange.end}`
-              : undefined,
+        eventRange: eventRange
+          ? `${eventRange.start}:${eventRange.end}`
+          : undefined,
         completions,
         historyRange: mode === "history" ? historyRange : undefined,
         focusPresets: p.data ?? [],
