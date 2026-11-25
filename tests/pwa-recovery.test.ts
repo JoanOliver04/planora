@@ -45,7 +45,7 @@ describe("service worker update safety", () => {
   });
 
   it("registers the worker with a build query and disables HTTP caching of sw.js", () => {
-    expect(providers).toContain("registerPlanoraServiceWorker");
+    expect(providers).toContain("return scheduleServiceWorkerRegistration()");
     expect(serviceWorkerUrl("abc123")).toBe("/sw.js?v=abc123");
     expect(nextConfig).toContain("no-cache, no-store, must-revalidate");
     expect(nextConfig).toContain('source: "/sw.js"');
