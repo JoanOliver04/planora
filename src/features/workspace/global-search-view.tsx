@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import {
   canUsePrivateClientStorage,
@@ -13,11 +13,17 @@ import {
   buildSearchIndex,
   findSearchResults,
   searchResultHref,
+  type SearchFilter,
 } from "./search-index";
 import type { WorkspaceData } from "./types";
 
 const PAGE_SIZE = 50;
-type SearchPosition = { userId: string; query: string; page: number };
+type SearchPosition = {
+  userId: string;
+  query: string;
+  filter: SearchFilter;
+  page: number;
+};
 const visits = new Map<string, SearchPosition>();
 let visitsEpoch = clientSessionEpoch();
 
@@ -29,7 +35,7 @@ function currentVisits() {
   return visits;
 }
 
-function previousSearch(userId: string) {
+function previousSearch(userId: string): Omit<SearchPosition, "userId"> {
   const saved =
     typeof window !== "undefined"
       ? currentVisits().get(window.history.state?.planoraSearchKey)
@@ -38,25 +44,36 @@ function previousSearch(userId: string) {
     saved?.userId === userId &&
     canUsePrivateClientStorage(visitsEpoch, userId)
   )
-    return { query: saved.query, page: saved.page };
-  return { query: "", page: 1 };
+    return { query: saved.query, filter: saved.filter, page: saved.page };
+  return { query: "", filter: "all", page: 1 };
 }
 
 export function GlobalSearchView({ data }: { data: WorkspaceData }) {
   const t = useTranslations("Planning");
-  const [{ query, page }, setSearch] = useState(() =>
+  const nav = useTranslations("Nav");
+  const common = useTranslations("Common");
+  const locale = useLocale();
+  const input = useRef<HTMLInputElement>(null);
+  const [{ query, filter, page }, setSearch] = useState(() =>
     previousSearch(data.user.id),
   );
-  const index = useMemo(() => buildSearchIndex(data), [data]);
+  const index = useMemo(() => buildSearchIndex(data, locale), [data, locale]);
   const results = useMemo(
-    () => findSearchResults(index, query),
-    [index, query],
+    () => findSearchResults(index, query, filter),
+    [index, query, filter],
   );
   const pageCount = Math.ceil(results.length / PAGE_SIZE);
   const current = Math.min(page, pageCount || 1);
   const start = (current - 1) * PAGE_SIZE;
   const end = Math.min(start + PAGE_SIZE, results.length);
-  const searching = normalizeTaskSearch(query).length >= 2;
+  const searching = filter !== "all" || normalizeTaskSearch(query).length >= 2;
+  const filterLabels: Record<SearchFilter, string> = {
+    all: common("all"),
+    task: nav("tasks"),
+    event: nav("events"),
+    category: nav("categories"),
+    schedule: nav("schedules"),
+  };
 
   function rememberSearch() {
     // Keep private search terms in tab memory. History only needs the lookup key.
@@ -70,7 +87,7 @@ export function GlobalSearchView({ data }: { data: WorkspaceData }) {
         "",
       );
       entries.delete(key);
-      entries.set(key, { userId: data.user.id, query, page: current });
+      entries.set(key, { userId: data.user.id, query, filter, page: current });
       if (entries.size > 32) entries.delete(entries.keys().next().value!);
     } catch {
       /* Navigation can continue when browser history is restricted. */
@@ -87,18 +104,50 @@ export function GlobalSearchView({ data }: { data: WorkspaceData }) {
           </h1>
         </div>
       </header>
-      <label className="global-search-input surface">
+      <div className="global-search-input surface">
         <Search size={21} aria-hidden="true" />
         <input
           autoFocus
+          ref={input}
+          id="workspace-search-query"
           value={query}
           onChange={(event) =>
-            setSearch({ query: event.target.value, page: 1 })
+            setSearch({ query: event.target.value, filter, page: 1 })
           }
           placeholder={t("searchPlaceholder")}
           aria-label={t("searchTitle")}
         />
-      </label>
+        {query && (
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={t("clearQuery")}
+            onClick={() => {
+              setSearch({ query: "", filter, page: 1 });
+              input.current?.focus();
+            }}
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        )}
+      </div>
+      <fieldset className="search-filters">
+        <legend className="sr-only">{t("resultType")}</legend>
+        {(["all", "task", "event", "category", "schedule"] as const).map(
+          (kind) => (
+            <label key={kind} className="pill">
+              <input
+                type="radio"
+                name="search-type"
+                value={kind}
+                checked={filter === kind}
+                onChange={() => setSearch({ query, filter: kind, page: 1 })}
+              />
+              {filterLabels[kind]}
+            </label>
+          ),
+        )}
+      </fieldset>
       <div className={results.length ? "search-results-toolbar" : "sr-only"}>
         <span role="status" className="muted">
           {results.length
@@ -118,7 +167,7 @@ export function GlobalSearchView({ data }: { data: WorkspaceData }) {
               type="button"
               aria-label={t("previousResults")}
               disabled={current === 1}
-              onClick={() => setSearch({ query, page: current - 1 })}
+              onClick={() => setSearch({ query, filter, page: current - 1 })}
             >
               <ChevronLeft size={18} aria-hidden="true" />
             </button>
@@ -127,7 +176,7 @@ export function GlobalSearchView({ data }: { data: WorkspaceData }) {
               type="button"
               aria-label={t("nextResults")}
               disabled={current === pageCount}
-              onClick={() => setSearch({ query, page: current + 1 })}
+              onClick={() => setSearch({ query, filter, page: current + 1 })}
             >
               <ChevronRight size={18} aria-hidden="true" />
             </button>

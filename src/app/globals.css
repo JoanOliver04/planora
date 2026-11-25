@@ -2820,7 +2820,8 @@ select:disabled,
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 16px;
+  min-height: 3.5rem;
+  padding: 6px 16px;
 }
 .global-search-input input {
   width: 100%;
@@ -2832,6 +2833,41 @@ select:disabled,
   font: inherit;
 }
 .global-search-input:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.global-search-input > svg,
+.global-search-input > button {
+  flex-shrink: 0;
+}
+.search-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.nav-shortcut {
+  margin-inline-start: auto;
+  font: inherit;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  color: var(--muted-foreground);
+}
+.search-filters label {
+  cursor: pointer;
+}
+.search-filters input {
+  margin: 0;
+  accent-color: var(--primary);
+}
+.search-filters label:has(:checked) {
+  border-color: var(--primary-text);
+  background: var(--primary-2);
+}
+.search-filters label:has(:focus-visible) {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { normalizeTaskSearch } from "@/lib/workspace/task-search";
-import { findSearchResults } from "@/features/workspace/search-index";
+import {
+  buildSearchIndex,
+  findSearchResults,
+} from "@/features/workspace/search-index";
+import { backupFixture } from "./backup-fixture";
 
 describe("task search normalization", () => {
   it("matches case, accents and surrounding whitespace", () => {
@@ -23,7 +27,8 @@ describe("task search normalization", () => {
       name: normalizeTaskSearch(title),
       text: normalizeTaskSearch(title + " revisión de marzo"),
       description: null,
-      context: undefined,
+      context: "",
+      dateWords: [],
     }));
     expect(
       findSearchResults(records, "  REVISION ").map((r) => r.title),
@@ -37,5 +42,41 @@ describe("task search normalization", () => {
       findSearchResults(records, "  marzo   buying ").map((r) => r.title),
     ).toEqual(["Buying supplies"]);
     expect(findSearchResults(records, "    ")).toEqual([]);
+  });
+  it("combines names with category, schedule and exact calendar dates in either locale", () => {
+    const data = backupFixture();
+    const es = buildSearchIndex(data, "es");
+    const en = buildSearchIndex(data, "en");
+    const task = data.tasks[0].id;
+    const event = data.events[0].id;
+    const ids = (index: typeof es, query: string) =>
+      findSearchResults(index, query).map((entry) => entry.id);
+    expect(ids(es, "fócus work normal 1 de agosto")).toEqual([task]);
+    expect(ids(en, "august normal 02/8/2026")).toEqual([event]);
+    expect(ids(es, "2026-08-02")).toEqual([event]);
+    expect(ids(en, "12/8/2026")).toEqual([]);
+    expect(ids(en, "review 6")).toEqual([]);
+    expect(findSearchResults(en, "work")[0].kind).toBe("category");
+  });
+  it("browses a single type with no query and keeps recurring start dates out of the matches", () => {
+    const data = backupFixture();
+    const index = buildSearchIndex(
+      {
+        ...data,
+        tasks: data.tasks.map((task) => ({
+          ...task,
+          recurrence_type: "daily",
+        })),
+      },
+      "en",
+    );
+    expect(
+      findSearchResults(index, " ", "category").map((r) => r.title),
+    ).toEqual(["Work"]);
+    expect(findSearchResults(index, "f", "task").map((r) => r.title)).toEqual([
+      "Focus deeply",
+    ]);
+    expect(findSearchResults(index, " ", "all")).toEqual([]);
+    expect(findSearchResults(index, "1/8/2026", "task")).toEqual([]);
   });
 });

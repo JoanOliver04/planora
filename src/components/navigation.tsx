@@ -1,10 +1,12 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { siteConfig } from "@/config/site";
+import { isTypingTarget } from "@/features/focus/focus-keyboard";
 import {
   desktopNavigationItems,
   isNavigationItemActive,
@@ -20,18 +22,58 @@ export function AppNavigation({
   const path = usePathname();
   const items =
     variant === "desktop" ? desktopNavigationItems : mobileNavigationItems;
+  const searchLink = useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    // The shell renders both navigation variants. Only one owns the shortcut.
+    if (variant !== "desktop") return;
+    function openSearch(event: KeyboardEvent) {
+      if (
+        event.defaultPrevented ||
+        event.isComposing ||
+        event.repeat ||
+        event.ctrlKey === event.metaKey ||
+        event.altKey ||
+        event.shiftKey ||
+        event.key.toLowerCase() !== "k"
+      )
+        return;
+      const query = document.getElementById("workspace-search-query");
+      const inSearch =
+        path === "/search" &&
+        event.target instanceof Element &&
+        event.target.closest(".global-search-page");
+      if (
+        (!inSearch && isTypingTarget(event.target)) ||
+        document.querySelector(
+          'dialog[open], [role="dialog"]:not([hidden]), [role="alertdialog"]:not([hidden])',
+        )
+      )
+        return;
+      event.preventDefault();
+      if (path !== "/search") searchLink.current?.click();
+      else if (query instanceof HTMLInputElement) {
+        query.focus();
+        query.select();
+      }
+    }
+    window.addEventListener("keydown", openSearch);
+    return () => window.removeEventListener("keydown", openSearch);
+  }, [variant, path]);
 
   return (
     <>
       {items.map((item) => {
         const active = isNavigationItemActive(item.id, path);
         const Icon = item.icon;
+        const isSearch = variant === "desktop" && item.id === "search";
         return (
           <Link
             className="nav-link"
             data-active={active}
             aria-current={active ? "page" : undefined}
             href={item.href}
+            ref={isSearch ? searchLink : undefined}
+            aria-keyshortcuts={isSearch ? "Control+k Meta+k" : undefined}
             prefetch={false}
             key={item.id}
           >
@@ -43,6 +85,11 @@ export function AppNavigation({
               <Icon size={20} aria-hidden="true" />
             )}
             <span>{t(item.id)}</span>
+            {isSearch && (
+              <kbd className="nav-shortcut" aria-hidden="true">
+                Ctrl / ⌘ K
+              </kbd>
+            )}
           </Link>
         );
       })}
