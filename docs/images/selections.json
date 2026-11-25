@@ -4,7 +4,7 @@
       "id": "01",
       "file": "readme/01-landing-desktop-light-en.webp",
       "title": "Presentación pública, propuesta de valor y CTA",
-      "sha256": "03a98f9d162a93ed0fbd9412c873913f6dd915d411305f9fadae9c1bcbdcf9db",
+      "sha256": "95e903becd11749edaa4fc0128d868a3539de839561b4384901d25fdc33a4a46",
       "width": 1440,
       "height": 768
     },
@@ -12,7 +12,7 @@
       "id": "04",
       "file": "readme/04-today-desktop-light-es.webp",
       "title": "Hoy: progreso, horario activo y grupos del día",
-      "sha256": "057f8ae31d2fdab75345ed2c27d8a842466007981367c91c3836aa94ab47d807",
+      "sha256": "c16201e827d724295ea46b4c2c3b7fc150b139ee2ce24e7de1b0c72f217abe04",
       "width": 1440,
       "height": 1038
     },
@@ -28,7 +28,7 @@
       "id": "08",
       "file": "readme/08-week-desktop-light-es.webp",
       "title": "Semana completa con tareas, hábitos y eventos",
-      "sha256": "b67b584af4b83fc72ebae138fe41ab6e030d5b0bfd28eb318fb53900e52d34ed",
+      "sha256": "30c9550acb66e0182fd42a87e123895ff73843dbb3ca93c619aad5842baeb8ba",
       "width": 1440,
       "height": 943
     },
@@ -36,31 +36,31 @@
       "id": "11",
       "file": "readme/11-week-mobile-dark-es.webp",
       "title": "Selector de días y agenda semanal móvil",
-      "sha256": "f1d567e9a0917bd14939d3879d436848631a6208bb7613f16cc879eff9a843a1",
+      "sha256": "a5f03d4fe1529267ffa4d0e0687cd14651ec2ac2e73fbd7c8b1c363336544874",
       "width": 780,
-      "height": 1774
+      "height": 1730
     },
     {
       "id": "12",
       "file": "readme/12-month-desktop-light-es.webp",
       "title": "Calendario mensual con actividad y eventos",
-      "sha256": "1aaaa0be7de4d411808065ca43f58b232275f7d889d4d3b5b42a9fa7dafc589c",
+      "sha256": "2875021303486ee1dc84e94b30f46ba8f9af0d145ecef1e80059cdda43984fdc",
       "width": 1440,
-      "height": 1419
+      "height": 1637
     },
     {
       "id": "15",
       "file": "readme/15-tasks-desktop-light-es.webp",
       "title": "Gestión de tareas, búsqueda, filtros y recurrencias",
-      "sha256": "69257deebe1de802679380ddd166fe0c215a5c229d8050276d33054361b1631d",
+      "sha256": "665c3ead9760e38f2f906fa6d32683d7d52aeadfa133cdcd4b2203f144fe1b9a",
       "width": 1440,
-      "height": 1085
+      "height": 1115
     },
     {
       "id": "21",
       "file": "readme/21-events-desktop-light-es.webp",
       "title": "Eventos del proyecto y de la vida personal",
-      "sha256": "abf91c20d6df7fe9c222a28b644eda8a00b96d4eab8ce5d0f9fb430d83499f89",
+      "sha256": "bc2b43920dc0729d642673dfff1934c380efd12931296db8ad67e76f291ceba9",
       "width": 1440,
       "height": 1100
     },
@@ -68,15 +68,15 @@
       "id": "24",
       "file": "readme/24-history-desktop-light-es.webp",
       "title": "Historial con instantáneas y fechas anteriores",
-      "sha256": "58b0e8468ed7c76099f014bcbd1eda68fe889582e00c099171f63249041ee36d",
+      "sha256": "165b8a432394a18ce88a28e100b2a4a7347465b9aee9caa3f9171b3ecd904fc6",
       "width": 1440,
-      "height": 970
+      "height": 1081
     },
     {
       "id": "27",
       "file": "readme/27-statistics-desktop-light-en.webp",
       "title": "Estadísticas de hábitos y progreso real",
-      "sha256": "78d8e5a473d36cbcbcc731cb65854f9f9731fd5fbd684869d326dd7a34534959",
+      "sha256": "faff6835053b07540f82dda3061c92e0d6ab5bc4f303e45256c04d1e751f248d",
       "width": 1440,
       "height": 1136
     },
@@ -84,7 +84,7 @@
       "id": "30",
       "file": "readme/30-schedules-desktop-light-es.webp",
       "title": "Horarios para trabajo, aprendizaje y fin de semana",
-      "sha256": "3b648981c5a51fb2dc283de65d897621b0795550b737c5479b697a67e8fd2dad",
+      "sha256": "81acf699f22ee46ac8dcfd3fd78e9a10b4d9711fa0a7000ac62b02e3e948fea3",
       "width": 1440,
       "height": 1024
     },
@@ -92,7 +92,7 @@
       "id": "31",
       "file": "readme/31-categories-desktop-light-es.webp",
       "title": "Categorías y colores de la biblioteca demo",
-      "sha256": "c3986031566babb905b2bcd98b41bb317192d7614e1e19c7e79cb8bb9b559f14",
+      "sha256": "82ad91525b2e4bba86f00641b6297fc7c443b493da4e0c036cb011f128236add",
       "width": 1440,
       "height": 1024
     },
@@ -100,15 +100,15 @@
       "id": "33",
       "file": "readme/33-reminders-desktop-light-es.webp",
       "title": "Centro de notificaciones, recordatorios y alarmas",
-      "sha256": "993fe6cb8bcdde54dc37b8e93a528eec4dfb823500b8073b01551749250a3ab9",
+      "sha256": "f468663e2a73ff391e630ed23550381b5017f49b9c4e6dba2ddecd6fcfdbe4e5",
       "width": 1440,
-      "height": 642
+      "height": 704
     },
     {
       "id": "40",
       "file": "readme/40-data-desktop-light-en.webp",
       "title": "Tus datos: copias, exportación y restauración",
-      "sha256": "7c4886e5a676ef04693239e54f14ec2715e5b3392fe38dffe6c011f5d614d3dd",
+      "sha256": "c801ed23ad10ea83e3e9e2bc36293ccbda4b4649dde698a087a4252cece924d6",
       "width": 1440,
       "height": 1100
     },
@@ -124,7 +124,7 @@
       "id": "43",
       "file": "readme/43-focus-home-desktop-light-en.webp",
       "title": "Enfoque: presets, inicio rápido y resumen semanal",
-      "sha256": "8a673d4dbd8b6a89ea23bb496cd56f305d99c1556cea4de713a99b1ff74fd34e",
+      "sha256": "64655c9eff354d0cf83c83fb969683b3b08c80f9f856ef50c6a14d8d25ec432e",
       "width": 1440,
       "height": 908
     },
@@ -132,7 +132,7 @@
       "id": "45",
       "file": "readme/45-focus-preset-desktop-light-en.webp",
       "title": "Configuración de un preset de trabajo profundo",
-      "sha256": "cfa5f1b24212540dfb893f4c91e62e3d77ccea8d17f8eb8dea91e59301f82469",
+      "sha256": "652202222b19e02ef4002ba5f174f42598b863e86e3159ee9c6e1b6e5d2522d2",
       "width": 1440,
       "height": 1250
     },
@@ -140,7 +140,7 @@
       "id": "47",
       "file": "readme/47-focus-countdown-desktop-light-es.webp",
       "title": "Sesión activa de trabajo profundo",
-      "sha256": "c1d69f11555312c1fa98fd871431fe352a20fb46474b8dd8217d5f2b6c9627aa",
+      "sha256": "13e86ee6e315dcebc2b715d89221f16034adb068ae6bff37b9cfd6a0345b6e04",
       "width": 1440,
       "height": 1100
     },
@@ -148,7 +148,7 @@
       "id": "50",
       "file": "readme/50-focus-plan-desktop-dark-en.webp",
       "title": "Plan estructurado: bloque actual y siguiente",
-      "sha256": "16e888a840f3c6e73856c3c7fbffd3046de28e10a8f69b6bd1968e1cd9d7ab3d",
+      "sha256": "563418c913b6c0603cadb11bfc7c347940cb38772d922f36700ee8714063192e",
       "width": 1440,
       "height": 1200
     },
@@ -164,7 +164,7 @@
       "id": "53",
       "file": "readme/53-focus-goals-desktop-light-en.webp",
       "title": "Objetivos semanales: tiempo, sesiones y días activos",
-      "sha256": "6e54f10e21b7a4819eef11224de1951ae7fa9688a87d3be5017baf6075129e66",
+      "sha256": "4cdb28f3aacd3dfcd1d16e6e1e9f386ae2a11d14ba14b684350f0ce8c8d53916",
       "width": 1440,
       "height": 1497
     },
@@ -172,7 +172,7 @@
       "id": "54",
       "file": "readme/54-focus-statistics-desktop-dark-en.webp",
       "title": "Estadísticas de Enfoque con historial suficiente",
-      "sha256": "d25c5152371ed2ed5ee3c29be3b46af8968c1d8df4b0b9932184f3ab01d94a80",
+      "sha256": "ec5ec05f95254463f3e726b0f242040eb172151e62e9513f8e8874f29ad690d0",
       "width": 1440,
       "height": 1868
     },
@@ -188,7 +188,7 @@
       "id": "61",
       "file": "readme/61-templates-desktop-light-es.webp",
       "title": "Plantillas reutilizables para empezar un horario",
-      "sha256": "23eccbd7f891acedd013d9de7ab53f1e4c97c2b3f61143f15aed273bc941d4ef",
+      "sha256": "6eec5d1b244f649bd35a7e6e568258b49ab02ac2c8119a500a5414a75ef1ff92",
       "width": 1440,
       "height": 1100
     },
@@ -196,7 +196,7 @@
       "id": "62",
       "file": "readme/62-search-desktop-light-en.webp",
       "title": "Búsqueda global con resultados del workspace",
-      "sha256": "1a3157748bec4a6b107812f7fd6d014284d4076755b54e2d2256d8b9ea2a2bd2",
+      "sha256": "0097ff1319fdd911127047d0913d6c5555eb45e0de32f34f3a1edbf2e97f1573",
       "width": 1440,
       "height": 1100
     }
@@ -206,7 +206,7 @@
       "id": "01",
       "file": "portfolio/01-landing-desktop-light-en.webp",
       "title": "Presentación pública, propuesta de valor y CTA",
-      "sha256": "e671898af947bc8b931c7c6ee7674173ae94bac8475f1e56935a8dc0ecf12455",
+      "sha256": "27caed6b54fe5394ab886f17806fec1b3004e0eda065088ed6537a3d273db90d",
       "width": 2400,
       "height": 1280
     },
@@ -214,7 +214,7 @@
       "id": "04",
       "file": "portfolio/04-today-desktop-light-es.webp",
       "title": "Hoy: progreso, horario activo y grupos del día",
-      "sha256": "8c7d5facdf75a79031aa4b74c24b05f0cda3354790197441105e4f6c94bb3fc0",
+      "sha256": "06690d94afa242248105c287048f049b5687acc64c506e6edd1effa06a5a3429",
       "width": 2400,
       "height": 1730
     },
@@ -222,7 +222,7 @@
       "id": "08",
       "file": "portfolio/08-week-desktop-light-es.webp",
       "title": "Semana completa con tareas, hábitos y eventos",
-      "sha256": "bef4fea2f36ce7049f35810f56b6e7830a4579227356e14592c102ee1c027844",
+      "sha256": "19004d1e1ac335cdd840580228dd79fa676dc15a9b16e6ee5bac8edc845cc624",
       "width": 2400,
       "height": 1571
     },
@@ -230,15 +230,15 @@
       "id": "15",
       "file": "portfolio/15-tasks-desktop-light-es.webp",
       "title": "Gestión de tareas, búsqueda, filtros y recurrencias",
-      "sha256": "5fff07c8a8f807b41c4e4e5e7ef05dfbdb292f22217aa42bc3323ed43f3d2013",
+      "sha256": "e83f8d9a6afb9779104831193395799193f8b9793b3f3e8625e4042c83c5cd2d",
       "width": 2400,
-      "height": 1808
+      "height": 1858
     },
     {
       "id": "43",
       "file": "portfolio/43-focus-home-desktop-light-en.webp",
       "title": "Enfoque: presets, inicio rápido y resumen semanal",
-      "sha256": "a85dcaa5238aa275544370666331d5b153d449fadd1de367bbea465341758816",
+      "sha256": "0fbbe5a534fabc51d87f8cf18568fa5e030510fd11c9a9b4f411c7bb779c8183",
       "width": 2400,
       "height": 1513
     },
@@ -246,7 +246,7 @@
       "id": "47",
       "file": "portfolio/47-focus-countdown-desktop-light-es.webp",
       "title": "Sesión activa de trabajo profundo",
-      "sha256": "9e8ffa8ee197c96f4da0785ea3605124ef0611ea820044b2f034be8bf78d154a",
+      "sha256": "26e11e542162aedb046fce49a0dc70e7cf4554ee5ebdf2cae646910e52a15460",
       "width": 2400,
       "height": 1833
     },
@@ -254,7 +254,7 @@
       "id": "50",
       "file": "portfolio/50-focus-plan-desktop-dark-en.webp",
       "title": "Plan estructurado: bloque actual y siguiente",
-      "sha256": "03e79313e60a3b5bb21fce0f5c78ac2b40be362314340bd608bb4fcfcdd3521c",
+      "sha256": "37c80e7a15d341b80d12547b3f0aaf010fa9ac9d62f9a4fcc286a37bb2258f6b",
       "width": 2400,
       "height": 2000
     },
@@ -270,7 +270,7 @@
       "id": "27",
       "file": "portfolio/27-statistics-desktop-light-en.webp",
       "title": "Estadísticas de hábitos y progreso real",
-      "sha256": "39fcf8bbd43d2948bfe65b041f8bcee073a390f79ba19a70b8cf26a4f5b020bb",
+      "sha256": "e6ad56e891016aa201095b54c6128f8c53c8f9ea98418df7ffea1995ed28572f",
       "width": 2400,
       "height": 1893
     },
@@ -278,17 +278,17 @@
       "id": "12",
       "file": "portfolio/12-month-desktop-light-es.webp",
       "title": "Calendario mensual con actividad y eventos",
-      "sha256": "51224d923a153ebf3081bdb54d95f677d2bdb66d930477d5e472ed37c5b2c1c5",
+      "sha256": "3ac42652ea84189f80afcdfd1590e3be82b37cf86f3216344bc34b8bed3e90e2",
       "width": 2400,
-      "height": 2365
+      "height": 2728
     },
     {
       "id": "33",
       "file": "portfolio/33-reminders-desktop-light-es.webp",
       "title": "Centro de notificaciones, recordatorios y alarmas",
-      "sha256": "79e8e92e4c1a66620b98bb01ae4fc4a65fcdca2ae72f34f164722e11b548a45f",
+      "sha256": "8bc1e974ab9cab566deea15fa415e19a0fa6ad08bc745706c9b692356477c294",
       "width": 2132,
-      "height": 950
+      "height": 1042
     },
     {
       "id": "07",
@@ -310,7 +310,7 @@
       "id": "38",
       "file": "portfolio/38-settings-desktop-light-es.webp",
       "title": "Ajustes de apariencia, idioma y personalización",
-      "sha256": "f09335d5790ef460a7801524392539bbe4906e836e0964e1e78a0d55c3495b07",
+      "sha256": "67935319dfbf975bef9c7e2630befb78e996a25601f0ed522fcba1e9996bbce8",
       "width": 2400,
       "height": 1695
     }
@@ -320,7 +320,7 @@
       "id": "01",
       "file": "linkedin/01-landing-desktop-light-en.png",
       "title": "Presentación pública, propuesta de valor y CTA",
-      "sha256": "5f2e589e22e4762ddc3808c167ed3c1fd29f3eb57b420a2493d1c0ae6c4fcabd",
+      "sha256": "3ac1f2939f2882cd2691fe14a6be0f1cf23996eef9c7dd54a4d61a85af4a634b",
       "width": 1600,
       "height": 853
     },
@@ -328,7 +328,7 @@
       "id": "04",
       "file": "linkedin/04-today-desktop-light-es.png",
       "title": "Hoy: progreso, horario activo y grupos del día",
-      "sha256": "1e146323ed9da7480fb656003bf09a1a7d94a2db5eff6574d46bc43b88619e73",
+      "sha256": "3dbe89cab14cd15554e384e2ce55cae4f95740ea987f59595998a177f4d53f53",
       "width": 1600,
       "height": 1153
     },
@@ -336,7 +336,7 @@
       "id": "08",
       "file": "linkedin/08-week-desktop-light-es.png",
       "title": "Semana completa con tareas, hábitos y eventos",
-      "sha256": "141548884f6c8cb70f20914f9878c51b74e5a9a1e3796ef77a4f996f7ac3f059",
+      "sha256": "b230f3c710c1d71282f18a26fe76bfd5852e33ba6e9c65c18f7d505f042bfd9e",
       "width": 1600,
       "height": 1048
     },
@@ -344,15 +344,15 @@
       "id": "15",
       "file": "linkedin/15-tasks-desktop-light-es.png",
       "title": "Gestión de tareas, búsqueda, filtros y recurrencias",
-      "sha256": "f3da930462c5d8541d5f10f565a86b0f4b659af5783c1f2bc60784f307c85f5a",
+      "sha256": "c07321328059ff558ef495c2e94a1561210ce9320883d3355bff50d557d62667",
       "width": 1600,
-      "height": 1206
+      "height": 1239
     },
     {
       "id": "43",
       "file": "linkedin/43-focus-home-desktop-light-en.png",
       "title": "Enfoque: presets, inicio rápido y resumen semanal",
-      "sha256": "10b6d5da559db55600ad7ccf47869186f57e3d5196ae6be8eaa28b824e764641",
+      "sha256": "4be428cd347a785faf3de65abcb1aaf31941dbf85e7d3635fd082ce0902704f5",
       "width": 1600,
       "height": 1009
     },
@@ -368,7 +368,7 @@
       "id": "27",
       "file": "linkedin/27-statistics-desktop-light-en.png",
       "title": "Estadísticas de hábitos y progreso real",
-      "sha256": "a559bc2d646c33d5d0e8c5b24749a3270b155c051ccca741a7eb81b5b0b4dd8d",
+      "sha256": "9a26451a1524b85c1c0b410610a5d87a14f1af647dcb5cae3dc5026f7b52c152",
       "width": 1600,
       "height": 1262
     },
@@ -392,7 +392,7 @@
       "id": "40",
       "file": "linkedin/40-data-desktop-light-en.png",
       "title": "Tus datos: copias, exportación y restauración",
-      "sha256": "31558e7e40f0714822ada2ce33a1a52331393188cbed8c04e07a3bd2df2d98d3",
+      "sha256": "b0bc9241b72020e4a289602a429e723e5bcd367e9808bd51e52df48f974d7746",
       "width": 1600,
       "height": 1222
     }

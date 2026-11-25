@@ -20,7 +20,6 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="Strict TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <a href="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml"><img src="https://github.com/JoanOliver04/planora/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/tests-667%20unit%20%2B%20126%20E2E%20cases-brightgreen?style=flat-square" alt="667 unit tests and 126 Playwright E2E cases; 3 deliberate browser exclusions" />
 </p>
 
 ---
@@ -50,11 +49,11 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 
 - Multiple independent schedules for regular routines, holidays, exams or any other context.
 - Fast switching between active schedules.
-- Weekly agenda with previous/next controls, direct date selection and a quick return to the current week.
-- The current week is always selected by default.
-- Responsive day selector on mobile and full seven-day layout on desktop.
+- Week opens on the current day in your profile’s timezone. Choose a date to see its week, or open any day from Month. The selected date stays in the URL when you reload.
+- Add a task or an event directly from its day in Week. The event form starts with that date and the active schedule. Choose **Global** to show the event across schedules. Save or cancel to return keyboard focus to the day’s action.
+- On desktop the agenda shows all seven days. On mobile, select a day to see its entries. **View month** opens the month containing the selected date.
 - Custom categories with a name, emoji and colour.
-- Global or schedule-specific events with an optional time.
+- Events can last all day or have a start time and an optional end time. Week lists all-day events first and timed entries in chronological order.
 
 ### Focus (Enfoque)
 
@@ -107,9 +106,10 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 - Installable PWA manifest using the product logo.
 - Confirmation dialogs for permanent deletion, archiving, account deletion and sign-out.
 - Accessible navigation, keyboard focus states and reduced-motion support.
+- Open workspace search with **Ctrl+K** or **⌘K**. Filter by tasks, events, categories or schedules, or combine a name with a category, schedule or date. Returning from a result restores your search in the same tab.
 - Mobile-first touch targets and responsive layouts.
 - Google OAuth only; Planora stores no passwords. After sign-in the app returns to Today in the active language.
-- Public no-registration demo in Spanish and English, guided onboarding and reusable schedule templates.
+- The Spanish and English demo restores saved progress before enabling its controls. If browser storage is unavailable, it runs in memory for the current visit. Private workspaces also include guided onboarding and reusable schedule templates.
 - Offline mutation queue that keeps the latest intent per day and will not resurrect a completion after a newer undo on another device.
 - Installable PWA and a customizable notification and alarm center.
 - Progress dashboard, keyboard-accessible ordering and portable JSON/CSV/ICS exports (including Focus entities in backup v5; v4 remains importable). Atomic restore cancels live Focus timers in the database.
@@ -361,18 +361,19 @@ npm run typecheck
 npm test
 npm run test:e2e
 npm run build
-npm audit
+npm run audit:dependencies
+npm run docs:captures:check
 ```
 
-CI runs npm audit, lint, Prettier (`format:check`), typecheck, coverage and a production build on every push to `main`. It also runs CodeQL, Lighthouse and the complete Playwright suite against an isolated Supabase instance built from the committed migrations, so authenticated scenarios cannot silently skip because credentials are missing.
+Push a release candidate to a `qa/**` branch to run the same checks before production. CI runs the strict dependency audit, lint, formatting, type checks, coverage and a production build on the candidate and again on `main`. It also runs CodeQL, Lighthouse and the complete Playwright suite against an isolated Supabase instance built from the committed migrations, so authenticated scenarios cannot silently skip because credentials are missing.
 
 Workspace views load on demand; the task editor is included with the task views so its first opening stays responsive. Public pages do not receive the private translation catalogue, and task lists do not subscribe to every Focus clock tick. Responsive regression checks cover 16 private areas, widths from 320 to 1440 CSS pixels, portrait/landscape, maximum-length names and 200% root text. CI also measures cold route loading with 60 tasks and 840 history entries; pull requests compare initial JavaScript against their base revision. See the [performance and responsive report](docs/performance-2026-10-31.md) for measured results, conditions and coverage limits.
 
 The suite covers recurrence rules, date boundaries, month endings, timezones, bilingual formatting, Focus (timer, offline, sync and backup v5), forms, loading states, protected navigation, platform metadata and the single-instance, automatic-only Analytics integration. Authenticated journeys exercise schedule/task CRUD, history and undo, templates, alarms, preferences, offline completion sync, sign-out, export and atomic restore. Web Push checks include a service worker without open clients, permission handling, server queue leases, cancellation, retries, ownership isolation and API access controls.
 
-The **2026-11-11 / 0.1.2** suite contains **667 unit tests in 88 Vitest files** and **126 Playwright cases**, including **3 deliberate exclusions**. Browser projects cover desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. The exclusions are three WebKit integration flows exercised in Chromium: the API-backed Focus lifecycle, offline completion sync and the push outbox. The release uses Next.js **16.4.6** / React **19.3.1**; the strict dependency audit reports **0 known vulnerabilities across the complete tree**. The [quality review](docs/quality-review-2026-11-11.md) records fixes, verification and the database account-deletion regression. CI also enforces database ownership checks, public/private accessibility, legal-page returns to authenticated settings and mobile Lighthouse thresholds.
+Browser tests run in desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. The calendar journeys check date and schedule defaults, invalid time ranges, keyboard focus and persistence after a reload. The main-branch CI log lists the current test counts and browser-specific exclusions. The November quality review records the earlier account-deletion regression and its database checks. [Latest CI runs](https://github.com/JoanOliver04/planora/actions/workflows/ci.yml?query=branch%3Amain) · [November quality review](docs/quality-review-2026-11-11.md).
 
-These are dated test results, not a guarantee of zero bugs or complete device coverage. A successful push-provider response does not prove that a phone displayed the notification; use the delayed test on each device. No universal physical-device or Google OAuth acceptance claim is implied by CI.
+The authenticated browser suite uses disposable local accounts. Google OAuth and notification display on a physical phone need a real device. The delayed notification test lets you check delivery on yours.
 
 The real product screenshot library lives under docs/images/. Its [inventory and repeatable capture workflow](docs/screenshots.md) cover desktop/mobile, both languages, themes and all major Focus states. The runner creates disposable accounts in an isolated local Supabase project and keeps the application's real CSP.
 
