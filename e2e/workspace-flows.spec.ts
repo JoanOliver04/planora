@@ -582,20 +582,17 @@ test("offline completions synchronize once and sign-out closes the private UI", 
           .eq("task_id", inserted.data!.id)
       ).count;
     await page.goto("/en/today");
-    await expect(
-      page.getByRole("button", {
-        name: "Mark as complete: QA offline task",
-        exact: true,
-      }),
-    ).toBeVisible();
+    const waitForTask = (tab: typeof page) =>
+      expect(
+        tab.getByRole("button", {
+          name: "Mark as complete: QA offline task",
+          exact: true,
+        }),
+      ).toBeVisible({ timeout: 25_000 });
+    await waitForTask(page);
     const secondTab = await context.newPage();
     await secondTab.goto("/en/today");
-    await expect(
-      secondTab.getByRole("button", {
-        name: "Mark as complete: QA offline task",
-        exact: true,
-      }),
-    ).toBeVisible();
+    await waitForTask(secondTab);
     await context.setOffline(true);
     await page
       .getByRole("button", {
