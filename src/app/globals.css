@@ -3337,6 +3337,10 @@ select:disabled,
 .demo-controls {
   display: contents;
 }
+.demo-controls:disabled :is(.primary, .pill, .icon-button) {
+  opacity: 1;
+  cursor: progress;
+}
 .demo-topbar {
   display: flex;
   align-items: center;
@@ -5903,6 +5907,10 @@ button.mini-task {
   flex-wrap: wrap;
   margin-inline-start: auto;
   gap: 0.25rem;
+}
+.week-desktop .agenda-day-actions {
+  flex-basis: 100%;
+  justify-content: flex-end;
 }
 .week-desktop .agenda-add span {
   display: none;

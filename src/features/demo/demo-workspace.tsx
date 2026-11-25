@@ -124,7 +124,9 @@ export function DemoWorkspace({
         <header className="demo-topbar surface">
           <div>
             <b>{copy.demo}</b>
-            <span className="muted">{copy.demoHint}</span>
+            <span className="muted">
+              {restored ? copy.demoHint : copy.loadingDemo}
+            </span>
           </div>
           <AuthLink className="primary" href={`/${locale}/login`}>
             {copy.create}
