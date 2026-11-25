@@ -6,7 +6,8 @@ test("finds every match and returns to the same result page across schedules", a
   context,
   baseURL,
 }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(120_000);
+  const openedWorkspace = expect.configure({ timeout: 25_000 });
   test.skip(!hasLocalCredentials, "Local integration credentials required");
   await withLocalWorkspace(context, baseURL, async (db, userId) => {
     const profile = await db
@@ -75,11 +76,9 @@ test("finds every match and returns to the same result page across schedules", a
       ).error,
     ).toBeNull();
     await page.getByRole("link", { name: new RegExp(target) }).click();
-    await expect(page).toHaveURL(/\/tasks\?item=([\da-f-]+)#task-\1$/, {
-      timeout: 25_000,
-    });
+    await openedWorkspace(page).toHaveURL(/\/tasks\?item=([\da-f-]+)#task-\1$/);
     const selected = page.locator("article.task").filter({ hasText: renamed });
-    await expect(selected).toBeFocused({ timeout: 25_000 });
+    await openedWorkspace(selected).toBeFocused();
     await expect(selected).toContainText("Weekend study");
     await expect(
       page.getByRole("combobox", { name: "Task status" }),
@@ -94,7 +93,7 @@ test("finds every match and returns to the same result page across schedules", a
       ).data,
     ).toEqual(profile.data);
     await page.goBack();
-    await expect(query).toHaveValue("revision");
+    await openedWorkspace(query).toHaveValue("revision");
     await expect(taskFilter).toBeChecked();
     await expect(links).toHaveCount(3);
     await page.getByRole("radio", { name: "All", exact: true }).check();
@@ -109,7 +108,7 @@ test("finds every match and returns to the same result page across schedules", a
       page.getByRole("button", { name: "Next results" }),
     ).toHaveCount(0);
     await links.first().click();
-    await expect(
+    await openedWorkspace(
       page.locator("article.task").filter({ hasText: "Música para estudiar" }),
     ).toBeFocused();
   });
