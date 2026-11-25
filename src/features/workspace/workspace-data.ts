@@ -34,3 +34,14 @@ export function getMonthEventRange(today: string, weekStartsOn: 0 | 1) {
   const start = shiftCalendarDay(first, -offset);
   return { start, end: shiftCalendarDay(start, 41) };
 }
+
+export function getHistoryRange(today: string, month?: string | null) {
+  if (!month) return { start: shiftCalendarDay(today, -89), end: today };
+  const start = month + "-01";
+  const last = new Date(start + "T12:00:00Z");
+  last.setUTCMonth(last.getUTCMonth() + 1, 0);
+  return {
+    start,
+    end: month === today.slice(0, 7) ? today : last.toISOString().slice(0, 10),
+  };
+}

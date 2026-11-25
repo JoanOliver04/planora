@@ -17,7 +17,8 @@ import {
   type QueuedCompletion,
 } from "@/lib/offline/queue";
 import { normalizePreferences } from "@/lib/preferences";
-import { calculateWeeklyProgress, classifyDayPart } from "@/lib/recurrence";
+import { calculateWeeklyProgress } from "@/lib/recurrence";
+import { classifyDayPart, normalizeDayParts } from "@/lib/dates/day-parts";
 import { Plus, RotateCcw } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -168,6 +169,7 @@ export function TodayView({
     active = data.profile.active_schedule_id,
     activeSchedule = data.schedules.find((item) => item.id === active),
     preferences = normalizePreferences(data.profile.preferences),
+    dayParts = normalizeDayParts(data.profile.day_part_settings),
     tasks = tasksForDay(data.tasks, day, active)
       .filter((task) =>
         isWithinWeeklyTarget(task, day, data.completions, weekStartsOn),
@@ -406,12 +408,7 @@ export function TodayView({
               : task.time_mode === "anytime"
                 ? "anytime"
                 : task.start_time
-                  ? classifyDayPart(
-                      task.start_time.slice(0, 5),
-                      data.profile.day_part_settings as Parameters<
-                        typeof classifyDayPart
-                      >[1],
-                    )
+                  ? classifyDayPart(task.start_time.slice(0, 5), dayParts)
                   : "anytime") === group,
         );
         return list.length ? (

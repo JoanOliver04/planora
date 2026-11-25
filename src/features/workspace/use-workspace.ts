@@ -6,6 +6,7 @@ import type { WorkspaceMode } from "./types";
 import { calendarWeek, localDate, localWeek } from "@/lib/dates/timezone";
 import { cacheWorkspace, loadCachedWorkspace } from "@/lib/offline/queue";
 import {
+  getHistoryRange,
   getMonthEventRange,
   mergeRowsById,
   readWorkspaceRows,
@@ -295,10 +296,15 @@ export function useWorkspace(mode: WorkspaceMode) {
       .select("*")
       .order("completed_at", { ascending: false })
       .order("id");
+    const historyRange = getHistoryRange(today);
     if (mode === "summary")
       completionsQuery = completionsQuery
         .gte("occurrence_date", week.start)
         .lte("occurrence_date", today);
+    else if (mode === "history" || mode === "statistics")
+      completionsQuery = completionsQuery
+        .gte("occurrence_date", historyRange.start)
+        .lte("occurrence_date", historyRange.end);
     else
       completionsQuery = completionsQuery.gte(
         "occurrence_date",
@@ -431,6 +437,7 @@ export function useWorkspace(mode: WorkspaceMode) {
               ? `${monthRange.start}:${monthRange.end}`
               : undefined,
         completions,
+        historyRange: mode === "history" ? historyRange : undefined,
         focusPresets: p.data ?? [],
       };
       cacheWorkspace(mode, workspace);

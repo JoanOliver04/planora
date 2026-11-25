@@ -14,9 +14,9 @@ import { localDate } from "@/lib/dates/timezone";
 import { isCalendarDay, shiftCalendarDay } from "@/lib/dates/calendar-day";
 import { agendaForDay } from "./calendar-agenda";
 import {
-  CalendarEventsStatus,
-  type LoadCalendarEvents,
-} from "./calendar-events-status";
+  WorkspaceRangeStatus,
+  type LoadWorkspaceRange,
+} from "./workspace-range-status";
 import { isWithinWeeklyTarget, tasksForDay } from "./daily-occurrences";
 import { getMonthEventRange } from "./workspace-data";
 import { formatTaskTime } from "./presentation";
@@ -27,7 +27,7 @@ export function MonthView({
   loadEventRange,
 }: {
   data: WorkspaceData;
-  loadEventRange: LoadCalendarEvents;
+  loadEventRange: LoadWorkspaceRange;
 }) {
   const t = useTranslations("Planning"),
     locale = useLocale(),
@@ -116,7 +116,8 @@ export function MonthView({
         </button>
       </div>
       {!eventsReady && (
-        <CalendarEventsStatus
+        <WorkspaceRangeStatus
+          resource="events"
           key={range}
           start={rangeStart}
           end={rangeEnd}

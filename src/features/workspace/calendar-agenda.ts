@@ -1,12 +1,12 @@
 import { tasksForDay } from "./daily-occurrences";
-import { defaultDayParts } from "@/lib/recurrence";
+import { normalizeDayParts } from "@/lib/dates/day-parts";
 import type { Event, Task, WorkspaceData } from "./types";
 
 type AgendaItem = { kind: "event"; item: Event } | { kind: "task"; item: Task };
 
 function orderKey(
   entry: AgendaItem,
-  dayParts: Partial<typeof defaultDayParts> | null,
+  dayParts: ReturnType<typeof normalizeDayParts>,
 ) {
   if (entry.kind === "event" && entry.item.all_day) return "0";
   if (entry.item.start_time) return "1" + entry.item.start_time.slice(0, 5);
@@ -16,7 +16,7 @@ function orderKey(
     entry.item.day_part
   ) {
     const part = entry.item.day_part;
-    return "1" + (dayParts?.[part]?.start ?? defaultDayParts[part].start);
+    return "1" + dayParts[part].start;
   }
   return "2";
 }
@@ -34,9 +34,7 @@ export function agendaForDay(data: WorkspaceData, day: string) {
     ...tasks.map((item) => ({ kind: "task" as const, item })),
   ];
   // Stable sorting preserves the user's task order within the same time slot.
-  const dayParts = data.profile.day_part_settings as Partial<
-    typeof defaultDayParts
-  > | null;
+  const dayParts = normalizeDayParts(data.profile.day_part_settings);
   entries.sort((left, right) =>
     orderKey(left, dayParts).localeCompare(orderKey(right, dayParts)),
   );

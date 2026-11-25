@@ -63,6 +63,20 @@ describe("statistics analytics", () => {
     expect(result.categories[0].completed).toBe(3);
   });
 
+  it("uses the account clock and minute-level custom ranges across midnight", () => {
+    const data = fixture();
+    data.profile.timezone = "Europe/Madrid";
+    data.profile.day_part_settings = {
+      morning: { start: "23:00", end: "02:15" },
+      afternoon: { start: "02:15", end: "10:00" },
+    };
+    data.completions[0].completed_at = "2026-07-31T00:14:00Z";
+    data.completions[1].completed_at = "2026-07-31T00:15:00Z";
+    data.completions[2].completed_at = "2026-08-01T10:00:00Z";
+    const stats = calculateStatistics(data, new Date("2026-08-01T16:00:00Z"));
+    expect(stats.dayParts.map((part) => part.count)).toEqual([1, 1, 1]);
+  });
+
   it("builds a labelled 90-day heatmap including empty days", () => {
     const result = calculateStatistics(
       fixture(),

@@ -152,7 +152,7 @@ export function WorkspacePage({ mode }: { mode: WorkspaceMode }) {
     ) : mode === "events" ? (
       <EventsView data={data} reload={reload} />
     ) : mode === "history" ? (
-      <HistoryView data={data} />
+      <HistoryView key={data.user.id} data={data} db={db} />
     ) : mode === "statistics" ? (
       <StatisticsView data={data} />
     ) : mode === "schedules" ? (

@@ -127,13 +127,3 @@ export function formatRecurrenceDescription(
   );
   return names.join(", ");
 }
-export const defaultDayParts = {
-  morning: { start: "05:00", end: "12:00" },
-  afternoon: { start: "12:00", end: "18:00" },
-  night: { start: "18:00", end: "05:00" },
-};
-export function classifyDayPart(time: string, b = defaultDayParts) {
-  if (time >= b.morning.start && time < b.morning.end) return "morning";
-  if (time >= b.afternoon.start && time < b.afternoon.end) return "afternoon";
-  return "night";
-}

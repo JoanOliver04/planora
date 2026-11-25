@@ -1,6 +1,7 @@
 "use client";
 
 import { updateProfile } from "@/app/actions/domain";
+import { normalizeDayParts } from "@/lib/dates/day-parts";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { AppAbout } from "@/components/app-about";
 import { useTheme } from "@/components/theme-provider";
@@ -42,24 +43,9 @@ function DayPartsSettings({
   reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace"),
-    raw = data.profile.day_part_settings as Record<
-      string,
-      { start?: string; end?: string }
-    >,
-    [values, setValues] = useState({
-      morning: {
-        start: raw.morning?.start ?? "05:00",
-        end: raw.morning?.end ?? "12:00",
-      },
-      afternoon: {
-        start: raw.afternoon?.start ?? "12:00",
-        end: raw.afternoon?.end ?? "18:00",
-      },
-      night: {
-        start: raw.night?.start ?? "18:00",
-        end: raw.night?.end ?? "05:00",
-      },
-    });
+    [values, setValues] = useState(() =>
+      normalizeDayParts(data.profile.day_part_settings),
+    );
   async function save() {
     try {
       await updateProfile({ day_part_settings: values });

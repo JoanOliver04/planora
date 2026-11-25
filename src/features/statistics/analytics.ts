@@ -1,4 +1,4 @@
-import { formatInTimeZone } from "date-fns-tz";
+import { classifyDayPart, normalizeDayParts } from "@/lib/dates/day-parts";
 import type { WorkspaceData } from "@/features/workspace/types";
 import { localDate, localWeek } from "@/lib/dates/timezone";
 
@@ -192,17 +192,16 @@ export function calculateStatistics(
     .filter((item) => item.completed > 0 || item.rate > 0)
     .sort((a, b) => b.completed - a.completed);
   const dayPartCounts = { morning: 0, afternoon: 0, night: 0 };
+  const dayPartsSettings = normalizeDayParts(data.profile.day_part_settings);
+  const clock = new Intl.DateTimeFormat("en-GB", {
+    timeZone: data.profile.timezone,
+    hourCycle: "h23",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
   completions.forEach((item) => {
-    const hour = Number(
-      formatInTimeZone(new Date(item.completed_at), data.profile.timezone, "H"),
-    );
-    dayPartCounts[
-      hour >= 5 && hour < 12
-        ? "morning"
-        : hour >= 12 && hour < 18
-          ? "afternoon"
-          : "night"
-    ] += 1;
+    const time = clock.format(new Date(item.completed_at));
+    dayPartCounts[classifyDayPart(time, dayPartsSettings)] += 1;
   });
   const total = completions.length || 1;
   const dayParts = (["morning", "afternoon", "night"] as const).map((key) => ({

@@ -2956,6 +2956,22 @@ select:disabled,
   gap: 1.7rem;
   max-width: 900px;
 }
+.history-controls,
+.history-more {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.history-controls {
+  max-width: 900px;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+}
+.history-item time {
+  max-width: 16ch;
+  text-align: end;
+}
 .history-date {
   display: flex;
   align-items: center;

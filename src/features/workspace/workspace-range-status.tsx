@@ -4,21 +4,23 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { QUERY_TIMEOUT_MS } from "@/lib/bootstrap/timeout";
 
-export type LoadCalendarEvents = (
+export type LoadWorkspaceRange = (
   start: string,
   end: string,
   signal: AbortSignal,
 ) => Promise<boolean>;
 
 // Mounted only while the workspace snapshot is missing the visible range.
-export function CalendarEventsStatus({
+export function WorkspaceRangeStatus({
   start,
   end,
   load,
+  resource,
 }: {
   start: string;
   end: string;
-  load: LoadCalendarEvents;
+  load: LoadWorkspaceRange;
+  resource: "events" | "history";
 }) {
   const t = useTranslations("Workspace");
   const [failed, setFailed] = useState(false);
@@ -44,7 +46,9 @@ export function CalendarEventsStatus({
   return (
     <div className="calendar-events-status">
       <span role="status">
-        {t(failed ? "calendarEventsError" : "calendarEventsLoading")}
+        {resource === "history"
+          ? t(failed ? "historyLoadError" : "historyLoading")
+          : t(failed ? "calendarEventsError" : "calendarEventsLoading")}
       </span>
       {failed && (
         <button

@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { afterEach, expect, it, vi } from "vitest";
-import { CalendarEventsStatus } from "@/features/workspace/calendar-events-status";
+import { WorkspaceRangeStatus } from "@/features/workspace/workspace-range-status";
 import messages from "@/messages/es.json";
 
 afterEach(cleanup);
@@ -13,7 +13,12 @@ it("offers a retry after a failed range and cancels the pending request when lea
     .mockImplementationOnce(() => new Promise(() => {}));
   const { unmount } = render(
     <NextIntlClientProvider locale="es" messages={messages}>
-      <CalendarEventsStatus start="2026-11-23" end="2026-11-29" load={load} />
+      <WorkspaceRangeStatus
+        resource="events"
+        start="2026-11-23"
+        end="2026-11-29"
+        load={load}
+      />
     </NextIntlClientProvider>,
   );
   expect(

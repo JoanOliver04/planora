@@ -1,13 +1,13 @@
 ﻿import { describe, expect, it } from "vitest";
 import {
   calculateWeeklyProgress,
-  classifyDayPart,
   formatRecurrenceDescription,
   getExpectedTaskOccurrences,
   getWeekRange,
   getWeeklyTarget,
   isTaskExpectedOnDate,
 } from "@/lib/recurrence";
+import { classifyDayPart } from "@/lib/dates/day-parts";
 import { recurrenceConfigSchema } from "@/lib/validation/task";
 describe("recurrence", () => {
   it("supports daily bounds", () => {

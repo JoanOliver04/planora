@@ -13,9 +13,9 @@ import { isCalendarDay, shiftCalendarDay } from "@/lib/dates/calendar-day";
 import { calendarWeek, localDate } from "@/lib/dates/timezone";
 import { agendaForDay } from "./calendar-agenda";
 import {
-  CalendarEventsStatus,
-  type LoadCalendarEvents,
-} from "./calendar-events-status";
+  WorkspaceRangeStatus,
+  type LoadWorkspaceRange,
+} from "./workspace-range-status";
 import { formatTaskTime, workspaceItemHref } from "./presentation";
 import type { WorkspaceData } from "./types";
 
@@ -30,7 +30,7 @@ export function WeekView({
   reload,
 }: {
   data: WorkspaceData;
-  loadEventRange: LoadCalendarEvents;
+  loadEventRange: LoadWorkspaceRange;
   reload: () => Promise<void>;
 }) {
   const t = useTranslations("Workspace");
@@ -219,7 +219,8 @@ export function WeekView({
         </button>
       </div>
       {!eventsReady && (
-        <CalendarEventsStatus
+        <WorkspaceRangeStatus
+          resource="events"
           key={range}
           start={week.start}
           end={week.end}
