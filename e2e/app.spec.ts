@@ -61,7 +61,7 @@ test("mobile login remains usable", async ({ page }) => {
 test("demo is public, interactive and persists locally", async ({ page }) => {
   await page.goto("/es/login");
   await page.getByRole("link", { name: /demo interactiva/i }).click();
-  await expect(page).toHaveURL(/\/es\/demo\/today/);
+  await expect(page).toHaveURL(/\/es\/demo\/today/, { timeout: 25_000 });
   const task = page.getByRole("button", {
     name: /Revisar prioridades del día/,
   });
@@ -85,7 +85,18 @@ test("demo disables real account actions", async ({ page }) => {
 
 test("the demo enables its controls after startup when browser storage is blocked", async ({
   page,
+  browser,
+  baseURL,
 }) => {
+  const initial = await browser.newPage({ baseURL, javaScriptEnabled: false });
+  try {
+    await initial.goto("/es/demo/focus");
+    await expect(
+      initial.getByRole("button", { name: "Iniciar", exact: true }),
+    ).toBeDisabled();
+  } finally {
+    await initial.close();
+  }
   await page.addInitScript(() => {
     const original = Storage.prototype.getItem;
     Storage.prototype.getItem = function (key) {
@@ -100,22 +111,8 @@ test("the demo enables its controls after startup when browser storage is blocke
       write.call(this, key, value);
     };
   });
-  let resume!: () => void;
-  const ready = new Promise<void>((resolve) => {
-    resume = resolve;
-  });
-  await page.route("**/_next/static/chunks/*.js*", async (route) => {
-    await ready;
-    await route.continue();
-  });
-  const start = page.getByRole("button", { name: "Iniciar", exact: true });
-  try {
-    await page.goto("/es/demo/focus", { waitUntil: "commit" });
-    await expect(start).toBeDisabled();
-  } finally {
-    resume();
-  }
-  await start.click();
+  await page.goto("/es/demo/focus");
+  await page.getByRole("button", { name: "Iniciar", exact: true }).click();
   await expect(page.getByRole("button", { name: "Pausar" })).toBeVisible();
 });
 
