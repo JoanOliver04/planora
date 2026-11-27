@@ -57,6 +57,8 @@ test("public product screens remain accessible in both languages and themes", as
   await page.setViewportSize({ width: 390, height: 844 });
   for (const theme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+    await page.goto("/es/demo/settings");
+    await page.getByLabel("Tema de la demo").selectOption(theme);
     for (const locale of ["es", "en"]) {
       for (const route of [
         "",

@@ -13,6 +13,8 @@ export type DemoTask = {
   scheduleId: string;
   dayPart: "morning" | "afternoon" | "night" | "anytime";
   archived: boolean;
+  date?: string;
+  weekdays?: number[];
 };
 export type DemoEvent = {
   id: string;
@@ -31,6 +33,13 @@ export type DemoState = {
   tasks: DemoTask[];
   events: DemoEvent[];
   completions: Array<{ taskId: string; date: string; completedAt: string }>;
+  focus: {
+    taskId: string;
+    duration: number;
+    remaining: number;
+    deadline: number | null;
+  };
+  sessions: Array<{ date: string; seconds: number; taskId: string }>;
 };
 
 const day = (date: Date, offset: number) =>
@@ -82,6 +91,12 @@ export function createDemoState(
     locale,
     expiresAt: now.getTime() + DEMO_TTL,
     activeScheduleId: "schedule-normal",
+    focus: { taskId: "focus", duration: 15, remaining: 15, deadline: null },
+    sessions: [
+      { date: day(now, -5), seconds: 1500, taskId: "plan" },
+      { date: day(now, -3), seconds: 3000, taskId: "focus" },
+      { date: day(now, -1), seconds: 1500, taskId: "focus" },
+    ],
     schedules: [
       { id: "schedule-normal", name: text.scheduleNormal, emoji: "🌿" },
       { id: "schedule-focus", name: text.scheduleFocus, emoji: "🎯" },
@@ -113,6 +128,11 @@ export function createDemoState(
       },
       {
         id: "focus",
+        weekdays: [
+          now.getDay(),
+          addDays(now, 2).getDay(),
+          addDays(now, 4).getDay(),
+        ],
         title: text.focus,
         emoji: "🎯",
         categoryId: "work",
@@ -208,7 +228,19 @@ export function parseDemoState(
     )
       return null;
     if (locale && value.locale && value.locale !== locale) return null;
-    return value as DemoState;
+    // Older v1 workspaces have tasks and completions but no Focus history.
+    const focus =
+      value.focus === undefined
+        ? {
+            taskId: value.tasks[0]?.id ?? "",
+            duration: 1500,
+            remaining: 1500,
+            deadline: null,
+          }
+        : value.focus;
+    const sessions = value.sessions === undefined ? [] : value.sessions;
+    if (!isFocus(focus) || !isArrayOf(sessions, isSession)) return null;
+    return { ...value, focus, sessions } as DemoState;
   } catch {
     return null;
   }
@@ -264,6 +296,13 @@ function isTask(value: unknown): value is DemoTask {
     isText(value.emoji, 32) &&
     isText(value.categoryId, 100) &&
     isText(value.scheduleId, 100) &&
+    (value.date === undefined || isText(value.date, 10)) &&
+    (value.weekdays === undefined ||
+      (Array.isArray(value.weekdays) &&
+        value.weekdays.length <= 7 &&
+        value.weekdays.every(
+          (day) => Number.isInteger(day) && day >= 0 && day <= 6,
+        ))) &&
     ["morning", "afternoon", "night", "anytime"].includes(
       String(value.dayPart),
     ) &&
@@ -291,6 +330,91 @@ function isCompletion(
     isText(value.date, 32) &&
     isText(value.completedAt, 64)
   );
+}
+
+function isFocus(value: unknown): value is DemoState["focus"] {
+  return (
+    isRecord(value) &&
+    isText(value.taskId, 100) &&
+    isFiniteNumber(value.duration) &&
+    [15, 1500, 3000, 5400].includes(value.duration) &&
+    isFiniteNumber(value.remaining) &&
+    value.remaining >= 0 &&
+    value.remaining <= value.duration &&
+    (value.deadline === null ||
+      (isFiniteNumber(value.deadline) &&
+        value.deadline > 0 &&
+        value.deadline < 8.64e15))
+  );
+}
+
+function isSession(value: unknown): value is DemoState["sessions"][number] {
+  return (
+    isRecord(value) &&
+    isText(value.date, 10) &&
+    isText(value.taskId, 100) &&
+    isFiniteNumber(value.seconds) &&
+    value.seconds > 0 &&
+    value.seconds <= 5400
+  );
+}
+
+export function finishDemoFocus(state: DemoState, now: number): DemoState {
+  const { deadline, duration, taskId } = state.focus;
+  if (deadline === null || deadline > now) return state;
+  return {
+    ...state,
+    focus: { ...state.focus, remaining: 0, deadline: null },
+    sessions: [
+      ...state.sessions,
+      { date: day(new Date(deadline), 0), seconds: duration, taskId },
+    ],
+  };
+}
+
+export function getDemoAgenda(state: DemoState, date: string) {
+  const weekday = new Date(`${date}T12:00:00`).getDay();
+  return state.tasks.filter(
+    (task) =>
+      !task.archived &&
+      task.scheduleId === state.activeScheduleId &&
+      (!task.date || task.date === date) &&
+      (!task.weekdays || task.weekdays.includes(weekday)),
+  );
+}
+
+export function getDemoProgress(state: DemoState, date: string) {
+  const tasks = getDemoAgenda(state, date);
+  const done = new Set(
+    state.completions
+      .filter((item) => item.date === date)
+      .map((item) => item.taskId),
+  );
+  return { tasks, completed: tasks.filter((task) => done.has(task.id)).length };
+}
+
+export function addDemoTask(
+  state: DemoState,
+  title: string,
+  id: string,
+  date: string,
+): DemoState {
+  return {
+    ...state,
+    tasks: [
+      ...state.tasks,
+      {
+        id,
+        title,
+        date,
+        emoji: "✨",
+        categoryId: state.categories[0]?.id ?? "",
+        scheduleId: state.activeScheduleId,
+        dayPart: "anytime",
+        archived: false,
+      },
+    ],
+  };
 }
 
 export function toggleDemoCompletion(

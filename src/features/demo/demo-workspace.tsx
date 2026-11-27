@@ -1,15 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { addDays, format } from "date-fns";
-import { Plus, RotateCcw, Trash2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  CalendarDays,
+  Plus,
+  RotateCcw,
+  Timer,
+  Trash2,
+} from "lucide-react";
 import { Logo } from "@/components/navigation";
 import { AuthLink } from "@/components/auth-link";
 import { AppAbout } from "@/components/app-about";
+import { useTheme } from "@/components/theme-provider";
 import {
+  addDemoTask,
   createDemoState,
+  finishDemoFocus,
+  getDemoAgenda,
+  getDemoProgress,
   DEMO_TTL,
   DEMO_STORAGE_KEY,
   parseDemoState,
@@ -44,6 +56,9 @@ const MoreDemo = dynamic(() =>
   import("./demo-modern-views").then((module) => module.MoreDemo),
 );
 
+// Only used by browser effects when persistent storage is unavailable.
+let volatileDemo: string | null = null;
+
 export function DemoWorkspace({
   initialState,
   locale,
@@ -53,14 +68,15 @@ export function DemoWorkspace({
   locale: "es" | "en";
   view: DemoView;
 }) {
+  const { theme, setTheme } = useTheme();
   const copy = labels[locale],
     [state, setState] = useState(initialState),
     [restored, setRestored] = useState(false);
   useEffect(() => {
     queueMicrotask(() => {
-      let saved: string | null = null;
+      let saved: string | null = volatileDemo;
       try {
-        saved = localStorage.getItem(DEMO_STORAGE_KEY);
+        saved ??= localStorage.getItem(DEMO_STORAGE_KEY);
       } catch {
         // A browser that blocks storage can still run the demo in memory.
       }
@@ -73,10 +89,12 @@ export function DemoWorkspace({
   }, [initialState, locale]);
   useEffect(() => {
     if (!restored) return;
+    const serialized = JSON.stringify(state);
     try {
-      localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(DEMO_STORAGE_KEY, serialized);
+      volatileDemo = null;
     } catch {
-      // Keep the current session usable when storage is unavailable or full.
+      volatileDemo = serialized;
     }
   }, [restored, state]);
   useEffect(() => {
@@ -87,20 +105,29 @@ export function DemoWorkspace({
     );
     return () => window.clearTimeout(timer);
   }, [locale, state.expiresAt]);
+  useEffect(() => {
+    if (!restored || state.focus.deadline === null) return;
+    const timer = window.setTimeout(
+      () => {
+        setState((current) => finishDemoFocus(current, Date.now()));
+      },
+      Math.max(0, state.focus.deadline - Date.now()),
+    );
+    return () => window.clearTimeout(timer);
+  }, [restored, state.focus.deadline]);
   // The first browser render must use the same calendar date as the cached
   // server HTML. Switch to the device's date only after hydration.
   const today = restored
       ? format(new Date(), "yyyy-MM-dd")
       : new Date(initialState.expiresAt - DEMO_TTL).toISOString().slice(0, 10),
-    activeTasks = state.tasks.filter(
-      (task) => task.scheduleId === state.activeScheduleId && !task.archived,
-    ),
-    completedToday = state.completions.filter(
-      (item) => item.date === today,
-    ).length;
+    { tasks: activeTasks, completed: completedToday } = getDemoProgress(
+      state,
+      today,
+    );
   function reset() {
     const fresh = createDemoState(new Date(), locale);
     setState(fresh);
+    setTheme("light");
   }
   return (
     <div className="app-shell demo-shell">
@@ -155,9 +182,16 @@ export function DemoWorkspace({
           )}
           {view === "search" && <SearchDemo state={state} copy={copy} />}
           {view === "tasks" && (
-            <TasksDemo state={state} setState={setState} copy={copy} />
+            <TasksDemo
+              state={state}
+              setState={setState}
+              copy={copy}
+              today={today}
+            />
           )}
-          {view === "focus" && <FocusDemo state={state} copy={copy} />}
+          {view === "focus" && (
+            <FocusDemo state={state} setState={setState} copy={copy} />
+          )}
           {view === "events" && (
             <EventsDemo state={state} setState={setState} copy={copy} />
           )}
@@ -188,6 +222,27 @@ export function DemoWorkspace({
           {view === "settings" && (
             <section>
               <h1 className="title">{copy.settings}</h1>
+              <div className="surface settings-row demo-theme-setting">
+                <label htmlFor="demo-theme">{copy.theme}</label>
+                <select
+                  id="demo-theme"
+                  className="pill"
+                  value={theme}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    if (
+                      next === "light" ||
+                      next === "dark" ||
+                      next === "system"
+                    )
+                      setTheme(next);
+                  }}
+                >
+                  <option value="light">{copy.light}</option>
+                  <option value="dark">{copy.dark}</option>
+                  <option value="system">{copy.system}</option>
+                </select>
+              </div>
               <div className="surface demo-settings">
                 <p>{copy.isolated}</p>
                 <p className="muted">{copy.protected}</p>
@@ -270,22 +325,68 @@ function TodayDemo({
   activeTasks: DemoState["tasks"];
   completed: number;
 }) {
+  const locale = state.locale ?? "es";
+  const events = state.events.filter((event) => event.date === today);
+  const dateLabel = new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date(`${today}T12:00:00`));
+  const schedule = state.schedules.find(
+    (item) => item.id === state.activeScheduleId,
+  );
   return (
     <>
       <header className="today-header">
         <div>
-          <div className="eyebrow">{copy.sample}</div>
+          <div className="eyebrow">{dateLabel}</div>
           <h1 className="title">{copy.today}</h1>
         </div>
       </header>
-      <section className="progress-card surface">
+      <section className="demo-day-summary">
         <div>
-          <div className="eyebrow">{copy.progress}</div>
-          <h2>
-            {completed} / {activeTasks.length}
-          </h2>
+          <span>
+            {schedule?.emoji} {schedule?.name}
+          </span>
+          <h2>{copy.dayPlan}</h2>
+          <p aria-live="polite">
+            <strong>
+              {completed} / {activeTasks.length}
+            </strong>{" "}
+            {copy.progressUnit}
+          </p>
+          <progress
+            aria-label={copy.progress}
+            value={completed}
+            max={activeTasks.length || 1}
+          />
         </div>
+        <Link
+          className="demo-day-focus"
+          prefetch={false}
+          href={`/${locale}/demo/focus`}
+        >
+          <Timer aria-hidden size={22} />
+          <b>{copy.next}</b>
+          <span>{copy.tryFocus}</span>
+          <ArrowUpRight aria-hidden size={17} />
+        </Link>
       </section>
+      <TaskCapture copy={copy} setState={setState} today={today} />
+      {events.length > 0 && (
+        <section className="demo-day-events" aria-label={copy.nextEvent}>
+          <h2>
+            <CalendarDays size={16} aria-hidden />
+            {copy.nextEvent}
+          </h2>
+          {events.map((event) => (
+            <p key={event.id}>
+              <time>{event.time}</time>
+              {event.title}
+            </p>
+          ))}
+        </section>
+      )}
       {(["morning", "afternoon", "night", "anytime"] as const).map((part) => {
         const tasks = activeTasks.filter((task) => task.dayPart === part);
         if (!tasks.length) return null;
@@ -343,16 +444,45 @@ function WeekDemo({
   copy: Copy;
   today: string;
 }) {
-  const days = useMemo(
-    () =>
-      Array.from({ length: 7 }, (_, index) =>
-        addDays(new Date(`${today}T12:00:00`), index),
-      ),
-    [today],
+  const [offset, setOffset] = useState(0);
+  const days = Array.from({ length: 7 }, (_, index) =>
+    addDays(new Date(`${today}T12:00:00`), offset + index),
   );
+  const dates = new Intl.DateTimeFormat(state.locale ?? "es", {
+    month: "short",
+    day: "numeric",
+  });
   return (
     <section>
       <h1 className="title">{copy.week}</h1>
+      <div className="demo-week-tools">
+        <b aria-live="polite">
+          {dates.format(days[0])} – {dates.format(days[6])}
+        </b>
+        <div>
+          <button
+            className="pill"
+            aria-label={copy.prevWeek}
+            onClick={() => setOffset(offset - 7)}
+          >
+            ←
+          </button>
+          <button
+            className="pill"
+            disabled={!offset}
+            onClick={() => setOffset(0)}
+          >
+            {copy.today}
+          </button>
+          <button
+            className="pill"
+            aria-label={copy.nextWeek}
+            onClick={() => setOffset(offset + 7)}
+          >
+            →
+          </button>
+        </div>
+      </div>
       <div
         className="week-grid"
         role="region"
@@ -362,30 +492,27 @@ function WeekDemo({
         {days.map((date) => {
           const value = format(date, "yyyy-MM-dd");
           return (
-            <div className="day surface" key={value}>
+            <div
+              className="day surface"
+              data-today={value === today}
+              key={value}
+            >
               <b>
                 {new Intl.DateTimeFormat(state.locale ?? "es", {
                   weekday: "short",
                   day: "numeric",
                 }).format(date)}
               </b>
-              {state.tasks
-                .filter(
-                  (task) =>
-                    !task.archived &&
-                    task.scheduleId === state.activeScheduleId,
-                )
-                .slice(0, 3)
-                .map((task) => (
-                  <div className="mini-task" key={task.id}>
-                    {task.emoji} {task.title}
-                  </div>
-                ))}
+              {getDemoAgenda(state, value).map((task) => (
+                <div className="mini-task" key={task.id}>
+                  {task.emoji} {task.title}
+                </div>
+              ))}
               {state.events
                 .filter((event) => event.date === value)
                 .map((event) => (
                   <div className="event-card" key={event.id}>
-                    {event.emoji} {event.title}
+                    {event.time} {event.emoji} {event.title}
                   </div>
                 ))}
             </div>
@@ -396,45 +523,69 @@ function WeekDemo({
   );
 }
 
+function TaskCapture({
+  copy,
+  setState,
+  today,
+}: {
+  copy: Copy;
+  setState: Setter;
+  today: string;
+}) {
+  const [title, setTitle] = useState("");
+  const [saved, setSaved] = useState("");
+  return (
+    <>
+      <form
+        className="surface demo-form demo-capture"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const trimmed = title.trim();
+          if (!trimmed) return;
+          const id = crypto.randomUUID();
+          setState((current) => addDemoTask(current, trimmed, id, today));
+          setTitle("");
+          setSaved(trimmed);
+        }}
+      >
+        <input
+          required
+          maxLength={500}
+          value={title}
+          aria-label={copy.addTask}
+          placeholder={copy.capture}
+          onChange={(event) => {
+            setTitle(event.target.value);
+            setSaved("");
+          }}
+        />
+        <button className="primary">
+          <Plus size={17} />
+          {copy.quick}
+        </button>
+      </form>
+      <p className="demo-saved" role="status">
+        {saved && `${copy.saved} · ${saved}`}
+      </p>
+    </>
+  );
+}
+
 function TasksDemo({
   state,
   setState,
   copy,
+  today,
 }: {
   state: DemoState;
   setState: Setter;
   copy: Copy;
+  today: string;
 }) {
-  const [title, setTitle] = useState("");
-  function addTask(event: React.FormEvent) {
-    event.preventDefault();
-    if (!title.trim()) return;
-    setState((current) => ({
-      ...current,
-      tasks: [
-        ...current.tasks,
-        {
-          id: crypto.randomUUID(),
-          title: title.trim(),
-          emoji: "✨",
-          categoryId: current.categories[0]?.id ?? "",
-          scheduleId: current.activeScheduleId,
-          dayPart: "anytime",
-          archived: false,
-        },
-      ],
-    }));
-    setTitle("");
-  }
   return (
     <section>
       <h1 className="title">{copy.tasks}</h1>
-      <DemoForm
-        label={copy.addTask}
-        value={title}
-        setValue={setTitle}
-        onSubmit={addTask}
-      />
+      <TaskCapture copy={copy} setState={setState} today={today} />
       <div className="management-list">
         {state.tasks.map((task) => (
           <article className="task surface" key={task.id}>

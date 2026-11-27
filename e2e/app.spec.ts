@@ -1,10 +1,48 @@
 import { expect, offlineNetworkError, test } from "./fixtures";
+
+test("demo starts light and remembers its own theme across routes and languages", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const expectTheme = expect.configure({ timeout: 25_000 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/es");
+  const html = page.locator("html");
+  await expectTheme(html).toHaveCSS("color-scheme", "dark");
+  await page.getByRole("link", { name: "Probar demo gratis" }).first().click();
+  await expectTheme(html).toHaveCSS("color-scheme", "light");
+
+  await page.goto("/es/demo/settings");
+  const picker = page.getByRole("combobox", { name: "Tema de la demo" });
+  await expectTheme(picker).toHaveValue("light");
+  await picker.selectOption("dark");
+  await expectTheme(html).toHaveCSS("color-scheme", "dark");
+  await page.reload();
+  await expectTheme(picker).toHaveValue("dark");
+  await page.goto("/en/demo/settings");
+  const englishPicker = page.getByRole("combobox", { name: "Demo theme" });
+  await expectTheme(englishPicker).toHaveValue("dark");
+
+  await englishPicker.selectOption("system");
+  await page.emulateMedia({ colorScheme: "light" });
+  await expectTheme(html).toHaveCSS("color-scheme", "light");
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expectTheme(html).toHaveCSS("color-scheme", "dark");
+
+  await page.getByRole("button", { name: "Reset demo" }).click();
+  await expectTheme(englishPicker).toHaveValue("light");
+  await page.getByRole("link", { name: "Privacy", exact: true }).click();
+  await expectTheme(html).toHaveCSS("color-scheme", "dark");
+  expect(
+    await page.evaluate(() => localStorage.getItem("planora-theme")),
+  ).toBeNull();
+});
 test("public landing exposes product and conversion paths", async ({
   page,
 }) => {
   await page.goto("/es");
   await expect(
-    page.getByRole("heading", { name: /Tu vida cambia/i }),
+    page.getByRole("heading", { name: /Haz sitio en tu día/i }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Probar demo gratis/i }).first(),
@@ -16,7 +54,7 @@ test("public landing exposes product and conversion paths", async ({
   await page.waitForURL("**/en");
   expect(new URL(page.url()).pathname).toBe("/en");
   await expect(
-    page.getByRole("heading", { name: /Your life changes/i }),
+    page.getByRole("heading", { name: /Make room in your day/i }),
   ).toBeVisible();
 });
 test("PWA shell and connection status work offline", async ({
@@ -29,6 +67,10 @@ test("PWA shell and connection status work offline", async ({
   await page.goto("/es");
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
+  // Wait for the public providers to mount before disconnecting the browser.
+  await page.waitForFunction(() =>
+    Boolean(document.documentElement.style.colorScheme),
+  );
   await context.setOffline(true);
   try {
     await page.evaluate(() => window.dispatchEvent(new Event("offline")));
@@ -36,7 +78,7 @@ test("PWA shell and connection status work offline", async ({
     if (browserName === "chromium") {
       await page.reload();
       await expect(
-        page.getByRole("heading", { name: /Tu vida cambia/i }),
+        page.getByRole("heading", { name: /Haz sitio en tu día/i }),
       ).toBeVisible();
     }
   } finally {
@@ -121,6 +163,7 @@ test("demo exposes the current product areas without registration", async ({
 }) => {
   await page.goto("/es/demo/more");
   const main = page.locator("#main-content");
+  await expect(main).toHaveAttribute("aria-busy", "false", { timeout: 25000 });
   for (const area of [
     "Mes",
     "Buscar",
@@ -134,6 +177,8 @@ test("demo exposes the current product areas without registration", async ({
   }
   await main.getByRole("link", { name: "Enfoque" }).click();
   await expect(page).toHaveURL(/\/es\/demo\/focus/);
+  await expect(page.getByText("00:15")).toBeVisible();
+  await page.getByRole("button", { name: "25 min", exact: true }).click();
   await expect(page.getByText("25:00")).toBeVisible();
   await page.getByRole("button", { name: "Iniciar", exact: true }).click();
   await expect(page.getByRole("button", { name: "Pausar" })).toBeVisible();
@@ -240,4 +285,66 @@ test("narrow mobile layouts keep public content readable", async ({ page }) => {
     const target = await locator.boundingBox();
     expect(target?.height).toBeGreaterThanOrEqual(44);
   }
+});
+
+test("visitors can plan a task, focus on it and see the result after a reload", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date(Date.now() + 60_000));
+  await page.goto("/en");
+  await page.getByRole("link", { name: "Try the free demo" }).first().click();
+  await page
+    .getByRole("textbox", { name: "Add task" })
+    .fill("Review portfolio");
+  await page.getByRole("button", { name: "Add to today" }).click();
+  await page
+    .getByRole("button", { name: /Mark as complete: Review portfolio/ })
+    .click();
+  await page.getByRole("link", { name: /Make time to focus/ }).click();
+  await page
+    .getByLabel("Linked task")
+    .selectOption({ label: "✨ Review portfolio" });
+  await page.getByRole("button", { name: "15 s preview" }).click();
+  await page.getByRole("button", { name: "Start", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
+  await page.reload();
+  await expect(page.locator("main")).toHaveAttribute("aria-busy", "false", {
+    timeout: 25000,
+  });
+  await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
+  await page.clock.fastForward(16000);
+  await page.getByRole("link", { name: /See my statistics/ }).click();
+  const receipt = page.locator(".demo-session-receipt");
+  await expect(receipt).toContainText("Review portfolio");
+  await expect(receipt).toContainText("15 s");
+  await expect(page.locator(".demo-stat-grid")).toContainText("100 min 15 s");
+});
+
+test("switching schedules updates today's count and the weekly agenda", async ({
+  page,
+}) => {
+  await page.goto("/es/demo/schedules");
+  await page
+    .getByRole("article")
+    .filter({ hasText: "Semana de enfoque" })
+    .getByRole("button", { name: "Usar", exact: true })
+    .click();
+  await page.goto("/es/demo/today");
+  await expect(page.locator(".demo-day-summary")).toContainText("0 / 1");
+  await page
+    .getByRole("button", { name: /Marcar como completada: Paseo sin móvil/ })
+    .click();
+  await expect(page.locator(".demo-day-summary")).toContainText("1 / 1");
+  await page.goto("/es/demo/week");
+  await expect(page.locator("main")).toHaveAttribute("aria-busy", "false", {
+    timeout: 25000,
+  });
+  const week = page.getByRole("region", { name: "Semana" });
+  await expect(week.getByText("🚶 Paseo sin móvil")).toHaveCount(7);
+  const currentDate = await page.locator(".demo-week-tools b").textContent();
+  await page.getByRole("button", { name: "Semana siguiente" }).click();
+  await expect(page.locator(".demo-week-tools b")).not.toHaveText(currentDate!);
+  await page.getByRole("button", { name: "Hoy", exact: true }).click();
+  await expect(page.locator(".demo-week-tools b")).toHaveText(currentDate!);
 });

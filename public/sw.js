@@ -18,6 +18,8 @@ const PRECACHE = [
   "/assets/notification-badge.png",
   "/assets/planora-desktop.png",
   "/assets/planora-mobile.png",
+  "/assets/planora-desktop-en.webp",
+  "/assets/planora-mobile-en.webp",
   ...APP_ICONS,
 ];
 const PUBLIC_NAVIGATION = new Set([

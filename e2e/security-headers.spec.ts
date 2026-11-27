@@ -88,7 +88,7 @@ test("entering login from public pages installs a new document policy", async ({
       .getByRole("link", {
         name:
           route === "/es"
-            ? /Continuar con Google/i
+            ? /Iniciar sesión/i
             : /Crear mi cuenta|Create my account/i,
       })
       .first()

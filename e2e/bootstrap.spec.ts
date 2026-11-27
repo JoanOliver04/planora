@@ -6,16 +6,15 @@ test("mobile landing paints product UI instead of a stuck logo splash", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/es");
   await expect(
-    page.getByRole("heading", { name: /Tu vida cambia/i }),
+    page.getByRole("heading", { name: /Haz sitio en tu día/i }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Probar demo gratis/i }).first(),
   ).toBeVisible();
-  const heroLogo = page.locator(".landing-hero-visual img");
-  await expect(heroLogo).toBeVisible();
-  await heroLogo.evaluate((image: HTMLImageElement) => image.decode());
-  const box = await heroLogo.boundingBox();
-  expect(box?.width ?? 0).toBeLessThan(280);
+  const planner = page.getByRole("heading", { name: "Un día en Planora" });
+  await expect(planner).toBeVisible();
+  const cta = page.getByRole("link", { name: /Probar demo gratis/i }).first();
+  await expect(cta).toBeInViewport();
 
   const tabIcon = page.locator('head link[rel="icon"]');
   await expect(tabIcon).toHaveAttribute("href", /^\/favicon\.ico(?:\?|$)/);
@@ -55,6 +54,10 @@ test("production service worker is not cached and public HTML still works offlin
   await page.goto("/es");
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
+  // Wait for the public providers to mount before disconnecting the browser.
+  await page.waitForFunction(() =>
+    Boolean(document.documentElement.style.colorScheme),
+  );
   await context.setOffline(true);
   try {
     await page.evaluate(() => window.dispatchEvent(new Event("offline")));
@@ -62,7 +65,7 @@ test("production service worker is not cached and public HTML still works offlin
     if (browserName === "chromium") {
       await page.reload();
       await expect(
-        page.getByRole("heading", { name: /Tu vida cambia/i }),
+        page.getByRole("heading", { name: /Haz sitio en tu día/i }),
       ).toBeVisible();
       // Use new variant URLs so the HTTP image cache cannot mask a missing
       // service-worker fallback, including screenshots not yet scrolled into view.

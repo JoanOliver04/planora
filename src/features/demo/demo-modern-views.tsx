@@ -10,10 +10,11 @@ import {
   Play,
   RotateCcw,
   Search,
+  Timer,
 } from "lucide-react";
 import type { DemoCopy as Copy } from "./demo-copy";
 import { demoIcons as icons } from "./demo-navigation";
-import type { DemoState } from "./demo-store";
+import { finishDemoFocus, getDemoProgress, type DemoState } from "./demo-store";
 import { demoViews, getMonthGridCellCount } from "./demo-views";
 
 type Setter = React.Dispatch<React.SetStateAction<DemoState>>;
@@ -112,56 +113,89 @@ export function SearchDemo({ state, copy }: { state: DemoState; copy: Copy }) {
   );
 }
 
-export function FocusDemo({ state, copy }: { state: DemoState; copy: Copy }) {
-  const [duration, setDuration] = useState(25 * 60);
-  const [remaining, setRemaining] = useState(duration);
-  const [deadline, setDeadline] = useState<number | null>(null);
-  const [taskId, setTaskId] = useState(state.tasks[2]?.id ?? "");
+export function FocusDemo({
+  state,
+  setState,
+  copy,
+}: {
+  state: DemoState;
+  setState: Setter;
+  copy: Copy;
+}) {
+  const { focus } = state;
+  const [now, setNow] = useState(Date.now);
   useEffect(() => {
-    if (deadline === null) return;
-    const timer = window.setInterval(() => {
-      const next = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-      setRemaining(next);
-      if (next === 0) setDeadline(null);
-    }, 250);
+    if (focus.deadline === null) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 200);
     return () => window.clearInterval(timer);
-  }, [deadline]);
-  const running = deadline !== null;
-  const minutes = Math.floor(remaining / 60)
-    .toString()
-    .padStart(2, "0");
-  const seconds = (remaining % 60).toString().padStart(2, "0");
-  function selectDuration(secondsValue: number) {
-    setDuration(secondsValue);
-    setRemaining(secondsValue);
-    setDeadline(null);
+  }, [focus.deadline]);
+  const running = focus.deadline !== null;
+  const remaining =
+    focus.deadline === null
+      ? focus.remaining
+      : Math.min(
+          focus.duration,
+          Math.max(0, Math.ceil((focus.deadline - now) / 1000)),
+        );
+  const finished = focus.deadline === null && remaining === 0;
+  const started = running || (remaining > 0 && remaining < focus.duration);
+  const taskId = state.tasks.some((task) => task.id === focus.taskId)
+    ? focus.taskId
+    : "";
+  function resetTimer(duration: number) {
+    setState((current) => ({
+      ...current,
+      focus: {
+        ...current.focus,
+        duration,
+        remaining: duration,
+        deadline: null,
+      },
+    }));
   }
   return (
     <section>
-      <div className="eyebrow">{copy.focusIntro}</div>
       <h1 className="title">{copy.focus}</h1>
       <div className="surface demo-focus-card">
-        <div className="demo-focus-presets" aria-label={copy.focusTime}>
-          {[25, 50, 90].map((minutesValue) => (
+        <p className="demo-focus-intro">{copy.focusExample}</p>
+        <div
+          className="demo-focus-presets"
+          role="group"
+          aria-label={copy.focusTime}
+        >
+          {[15, 1500, 3000, 5400].map((seconds) => (
             <button
               className="pill"
-              data-active={duration === minutesValue * 60}
-              key={minutesValue}
-              onClick={() => selectDuration(minutesValue * 60)}
+              key={seconds}
+              disabled={started}
+              data-active={focus.duration === seconds}
+              aria-pressed={focus.duration === seconds}
+              onClick={() => resetTimer(seconds)}
             >
-              {minutesValue} min
+              {seconds === 15 ? copy.preview : `${seconds / 60} min`}
             </button>
           ))}
         </div>
-        <div className="demo-timer" aria-live="off">
-          {minutes}:{seconds}
+        <div className="demo-timer" role="timer">
+          {Math.floor(remaining / 60)
+            .toString()
+            .padStart(2, "0")}
+          :{(remaining % 60).toString().padStart(2, "0")}
         </div>
         <label className="demo-focus-task">
           <span>{copy.selectTask}</span>
           <select
+            disabled={started}
             value={taskId}
-            onChange={(event) => setTaskId(event.target.value)}
+            onChange={(event) => {
+              const selected = event.target.value;
+              setState((current) => ({
+                ...current,
+                focus: { ...current.focus, taskId: selected },
+              }));
+            }}
           >
+            <option value="">{copy.noTask}</option>
             {state.tasks.map((task) => (
               <option value={task.id} key={task.id}>
                 {task.emoji} {task.title}
@@ -173,36 +207,62 @@ export function FocusDemo({ state, copy }: { state: DemoState; copy: Copy }) {
           <button
             className="primary"
             onClick={() => {
-              if (deadline === null) {
-                setDeadline(Date.now() + remaining * 1000);
-              } else {
-                setRemaining(
-                  Math.max(0, Math.ceil((deadline - Date.now()) / 1000)),
-                );
-                setDeadline(null);
-              }
+              const stamp = Date.now();
+              setNow(stamp);
+              setState((current) => {
+                const timer = current.focus;
+                if (timer.deadline !== null && timer.deadline <= stamp)
+                  return finishDemoFocus(current, stamp);
+                const seconds =
+                  timer.deadline === null
+                    ? timer.remaining || timer.duration
+                    : Math.ceil((timer.deadline - stamp) / 1000);
+                return {
+                  ...current,
+                  focus: {
+                    ...timer,
+                    remaining: seconds,
+                    deadline:
+                      timer.deadline === null ? stamp + seconds * 1000 : null,
+                  },
+                };
+              });
             }}
           >
             {running ? <Pause size={18} /> : <Play size={18} />}
             {running
               ? copy.pause
-              : remaining < duration
-                ? copy.resume
-                : copy.start}
+              : finished
+                ? copy.again
+                : started
+                  ? copy.resume
+                  : copy.start}
           </button>
-          <button
-            className="pill"
-            onClick={() => {
-              setDeadline(null);
-              setRemaining(duration);
-            }}
-          >
-            <RotateCcw size={17} /> {copy.resetTimer}
+          <button className="pill" onClick={() => resetTimer(focus.duration)}>
+            <RotateCcw size={17} />
+            {copy.resetTimer}
           </button>
+        </div>
+        <div className="demo-focus-result" role="status">
+          {finished && (
+            <>
+              <b>✓ {copy.finished}</b>
+              <Link href={`/${state.locale ?? "es"}/demo/statistics`}>
+                {copy.seeStats} →
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </section>
   );
+}
+
+function focusTime(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  if (!rest) return `${minutes} min`;
+  return minutes ? `${minutes} min ${rest} s` : `${rest} s`;
 }
 
 export function StatisticsDemo({
@@ -214,44 +274,70 @@ export function StatisticsDemo({
   copy: Copy;
   today: string;
 }) {
-  const active = state.tasks.filter((task) => !task.archived).length;
-  const completedToday = state.completions.filter(
-    (item) => item.date === today,
-  ).length;
-  const rate = active ? Math.round((completedToday / active) * 100) : 0;
-  const week = Array.from({ length: 7 }, (_, index) => ({
-    date: addDays(new Date(`${today}T12:00:00`), index - 6),
-    value: 20 + ((index * 17 + state.completions.length * 11) % 55),
-  }));
+  const { tasks, completed } = getDemoProgress(state, today);
+  const week = Array.from({ length: 7 }, (_, index) => {
+    const date = addDays(new Date(`${today}T12:00:00`), index - 6);
+    const day = format(date, "yyyy-MM-dd");
+    const sessions = state.sessions.filter((session) => session.date === day);
+    return {
+      day,
+      date,
+      seconds: sessions.reduce((total, session) => total + session.seconds, 0),
+      count: sessions.length,
+    };
+  });
+  const latest = state.sessions.at(-1);
+  const latestTask = state.tasks.find((task) => task.id === latest?.taskId);
+  const total = week.reduce((sum, day) => sum + day.seconds, 0);
+  const max = Math.max(1, ...week.map((day) => day.seconds));
+  const dates = new Intl.DateTimeFormat(state.locale ?? "es", {
+    weekday: "short",
+    day: "numeric",
+  });
   return (
     <section>
+      <div className="eyebrow">{copy.period}</div>
       <h1 className="title">{copy.statistics}</h1>
       <div className="demo-stat-grid">
         <article className="surface">
-          <span>{copy.focusedMinutes}</span>
-          <b>185</b>
+          <span>{copy.focus}</span>
+          <b>{focusTime(total)}</b>
         </article>
         <article className="surface">
           <span>{copy.completedSessions}</span>
-          <b>7</b>
+          <b>{week.reduce((sum, day) => sum + day.count, 0)}</b>
         </article>
         <article className="surface">
-          <span>{copy.completionRate}</span>
-          <b>{rate}%</b>
+          <span>{copy.todayRate}</span>
+          <b>
+            {completed} / {tasks.length}
+          </b>
         </article>
       </div>
-      <div className="surface demo-chart" aria-label={copy.focusedMinutes}>
+      {latest && (
+        <article className="surface demo-session-receipt">
+          <Timer size={21} aria-hidden />
+          <div>
+            <small>{copy.latestSession}</small>
+            <strong>{latestTask?.title ?? copy.noTask}</strong>
+          </div>
+          <b>{focusTime(latest.seconds)}</b>
+        </article>
+      )}
+      <section className="surface demo-focus-week">
+        <h2>{copy.lastWeek}</h2>
         {week.map((day) => (
-          <div key={day.date.toISOString()}>
-            <span style={{ height: `${day.value}%` }} />
-            <small>
-              {new Intl.DateTimeFormat(state.locale ?? "es", {
-                weekday: "narrow",
-              }).format(day.date)}
-            </small>
+          <div key={day.day}>
+            <time dateTime={day.day}>{dates.format(day.date)}</time>
+            <progress
+              aria-label={dates.format(day.date)}
+              value={day.seconds}
+              max={max}
+            />
+            <b>{focusTime(day.seconds)}</b>
           </div>
         ))}
-      </div>
+      </section>
     </section>
   );
 }
@@ -426,6 +512,7 @@ export function MoreDemo({
           return (
             <Link
               className="surface demo-more-card"
+              prefetch={false}
               href={`/${locale}/demo/${view}`}
               key={view}
             >

@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   createDemoState,
+  addDemoTask,
+  finishDemoFocus,
+  getDemoAgenda,
+  getDemoProgress,
   DEMO_TTL,
   parseDemoState,
   toggleDemoCompletion,
@@ -25,6 +29,57 @@ describe("demo store", () => {
     expect(state.locale).toBe("en");
     expect(state.tasks[0].title).toBe("Drink water after waking up");
     expect(state.schedules[1].name).toBe("Focus week");
+  });
+
+  it("keeps the daily total and weekly agenda scoped to the selected schedule and date", () => {
+    const state = addDemoTask(
+      createDemoState(now),
+      "Prepare slides",
+      "slides",
+      "2026-08-01",
+    );
+    expect(getDemoAgenda(state, "2026-08-01").map((task) => task.id)).toContain(
+      "slides",
+    );
+    expect(
+      getDemoAgenda(state, "2026-08-02").map((task) => task.id),
+    ).not.toContain("slides");
+    expect(getDemoAgenda(state, "2026-08-01").map((task) => task.id)).toContain(
+      "read",
+    );
+    expect(
+      getDemoProgress(
+        { ...state, activeScheduleId: "schedule-focus" },
+        "2026-08-01",
+      ).completed,
+    ).toBe(0);
+  });
+
+  it("restores legacy tasks and records a completed preview just once", () => {
+    const state = createDemoState(now);
+    const legacy = parseDemoState(
+      JSON.stringify({ ...state, focus: undefined, sessions: undefined }),
+      now.getTime(),
+    );
+    expect(legacy?.tasks).toEqual(state.tasks);
+    expect(legacy?.sessions).toEqual([]);
+    const running = {
+      ...state,
+      focus: {
+        taskId: "plan",
+        duration: 15,
+        remaining: 15,
+        deadline: now.getTime() + 15000,
+      },
+    };
+    expect(finishDemoFocus(running, now.getTime())).toBe(running);
+    const finished = finishDemoFocus(running, now.getTime() + 15000);
+    expect(finished.sessions.at(-1)).toEqual({
+      taskId: "plan",
+      date: "2026-08-01",
+      seconds: 15,
+    });
+    expect(finishDemoFocus(finished, now.getTime() + 30000)).toBe(finished);
   });
 
   it("rejects expired and malformed persisted demos", () => {

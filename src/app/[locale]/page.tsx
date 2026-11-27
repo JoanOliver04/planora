@@ -3,92 +3,112 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import Link from "next/link";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  CalendarDays,
+  CircleCheck,
+  Clock3,
+  Timer,
+} from "lucide-react";
+import { createDemoState } from "@/features/demo/demo-store";
 import { AuthLink } from "@/components/auth-link";
 import { StudioCredit } from "@/components/studio-credit";
 import { siteConfig } from "@/config/site";
 
 const copy = {
   es: {
-    nav: ["Producto", "Privacidad", "Capturas"],
-    signIn: "Continuar con Google",
+    nav: ["Producto", "Privacidad", "Vistas"],
+    signIn: "Iniciar sesión",
     demo: "Probar demo gratis",
-    eyebrow: "Planificación que se adapta a ti",
-    title: "Tu vida cambia. Tu planificación también.",
-    lead: "Organiza estudios, trabajo, hábitos y vida personal sin forzarte a seguir un sistema rígido.",
-    trust: "Sin registro para la demo · Datos aislados · Sin publicidad",
-    benefitsTitle: "Menos fricción. Más claridad.",
+    eyebrow: "Agenda personal",
+    title: "Haz sitio en tu día para concentrarte.",
+    lead: "Reúne tareas, rutinas y citas en una agenda. Elige qué toca ahora y dedícale un rato de enfoque.",
+    trust: "Sin registro · Agenda de ejemplo lista para usar",
+    notebook: "Un día en Planora",
+    moment: ["Mañana", "Tarde", "17:30"],
+    benefitsTitle: "¿Qué te gustaría probar primero?",
     benefits: [
       [
-        "Todo en su sitio",
-        "Tareas, eventos y rutinas conviven en una vista clara de tu día y tu semana.",
+        "Un plan para hoy",
+        "Anota algo que tengas pendiente y márcalo al terminar. El progreso de tu día cambia contigo.",
+        "Organizar mi día",
       ],
       [
-        "Realmente tuyo",
-        "Adapta colores, densidad, navegación, horarios y comportamiento a tu forma de pensar.",
+        "Tiempo para una tarea",
+        "Elige en qué concentrarte y prueba el temporizador de 15 segundos. Después podrás ver tu sesión en las estadísticas.",
+        "Probar el enfoque",
       ],
       [
-        "Siempre contigo",
-        "Tus cambios se sincronizan de forma segura entre dispositivos con tu cuenta.",
+        "Una semana a la vista",
+        "Encuentra el hueco entre tu rutina y la próxima cita. Añade un evento y comprueba dónde encaja.",
+        "Explorar la semana",
       ],
     ],
-    previewEyebrow: "Producto real, datos de demostración",
-    previewTitle: "Entiende tu semana de un vistazo",
+    previewEyebrow: "En escritorio y móvil",
+    previewTitle: "Tu agenda, también cuando sales de casa.",
     previewBody:
-      "Explora todas las funciones con datos locales. Nada de lo que hagas en la demo modifica cuentas reales.",
-    privacyEyebrow: "Privacidad desde el diseño",
-    privacyTitle: "Tu agenda no es un producto",
+      "Consulta la semana desde el ordenador y revisa qué toca hoy desde el móvil. Con una cuenta, tu planificación se sincroniza entre dispositivos.",
+    previewLink: "Abrir el calendario",
+    privacyEyebrow: "Privacidad",
+    privacyTitle: "Prueba con tranquilidad.",
     privacyBody:
-      "Planora guarda únicamente lo necesario para darte el servicio. La demo vive en tu navegador y se elimina automáticamente.",
+      "Los cambios de la demo se guardan en este navegador durante 24 horas. Puedes empezar de nuevo desde Ajustes cuando quieras.",
     privacyPoints: [
-      "Acceso seguro con Google",
-      "Datos separados por usuario",
-      "Control para exportar o eliminar",
+      "Datos de ejemplo editables",
+      "Sin correo ni tarjeta para probar",
+      "Exportación de tus datos de prueba",
     ],
-    finalTitle: "Empieza con una semana más tranquila",
-    finalBody:
-      "Entra en la demo en segundos o sincroniza tu espacio con Google.",
+    finalTitle: "¿Qué tienes pendiente hoy?",
+    finalBody: "Abre la agenda de ejemplo y añade tu primera tarea.",
     desktopAlt: "Vista de escritorio de Planora con tareas y agenda del día",
     mobileAlt: "Vista móvil de Planora con la planificación semanal",
     language: "English",
   },
   en: {
-    nav: ["Product", "Privacy", "Screenshots"],
-    signIn: "Continue with Google",
+    nav: ["Product", "Privacy", "Views"],
+    signIn: "Sign in",
     demo: "Try the free demo",
-    eyebrow: "Planning that adapts to you",
-    title: "Your life changes. Your planning should too.",
-    lead: "Organize studies, work, habits and personal life without forcing yourself into a rigid system.",
-    trust: "No sign-up for demo · Isolated data · No ads",
-    benefitsTitle: "Less friction. More clarity.",
+    eyebrow: "Personal planner",
+    title: "Make room in your day to focus.",
+    lead: "Keep tasks, routines and appointments in one planner. Pick what comes next and give it your attention.",
+    trust: "No sign-up · Sample planner ready to use",
+    notebook: "A day in Planora",
+    moment: ["Morning", "Afternoon", "17:30"],
+    benefitsTitle: "What would you like to try first?",
     benefits: [
       [
-        "Everything in place",
-        "Tasks, events and routines live together in a clear view of your day and week.",
+        "A plan for today",
+        "Write down something you need to do. Check it off and see your daily progress change.",
+        "Plan my day",
       ],
       [
-        "Truly yours",
-        "Adapt colors, density, navigation, schedules and behavior to the way you think.",
+        "Time for one task",
+        "Choose a task and try the 15-second focus timer. Your finished session shows up in Statistics.",
+        "Try a focus session",
       ],
       [
-        "Always with you",
-        "Your changes sync securely across devices through your account.",
+        "Your week at a glance",
+        "Find a gap between your routine and your next appointment. Add an event and see where it fits.",
+        "Explore the week",
       ],
     ],
-    previewEyebrow: "Real product, demonstration data",
-    previewTitle: "Understand your week at a glance",
+    previewEyebrow: "On desktop and mobile",
+    previewTitle: "Take your planner with you.",
     previewBody:
-      "Explore every feature with local data. Nothing you do in the demo changes real accounts.",
-    privacyEyebrow: "Privacy by design",
-    privacyTitle: "Your schedule is not a product",
+      "Lay out the week on your computer and check what comes next on your phone. A personal account keeps your planner in sync across devices.",
+    previewLink: "Open the calendar",
+    privacyEyebrow: "Privacy",
+    privacyTitle: "Make yourself at home.",
     privacyBody:
-      "Planora stores only what is needed to provide the service. Demo data stays in your browser and expires automatically.",
+      "Your demo changes stay in this browser for 24 hours. You can start fresh at any time in Settings.",
     privacyPoints: [
-      "Secure Google sign-in",
-      "User-isolated data",
-      "Export and deletion controls",
+      "Editable sample data",
+      "No email or payment card to try it",
+      "Export your sample planner",
     ],
-    finalTitle: "Start building a calmer week",
-    finalBody: "Enter the demo in seconds or sync your workspace with Google.",
+    finalTitle: "What’s on your list today?",
+    finalBody: "Open the sample planner and add your first task.",
     desktopAlt: "Planora desktop view showing today's tasks and agenda",
     mobileAlt: "Planora mobile view showing the weekly plan",
     language: "Español",
@@ -103,7 +123,7 @@ export async function generateMetadata({
   const { locale } = await params;
   const language = locale === "en" ? "en" : "es";
   return {
-    title: language === "es" ? "Planifica a tu manera" : "Plan your way",
+    title: copy[language].title,
     description: copy[language].lead,
     alternates: { languages: { es: "/es", en: "/en" } },
   };
@@ -119,6 +139,13 @@ export default async function LandingPage({
   const language = locale as "es" | "en";
   const text = copy[language];
   const otherLocale = language === "es" ? "en" : "es";
+  const sample = createDemoState(new Date(), language);
+  const moments = [
+    { view: "today", title: sample.tasks[1].title, Icon: CircleCheck },
+    { view: "focus", title: sample.tasks[2].title, Icon: Timer },
+    { view: "week", title: sample.events[0].title, Icon: CalendarDays },
+  ];
+  const benefitViews = ["today", "focus", "week"];
   return (
     <main className="landing">
       <header className="landing-nav">
@@ -159,36 +186,60 @@ export default async function LandingPage({
               prefetch={false}
               className="button primary"
             >
-              {text.demo}
+              {text.demo} <ArrowRight size={18} aria-hidden />
             </Link>
-            <AuthLink href={`/${language}/login`} className="button secondary">
-              {text.signIn}
-            </AuthLink>
           </div>
           <p className="landing-trust">{text.trust}</p>
           <StudioCredit locale={language} />
         </div>
-        <div className="landing-hero-visual" aria-hidden="true">
-          <div className="landing-orbit orbit-one" />
-          <div className="landing-orbit orbit-two" />
-          <Image
-            src={siteConfig.logo.url}
-            width={176}
-            height={176}
-            alt=""
-            sizes="(max-width: 900px) 128px, 176px"
-            preload
-          />
+        <div className="planner-stage">
+          <div className="planner-sheet">
+            <div className="planner-binding" aria-hidden="true" />
+            <div className="planner-heading">
+              <Clock3 size={22} aria-hidden />
+              <span>Planora</span>
+            </div>
+            <h2>{text.notebook}</h2>
+            <ul>
+              {moments.map(({ view, title, Icon }, index) => (
+                <li key={view}>
+                  <Link href={`/${language}/demo/${view}`} prefetch={false}>
+                    <span className="planner-icon">
+                      <Icon size={21} aria-hidden />
+                    </span>
+                    <span>
+                      <small>{text.moment[index]}</small>
+                      <strong>{title}</strong>
+                    </span>
+                    <ArrowUpRight size={17} aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
       <section className="landing-benefits" aria-labelledby="benefits-title">
         <h2 id="benefits-title">{text.benefitsTitle}</h2>
         <div className="landing-card-grid">
-          {text.benefits.map(([title, body], index) => (
+          {text.benefits.map(([title, body, action], index) => (
             <article className="landing-card" key={title}>
-              <span aria-hidden="true">0{index + 1}</span>
+              {index === 0 ? (
+                <CircleCheck aria-hidden />
+              ) : index === 1 ? (
+                <Timer aria-hidden />
+              ) : (
+                <CalendarDays aria-hidden />
+              )}
               <h3>{title}</h3>
               <p>{body}</p>
+              <Link
+                className="landing-card-link"
+                prefetch={false}
+                href={`/${language}/demo/${benefitViews[index]}`}
+              >
+                {action} <ArrowRight size={16} aria-hidden />
+              </Link>
             </article>
           ))}
         </div>
@@ -203,13 +254,17 @@ export default async function LandingPage({
             prefetch={false}
             className="landing-text-link"
           >
-            {text.demo} →
+            {text.previewLink} →
           </Link>
         </div>
         <div className="landing-screens">
           <div className="landing-desktop-shot">
             <Image
-              src="/assets/planora-desktop.png"
+              src={
+                language === "es"
+                  ? "/assets/planora-desktop.png"
+                  : "/assets/planora-desktop-en.webp"
+              }
               width={1440}
               height={900}
               sizes="(max-width: 560px) calc(100vw - 28px), (max-width: 900px) calc(100vw - 40px), (max-width: 1220px) calc(64vw - 70px), 710px"
@@ -218,7 +273,11 @@ export default async function LandingPage({
           </div>
           <div className="landing-mobile-shot">
             <Image
-              src="/assets/planora-mobile.png"
+              src={
+                language === "es"
+                  ? "/assets/planora-mobile.png"
+                  : "/assets/planora-mobile-en.webp"
+              }
               width={390}
               height={844}
               sizes="(max-width: 560px) 112px, 168px"
@@ -248,7 +307,7 @@ export default async function LandingPage({
             prefetch={false}
             className="button primary"
           >
-            {text.demo}
+            {text.demo} <ArrowRight size={18} aria-hidden />
           </Link>
           <AuthLink href={`/${language}/login`} className="button secondary">
             {text.signIn}
