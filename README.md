@@ -122,10 +122,26 @@ Each user signs in exclusively with Google and gets a private workspace synchron
 ## Product preview
 
 <p align="center">
-  <a href="docs/images/01-landing-desktop-light-en.png"><img src="docs/images/readme/01-landing-desktop-light-en.webp" alt="Planora: A calmer way to plan" width="100%" /></a>
+  <a href="docs/images/01-landing-desktop-light-en.png"><img src="docs/images/readme/01-landing-desktop-light-en.webp" alt="Planora: Public planner homepage with a sample day and a link to the demo" width="100%" /></a>
 </p>
 
-Planora is a portfolio case study in turning irregular routines into a calm planning system. Recurrence, timezone boundaries, data isolation and offline changes are handled as domain rules rather than visual shortcuts. A public demo makes the complete product easy to evaluate while real workspaces remain private.
+### Try the public demo
+
+Add a task, try a 15-second Focus session and see the result in Statistics. The demo opens in light mode. Choose a different theme in Settings. [Open the English demo](https://planora-lake-one.vercel.app/en/demo) · [Probar la demo en español](https://planora-lake-one.vercel.app/es/demo)
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top"><strong>Plan your day from Today</strong><br/><a href="docs/images/66-demo-today-desktop-light-es.png"><img src="docs/images/readme/66-demo-today-desktop-light-es.webp" alt="Planora: Plan your day from Today" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>See your session in Statistics</strong><br/><a href="docs/images/68-demo-statistics-desktop-light-en.png"><img src="docs/images/readme/68-demo-statistics-desktop-light-en.webp" alt="Planora: See your session in Statistics" width="100%" /></a></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top"><strong>Try a 15-second Focus session</strong><br/><a href="docs/images/67-demo-focus-mobile-light-en.png"><img src="docs/images/readme/67-demo-focus-mobile-light-en.webp" alt="Planora: Try a 15-second Focus session" width="84%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Choose a theme in Settings</strong><br/><a href="docs/images/69-demo-theme-mobile-dark-es.png"><img src="docs/images/readme/69-demo-theme-mobile-dark-es.webp" alt="Planora: Choose a theme in Settings" width="84%" /></a></td>
+  </tr>
+</table>
 
 ## Screenshots
 
@@ -133,20 +149,20 @@ Real product captures with a coherent synthetic workspace. Click an image for th
 
 <table>
   <tr>
-    <td width="50%" align="center"><strong>Today at a glance</strong><br/><a href="docs/images/04-today-desktop-light-es.png"><img src="docs/images/readme/04-today-desktop-light-es.webp" alt="Planora: Today at a glance" width="100%" /></a></td>
-    <td width="50%" align="center"><strong>Weekly planning</strong><br/><a href="docs/images/08-week-desktop-light-es.png"><img src="docs/images/readme/08-week-desktop-light-es.webp" alt="Planora: Weekly planning" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Today at a glance</strong><br/><a href="docs/images/04-today-desktop-light-es.png"><img src="docs/images/readme/04-today-desktop-light-es.webp" alt="Planora: Today at a glance" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Weekly planning</strong><br/><a href="docs/images/08-week-desktop-light-es.png"><img src="docs/images/readme/08-week-desktop-light-es.webp" alt="Planora: Weekly planning" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Tasks, filters and recurrence</strong><br/><a href="docs/images/15-tasks-desktop-light-es.png"><img src="docs/images/readme/15-tasks-desktop-light-es.webp" alt="Planora: Tasks, filters and recurrence" width="100%" /></a></td>
-    <td width="50%" align="center"><strong>Progress and patterns</strong><br/><a href="docs/images/27-statistics-desktop-light-en.png"><img src="docs/images/readme/27-statistics-desktop-light-en.webp" alt="Planora: Progress and patterns" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Tasks, filters and recurrence</strong><br/><a href="docs/images/15-tasks-desktop-light-es.png"><img src="docs/images/readme/15-tasks-desktop-light-es.webp" alt="Planora: Tasks, filters and recurrence" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Progress and patterns</strong><br/><a href="docs/images/27-statistics-desktop-light-en.png"><img src="docs/images/readme/27-statistics-desktop-light-en.webp" alt="Planora: Progress and patterns" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Reminders and alarms</strong><br/><a href="docs/images/33-reminders-desktop-light-es.png"><img src="docs/images/readme/33-reminders-desktop-light-es.webp" alt="Planora: Reminders and alarms" width="100%" /></a></td>
-    <td width="50%" align="center"><strong>Focus: presets and weekly rhythm</strong><br/><a href="docs/images/43-focus-home-desktop-light-en.png"><img src="docs/images/readme/43-focus-home-desktop-light-en.webp" alt="Planora: Focus: presets and weekly rhythm" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Reminders and alarms</strong><br/><a href="docs/images/33-reminders-desktop-light-es.png"><img src="docs/images/readme/33-reminders-desktop-light-es.webp" alt="Planora: Reminders and alarms" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Focus: presets and weekly rhythm</strong><br/><a href="docs/images/43-focus-home-desktop-light-en.png"><img src="docs/images/readme/43-focus-home-desktop-light-en.webp" alt="Planora: Focus: presets and weekly rhythm" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Deep work in progress</strong><br/><a href="docs/images/47-focus-countdown-desktop-light-es.png"><img src="docs/images/readme/47-focus-countdown-desktop-light-es.webp" alt="Planora: Deep work in progress" width="100%" /></a></td>
-    <td width="50%" align="center"><strong>Structured Focus plans</strong><br/><a href="docs/images/50-focus-plan-desktop-dark-en.png"><img src="docs/images/readme/50-focus-plan-desktop-dark-en.webp" alt="Planora: Structured Focus plans" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Deep work in progress</strong><br/><a href="docs/images/47-focus-countdown-desktop-light-es.png"><img src="docs/images/readme/47-focus-countdown-desktop-light-es.webp" alt="Planora: Deep work in progress" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Structured Focus plans</strong><br/><a href="docs/images/50-focus-plan-desktop-dark-en.png"><img src="docs/images/readme/50-focus-plan-desktop-dark-en.webp" alt="Planora: Structured Focus plans" width="100%" /></a></td>
   </tr>
 </table>
 
@@ -155,28 +171,28 @@ Real product captures with a coherent synthetic workspace. Click an image for th
 <br/>
 <table>
   <tr>
-    <td width="50%" align="center"><strong>The month ahead</strong><br/><a href="docs/images/12-month-desktop-light-es.png"><img src="docs/images/readme/12-month-desktop-light-es.webp" alt="Planora: The month ahead" width="100%" /></a></td>
-    <td width="50%" align="center"><strong>Events in context</strong><br/><a href="docs/images/21-events-desktop-light-es.png"><img src="docs/images/readme/21-events-desktop-light-es.webp" alt="Planora: Events in context" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>The month ahead</strong><br/><a href="docs/images/12-month-desktop-light-es.png"><img src="docs/images/readme/12-month-desktop-light-es.webp" alt="Planora: The month ahead" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Events in context</strong><br/><a href="docs/images/21-events-desktop-light-es.png"><img src="docs/images/readme/21-events-desktop-light-es.webp" alt="Planora: Events in context" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Completion history</strong><br/><a href="docs/images/24-history-desktop-light-es.png"><img src="docs/images/readme/24-history-desktop-light-es.webp" alt="Planora: Completion history" width="100%" /></a></td>
-    <td width="50%" align="center"><strong>Independent schedules</strong><br/><a href="docs/images/30-schedules-desktop-light-es.png"><img src="docs/images/readme/30-schedules-desktop-light-es.webp" alt="Planora: Independent schedules" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Completion history</strong><br/><a href="docs/images/24-history-desktop-light-es.png"><img src="docs/images/readme/24-history-desktop-light-es.webp" alt="Planora: Completion history" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Independent schedules</strong><br/><a href="docs/images/30-schedules-desktop-light-es.png"><img src="docs/images/readme/30-schedules-desktop-light-es.webp" alt="Planora: Independent schedules" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Color-coded categories</strong><br/><a href="docs/images/31-categories-desktop-light-es.png"><img src="docs/images/readme/31-categories-desktop-light-es.webp" alt="Planora: Color-coded categories" width="100%" /></a></td>
-    <td width="50%" align="center"><strong>Your data, your control</strong><br/><a href="docs/images/40-data-desktop-light-en.png"><img src="docs/images/readme/40-data-desktop-light-en.webp" alt="Planora: Your data, your control" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Color-coded categories</strong><br/><a href="docs/images/31-categories-desktop-light-es.png"><img src="docs/images/readme/31-categories-desktop-light-es.webp" alt="Planora: Color-coded categories" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Your data, your control</strong><br/><a href="docs/images/40-data-desktop-light-en.png"><img src="docs/images/readme/40-data-desktop-light-en.webp" alt="Planora: Your data, your control" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Reusable Focus presets</strong><br/><a href="docs/images/45-focus-preset-desktop-light-en.png"><img src="docs/images/readme/45-focus-preset-desktop-light-en.webp" alt="Planora: Reusable Focus presets" width="100%" /></a></td>
-    <td width="50%" align="center"><strong>A thoughtful session summary</strong><br/><a href="docs/images/52-focus-summary-desktop-light-es.png"><img src="docs/images/readme/52-focus-summary-desktop-light-es.webp" alt="Planora: A thoughtful session summary" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Reusable Focus presets</strong><br/><a href="docs/images/45-focus-preset-desktop-light-en.png"><img src="docs/images/readme/45-focus-preset-desktop-light-en.webp" alt="Planora: Reusable Focus presets" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>A thoughtful session summary</strong><br/><a href="docs/images/52-focus-summary-desktop-light-es.png"><img src="docs/images/readme/52-focus-summary-desktop-light-es.webp" alt="Planora: A thoughtful session summary" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Flexible weekly goals</strong><br/><a href="docs/images/53-focus-goals-desktop-light-en.png"><img src="docs/images/readme/53-focus-goals-desktop-light-en.webp" alt="Planora: Flexible weekly goals" width="100%" /></a></td>
-    <td width="50%" align="center"><strong>Focus statistics</strong><br/><a href="docs/images/54-focus-statistics-desktop-dark-en.png"><img src="docs/images/readme/54-focus-statistics-desktop-dark-en.webp" alt="Planora: Focus statistics" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Flexible weekly goals</strong><br/><a href="docs/images/53-focus-goals-desktop-light-en.png"><img src="docs/images/readme/53-focus-goals-desktop-light-en.webp" alt="Planora: Flexible weekly goals" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Focus statistics</strong><br/><a href="docs/images/54-focus-statistics-desktop-dark-en.png"><img src="docs/images/readme/54-focus-statistics-desktop-dark-en.webp" alt="Planora: Focus statistics" width="100%" /></a></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Reusable planning templates</strong><br/><a href="docs/images/61-templates-desktop-light-es.png"><img src="docs/images/readme/61-templates-desktop-light-es.webp" alt="Planora: Reusable planning templates" width="100%" /></a></td>
-    <td width="50%" align="center"><strong>Search the whole workspace</strong><br/><a href="docs/images/62-search-desktop-light-en.png"><img src="docs/images/readme/62-search-desktop-light-en.webp" alt="Planora: Search the whole workspace" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Reusable planning templates</strong><br/><a href="docs/images/61-templates-desktop-light-es.png"><img src="docs/images/readme/61-templates-desktop-light-es.webp" alt="Planora: Reusable planning templates" width="100%" /></a></td>
+    <td width="50%" align="center" valign="top"><strong>Search the whole workspace</strong><br/><a href="docs/images/62-search-desktop-light-en.png"><img src="docs/images/readme/62-search-desktop-light-en.webp" alt="Planora: Search the whole workspace" width="100%" /></a></td>
   </tr>
 </table>
 </details>

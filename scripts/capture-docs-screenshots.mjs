@@ -197,7 +197,8 @@ export async function main(args = process.argv.slice(2)) {
       image.fixtureVersion = FIXTURE_VERSION;
       image.sourceCommit = commit;
       image.captureCodeSha256 = captureCodeSha256;
-      image.fixtureCounts = fixture.counts;
+      if (scene.route && !scene.route.startsWith("demo/"))
+        image.fixtureCounts = fixture.counts;
       const existing = manifest.images.findIndex(
         (item) => item.id === image.id,
       );

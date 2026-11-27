@@ -47,6 +47,18 @@ export async function prepareScene(page, scene, fixture) {
   const focus = translations[scene.locale].Focus;
   const dialog = page.getByRole("dialog");
   switch (scene.action) {
+    case "demo-result":
+      await page.getByRole("button", { name: "Start", exact: true }).click();
+      await expect(
+        page.getByRole("button", { name: "Pause", exact: true }),
+      ).toBeVisible();
+      await page.clock.fastForward(16_000);
+      await page.getByRole("link", { name: "See my statistics" }).click();
+      await expect(page.locator(".demo-session-receipt")).toContainText("15 s");
+      break;
+    case "demo-theme":
+      await page.getByLabel("Tema de la demo").selectOption("dark");
+      break;
     case "none":
       break;
     case "landing-cta":
@@ -520,7 +532,8 @@ export async function captureScene(browser, environment, fixture, sourceScene) {
       }
       return route.continue();
     });
-    await context.addCookies(fixture.cookies);
+    if (scene.route && !scene.route.startsWith("demo/"))
+      await context.addCookies(fixture.cookies);
     await context.addInitScript(
       ({ theme, intro, clock }) => {
         localStorage.setItem("planora-theme", theme);
@@ -584,8 +597,11 @@ export async function captureScene(browser, environment, fixture, sourceScene) {
     });
     const clock = live?.clock || fixture.clock;
     try {
-      await page.clock.setFixedTime(new Date(clock));
-      const path = "/" + scene.locale + (scene.route ? "/" + scene.route : "");
+      if (scene.action === "demo-result")
+        await page.clock.install({ time: new Date(clock) });
+      else await page.clock.setFixedTime(new Date(clock));
+      const entry = scene.action === "demo-result" ? "demo/focus" : scene.route;
+      const path = "/" + scene.locale + (entry ? "/" + entry : "");
       const response = await page.goto(environment.base + path, {
         waitUntil: "load",
         timeout: 60_000,
@@ -620,6 +636,8 @@ export async function captureScene(browser, environment, fixture, sourceScene) {
           timeout: 20_000,
         });
       }
+      if (scene.route.startsWith("demo/"))
+        await expect(main).toHaveAttribute("aria-busy", "false");
       await prepareScene(page, scene, fixture);
       if (scene.overlay && !scene.crop)
         await page.getByRole("dialog").getByRole("heading").first().click();
@@ -719,7 +737,7 @@ export async function captureScene(browser, environment, fixture, sourceScene) {
         status: "captured",
         attempt,
         clock,
-        path,
+        path: new URL(page.url()).pathname,
         bytes: previous.length,
         sha256: createHash("sha256").update(previous).digest("hex"),
         audit,

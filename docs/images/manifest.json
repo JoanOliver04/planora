@@ -9,7 +9,7 @@
       "theme": "light",
       "device": "desktop",
       "width": 1440,
-      "height": 768,
+      "height": 703,
       "scale": 2,
       "action": "none",
       "reason": "Inglés para presentar el proyecto a una audiencia profesional internacional.",
@@ -20,13 +20,13 @@
       "filename": "01-landing-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en",
-      "bytes": 1476126,
-      "sha256": "d524ec817541b73c1ee19a3a758a6ddb69ead414e3285ef11f6e92dbf3aa544f",
+      "bytes": 1187830,
+      "sha256": "00d9779ce890d2d5855b0648df1d3a2b0cf0dd99adb560dc465765c9071a4010",
       "audit": {
         "width": 1440,
-        "height": 768,
+        "height": 703,
         "overflow": 0,
         "brokenImages": [],
         "loading": [],
@@ -40,29 +40,20 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:46:52.624Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:10:40.066Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
-      "fixtureCounts": {
-        "schedules": 4,
-        "categories": 6,
-        "tasks": 15,
-        "events": 11,
-        "completions": 329,
-        "focusSessions": 50,
-        "focusPresets": 4
-      },
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "ad85ecd07e99513eb1660d3164ba46b85f50b42fa5e7e9a2c4bc1d70b9bb6bc8",
       "pixels": {
         "width": 2880,
-        "height": 1536
+        "height": 1406
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "d524ec817541b73c1ee19a3a758a6ddb69ead414e3285ef11f6e92dbf3aa544f",
-        "reviewedAt": "2026-11-25T15:56:55.829Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "00d9779ce890d2d5855b0648df1d3a2b0cf0dd99adb560dc465765c9071a4010",
+        "reviewedAt": "2026-11-27T22:12:43.576Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -74,7 +65,7 @@
       "theme": "light",
       "device": "mobile",
       "width": 390,
-      "height": 1105,
+      "height": 1013,
       "scale": 3,
       "action": "none",
       "reason": "Inglés para presentar el proyecto a una audiencia profesional internacional.",
@@ -82,13 +73,13 @@
       "filename": "02-landing-mobile-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en",
-      "bytes": 1180697,
-      "sha256": "908ef5e004b833fb8969ad01740373b6566b98a1e96e161159d53ef057620489",
+      "bytes": 809208,
+      "sha256": "bdce26de3b011fac8ab22cfb534c1b1c110e3bfd0e2530cc42da156e59abf128",
       "audit": {
         "width": 390,
-        "height": 1105,
+        "height": 1013,
         "overflow": 0,
         "brokenImages": [],
         "loading": [],
@@ -102,29 +93,20 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:46:55.957Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:10:41.647Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
-      "fixtureCounts": {
-        "schedules": 4,
-        "categories": 6,
-        "tasks": 15,
-        "events": 11,
-        "completions": 329,
-        "focusSessions": 50,
-        "focusPresets": 4
-      },
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "ad85ecd07e99513eb1660d3164ba46b85f50b42fa5e7e9a2c4bc1d70b9bb6bc8",
       "pixels": {
         "width": 1170,
-        "height": 3315
+        "height": 3039
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "908ef5e004b833fb8969ad01740373b6566b98a1e96e161159d53ef057620489",
-        "reviewedAt": "2026-11-25T15:56:55.836Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "bdce26de3b011fac8ab22cfb534c1b1c110e3bfd0e2530cc42da156e59abf128",
+        "reviewedAt": "2026-11-27T22:12:43.581Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -143,10 +125,10 @@
       "filename": "03-landing-cta-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es",
-      "bytes": 110109,
-      "sha256": "35c5948ab276537f184af57fa1ee4b4cd90ee0a235a99388a896b975a63f8292",
+      "bytes": 99937,
+      "sha256": "d117278cd8807f2799e58b6c54bb8e3af014358a57b2e323d0363941c77b0799",
       "audit": {
         "width": 1440,
         "height": 600,
@@ -160,32 +142,23 @@
         "nav": null,
         "theme": "light",
         "locale": "es",
-        "scrollY": 2646
+        "scrollY": 2541
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:46:58.431Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:10:43.472Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
-      "fixtureCounts": {
-        "schedules": 4,
-        "categories": 6,
-        "tasks": 15,
-        "events": 11,
-        "completions": 329,
-        "focusSessions": 50,
-        "focusPresets": 4
-      },
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "ad85ecd07e99513eb1660d3164ba46b85f50b42fa5e7e9a2c4bc1d70b9bb6bc8",
       "pixels": {
         "width": 2880,
         "height": 1200
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "35c5948ab276537f184af57fa1ee4b4cd90ee0a235a99388a896b975a63f8292",
-        "reviewedAt": "2026-11-25T15:56:55.839Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "d117278cd8807f2799e58b6c54bb8e3af014358a57b2e323d0363941c77b0799",
+        "reviewedAt": "2026-11-27T22:12:43.583Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -203,15 +176,14 @@
       "reason": "Tema claro y español para una lectura cercana y consistente del producto.",
       "endAt": ".task-group",
       "readme": "main",
-      "portfolio": true,
       "linkedin": true,
       "filename": "04-today-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/today",
-      "bytes": 760443,
-      "sha256": "bb01a3a080aef28027e20708c0bcb04e2f13fa996f3922f27cdeb61172b90426",
+      "bytes": 758796,
+      "sha256": "bbee5cefeee8d4e721c23bf4b5fb5a201e63c00c1ddd26f1347897788360ae3f",
       "audit": {
         "width": 1440,
         "height": 1038,
@@ -228,17 +200,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:03.019Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:05:37.568Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -248,9 +220,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "bb01a3a080aef28027e20708c0bcb04e2f13fa996f3922f27cdeb61172b90426",
-        "reviewedAt": "2026-11-25T15:56:55.845Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "bbee5cefeee8d4e721c23bf4b5fb5a201e63c00c1ddd26f1347897788360ae3f",
+        "reviewedAt": "2026-11-27T22:12:43.588Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -270,7 +242,7 @@
       "filename": "05-today-global-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/today",
       "bytes": 207098,
       "sha256": "88ff0ca79bbac4a132b1034071d20e33a9cde24c3fd090d1be2524fa887457eb",
@@ -290,17 +262,17 @@
         "scrollY": 674
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:05.455Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:05:39.809Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -311,8 +283,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "88ff0ca79bbac4a132b1034071d20e33a9cde24c3fd090d1be2524fa887457eb",
-        "reviewedAt": "2026-11-25T15:56:55.847Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.590Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -332,10 +304,10 @@
       "filename": "06-today-progress-desktop-dark-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/today",
-      "bytes": 649529,
-      "sha256": "d30f2b1e88810c8dc33dd99b665bca8080d8141d752cefa977ee04c3666f41f4",
+      "bytes": 644086,
+      "sha256": "74e61c5785c7a7aac22836ddd8b57754869df598ffcb58082e584d05ea1e663b",
       "audit": {
         "width": 1440,
         "height": 1038,
@@ -352,17 +324,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:08.076Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:05:42.630Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -372,9 +344,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "d30f2b1e88810c8dc33dd99b665bca8080d8141d752cefa977ee04c3666f41f4",
-        "reviewedAt": "2026-11-25T15:56:55.852Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "74e61c5785c7a7aac22836ddd8b57754869df598ffcb58082e584d05ea1e663b",
+        "reviewedAt": "2026-11-27T22:12:43.594Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -397,10 +369,10 @@
       "filename": "07-today-mobile-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/today",
-      "bytes": 398839,
-      "sha256": "ec84f8adedad7beba11060f3d2e672485deb8af0631eed716beba9732ca2b0d3",
+      "bytes": 398902,
+      "sha256": "f620f811aaff72129b68ef34c34ab6804b614e6b5044cff5e0693b0581d220c9",
       "audit": {
         "width": 390,
         "height": 880,
@@ -421,17 +393,17 @@
         "scrollY": 551
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:10.122Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:05:45.092Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -441,9 +413,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "ec84f8adedad7beba11060f3d2e672485deb8af0631eed716beba9732ca2b0d3",
-        "reviewedAt": "2026-11-25T15:56:55.856Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "f620f811aaff72129b68ef34c34ab6804b614e6b5044cff5e0693b0581d220c9",
+        "reviewedAt": "2026-11-27T22:12:43.596Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -455,23 +427,24 @@
       "theme": "light",
       "device": "desktop",
       "width": 1680,
-      "height": 1100,
+      "height": 1130,
       "scale": 2,
       "action": "none",
       "reason": "Tema claro y español para una lectura cercana y consistente del producto.",
+      "endAt": ".week-grid",
       "readme": "main",
       "portfolio": true,
       "linkedin": true,
       "filename": "08-week-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/week",
-      "bytes": 765484,
-      "sha256": "26e17a14b0c6996b62d74253c23d5eabb750031174b930af2615800d9161868f",
+      "bytes": 755930,
+      "sha256": "df58eaa6901ad8acf31d4708e6fccd15fd36ee2d4c83b50e1cb4d2a0d42f7e58",
       "audit": {
         "width": 1680,
-        "height": 1100,
+        "height": 1130,
         "overflow": 0,
         "brokenImages": [],
         "loading": [],
@@ -485,29 +458,29 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:12.201Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:10:46.232Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "ad85ecd07e99513eb1660d3164ba46b85f50b42fa5e7e9a2c4bc1d70b9bb6bc8",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
       "pixels": {
         "width": 3360,
-        "height": 2200
+        "height": 2260
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "26e17a14b0c6996b62d74253c23d5eabb750031174b930af2615800d9161868f",
-        "reviewedAt": "2026-11-25T15:56:55.861Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "df58eaa6901ad8acf31d4708e6fccd15fd36ee2d4c83b50e1cb4d2a0d42f7e58",
+        "reviewedAt": "2026-11-27T22:12:43.601Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -519,20 +492,21 @@
       "theme": "light",
       "device": "desktop",
       "width": 1680,
-      "height": 1120,
+      "height": 1130,
       "scale": 2,
       "action": "none",
       "reason": "Inglés para presentar el proyecto a una audiencia profesional internacional.",
+      "endAt": ".week-grid",
       "filename": "09-week-planner-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/week",
-      "bytes": 775679,
-      "sha256": "12d0273b67a316e2e8ba43deaa3a94ce147ab91aade8c5a3789309ed9772d5e5",
+      "bytes": 762564,
+      "sha256": "977c250a9b9de27999c389cc7a9d862023722e66391e4ab32f45d543aa7f2e2f",
       "audit": {
         "width": 1680,
-        "height": 1120,
+        "height": 1130,
         "overflow": 0,
         "brokenImages": [],
         "loading": [],
@@ -546,29 +520,29 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:14.135Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:10:48.474Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "ad85ecd07e99513eb1660d3164ba46b85f50b42fa5e7e9a2c4bc1d70b9bb6bc8",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
       "pixels": {
         "width": 3360,
-        "height": 2240
+        "height": 2260
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "12d0273b67a316e2e8ba43deaa3a94ce147ab91aade8c5a3789309ed9772d5e5",
-        "reviewedAt": "2026-11-25T15:56:55.867Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "977c250a9b9de27999c389cc7a9d862023722e66391e4ab32f45d543aa7f2e2f",
+        "reviewedAt": "2026-11-27T22:12:43.605Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -587,10 +561,10 @@
       "filename": "10-week-dates-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/week",
-      "bytes": 562995,
-      "sha256": "784443485aad47b5f6f3c68ef64d450e57e56da26f278bbaeded4f89a25551f2",
+      "bytes": 563152,
+      "sha256": "535ffc94c45eaa9460aaf443bd85c894b44daf960e3dd005e0caef9e2a2682a5",
       "audit": {
         "width": 1440,
         "height": 1100,
@@ -607,17 +581,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:16.204Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:05:54.057Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -627,9 +601,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "784443485aad47b5f6f3c68ef64d450e57e56da26f278bbaeded4f89a25551f2",
-        "reviewedAt": "2026-11-25T15:56:55.871Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "535ffc94c45eaa9460aaf443bd85c894b44daf960e3dd005e0caef9e2a2682a5",
+        "reviewedAt": "2026-11-27T22:12:43.609Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -650,10 +624,10 @@
       "filename": "11-week-mobile-dark-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/week",
-      "bytes": 356196,
-      "sha256": "99eefc882896dda12b878bd78d5ef6d9cffc9ddd4605c4f54213079405009287",
+      "bytes": 357172,
+      "sha256": "47b0fc9e5508c394ba9856465ccdf3f2b63c42ce4c0ff8bb2e0a4fc5611927a6",
       "audit": {
         "width": 390,
         "height": 865,
@@ -674,17 +648,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:18.259Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:05:56.327Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -694,9 +668,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "99eefc882896dda12b878bd78d5ef6d9cffc9ddd4605c4f54213079405009287",
-        "reviewedAt": "2026-11-25T15:56:55.875Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "47b0fc9e5508c394ba9856465ccdf3f2b63c42ce4c0ff8bb2e0a4fc5611927a6",
+        "reviewedAt": "2026-11-27T22:12:43.613Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -718,10 +692,10 @@
       "filename": "12-month-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/month",
-      "bytes": 979049,
-      "sha256": "86c7564284a47e2c31ba1a1b7991658fabb6ebbf0998946d3bb975b6b3d6da78",
+      "bytes": 973398,
+      "sha256": "f77a20729f1e63fb925d0df0ffa90132798f95f6a3125b5bc1fc4cefc2b94a5b",
       "audit": {
         "width": 1440,
         "height": 1637,
@@ -738,17 +712,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:21.307Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:05:59.854Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -758,9 +732,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "86c7564284a47e2c31ba1a1b7991658fabb6ebbf0998946d3bb975b6b3d6da78",
-        "reviewedAt": "2026-11-25T15:56:55.881Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "f77a20729f1e63fb925d0df0ffa90132798f95f6a3125b5bc1fc4cefc2b94a5b",
+        "reviewedAt": "2026-11-27T22:12:43.618Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -780,10 +754,10 @@
       "filename": "13-month-desktop-dark-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/month",
-      "bytes": 907503,
-      "sha256": "5d6360647703043b3a7e65cd430889ceac6633156755344e9ff4e3a334cc909a",
+      "bytes": 901648,
+      "sha256": "8480ffd23cc4675724bb1cdc95b5439133bff3b9ff9bf60530a4395cb9dd911e",
       "audit": {
         "width": 1440,
         "height": 1637,
@@ -800,17 +774,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:23.992Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:03.056Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -820,9 +794,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "5d6360647703043b3a7e65cd430889ceac6633156755344e9ff4e3a334cc909a",
-        "reviewedAt": "2026-11-25T15:56:55.886Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "8480ffd23cc4675724bb1cdc95b5439133bff3b9ff9bf60530a4395cb9dd911e",
+        "reviewedAt": "2026-11-27T22:12:43.622Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -841,10 +815,10 @@
       "filename": "14-month-mobile-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/month",
-      "bytes": 457883,
-      "sha256": "82578def78cd63900f3d2435182ac62401492376e5141757f4bd723928383c21",
+      "bytes": 457821,
+      "sha256": "52a1a5934b83ddacd62830c09a0691bdb6a304f52a1421adcd9e9c4de38a6133",
       "audit": {
         "width": 420,
         "height": 940,
@@ -865,17 +839,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:25.549Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:05.402Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -885,9 +859,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "82578def78cd63900f3d2435182ac62401492376e5141757f4bd723928383c21",
-        "reviewedAt": "2026-11-25T15:56:55.890Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "52a1a5934b83ddacd62830c09a0691bdb6a304f52a1421adcd9e9c4de38a6133",
+        "reviewedAt": "2026-11-27T22:12:43.625Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -910,7 +884,7 @@
       "filename": "15-tasks-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/tasks",
       "bytes": 1026486,
       "sha256": "e25e7e95c9fc613987a24d4dcd14ab16879bd58dd3593d4cf23f94f5b83b9d97",
@@ -930,17 +904,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:27.676Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:08.574Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -951,8 +925,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "e25e7e95c9fc613987a24d4dcd14ab16879bd58dd3593d4cf23f94f5b83b9d97",
-        "reviewedAt": "2026-11-25T15:56:55.896Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.630Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -972,7 +946,7 @@
       "filename": "16-tasks-recurrence-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/tasks",
       "bytes": 947982,
       "sha256": "7daa550f98be24867e86d37d8a81d36d8bfecea70f61636acf0f454efa61951b",
@@ -992,17 +966,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:30.080Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:11.852Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1013,8 +987,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "7daa550f98be24867e86d37d8a81d36d8bfecea70f61636acf0f454efa61951b",
-        "reviewedAt": "2026-11-25T15:56:55.902Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.634Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1033,7 +1007,7 @@
       "filename": "17-tasks-global-desktop-dark-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/tasks",
       "bytes": 563352,
       "sha256": "a1a84e5cff8637e183fc2af3a34c7680e09bd7737626f5ba343b2f00c1b5a2c5",
@@ -1053,17 +1027,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:32.350Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:14.568Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1074,8 +1048,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "a1a84e5cff8637e183fc2af3a34c7680e09bd7737626f5ba343b2f00c1b5a2c5",
-        "reviewedAt": "2026-11-25T15:56:55.906Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.636Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1095,7 +1069,7 @@
       "filename": "18-task-editor-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/tasks",
       "bytes": 661252,
       "sha256": "e4bda7587cfbc382e1fcc754580315d4e1c49eee329ca97667babcf99ad6178f",
@@ -1115,17 +1089,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:36.689Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:19.672Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1136,8 +1110,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "e4bda7587cfbc382e1fcc754580315d4e1c49eee329ca97667babcf99ad6178f",
-        "reviewedAt": "2026-11-25T15:56:55.911Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.639Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1157,7 +1131,7 @@
       "filename": "19-task-create-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/tasks",
       "bytes": 679710,
       "sha256": "2bbc8d7a00b866c8d01462e9ec31b2728d6eae6fe06000222bdfc49a68c6f4b5",
@@ -1177,17 +1151,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:40.114Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:24.432Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1198,8 +1172,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "2bbc8d7a00b866c8d01462e9ec31b2728d6eae6fe06000222bdfc49a68c6f4b5",
-        "reviewedAt": "2026-11-25T15:56:55.915Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.643Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1219,7 +1193,7 @@
       "filename": "20-tasks-mobile-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/tasks",
       "bytes": 466514,
       "sha256": "ed6de4d743892028078795f812ab06644221d397f3df3b23f3a4ecf737e3ec42",
@@ -1243,17 +1217,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:42.164Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:26.878Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1264,8 +1238,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "ed6de4d743892028078795f812ab06644221d397f3df3b23f3a4ecf737e3ec42",
-        "reviewedAt": "2026-11-25T15:56:55.919Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.645Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1285,10 +1259,10 @@
       "filename": "21-events-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/events",
-      "bytes": 1038699,
-      "sha256": "3fb9d013dd1838a463f70b8e8712af4d07a11a93c67661ce7b76ad2827c70b0b",
+      "bytes": 894714,
+      "sha256": "98c0fad490a6727b82bd2901e95d6fe46d4dca8c4bd13387b535ce654c6d71eb",
       "audit": {
         "width": 1440,
         "height": 1100,
@@ -1305,17 +1279,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:44.509Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:29.403Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1325,9 +1299,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "3fb9d013dd1838a463f70b8e8712af4d07a11a93c67661ce7b76ad2827c70b0b",
-        "reviewedAt": "2026-11-25T15:56:55.926Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "98c0fad490a6727b82bd2901e95d6fe46d4dca8c4bd13387b535ce654c6d71eb",
+        "reviewedAt": "2026-11-27T22:12:43.649Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1347,10 +1321,10 @@
       "filename": "22-event-editor-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/events",
-      "bytes": 536941,
-      "sha256": "121f252e5f8685fa65543463a16f830ce5b1d45c1a0f3a4686b334a04c94717b",
+      "bytes": 463389,
+      "sha256": "fcd9e199de1807257b17238b83465ae0cfa5174b03975f510f2bdfd241c47b31",
       "audit": {
         "width": 1440,
         "height": 1024,
@@ -1367,17 +1341,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:47.300Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:33.077Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1387,9 +1361,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "121f252e5f8685fa65543463a16f830ce5b1d45c1a0f3a4686b334a04c94717b",
-        "reviewedAt": "2026-11-25T15:56:55.930Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "fcd9e199de1807257b17238b83465ae0cfa5174b03975f510f2bdfd241c47b31",
+        "reviewedAt": "2026-11-27T22:12:43.653Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1409,10 +1383,10 @@
       "filename": "23-events-mobile-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/events",
-      "bytes": 564805,
-      "sha256": "37ef796a0119f7b97b71012dc57757f4b0079c683b0c2393848a2f745dd6b3a5",
+      "bytes": 608785,
+      "sha256": "2dd2fee899646ce6f031bf663fe1575511c43ba41bf6f42881820ee58814b20a",
       "audit": {
         "width": 390,
         "height": 884,
@@ -1433,17 +1407,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:49.259Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:37.130Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1453,9 +1427,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "37ef796a0119f7b97b71012dc57757f4b0079c683b0c2393848a2f745dd6b3a5",
-        "reviewedAt": "2026-11-25T15:56:55.934Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "2dd2fee899646ce6f031bf663fe1575511c43ba41bf6f42881820ee58814b20a",
+        "reviewedAt": "2026-11-27T22:12:43.656Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1476,10 +1450,10 @@
       "filename": "24-history-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/history",
-      "bytes": 592206,
-      "sha256": "83bacd259127b9eaaa8cf5132458ba15f8ce1aed95ffb1229b92963b1eed7148",
+      "bytes": 591945,
+      "sha256": "591dc5f1db8858fde7de1202a4c8df1d6474ad0d52012bea22ce67fb5e07686a",
       "audit": {
         "width": 1440,
         "height": 1081,
@@ -1496,17 +1470,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:51.523Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:39.364Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1516,9 +1490,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "83bacd259127b9eaaa8cf5132458ba15f8ce1aed95ffb1229b92963b1eed7148",
-        "reviewedAt": "2026-11-25T15:56:55.938Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "591dc5f1db8858fde7de1202a4c8df1d6474ad0d52012bea22ce67fb5e07686a",
+        "reviewedAt": "2026-11-27T22:12:43.660Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1538,10 +1512,10 @@
       "filename": "25-history-detail-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/history",
-      "bytes": 113031,
-      "sha256": "c61fb49cc7090dfc7a15085437b1f6bce1d24e62c63a90b2c9fb6583e999c2cb",
+      "bytes": 114424,
+      "sha256": "cd7005a58f8cc8eaf4166651dfc01f6a222a2f71c0a05922c95cc927e2224e3f",
       "audit": {
         "width": 1440,
         "height": 1100,
@@ -1558,17 +1532,17 @@
         "scrollY": 1104
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:53.483Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:41.129Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1578,9 +1552,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "c61fb49cc7090dfc7a15085437b1f6bce1d24e62c63a90b2c9fb6583e999c2cb",
-        "reviewedAt": "2026-11-25T15:56:55.940Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "cd7005a58f8cc8eaf4166651dfc01f6a222a2f71c0a05922c95cc927e2224e3f",
+        "reviewedAt": "2026-11-27T22:12:43.661Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1600,10 +1574,10 @@
       "filename": "26-history-mobile-dark-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/history",
-      "bytes": 231209,
-      "sha256": "b859711f4b17823213ce8e2510f7739c805408468d5f2971346e3b1eee5dce11",
+      "bytes": 229743,
+      "sha256": "348d43102f6ed84dc665a7404c1771f0c96a99c2cbb215c51866990cfdcb3019",
       "audit": {
         "width": 390,
         "height": 868,
@@ -1624,17 +1598,17 @@
         "scrollY": 433
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:55.527Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:43.350Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1644,9 +1618,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "b859711f4b17823213ce8e2510f7739c805408468d5f2971346e3b1eee5dce11",
-        "reviewedAt": "2026-11-25T15:56:55.943Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "348d43102f6ed84dc665a7404c1771f0c96a99c2cbb215c51866990cfdcb3019",
+        "reviewedAt": "2026-11-27T22:12:43.663Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1665,15 +1639,14 @@
       "endAt": ".statistics > .statistics-split",
       "endPadding": 0,
       "readme": "main",
-      "portfolio": true,
       "linkedin": true,
       "filename": "27-statistics-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/statistics",
-      "bytes": 515659,
-      "sha256": "4fd81892ed5a133113e3fb502fe2028753e8ccb324282ce731729e72c9351eff",
+      "bytes": 518026,
+      "sha256": "2ab4f8ea9d4042b51a151e4a9cdf51aa3daf0b742412ab0a5f3833ca8777243b",
       "audit": {
         "width": 1440,
         "height": 1136,
@@ -1690,17 +1663,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:47:57.851Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:45.559Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1710,9 +1683,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "4fd81892ed5a133113e3fb502fe2028753e8ccb324282ce731729e72c9351eff",
-        "reviewedAt": "2026-11-25T15:56:55.947Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "2ab4f8ea9d4042b51a151e4a9cdf51aa3daf0b742412ab0a5f3833ca8777243b",
+        "reviewedAt": "2026-11-27T22:12:43.666Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1732,10 +1705,10 @@
       "crop": ".focus-stats-panel",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/statistics",
-      "bytes": 266400,
-      "sha256": "f2a5fe319e71d4c4346bfd22482e026b2ae726b9ce9f957ce725f52df292eaf2",
+      "bytes": 273886,
+      "sha256": "087d13e8c2b5681c0df1e7288ebe1ea08e1c547e34f7e70341cd1f0874e725d5",
       "audit": {
         "width": 1440,
         "height": 1120,
@@ -1752,17 +1725,17 @@
         "scrollY": 1119
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:00.567Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:47.836Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1772,9 +1745,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "f2a5fe319e71d4c4346bfd22482e026b2ae726b9ce9f957ce725f52df292eaf2",
-        "reviewedAt": "2026-11-25T15:56:55.949Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "087d13e8c2b5681c0df1e7288ebe1ea08e1c547e34f7e70341cd1f0874e725d5",
+        "reviewedAt": "2026-11-27T22:12:43.668Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1794,10 +1767,10 @@
       "filename": "29-statistics-mobile-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/statistics",
-      "bytes": 346506,
-      "sha256": "970d1e5afe22f28a26e331b8a74d377554ed869c6b6c9ace3d2f65b373fa6070",
+      "bytes": 350792,
+      "sha256": "5bb19b831b3717ba06e16c7dd5e80995d077e4b55e326b4dd6dfa99f7088b15c",
       "audit": {
         "width": 390,
         "height": 808,
@@ -1818,17 +1791,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:03.047Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:50.092Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1838,9 +1811,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "970d1e5afe22f28a26e331b8a74d377554ed869c6b6c9ace3d2f65b373fa6070",
-        "reviewedAt": "2026-11-25T15:56:55.953Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "5bb19b831b3717ba06e16c7dd5e80995d077e4b55e326b4dd6dfa99f7088b15c",
+        "reviewedAt": "2026-11-27T22:12:43.670Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1860,7 +1833,7 @@
       "filename": "30-schedules-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/schedules",
       "bytes": 479713,
       "sha256": "bd8d4299a18f3e22dc52fd9e49bc816f0330d8e1ec4539f6fb5c5d7e21caa02d",
@@ -1880,17 +1853,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:05.012Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:51.849Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1901,8 +1874,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "bd8d4299a18f3e22dc52fd9e49bc816f0330d8e1ec4539f6fb5c5d7e21caa02d",
-        "reviewedAt": "2026-11-25T15:56:55.956Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.672Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1922,7 +1895,7 @@
       "filename": "31-categories-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/categories",
       "bytes": 461987,
       "sha256": "a9063454fce6742f5ef2e484c6593d2da9036f525207616f3c55b80b7c8b3a3c",
@@ -1942,17 +1915,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:07.569Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:54.133Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -1963,8 +1936,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "a9063454fce6742f5ef2e484c6593d2da9036f525207616f3c55b80b7c8b3a3c",
-        "reviewedAt": "2026-11-25T15:56:55.959Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.674Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -1984,7 +1957,7 @@
       "filename": "32-schedule-editor-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/schedules",
       "bytes": 392786,
       "sha256": "671888a7104460a58f89f1096a73d3e4383533b3290aa185de0724e7c312326b",
@@ -2004,17 +1977,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:11.989Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:56.907Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2025,8 +1998,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "671888a7104460a58f89f1096a73d3e4383533b3290aa185de0724e7c312326b",
-        "reviewedAt": "2026-11-25T15:56:55.963Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.676Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2048,10 +2021,10 @@
       "crop": "section[aria-labelledby=\"configured-reminders\"]",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/reminders",
-      "bytes": 194939,
-      "sha256": "30eec255abdfebb434d77c0b97b2ff0a382c47351c96018f80cb6a6cfe6aeb9a",
+      "bytes": 198147,
+      "sha256": "82eb7895fe1a280fa840e65f4149b8723d50e045fa62825be64c156bd061f778",
       "audit": {
         "width": 1440,
         "height": 1120,
@@ -2068,17 +2041,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:15.900Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:58.409Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2088,9 +2061,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "30eec255abdfebb434d77c0b97b2ff0a382c47351c96018f80cb6a6cfe6aeb9a",
-        "reviewedAt": "2026-11-25T15:56:55.965Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "82eb7895fe1a280fa840e65f4149b8723d50e045fa62825be64c156bd061f778",
+        "reviewedAt": "2026-11-27T22:12:43.678Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2110,7 +2083,7 @@
       "crop": "section.reminder-form:not(.alarm-form)",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/reminders",
       "bytes": 43001,
       "sha256": "460fb83ba7036bd4155337f07819b8c5a2fd0d349c37064ba47cf040ccdbea81",
@@ -2130,17 +2103,17 @@
         "scrollY": 437
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:17.316Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:06:59.710Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2151,8 +2124,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "460fb83ba7036bd4155337f07819b8c5a2fd0d349c37064ba47cf040ccdbea81",
-        "reviewedAt": "2026-11-25T15:56:55.967Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.678Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2172,10 +2145,10 @@
       "crop": "section[aria-labelledby=\"configured-reminders\"]",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/reminders",
-      "bytes": 195364,
-      "sha256": "95e2bec87884f3f990927c6ffa97f8b47b17cbba693e8ff28964f10f5a3abfaf",
+      "bytes": 194089,
+      "sha256": "533be202abc323ad311fe5b38c4e9e36b294d7317896757cf5387eb6c2344d58",
       "audit": {
         "width": 1440,
         "height": 1100,
@@ -2192,17 +2165,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:18.946Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:01.175Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2212,9 +2185,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "95e2bec87884f3f990927c6ffa97f8b47b17cbba693e8ff28964f10f5a3abfaf",
-        "reviewedAt": "2026-11-25T15:56:55.969Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "533be202abc323ad311fe5b38c4e9e36b294d7317896757cf5387eb6c2344d58",
+        "reviewedAt": "2026-11-27T22:12:43.680Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2234,7 +2207,7 @@
       "crop": ".notification-preferences:has(.notification-preferences-heading)",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/reminders",
       "bytes": 132787,
       "sha256": "d9aaea189ce66001354b6ee72b9d71d964d14b34bcedad45771853710456a28c",
@@ -2254,17 +2227,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:20.374Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:02.514Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2275,8 +2248,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "d9aaea189ce66001354b6ee72b9d71d964d14b34bcedad45771853710456a28c",
-        "reviewedAt": "2026-11-25T15:56:55.971Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.681Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2296,10 +2269,10 @@
       "crop": ".alarm-form",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/reminders",
-      "bytes": 53927,
-      "sha256": "8ec697f0fe4b2d8298eb6327d27464d18fbc028329bee6308b1041cd63c794bb",
+      "bytes": 53864,
+      "sha256": "2b6cc49d0b3e740cac09bdf558c9787f0bf9373708f977e22770a916590e3a36",
       "audit": {
         "width": 1440,
         "height": 1100,
@@ -2316,17 +2289,17 @@
         "scrollY": 437
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:21.974Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:03.830Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2336,9 +2309,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "8ec697f0fe4b2d8298eb6327d27464d18fbc028329bee6308b1041cd63c794bb",
-        "reviewedAt": "2026-11-25T15:56:55.973Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "2b6cc49d0b3e740cac09bdf558c9787f0bf9373708f977e22770a916590e3a36",
+        "reviewedAt": "2026-11-27T22:12:43.682Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2355,11 +2328,10 @@
       "action": "none",
       "reason": "Tema claro y español para una lectura cercana y consistente del producto.",
       "endAt": ".personalization",
-      "portfolio": true,
       "filename": "38-settings-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/settings",
       "bytes": 450688,
       "sha256": "1487b02ebf033e9f7eccea0b5838a50469a5935de4c687edf2c65e121a1da489",
@@ -2379,17 +2351,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:24.104Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:05.868Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2400,8 +2372,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "1487b02ebf033e9f7eccea0b5838a50469a5935de4c687edf2c65e121a1da489",
-        "reviewedAt": "2026-11-25T15:56:55.976Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.684Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2421,7 +2393,7 @@
       "filename": "39-settings-desktop-dark-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/settings",
       "bytes": 421718,
       "sha256": "2ff1493d692861b5184db29319b7ba931fd54aef4aeaa79833dfade7f15fe711",
@@ -2441,17 +2413,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:25.842Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:07.688Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2462,8 +2434,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "2ff1493d692861b5184db29319b7ba931fd54aef4aeaa79833dfade7f15fe711",
-        "reviewedAt": "2026-11-25T15:56:55.980Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.686Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2484,7 +2456,7 @@
       "filename": "40-data-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/data",
       "bytes": 599507,
       "sha256": "81037bf86168ea34d0a64decc2eeac2a0eae37da54bf37679d71a25eb44da84b",
@@ -2504,17 +2476,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:27.685Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:09.144Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2525,8 +2497,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "81037bf86168ea34d0a64decc2eeac2a0eae37da54bf37679d71a25eb44da84b",
-        "reviewedAt": "2026-11-25T15:56:55.984Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.689Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2547,7 +2519,7 @@
       "filename": "41-settings-mobile-dark-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/settings",
       "bytes": 209814,
       "sha256": "6b3627852badc92bbe155d37d9f7098a3c57cb140b82add7265e6611fa5ee3a3",
@@ -2571,17 +2543,17 @@
         "scrollY": 553
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:29.973Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:10.974Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2592,8 +2564,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "6b3627852badc92bbe155d37d9f7098a3c57cb140b82add7265e6611fa5ee3a3",
-        "reviewedAt": "2026-11-25T15:56:55.987Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.690Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2614,7 +2586,7 @@
       "filename": "42-focus-intro-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/focus",
       "bytes": 103433,
       "sha256": "53c8edc2157106254c084e0656668b52b23d4572c644ac1da33f08aac7392330",
@@ -2634,17 +2606,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:32.160Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:13.037Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 0,
         "focusPresets": 0
       },
@@ -2655,8 +2627,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "53c8edc2157106254c084e0656668b52b23d4572c644ac1da33f08aac7392330",
-        "reviewedAt": "2026-11-25T15:56:55.989Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.691Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2680,10 +2652,10 @@
       "filename": "43-focus-home-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/focus",
-      "bytes": 630924,
-      "sha256": "e43cdaf970a4a4f0b4bcc5e2bc40f9a663527ab9296da4cfe24237afec33d76e",
+      "bytes": 631281,
+      "sha256": "200175c2ec83706258a49b4ff0f583fa21decd4d5a468a118961986f946470a1",
       "audit": {
         "width": 1440,
         "height": 908,
@@ -2700,17 +2672,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:34.368Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:15.029Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2720,9 +2692,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "e43cdaf970a4a4f0b4bcc5e2bc40f9a663527ab9296da4cfe24237afec33d76e",
-        "reviewedAt": "2026-11-25T15:56:55.993Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "200175c2ec83706258a49b4ff0f583fa21decd4d5a468a118961986f946470a1",
+        "reviewedAt": "2026-11-27T22:12:43.694Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2743,10 +2715,10 @@
       "filename": "44-focus-start-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/focus",
-      "bytes": 505179,
-      "sha256": "5ca173d817b525657fbd1c5ee7a6eec4341985c4da1807ab07f1734821b70b29",
+      "bytes": 505817,
+      "sha256": "262c09bc39830e84e501250bc487160bde675657d93ee772b7ecf2dbe230bb47",
       "audit": {
         "width": 1440,
         "height": 1150,
@@ -2763,17 +2735,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:37.766Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:18.236Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2783,9 +2755,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "5ca173d817b525657fbd1c5ee7a6eec4341985c4da1807ab07f1734821b70b29",
-        "reviewedAt": "2026-11-25T15:56:55.997Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "262c09bc39830e84e501250bc487160bde675657d93ee772b7ecf2dbe230bb47",
+        "reviewedAt": "2026-11-27T22:12:43.697Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2807,10 +2779,10 @@
       "filename": "45-focus-preset-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/focus",
-      "bytes": 520288,
-      "sha256": "ccb5dbcb0b92bee3f5f43b73fb9cb1f1cb626097c1885085736d60df37af0978",
+      "bytes": 519638,
+      "sha256": "7ba389d1dec365b7cd2edcc0b7d2302d76e7a6e1e40914583dfbb78da85d47f3",
       "audit": {
         "width": 1440,
         "height": 1250,
@@ -2827,17 +2799,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:41.419Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:21.361Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2847,9 +2819,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "ccb5dbcb0b92bee3f5f43b73fb9cb1f1cb626097c1885085736d60df37af0978",
-        "reviewedAt": "2026-11-25T15:56:56.002Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "7ba389d1dec365b7cd2edcc0b7d2302d76e7a6e1e40914583dfbb78da85d47f3",
+        "reviewedAt": "2026-11-27T22:12:43.700Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2870,7 +2842,7 @@
       "filename": "46-focus-presets-desktop-dark-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/focus",
       "bytes": 100710,
       "sha256": "f450bcab3706b3d56b2941cd52528b8d828882f6188651d24343b36a07c00572",
@@ -2890,17 +2862,17 @@
         "scrollY": 495
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:43.147Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:22.717Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2911,8 +2883,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "f450bcab3706b3d56b2941cd52528b8d828882f6188651d24343b36a07c00572",
-        "reviewedAt": "2026-11-25T15:56:56.004Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.701Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2934,7 +2906,7 @@
       "filename": "47-focus-countdown-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/focus",
       "bytes": 478616,
       "sha256": "7f9d82eaee723b03afafffff412730a370c14098f701f87d1b9f402ee7e85842",
@@ -2954,17 +2926,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:44.965Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:24.239Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -2975,8 +2947,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "7f9d82eaee723b03afafffff412730a370c14098f701f87d1b9f402ee7e85842",
-        "reviewedAt": "2026-11-25T15:56:56.012Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.703Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -2996,7 +2968,7 @@
       "filename": "48-focus-stopwatch-desktop-dark-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/focus",
       "bytes": 477903,
       "sha256": "5d52a3d4a4575b21a969e57ba360107bb81ce5a843009de68ceb9155415518e6",
@@ -3016,17 +2988,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:46.597Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:25.875Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3037,8 +3009,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "5d52a3d4a4575b21a969e57ba360107bb81ce5a843009de68ceb9155415518e6",
-        "reviewedAt": "2026-11-25T15:56:56.017Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.705Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3058,7 +3030,7 @@
       "filename": "49-focus-cycles-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/focus",
       "bytes": 491623,
       "sha256": "f097261754c1fa8d09aa8b7a73aec56a63f14bc9e67df857f2f6d8f06bc7c755",
@@ -3078,17 +3050,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:48.677Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:27.379Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3099,8 +3071,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "f097261754c1fa8d09aa8b7a73aec56a63f14bc9e67df857f2f6d8f06bc7c755",
-        "reviewedAt": "2026-11-25T15:56:56.021Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.707Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3122,7 +3094,7 @@
       "filename": "50-focus-plan-desktop-dark-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/focus",
       "bytes": 519612,
       "sha256": "530673489246e54bb04285e18f352f9b963137e2e7af06d9ea3bb08a4ee26167",
@@ -3142,17 +3114,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:50.603Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:28.941Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3163,8 +3135,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "530673489246e54bb04285e18f352f9b963137e2e7af06d9ea3bb08a4ee26167",
-        "reviewedAt": "2026-11-25T15:56:56.025Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.709Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3186,7 +3158,7 @@
       "crop": ".focus-active-view",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/focus",
       "bytes": 121048,
       "sha256": "a5ae7d1976fae3cd0704e901b7541bf99d4164c65ab15a8cb58ae5ae4e4eee34",
@@ -3206,17 +3178,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:52.125Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:30.142Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3227,8 +3199,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "a5ae7d1976fae3cd0704e901b7541bf99d4164c65ab15a8cb58ae5ae4e4eee34",
-        "reviewedAt": "2026-11-25T15:56:56.027Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.710Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3246,12 +3218,11 @@
       "reason": "Tema claro y español para una lectura cercana y consistente del producto.",
       "focusMode": "summary",
       "readme": "extra",
-      "portfolio": true,
       "filename": "52-focus-summary-desktop-light-es.png",
       "crop": ".focus-complete-card",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T15:48:52.205Z",
+      "clock": "2026-11-27T22:07:30.181Z",
       "path": "/es/focus",
       "bytes": 146814,
       "sha256": "110f33194a252e5228c6ab5282a0c6447ff6ef9ae84e0acf35f136d804247acb",
@@ -3271,17 +3242,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:48:59.860Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:36.167Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3292,8 +3263,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "110f33194a252e5228c6ab5282a0c6447ff6ef9ae84e0acf35f136d804247acb",
-        "reviewedAt": "2026-11-25T15:56:56.030Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.711Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3314,7 +3285,7 @@
       "crop": ".focus-goal-editor",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/focus",
       "bytes": 149198,
       "sha256": "98c077d14f344c991dd2231bea3a067cfcf4251a9d96c83655adf0968840b44d",
@@ -3334,17 +3305,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:01.818Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:37.548Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3355,8 +3326,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "98c077d14f344c991dd2231bea3a067cfcf4251a9d96c83655adf0968840b44d",
-        "reviewedAt": "2026-11-25T15:56:56.033Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.712Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3377,10 +3348,10 @@
       "crop": ".focus-stats-panel",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/statistics",
-      "bytes": 255347,
-      "sha256": "1e3dd1ee066643374d7d5f613bfebea2d8e5cdfe00d4eae2f1d3db2e11bd7024",
+      "bytes": 260674,
+      "sha256": "796546d09a23ebdf935301ba3ff7f71781a243186d60492402a0f4f415cf902d",
       "audit": {
         "width": 1440,
         "height": 1120,
@@ -3397,17 +3368,17 @@
         "scrollY": 1119
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:04.322Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:39.700Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3417,9 +3388,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "1e3dd1ee066643374d7d5f613bfebea2d8e5cdfe00d4eae2f1d3db2e11bd7024",
-        "reviewedAt": "2026-11-25T15:56:56.036Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "796546d09a23ebdf935301ba3ff7f71781a243186d60492402a0f4f415cf902d",
+        "reviewedAt": "2026-11-27T22:12:43.714Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3440,7 +3411,7 @@
       "filename": "55-focus-home-mobile-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/focus",
       "bytes": 507926,
       "sha256": "64890b4176fc0e9089cb4016d2eab2eec0e5aa23227814d2f02081bb15949b9a",
@@ -3464,17 +3435,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:06.689Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:41.334Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3485,8 +3456,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "64890b4176fc0e9089cb4016d2eab2eec0e5aa23227814d2f02081bb15949b9a",
-        "reviewedAt": "2026-11-25T15:56:56.040Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.716Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3509,7 +3480,7 @@
       "filename": "56-focus-active-mobile-dark-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/focus",
       "bytes": 126225,
       "sha256": "894c522b2a8c7610cd273adf4f150137f8019c3754979ccecc514df7db34cad4",
@@ -3533,17 +3504,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:08.076Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:42.397Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3554,8 +3525,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "894c522b2a8c7610cd273adf4f150137f8019c3754979ccecc514df7db34cad4",
-        "reviewedAt": "2026-11-25T15:56:56.042Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.717Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3576,7 +3547,7 @@
       "crop": ".focus-complete-card",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T15:49:08.165Z",
+      "clock": "2026-11-27T22:07:42.434Z",
       "path": "/es/focus",
       "bytes": 230098,
       "sha256": "d6528ef3932a6049d810fbb60b6b61a97dd1efc3bca20774a9a25dce4bbd8f58",
@@ -3600,17 +3571,17 @@
         "scrollY": 620
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:15.744Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:48.749Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3621,8 +3592,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "d6528ef3932a6049d810fbb60b6b61a97dd1efc3bca20774a9a25dce4bbd8f58",
-        "reviewedAt": "2026-11-25T15:56:56.045Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.718Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3642,10 +3613,10 @@
       "filename": "58-summary-mobile-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/summary",
-      "bytes": 364847,
-      "sha256": "a4d0719169223bd37936ed88af39eb9096b6147ecd2b6898124cbec7bff2c7d0",
+      "bytes": 363463,
+      "sha256": "d53daaceb6f4035355223ad171772e3e7e66cb4cfafedc5d995ccc609498219a",
       "audit": {
         "width": 390,
         "height": 850,
@@ -3666,17 +3637,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:18.055Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:50.611Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3686,9 +3657,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "a4d0719169223bd37936ed88af39eb9096b6147ecd2b6898124cbec7bff2c7d0",
-        "reviewedAt": "2026-11-25T15:56:56.049Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "d53daaceb6f4035355223ad171772e3e7e66cb4cfafedc5d995ccc609498219a",
+        "reviewedAt": "2026-11-27T22:12:43.720Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3708,10 +3679,10 @@
       "filename": "59-quick-capture-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/today",
-      "bytes": 810381,
-      "sha256": "ac910c26b3528146181d745ddeb2d1df4bb86b4d1842a05bec062a23d247c30a",
+      "bytes": 809397,
+      "sha256": "439a8a07823420c8e8e6649f3da346b9121d63e26124e860ccc91517419898c2",
       "audit": {
         "width": 1440,
         "height": 1226,
@@ -3728,17 +3699,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:20.944Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:53.472Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3748,9 +3719,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "ac910c26b3528146181d745ddeb2d1df4bb86b4d1842a05bec062a23d247c30a",
-        "reviewedAt": "2026-11-25T15:56:56.054Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "439a8a07823420c8e8e6649f3da346b9121d63e26124e860ccc91517419898c2",
+        "reviewedAt": "2026-11-27T22:12:43.724Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3770,10 +3741,10 @@
       "filename": "60-quick-capture-mobile-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/tasks",
-      "bytes": 98534,
-      "sha256": "d09e69de4136b66a1ec7684d2cde72c59e7d04f417b69d55dd10beddd3d12934",
+      "bytes": 100565,
+      "sha256": "3a72c3f9e867ab7800d5b68cbf902c1d2fa8dc50cf40b1c14c298978229be0fb",
       "audit": {
         "width": 390,
         "height": 920,
@@ -3794,17 +3765,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:22.727Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:55.478Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3814,9 +3785,9 @@
       },
       "visualReview": {
         "status": "accepted",
-        "sha256": "d09e69de4136b66a1ec7684d2cde72c59e7d04f417b69d55dd10beddd3d12934",
-        "reviewedAt": "2026-11-25T15:56:56.057Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "sha256": "3a72c3f9e867ab7800d5b68cbf902c1d2fa8dc50cf40b1c14c298978229be0fb",
+        "reviewedAt": "2026-11-27T22:12:43.726Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3836,7 +3807,7 @@
       "filename": "61-templates-desktop-light-es.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/templates",
       "bytes": 487285,
       "sha256": "0e9396c138b9dbd036758b5e33e364d1f26e25c62c554085f6b4ff0cf6a055cb",
@@ -3856,17 +3827,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:24.015Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:56.991Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3877,8 +3848,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "0e9396c138b9dbd036758b5e33e364d1f26e25c62c554085f6b4ff0cf6a055cb",
-        "reviewedAt": "2026-11-25T15:56:56.060Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.728Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3898,7 +3869,7 @@
       "filename": "62-search-desktop-light-en.png",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/search",
       "bytes": 550437,
       "sha256": "353ff6312d3b8cb43889400a6c7a8950ae9ad370d2986c3cd1f17f894def3b18",
@@ -3918,17 +3889,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:56:28.767Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:07:58.992Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -3939,8 +3910,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "353ff6312d3b8cb43889400a6c7a8950ae9ad370d2986c3cd1f17f894def3b18",
-        "reviewedAt": "2026-11-25T15:56:56.065Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.730Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -3962,7 +3933,7 @@
       "crop": ".focus-plan-item",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/en/focus",
       "bytes": 58431,
       "sha256": "ced2d854a1470d1e470468d65a7b561df62c3237dc60b1befe95e16b7d060ccc",
@@ -3982,17 +3953,17 @@
         "scrollY": 0
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:25.680Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:08:01.057Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -4003,8 +3974,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "ced2d854a1470d1e470468d65a7b561df62c3237dc60b1befe95e16b7d060ccc",
-        "reviewedAt": "2026-11-25T15:56:56.067Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.731Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -4025,7 +3996,7 @@
       "crop": ".focus-review-optional",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T15:49:25.700Z",
+      "clock": "2026-11-27T22:08:01.084Z",
       "path": "/en/focus",
       "bytes": 105087,
       "sha256": "f8b80e474682e8c372369fb232fc754ead9e20d6d7b5cca0035289e0f62d589c",
@@ -4045,17 +4016,17 @@
         "scrollY": 63
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:32.008Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:08:07.557Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -4066,8 +4037,8 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "f8b80e474682e8c372369fb232fc754ead9e20d6d7b5cca0035289e0f62d589c",
-        "reviewedAt": "2026-11-25T15:56:56.069Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.732Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     },
     {
@@ -4088,7 +4059,7 @@
       "captureNote": "Panel detail: fixed bottom navigation omitted from the crop.",
       "status": "captured",
       "attempt": 1,
-      "clock": "2026-11-25T09:24:00.000Z",
+      "clock": "2026-11-27T09:24:00.000Z",
       "path": "/es/focus",
       "bytes": 240982,
       "sha256": "8c7d9f9169c88600a4ede61756d4a92ad7609b5d229d0c0690827fd280d0a83c",
@@ -4112,17 +4083,17 @@
         "scrollY": 1252
       },
       "errors": [],
-      "capturedAt": "2026-11-25T15:49:33.790Z",
-      "fixtureDate": "2026-11-25",
+      "capturedAt": "2026-11-27T22:08:09.474Z",
+      "fixtureDate": "2026-11-27",
       "fixtureVersion": "planora-editorial-v4",
-      "sourceCommit": "9fe15171e18702d5bc983f47c6184b7469560c68",
-      "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "f83ab6c910d26f47b2617c38b0bfa7efd77294c6ce92b93c2757ce1fb840aedd",
       "fixtureCounts": {
         "schedules": 4,
         "categories": 6,
         "tasks": 15,
         "events": 11,
-        "completions": 329,
+        "completions": 330,
         "focusSessions": 50,
         "focusPresets": 4
       },
@@ -4133,20 +4104,248 @@
       "visualReview": {
         "status": "accepted",
         "sha256": "8c7d9f9169c88600a4ede61756d4a92ad7609b5d229d0c0690827fd280d0a83c",
-        "reviewedAt": "2026-11-25T15:56:56.072Z",
-        "note": "Revisada la composición en las hojas de contacto y comprobados en detalle la agenda semanal y los resultados de búsqueda."
+        "reviewedAt": "2026-11-27T22:12:43.733Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
+      }
+    },
+    {
+      "id": "66",
+      "key": "demo-today",
+      "route": "demo/today",
+      "title": "Agenda de la demo con captura de tareas y acceso a Enfoque",
+      "locale": "es",
+      "theme": "light",
+      "device": "desktop",
+      "width": 1440,
+      "height": 948,
+      "scale": 2,
+      "action": "none",
+      "reason": "Tema claro y español para una lectura cercana y consistente del producto.",
+      "endAt": ":nth-match(.task-list, 2)",
+      "readme": "demo",
+      "portfolio": true,
+      "filename": "66-demo-today-desktop-light-es.png",
+      "status": "captured",
+      "attempt": 1,
+      "clock": "2026-11-27T09:24:00.000Z",
+      "path": "/es/demo/today",
+      "bytes": 869893,
+      "sha256": "020a36adfadffddcf51c27e3b1ac689a0743efd0217b5504e3fa2393eadce1f7",
+      "audit": {
+        "width": 1440,
+        "height": 948,
+        "overflow": 0,
+        "brokenImages": [],
+        "loading": [],
+        "alerts": [],
+        "dialogs": 0,
+        "empty": [],
+        "clippedControls": [],
+        "nav": null,
+        "theme": "light",
+        "locale": "es",
+        "scrollY": 0
+      },
+      "errors": [],
+      "capturedAt": "2026-11-27T22:10:50.111Z",
+      "fixtureDate": "2026-11-27",
+      "fixtureVersion": "planora-editorial-v4",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "ad85ecd07e99513eb1660d3164ba46b85f50b42fa5e7e9a2c4bc1d70b9bb6bc8",
+      "pixels": {
+        "width": 2880,
+        "height": 1896
+      },
+      "visualReview": {
+        "status": "accepted",
+        "sha256": "020a36adfadffddcf51c27e3b1ac689a0743efd0217b5504e3fa2393eadce1f7",
+        "reviewedAt": "2026-11-27T22:12:43.738Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
+      }
+    },
+    {
+      "id": "67",
+      "key": "demo-focus",
+      "route": "demo/focus",
+      "title": "Temporizador de prueba de 15 segundos con una tarea vinculada",
+      "locale": "en",
+      "theme": "light",
+      "device": "mobile",
+      "width": 390,
+      "height": 805,
+      "scale": 3,
+      "action": "none",
+      "reason": "Inglés para presentar el proyecto a una audiencia profesional internacional.",
+      "endAt": ".demo-focus-card",
+      "readme": "demo-mobile",
+      "portfolio": true,
+      "filename": "67-demo-focus-mobile-light-en.png",
+      "status": "captured",
+      "attempt": 1,
+      "clock": "2026-11-27T09:24:00.000Z",
+      "path": "/en/demo/focus",
+      "bytes": 284880,
+      "sha256": "76d8275b6a798a24cbcb91a31e2109bfda0037f6ff95b41b8dfab2976b1abdb8",
+      "audit": {
+        "width": 390,
+        "height": 805,
+        "overflow": 0,
+        "brokenImages": [],
+        "loading": [],
+        "alerts": [],
+        "dialogs": 0,
+        "empty": [],
+        "clippedControls": [],
+        "nav": {
+          "top": 738.40625,
+          "height": 66.59375,
+          "bottom": 805
+        },
+        "theme": "light",
+        "locale": "en",
+        "scrollY": 0
+      },
+      "errors": [],
+      "capturedAt": "2026-11-27T22:10:51.032Z",
+      "fixtureDate": "2026-11-27",
+      "fixtureVersion": "planora-editorial-v4",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "ad85ecd07e99513eb1660d3164ba46b85f50b42fa5e7e9a2c4bc1d70b9bb6bc8",
+      "pixels": {
+        "width": 1170,
+        "height": 2415
+      },
+      "visualReview": {
+        "status": "accepted",
+        "sha256": "76d8275b6a798a24cbcb91a31e2109bfda0037f6ff95b41b8dfab2976b1abdb8",
+        "reviewedAt": "2026-11-27T22:12:43.740Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
+      }
+    },
+    {
+      "id": "68",
+      "key": "demo-statistics",
+      "route": "demo/statistics",
+      "title": "Estadísticas tras completar una sesión de prueba",
+      "locale": "en",
+      "theme": "light",
+      "device": "desktop",
+      "width": 1440,
+      "height": 808,
+      "scale": 2,
+      "action": "demo-result",
+      "reason": "Inglés para presentar el proyecto a una audiencia profesional internacional.",
+      "endAt": ".demo-focus-week",
+      "readme": "demo",
+      "portfolio": true,
+      "filename": "68-demo-statistics-desktop-light-en.png",
+      "status": "captured",
+      "attempt": 1,
+      "clock": "2026-11-27T09:24:00.000Z",
+      "path": "/en/demo/statistics",
+      "bytes": 416803,
+      "sha256": "bdcc345dc163e2be64b9683de9dff234164e399aca3190ac72dc9d6a7068367c",
+      "audit": {
+        "width": 1440,
+        "height": 808,
+        "overflow": 0,
+        "brokenImages": [],
+        "loading": [],
+        "alerts": [],
+        "dialogs": 0,
+        "empty": [],
+        "clippedControls": [],
+        "nav": null,
+        "theme": "light",
+        "locale": "en",
+        "scrollY": 0
+      },
+      "errors": [],
+      "capturedAt": "2026-11-27T22:10:52.492Z",
+      "fixtureDate": "2026-11-27",
+      "fixtureVersion": "planora-editorial-v4",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "ad85ecd07e99513eb1660d3164ba46b85f50b42fa5e7e9a2c4bc1d70b9bb6bc8",
+      "pixels": {
+        "width": 2880,
+        "height": 1616
+      },
+      "visualReview": {
+        "status": "accepted",
+        "sha256": "bdcc345dc163e2be64b9683de9dff234164e399aca3190ac72dc9d6a7068367c",
+        "reviewedAt": "2026-11-27T22:12:43.743Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
+      }
+    },
+    {
+      "id": "69",
+      "key": "demo-theme",
+      "route": "demo/settings",
+      "title": "Ajustes de la demo en móvil con el tema oscuro elegido",
+      "locale": "es",
+      "theme": "dark",
+      "device": "mobile",
+      "width": 390,
+      "height": 887,
+      "scale": 3,
+      "action": "demo-theme",
+      "reason": "El tema oscuro refuerza la concentración y permite mostrar el contraste real de la interfaz.",
+      "endAt": ".app-about",
+      "readme": "demo-mobile",
+      "portfolio": true,
+      "filename": "69-demo-theme-mobile-dark-es.png",
+      "status": "captured",
+      "attempt": 1,
+      "clock": "2026-11-27T09:24:00.000Z",
+      "path": "/es/demo/settings",
+      "bytes": 322933,
+      "sha256": "e557453b8503fa5cd2cc412b8ccc58a4ae809cea857bcd41e38858723768538e",
+      "audit": {
+        "width": 390,
+        "height": 887,
+        "overflow": 0,
+        "brokenImages": [],
+        "loading": [],
+        "alerts": [],
+        "dialogs": 0,
+        "empty": [],
+        "clippedControls": [],
+        "nav": {
+          "top": 820.40625,
+          "height": 66.59375,
+          "bottom": 887
+        },
+        "theme": "dark",
+        "locale": "es",
+        "scrollY": 0
+      },
+      "errors": [],
+      "capturedAt": "2026-11-27T22:10:53.435Z",
+      "fixtureDate": "2026-11-27",
+      "fixtureVersion": "planora-editorial-v4",
+      "sourceCommit": "fc335298750721e13f18215e7df9fbac9afb3f49",
+      "captureCodeSha256": "ad85ecd07e99513eb1660d3164ba46b85f50b42fa5e7e9a2c4bc1d70b9bb6bc8",
+      "pixels": {
+        "width": 1170,
+        "height": 2661
+      },
+      "visualReview": {
+        "status": "accepted",
+        "sha256": "e557453b8503fa5cd2cc412b8ccc58a4ae809cea857bcd41e38858723768538e",
+        "reviewedAt": "2026-11-27T22:12:43.745Z",
+        "note": "Revisión visual de las nueve hojas de contacto: encuadres de escritorio y móvil, semana completa y estados de la demo pública en claro y oscuro."
       }
     }
   ],
   "formatVersion": 1,
   "fixtureVersion": "planora-editorial-v4",
-  "referenceDate": "2026-11-25",
-  "generatedAt": "2026-11-25T15:56:17.919Z",
+  "referenceDate": "2026-11-27",
+  "generatedAt": "2026-11-27T22:10:30.261Z",
   "source": {
-    "commit": "9fe15171e18702d5bc983f47c6184b7469560c68",
+    "commit": "fc335298750721e13f18215e7df9fbac9afb3f49",
     "appDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "readmeFeaturesSha256": "9cb5d7ffef70c74a9b79e04ee19bc78defdff8703201eb28b6a9581fb914ba69",
-    "captureCodeSha256": "4981d243e8a60544a23fdae82c3b071fed0aef27849381080b7d7b0f1a8a41ee"
+    "captureCodeSha256": "ad85ecd07e99513eb1660d3164ba46b85f50b42fa5e7e9a2c4bc1d70b9bb6bc8"
   },
   "failedIds": [],
   "schemaSha256": "8b743da9d57b99d0d580565e93b11521365630e83d9ad81db56a69e6aafaf422",
@@ -4157,15 +4356,15 @@
         "id": "01",
         "file": "readme/01-landing-desktop-light-en.webp",
         "title": "Presentación pública, propuesta de valor y CTA",
-        "sha256": "95e903becd11749edaa4fc0128d868a3539de839561b4384901d25fdc33a4a46",
+        "sha256": "5d3f0ab751355befe9dc7d2122272bafc9a8adeb8d69b8305656e4b63a9857b8",
         "width": 1440,
-        "height": 768
+        "height": 703
       },
       {
         "id": "04",
         "file": "readme/04-today-desktop-light-es.webp",
         "title": "Hoy: progreso, horario activo y grupos del día",
-        "sha256": "c16201e827d724295ea46b4c2c3b7fc150b139ee2ce24e7de1b0c72f217abe04",
+        "sha256": "efc9533f859af0e4965c70068b14f9a24c1efbc7c267f3ff6634cf916cb5329c",
         "width": 1440,
         "height": 1038
       },
@@ -4173,7 +4372,7 @@
         "id": "07",
         "file": "readme/07-today-mobile-light-es.webp",
         "title": "Hoy móvil: progreso y tareas de la mañana",
-        "sha256": "8898f8b50c13a53af808ed5e2cbad6df36745095d4830530fd7457480265837f",
+        "sha256": "391fbc5c6d0c83302f7ecb86456399ea2702a2789565510566a3988184c9b93a",
         "width": 780,
         "height": 1760
       },
@@ -4181,15 +4380,15 @@
         "id": "08",
         "file": "readme/08-week-desktop-light-es.webp",
         "title": "Semana completa con tareas, hábitos y eventos",
-        "sha256": "30c9550acb66e0182fd42a87e123895ff73843dbb3ca93c619aad5842baeb8ba",
+        "sha256": "e4563ecb3f394b34d4fdf04e399f2fba149b0812dcc2afaa92f27922d320fb9a",
         "width": 1440,
-        "height": 943
+        "height": 969
       },
       {
         "id": "11",
         "file": "readme/11-week-mobile-dark-es.webp",
         "title": "Selector de días y agenda semanal móvil",
-        "sha256": "a5f03d4fe1529267ffa4d0e0687cd14651ec2ac2e73fbd7c8b1c363336544874",
+        "sha256": "08982539fa554dc8270c212c58510e678b325c687198422273a6374d824be4d2",
         "width": 780,
         "height": 1730
       },
@@ -4197,7 +4396,7 @@
         "id": "12",
         "file": "readme/12-month-desktop-light-es.webp",
         "title": "Calendario mensual con actividad y eventos",
-        "sha256": "2875021303486ee1dc84e94b30f46ba8f9af0d145ecef1e80059cdda43984fdc",
+        "sha256": "9034d8270ea67cb83ee206c97df4d232464c9235af355a63896987cda2e6aa01",
         "width": 1440,
         "height": 1637
       },
@@ -4213,7 +4412,7 @@
         "id": "21",
         "file": "readme/21-events-desktop-light-es.webp",
         "title": "Eventos del proyecto y de la vida personal",
-        "sha256": "bc2b43920dc0729d642673dfff1934c380efd12931296db8ad67e76f291ceba9",
+        "sha256": "666638a87bf269a6d611220120a5164b6c4b46181c47f97cf97af09f75c09c94",
         "width": 1440,
         "height": 1100
       },
@@ -4221,7 +4420,7 @@
         "id": "24",
         "file": "readme/24-history-desktop-light-es.webp",
         "title": "Historial con instantáneas y fechas anteriores",
-        "sha256": "165b8a432394a18ce88a28e100b2a4a7347465b9aee9caa3f9171b3ecd904fc6",
+        "sha256": "dd8cabf4ceb574840dfaf45d9560094feb7cf991abd1b66dda37db72670b2990",
         "width": 1440,
         "height": 1081
       },
@@ -4229,7 +4428,7 @@
         "id": "27",
         "file": "readme/27-statistics-desktop-light-en.webp",
         "title": "Estadísticas de hábitos y progreso real",
-        "sha256": "faff6835053b07540f82dda3061c92e0d6ab5bc4f303e45256c04d1e751f248d",
+        "sha256": "e3989e44fcc3268bcfa46cd53a3b423bb05636d862adbda3ca00f1a2eee5fba0",
         "width": 1440,
         "height": 1136
       },
@@ -4253,7 +4452,7 @@
         "id": "33",
         "file": "readme/33-reminders-desktop-light-es.webp",
         "title": "Centro de notificaciones, recordatorios y alarmas",
-        "sha256": "f468663e2a73ff391e630ed23550381b5017f49b9c4e6dba2ddecd6fcfdbe4e5",
+        "sha256": "e6127fd3b08fcac425681937884a61feabfd4fc0adb889a27296a3f958d2c069",
         "width": 1440,
         "height": 704
       },
@@ -4277,7 +4476,7 @@
         "id": "43",
         "file": "readme/43-focus-home-desktop-light-en.webp",
         "title": "Enfoque: presets, inicio rápido y resumen semanal",
-        "sha256": "64655c9eff354d0cf83c83fb969683b3b08c80f9f856ef50c6a14d8d25ec432e",
+        "sha256": "e995c19d4b8d402f091ef1d1e7c7cc483b0dfda075826a0ce482430c61005c40",
         "width": 1440,
         "height": 908
       },
@@ -4285,7 +4484,7 @@
         "id": "45",
         "file": "readme/45-focus-preset-desktop-light-en.webp",
         "title": "Configuración de un preset de trabajo profundo",
-        "sha256": "652202222b19e02ef4002ba5f174f42598b863e86e3159ee9c6e1b6e5d2522d2",
+        "sha256": "8f09a29592247af81ff17763d30ff57fbd3f658fe1bd3d5cde17ba549f539681",
         "width": 1440,
         "height": 1250
       },
@@ -4325,7 +4524,7 @@
         "id": "54",
         "file": "readme/54-focus-statistics-desktop-dark-en.webp",
         "title": "Estadísticas de Enfoque con historial suficiente",
-        "sha256": "ec5ec05f95254463f3e726b0f242040eb172151e62e9513f8e8874f29ad690d0",
+        "sha256": "f26863c1b6e8111a2b738c5e92007839fe0e1ed062607779e1c22b6c7869963e",
         "width": 1440,
         "height": 1868
       },
@@ -4352,32 +4551,88 @@
         "sha256": "0097ff1319fdd911127047d0913d6c5555eb45e0de32f34f3a1edbf2e97f1573",
         "width": 1440,
         "height": 1100
+      },
+      {
+        "id": "66",
+        "file": "readme/66-demo-today-desktop-light-es.webp",
+        "title": "Agenda de la demo con captura de tareas y acceso a Enfoque",
+        "sha256": "bfecfb9506bb9494ef911d5792637d7e599704d37ad5e5a127016bf62afa6f46",
+        "width": 1440,
+        "height": 948
+      },
+      {
+        "id": "67",
+        "file": "readme/67-demo-focus-mobile-light-en.webp",
+        "title": "Temporizador de prueba de 15 segundos con una tarea vinculada",
+        "sha256": "c045f5e3194ac87eb45e334f1563cbc09bc0bbc3050b776c23721519a107ef16",
+        "width": 780,
+        "height": 1610
+      },
+      {
+        "id": "68",
+        "file": "readme/68-demo-statistics-desktop-light-en.webp",
+        "title": "Estadísticas tras completar una sesión de prueba",
+        "sha256": "23059331113ecb07d9cad9bcc4c3a58fb7844c26f89f7ac60cc7cdbcce987a06",
+        "width": 1440,
+        "height": 808
+      },
+      {
+        "id": "69",
+        "file": "readme/69-demo-theme-mobile-dark-es.webp",
+        "title": "Ajustes de la demo en móvil con el tema oscuro elegido",
+        "sha256": "07dddbb580e02c7fa8b6bc6874d851d2f33d14b582d502371f090d84e5af7761",
+        "width": 780,
+        "height": 1774
       }
     ],
     "portfolio": [
       {
-        "id": "01",
-        "file": "portfolio/01-landing-desktop-light-en.webp",
-        "title": "Presentación pública, propuesta de valor y CTA",
-        "sha256": "27caed6b54fe5394ab886f17806fec1b3004e0eda065088ed6537a3d273db90d",
-        "width": 2400,
-        "height": 1280
-      },
-      {
-        "id": "04",
-        "file": "portfolio/04-today-desktop-light-es.webp",
-        "title": "Hoy: progreso, horario activo y grupos del día",
-        "sha256": "06690d94afa242248105c287048f049b5687acc64c506e6edd1effa06a5a3429",
-        "width": 2400,
-        "height": 1730
-      },
-      {
         "id": "08",
         "file": "portfolio/08-week-desktop-light-es.webp",
         "title": "Semana completa con tareas, hábitos y eventos",
-        "sha256": "19004d1e1ac335cdd840580228dd79fa676dc15a9b16e6ee5bac8edc845cc624",
+        "sha256": "e9913fc672b920c91bef85b54d5634bf47fa0db7b7e4d37f8bba621bf6cefa38",
         "width": 2400,
-        "height": 1571
+        "height": 1614
+      },
+      {
+        "id": "01",
+        "file": "portfolio/01-landing-desktop-light-en.webp",
+        "title": "Presentación pública, propuesta de valor y CTA",
+        "sha256": "c0ddfae842d0cbb14c09cbd482f65d73ff297ec5472f0381de2e4fa27bc18805",
+        "width": 2400,
+        "height": 1172
+      },
+      {
+        "id": "66",
+        "file": "portfolio/66-demo-today-desktop-light-es.webp",
+        "title": "Agenda de la demo con captura de tareas y acceso a Enfoque",
+        "sha256": "c419a5313a67cc6bc0fdf24cfd0e2de6e24d3d10a785a55e5d2cca4a182a39c3",
+        "width": 2400,
+        "height": 1580
+      },
+      {
+        "id": "67",
+        "file": "portfolio/67-demo-focus-mobile-light-en.webp",
+        "title": "Temporizador de prueba de 15 segundos con una tarea vinculada",
+        "sha256": "8b7854f1438fd18ff62951a8114dfbb56a435b941f2981c8091e677047eeb9d2",
+        "width": 1170,
+        "height": 2415
+      },
+      {
+        "id": "68",
+        "file": "portfolio/68-demo-statistics-desktop-light-en.webp",
+        "title": "Estadísticas tras completar una sesión de prueba",
+        "sha256": "755c159f67401df922e01c98603cb6d1723a02557f779dcc332428c278a31365",
+        "width": 2400,
+        "height": 1347
+      },
+      {
+        "id": "69",
+        "file": "portfolio/69-demo-theme-mobile-dark-es.webp",
+        "title": "Ajustes de la demo en móvil con el tema oscuro elegido",
+        "sha256": "b5df490661eb53be1f076aea877cb889a45a2e489e758e7f04629ed1307fb927",
+        "width": 1170,
+        "height": 2661
       },
       {
         "id": "15",
@@ -4391,7 +4646,7 @@
         "id": "43",
         "file": "portfolio/43-focus-home-desktop-light-en.webp",
         "title": "Enfoque: presets, inicio rápido y resumen semanal",
-        "sha256": "0fbbe5a534fabc51d87f8cf18568fa5e030510fd11c9a9b4f411c7bb779c8183",
+        "sha256": "68d9f241a96642ffb7ea5c580fdb1fdbed11a91ee605bc2f36de2cba907fd1fe",
         "width": 2400,
         "height": 1513
       },
@@ -4412,26 +4667,10 @@
         "height": 2000
       },
       {
-        "id": "52",
-        "file": "portfolio/52-focus-summary-desktop-light-es.webp",
-        "title": "Resumen final y comparación de lo previsto con lo realizado",
-        "sha256": "fec8f0b7249ea609395f50dc654ec22b3ff23635197ec2fcab0dfe456b167dbc",
-        "width": 1640,
-        "height": 1618
-      },
-      {
-        "id": "27",
-        "file": "portfolio/27-statistics-desktop-light-en.webp",
-        "title": "Estadísticas de hábitos y progreso real",
-        "sha256": "e6ad56e891016aa201095b54c6128f8c53c8f9ea98418df7ffea1995ed28572f",
-        "width": 2400,
-        "height": 1893
-      },
-      {
         "id": "12",
         "file": "portfolio/12-month-desktop-light-es.webp",
         "title": "Calendario mensual con actividad y eventos",
-        "sha256": "3ac42652ea84189f80afcdfd1590e3be82b37cf86f3216344bc34b8bed3e90e2",
+        "sha256": "4e802e9430c2fad084d22ca73bd0b1533e8e195e76f5299f5cb30d4cf8ece762",
         "width": 2400,
         "height": 2728
       },
@@ -4439,7 +4678,7 @@
         "id": "33",
         "file": "portfolio/33-reminders-desktop-light-es.webp",
         "title": "Centro de notificaciones, recordatorios y alarmas",
-        "sha256": "8bc1e974ab9cab566deea15fa415e19a0fa6ad08bc745706c9b692356477c294",
+        "sha256": "a7bb40afd86ea5b4c8d3e47dcb5f124b7c106a751afca2489b42bff361252a5c",
         "width": 2132,
         "height": 1042
       },
@@ -4447,7 +4686,7 @@
         "id": "07",
         "file": "portfolio/07-today-mobile-light-es.webp",
         "title": "Hoy móvil: progreso y tareas de la mañana",
-        "sha256": "a4e57c6d53cfab8f0ecad830b5784ab24f198b043c4cb2ba69b510d5cb7a7772",
+        "sha256": "05c48b07a32e8e9949ef46094b6bd7364828cc7a4c92091add2460a57fac9a65",
         "width": 1170,
         "height": 2640
       },
@@ -4458,14 +4697,6 @@
         "sha256": "69995cc37d72a48afb3c27a28f2cb4d1a2102741b67d891bbe88fb8a4c28b8c1",
         "width": 1170,
         "height": 2760
-      },
-      {
-        "id": "38",
-        "file": "portfolio/38-settings-desktop-light-es.webp",
-        "title": "Ajustes de apariencia, idioma y personalización",
-        "sha256": "67935319dfbf975bef9c7e2630befb78e996a25601f0ed522fcba1e9996bbce8",
-        "width": 2400,
-        "height": 1695
       }
     ],
     "linkedin": [
@@ -4473,15 +4704,15 @@
         "id": "01",
         "file": "linkedin/01-landing-desktop-light-en.png",
         "title": "Presentación pública, propuesta de valor y CTA",
-        "sha256": "3ac1f2939f2882cd2691fe14a6be0f1cf23996eef9c7dd54a4d61a85af4a634b",
+        "sha256": "a262bf822adbefabd5aab83f0b9004dc7ba3a90eb8430f5c43c0e32148592b36",
         "width": 1600,
-        "height": 853
+        "height": 781
       },
       {
         "id": "04",
         "file": "linkedin/04-today-desktop-light-es.png",
         "title": "Hoy: progreso, horario activo y grupos del día",
-        "sha256": "3dbe89cab14cd15554e384e2ce55cae4f95740ea987f59595998a177f4d53f53",
+        "sha256": "76027fff2a15338cbc7fdafb2b2489d9711155a3eba84f6834c225fffdd71160",
         "width": 1600,
         "height": 1153
       },
@@ -4489,9 +4720,9 @@
         "id": "08",
         "file": "linkedin/08-week-desktop-light-es.png",
         "title": "Semana completa con tareas, hábitos y eventos",
-        "sha256": "b230f3c710c1d71282f18a26fe76bfd5852e33ba6e9c65c18f7d505f042bfd9e",
+        "sha256": "a9a45d3b0a4ad631c70a81292c627430fffeed89a3090f97cf11c65dfe3e387d",
         "width": 1600,
-        "height": 1048
+        "height": 1076
       },
       {
         "id": "15",
@@ -4505,7 +4736,7 @@
         "id": "43",
         "file": "linkedin/43-focus-home-desktop-light-en.png",
         "title": "Enfoque: presets, inicio rápido y resumen semanal",
-        "sha256": "4be428cd347a785faf3de65abcb1aaf31941dbf85e7d3635fd082ce0902704f5",
+        "sha256": "0771e5845c7cd088fcd8c027d0c7f5622a041c0d6c976025a3461ca67061c24d",
         "width": 1600,
         "height": 1009
       },
@@ -4521,7 +4752,7 @@
         "id": "27",
         "file": "linkedin/27-statistics-desktop-light-en.png",
         "title": "Estadísticas de hábitos y progreso real",
-        "sha256": "9a26451a1524b85c1c0b410610a5d87a14f1af647dcb5cae3dc5026f7b52c152",
+        "sha256": "bca40db6200115e0932e5d48f61de24ff64d17cbcade5b86a4201a89eb648037",
         "width": 1600,
         "height": 1262
       },
@@ -4529,7 +4760,7 @@
         "id": "07",
         "file": "linkedin/07-today-mobile-light-es.png",
         "title": "Hoy móvil: progreso y tareas de la mañana",
-        "sha256": "615048e211c76275fcfb7f4dfdd5892ec424b74afdda39c462850238e4e43e17",
+        "sha256": "4dc6139077a4b7cb26c8c0b3dfb3d6cf6eb9d6e5cd60a2ae7bfa52704aa4aa61",
         "width": 1170,
         "height": 2640
       },
@@ -4551,5 +4782,5 @@
       }
     ]
   },
-  "assetPipelineSha256": "5a7ed8923dd95517c35d0fd9c381e2fbf4930dd86a16c73e93e2d9c0bc27bab9"
+  "assetPipelineSha256": "e5cc7d3e143fbfa05c99d2ae8481deb658cb7a29611a45141a79ce7ae6872624"
 }

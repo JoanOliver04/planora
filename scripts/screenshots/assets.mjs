@@ -52,7 +52,7 @@ const writeMarkdown = async (file, contents) =>
     await format(contents, { filepath: file, endOfLine: "auto" }),
   );
 const captions = {
-  "01": "A calmer way to plan",
+  "01": "Public planner homepage with a sample day and a link to the demo",
   "04": "Today at a glance",
   "07": "Today on mobile",
   "08": "Weekly planning",
@@ -77,23 +77,27 @@ const captions = {
   56: "Mobile concentration mode",
   61: "Reusable planning templates",
   62: "Search the whole workspace",
+  66: "Plan your day from Today",
+  67: "Try a 15-second Focus session",
+  68: "See your session in Statistics",
+  69: "Choose a theme in Settings",
 };
 const orders = {
   portfolio: [
-    "01",
-    "04",
     "08",
+    "01",
+    "66",
+    "67",
+    "68",
+    "69",
     "15",
     "43",
     "47",
     "50",
-    "52",
-    "27",
     "12",
     "33",
     "07",
     "56",
-    "38",
   ],
   linkedin: ["01", "04", "08", "15", "43", "51", "27", "07", "56", "40"],
 };
@@ -246,7 +250,7 @@ export async function generateAssets(manifest, { updateReadme = false } = {}) {
     "",
     "## Selecciones recomendadas",
     "",
-    "README: una portada, ocho vistas principales, doce adicionales en un desplegable y cuatro móviles. Las imágenes enlazan al master PNG. Las variantes WebP reducen el peso de lectura en GitHub.",
+    "README: portada, cuatro capturas de la demo sin registro y una galería del espacio privado en escritorio y móvil. Cada WebP enlaza a la captura PNG de resolución completa.",
     "",
     ...["portfolio", "linkedin"].flatMap((kind) => [
       "### " +
@@ -395,7 +399,7 @@ async function updateReadmeGallery(images, selections) {
     '" width="' +
     width +
     '" /></a>';
-  const table = (items) =>
+  const table = (items, imageWidth = "100%") =>
     [
       "<table>",
       ...Array.from(
@@ -406,10 +410,10 @@ async function updateReadmeGallery(images, selections) {
             .slice(row * 2, row * 2 + 2)
             .map(
               (image) =>
-                '    <td width="50%" align="center"><strong>' +
+                '    <td width="50%" align="center" valign="top"><strong>' +
                 caption(image) +
                 "</strong><br/>" +
-                imageTag(image) +
+                imageTag(image, imageWidth) +
                 "</td>",
             )
             .join("\n") +
@@ -421,8 +425,12 @@ async function updateReadmeGallery(images, selections) {
   const main = images.filter((image) => image.readme === "main");
   const extra = images.filter((image) => image.readme === "extra");
   const phones = images.filter((image) => image.readme === "mobile");
+  const demo = images.filter((image) => image.readme === "demo");
+  const demoPhones = images.filter((image) => image.readme === "demo-mobile");
   if (
     !hero ||
+    demo.length !== 2 ||
+    demoPhones.length !== 2 ||
     main.length !== 8 ||
     phones.length < 4 ||
     selections.portfolio.length < 10 ||
@@ -440,7 +448,13 @@ async function updateReadmeGallery(images, selections) {
     "  " + imageTag(hero),
     "</p>",
     "",
-    "Planora is a portfolio case study in turning irregular routines into a calm planning system. Recurrence, timezone boundaries, data isolation and offline changes are handled as domain rules rather than visual shortcuts. A public demo makes the complete product easy to evaluate while real workspaces remain private.",
+    "### Try the public demo",
+    "",
+    "Add a task, try a 15-second Focus session and see the result in Statistics. The demo opens in light mode. Choose a different theme in Settings. [Open the English demo](https://planora-lake-one.vercel.app/en/demo) · [Probar la demo en español](https://planora-lake-one.vercel.app/es/demo)",
+    "",
+    table(demo),
+    "",
+    table(demoPhones, "84%"),
     "",
     "## Screenshots",
     "",

@@ -55,7 +55,6 @@ export const scenes = [
     height: 1120,
     endAt: ".task-group",
     readme: "main",
-    portfolio: true,
     linkedin: true,
   }),
   make(
@@ -87,6 +86,7 @@ export const scenes = [
   make(8, "week", "week", "Semana completa con tareas, hábitos y eventos", {
     width: 1680,
     height: 1100,
+    endAt: ".week-grid",
     readme: "main",
     portfolio: true,
     linkedin: true,
@@ -95,6 +95,7 @@ export const scenes = [
     ...en,
     width: 1680,
     height: 1120,
+    endAt: ".week-grid",
   }),
   make(10, "week-dates", "week", "Navegación de fechas en la agenda", {
     action: "week-date",
@@ -215,7 +216,6 @@ export const scenes = [
       endAt: ".statistics > .statistics-split",
       endPadding: 0,
       readme: "main",
-      portfolio: true,
       linkedin: true,
     },
   ),
@@ -294,7 +294,7 @@ export const scenes = [
     "settings",
     "settings",
     "Ajustes de apariencia, idioma y personalización",
-    { height: 1100, endAt: ".personalization", portfolio: true },
+    { height: 1100, endAt: ".personalization" },
   ),
   make(39, "settings", "settings", "Ajustes y preferencias en modo oscuro", {
     ...en,
@@ -425,7 +425,6 @@ export const scenes = [
       focusMode: "summary",
       height: 1200,
       readme: "extra",
-      portfolio: true,
     },
   ),
   make(
@@ -537,6 +536,57 @@ export const scenes = [
     action: "focus-goals",
     height: 1000,
   }),
+  make(
+    66,
+    "demo-today",
+    "demo/today",
+    "Agenda de la demo con captura de tareas y acceso a Enfoque",
+    {
+      endAt: ":nth-match(.task-list, 2)",
+      readme: "demo",
+      portfolio: true,
+    },
+  ),
+  make(
+    67,
+    "demo-focus",
+    "demo/focus",
+    "Temporizador de prueba de 15 segundos con una tarea vinculada",
+    {
+      ...mobile,
+      ...en,
+      endAt: ".demo-focus-card",
+      readme: "demo-mobile",
+      portfolio: true,
+    },
+  ),
+  make(
+    68,
+    "demo-statistics",
+    "demo/statistics",
+    "Estadísticas tras completar una sesión de prueba",
+    {
+      ...en,
+      action: "demo-result",
+      endAt: ".demo-focus-week",
+      readme: "demo",
+      portfolio: true,
+    },
+  ),
+  make(
+    69,
+    "demo-theme",
+    "demo/settings",
+    "Ajustes de la demo en móvil con el tema oscuro elegido",
+    {
+      ...mobile,
+      ...dark,
+      action: "demo-theme",
+      endAt: ".app-about",
+      readme: "demo-mobile",
+      portfolio: true,
+    },
+  ),
 ].map((scene) => ({
   ...scene,
   filename:
