@@ -12,7 +12,7 @@ import {
   Timer,
   Trash2,
 } from "lucide-react";
-import { Logo } from "@/components/navigation";
+import { PublicHomeLogo } from "@/components/navigation";
 import { AuthLink } from "@/components/auth-link";
 import { AppAbout } from "@/components/app-about";
 import { useTheme } from "@/components/theme-provider";
@@ -135,7 +135,7 @@ export function DemoWorkspace({
         {copy.skip}
       </a>
       <aside className="sidebar demo-sidebar">
-        <Logo />
+        <PublicHomeLogo locale={locale} />
         <DemoNav locale={locale} view={view} />
         <div className="demo-badge">
           <b>{copy.demo}</b>
@@ -149,11 +149,14 @@ export function DemoWorkspace({
         aria-busy={!restored}
       >
         <header className="demo-topbar surface">
-          <div>
-            <b>{copy.demo}</b>
-            <span className="muted">
-              {restored ? copy.demoHint : copy.loadingDemo}
-            </span>
+          <div className="demo-topbar-intro">
+            <PublicHomeLogo locale={locale} variant="compact" />
+            <div className="demo-topbar-copy">
+              <b>{copy.demo}</b>
+              <span className="muted">
+                {restored ? copy.demoHint : copy.loadingDemo}
+              </span>
+            </div>
           </div>
           <AuthLink className="primary" href={`/${locale}/login`}>
             {copy.create}

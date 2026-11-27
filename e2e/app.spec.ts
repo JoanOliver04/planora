@@ -348,3 +348,28 @@ test("switching schedules updates today's count and the weekly agenda", async ({
   await page.getByRole("button", { name: "Hoy", exact: true }).click();
   await expect(page.locator(".demo-week-tools b")).toHaveText(currentDate!);
 });
+
+test("guest logos return to the home page in the current language", async ({
+  page,
+}) => {
+  for (const locale of ["es", "en"]) {
+    const name =
+      locale === "es"
+        ? "Planora, volver a la portada"
+        : "Planora, back to home";
+    for (const route of ["demo/focus", "login"]) {
+      await page.goto(`/${locale}/${route}`);
+      const logo = page.getByRole("link", { name, exact: true });
+      await expect(logo).toHaveCount(1);
+      await expect(logo).toHaveAttribute("href", `/${locale}`);
+      if (route === "login") {
+        await logo.focus();
+        await page.keyboard.press("Enter");
+      } else {
+        await logo.locator("img:visible").click();
+      }
+      await expect(page).toHaveURL(new RegExp(`/${locale}$`));
+      await expect(page.getByText(/25 minutos|25 minutes/)).toBeVisible();
+    }
+  }
+});

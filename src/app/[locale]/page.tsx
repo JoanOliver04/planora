@@ -36,7 +36,7 @@ const copy = {
       ],
       [
         "Tiempo para una tarea",
-        "Elige en qué concentrarte y prueba el temporizador de 15 segundos. Después podrás ver tu sesión en las estadísticas.",
+        "Elige en qué concentrarte y dedícale 25 minutos. Después podrás ver tu sesión en las estadísticas.",
         "Probar el enfoque",
       ],
       [
@@ -85,7 +85,7 @@ const copy = {
       ],
       [
         "Time for one task",
-        "Choose a task and try the 15-second focus timer. Your finished session shows up in Statistics.",
+        "Choose a task and spend 25 minutes focusing on it. Your finished session shows up in Statistics.",
         "Try a focus session",
       ],
       [

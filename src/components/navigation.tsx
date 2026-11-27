@@ -132,3 +132,31 @@ export function Logo({ variant = "theme" }: { variant?: "theme" | "login" }) {
     </div>
   );
 }
+
+export function PublicHomeLogo({
+  locale,
+  variant = "theme",
+}: {
+  locale: string;
+  variant?: "theme" | "login" | "compact";
+}) {
+  return (
+    <a
+      href={`/${locale}`}
+      className={
+        variant === "compact" ? "home-logo home-logo-compact" : "home-logo"
+      }
+      aria-label={
+        locale === "es"
+          ? "Planora, volver a la portada"
+          : "Planora, back to home"
+      }
+    >
+      {variant === "compact" ? (
+        <Image src={siteConfig.logo.url} alt="" width={36} height={36} />
+      ) : (
+        <Logo variant={variant} />
+      )}
+    </a>
+  );
+}

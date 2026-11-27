@@ -1,7 +1,7 @@
 import { getMessages, getTranslations } from "next-intl/server";
 import { NextIntlClientProvider } from "next-intl";
 import { redirect } from "next/navigation";
-import { Logo } from "@/components/navigation";
+import { PublicHomeLogo } from "@/components/navigation";
 import { GoogleButton } from "@/features/auth/google-button";
 import { Languages, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -48,7 +48,7 @@ export default async function Login({
         <NotificationToaster />
         <div className="login-card surface">
           <section className="login-copy">
-            <Logo variant="login" />
+            <PublicHomeLogo locale={locale} variant="login" />
             <div style={{ marginTop: "auto", paddingTop: "8rem" }}>
               <Sparkles size={30} />
               <h1
