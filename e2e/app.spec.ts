@@ -31,7 +31,7 @@ test("demo starts light and remembers its own theme across routes and languages"
 
   await page.getByRole("button", { name: "Reset demo" }).click();
   await expectTheme(englishPicker).toHaveValue("light");
-  await page.getByRole("link", { name: "Privacy", exact: true }).click();
+  await page.getByRole("link", { name: "Privacy policy", exact: true }).click();
   await expectTheme(html).toHaveCSS("color-scheme", "dark");
   expect(
     await page.evaluate(() => localStorage.getItem("planora-theme")),

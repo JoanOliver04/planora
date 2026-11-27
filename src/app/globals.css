@@ -47,6 +47,15 @@
   font-size: 0.8125rem;
   line-height: 1.6;
 }
+.studio-credit small {
+  display: block;
+  font-size: inherit;
+}
+.legal-page a[href^="mailto:"],
+.legal-page a[href^="https://www.aepd.es"] {
+  color: var(--primary-text);
+  font-weight: 650;
+}
 .studio-credit span {
   font-weight: 650;
 }
@@ -55,6 +64,13 @@
 }
 .landing-footer .studio-credit {
   margin-top: 0.25rem;
+}
+.login-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  color: var(--primary-text);
+  font-weight: 650;
 }
 .legal-credit {
   margin-top: 2rem;

@@ -12,7 +12,9 @@ export function LegalBackLink({
       ? "/settings"
       : from === "demo-settings"
         ? "/demo/settings"
-        : "";
+        : from === "login"
+          ? "/login"
+          : "";
 
   // Returning from a public document must install the private page's nonce CSP.
   return <AuthLink href={`/${locale}${destination}`}>← Planora</AuthLink>;

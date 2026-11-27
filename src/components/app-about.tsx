@@ -21,7 +21,7 @@ export function AppAbout({
           {es ? "Versión" : "Version"} {siteConfig.version}
         </span>
       </div>
-      <StudioCredit locale={locale} />
+      <StudioCredit locale={locale} copyright />
       <p className="muted">
         {es
           ? "Un estudio independiente de una sola persona, dedicado a crear apps y juegos."
@@ -29,7 +29,7 @@ export function AppAbout({
       </p>
       <nav aria-label={es ? "Información de Planora" : "Planora information"}>
         <Link href={`/${locale}/privacy?from=${source}`} prefetch={false}>
-          {es ? "Privacidad" : "Privacy"}
+          {es ? "Política de privacidad" : "Privacy policy"}
         </Link>
         <Link href={`/${locale}/terms?from=${source}`} prefetch={false}>
           {es ? "Condiciones de uso" : "Terms of use"}

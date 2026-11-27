@@ -2,7 +2,12 @@ import { ImageResponse } from "next/og";
 export const alt = "Try the interactive Planora demo";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export default function Image() {
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const es = (await params).locale === "es";
   return new ImageResponse(
     <div
       style={{
@@ -23,12 +28,14 @@ export default function Image() {
           alignItems: "center",
         }}
       >
-        <div style={{ fontSize: 44 }}>Interactive demo</div>
+        <div style={{ fontSize: 44 }}>
+          {es ? "Demo interactiva" : "Interactive demo"}
+        </div>
         <div style={{ fontSize: 90, fontWeight: 750, marginTop: 16 }}>
-          Plan your week
+          {es ? "Planifica tu semana" : "Plan your week"}
         </div>
         <div style={{ fontSize: 30, marginTop: 24 }}>
-          No account required · Data stays in your browser
+          {es ? "Explora una agenda de ejemplo" : "Explore a sample planner"}
         </div>
       </div>
     </div>,

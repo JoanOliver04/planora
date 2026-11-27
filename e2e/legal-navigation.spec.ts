@@ -5,13 +5,13 @@ const locales = [
   {
     locale: "es",
     settings: "Ajustes",
-    privacy: "Privacidad",
+    privacy: "Política de privacidad",
     terms: "Condiciones de uso",
   },
   {
     locale: "en",
     settings: "Settings",
-    privacy: "Privacy",
+    privacy: "Privacy policy",
     terms: "Terms of use",
   },
 ] as const;
@@ -84,8 +84,22 @@ test("legal pages preserve public and demo return destinations", async ({
   for (const copy of locales) {
     for (const route of ["privacy", "terms"] as const) {
       await page.goto(`/${copy.locale}/${route}`);
+      const notice =
+        copy.locale === "es"
+          ? "Todos los derechos reservados."
+          : "All rights reserved.";
+      await expect(page.locator(".legal-credit small")).toHaveText(
+        `© 2026 JVOR Studios. ${notice}`,
+      );
+      await expect(
+        page.getByRole("link", { name: "supportjvorstudios@gmail.com" }),
+      ).toHaveAttribute("href", "mailto:supportjvorstudios@gmail.com");
       await page.getByRole("link", { name: "← Planora", exact: true }).click();
       await expect(page).toHaveURL(`${baseURL}/${copy.locale}`);
+      await page.goto(`/${copy.locale}/login`);
+      await page.getByRole("link", { name: copy[route], exact: true }).click();
+      await page.getByRole("link", { name: "← Planora", exact: true }).click();
+      await expect(page).toHaveURL(`${baseURL}/${copy.locale}/login`);
       await page.goto(`/${copy.locale}/demo/settings`);
       await page
         .locator(".app-about")

@@ -250,7 +250,7 @@ export async function generateAssets(manifest, { updateReadme = false } = {}) {
     "",
     "## Selecciones recomendadas",
     "",
-    "README: portada, cuatro capturas de la demo sin registro y una galería del espacio privado en escritorio y móvil. Cada WebP enlaza a la captura PNG de resolución completa.",
+    "README: portada, cuatro capturas de la agenda de demostración y una galería del espacio privado en escritorio y móvil. Cada WebP enlaza a la captura PNG de resolución completa.",
     "",
     ...["portfolio", "linkedin"].flatMap((kind) => [
       "### " +

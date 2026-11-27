@@ -64,7 +64,7 @@ export default async function Login({
           </section>
           <section className="login-form">
             <h2>Planora</h2>
-            <StudioCredit locale={locale} />
+            <StudioCredit locale={locale} copyright />
             <p className="muted">{t("subtitle")}</p>
             {error === "oauth" ? (
               <p className="auth-error" role="alert">
@@ -84,6 +84,19 @@ export default async function Login({
               <ShieldCheck size={28} />
               {t("privacy")}
             </p>
+            <nav
+              className="login-legal-links"
+              aria-label={
+                locale === "es" ? "Información legal" : "Legal information"
+              }
+            >
+              <Link href={`/${locale}/privacy?from=login`} prefetch={false}>
+                {locale === "es" ? "Política de privacidad" : "Privacy policy"}
+              </Link>
+              <Link href={`/${locale}/terms?from=login`} prefetch={false}>
+                {locale === "es" ? "Condiciones de uso" : "Terms of use"}
+              </Link>
+            </nav>
             <div style={{ display: "flex", gap: 12 }}>
               <Languages size={18} />
               <Link href={locale === "es" ? "/en/login" : "/es/login"}>

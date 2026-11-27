@@ -24,7 +24,7 @@ const copy = {
     eyebrow: "Agenda personal",
     title: "Haz sitio en tu día para concentrarte.",
     lead: "Reúne tareas, rutinas y citas en una agenda. Elige qué toca ahora y dedícale un rato de enfoque.",
-    trust: "Sin registro · Agenda de ejemplo lista para usar",
+    trust: "Prueba la agenda de ejemplo. Entra con Google para crear la tuya.",
     notebook: "Un día en Planora",
     moment: ["Mañana", "Tarde", "17:30"],
     benefitsTitle: "¿Qué te gustaría probar primero?",
@@ -56,7 +56,7 @@ const copy = {
       "Los cambios de la demo se guardan en este navegador durante 24 horas. Puedes empezar de nuevo desde Ajustes cuando quieras.",
     privacyPoints: [
       "Datos de ejemplo editables",
-      "Sin correo ni tarjeta para probar",
+      "Reinicio de la demo desde Ajustes",
       "Exportación de tus datos de prueba",
     ],
     finalTitle: "¿Qué tienes pendiente hoy?",
@@ -72,7 +72,8 @@ const copy = {
     eyebrow: "Personal planner",
     title: "Make room in your day to focus.",
     lead: "Keep tasks, routines and appointments in one planner. Pick what comes next and give it your attention.",
-    trust: "No sign-up · Sample planner ready to use",
+    trust:
+      "Explore the sample planner. Sign in with Google to create your own.",
     notebook: "A day in Planora",
     moment: ["Morning", "Afternoon", "17:30"],
     benefitsTitle: "What would you like to try first?",
@@ -104,7 +105,7 @@ const copy = {
       "Your demo changes stay in this browser for 24 hours. You can start fresh at any time in Settings.",
     privacyPoints: [
       "Editable sample data",
-      "No email or payment card to try it",
+      "Reset the demo in Settings",
       "Export your sample planner",
     ],
     finalTitle: "What’s on your list today?",
@@ -315,16 +316,12 @@ export default async function LandingPage({
         </div>
       </section>
       <footer className="landing-footer">
-        <div>
-          <span>© {new Date().getFullYear()} Planora</span>
-          <StudioCredit locale={language} />
-        </div>
-        <span>{text.trust}</span>
+        <StudioCredit locale={language} copyright />
         <Link href={`/${language}/privacy`} prefetch={false}>
-          {language === "es" ? "Privacidad" : "Privacy"}
+          {language === "es" ? "Política de privacidad" : "Privacy policy"}
         </Link>
         <Link href={`/${language}/terms`} prefetch={false}>
-          {language === "es" ? "Condiciones" : "Terms"}
+          {language === "es" ? "Condiciones de uso" : "Terms of use"}
         </Link>
       </footer>
     </main>

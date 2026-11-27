@@ -23,7 +23,7 @@
     "privacy": "Solo usamos tu nombre, correo y foto para identificar tu cuenta.",
     "signOut": "Cerrar sesión",
     "demo": "Probar la demo interactiva",
-    "demoHint": "Sin registro. Los datos de prueba solo viven en este navegador."
+    "demoHint": "La demo guarda tus cambios en este navegador. Para usar tu agenda personal, continúa con Google."
   },
   "Nav": {
     "today": "Hoy",

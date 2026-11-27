@@ -18,7 +18,7 @@ Los límites de captura se alinean con grupos, tarjetas o paneles completos. Sem
 
 ## Selecciones recomendadas
 
-README: portada, cuatro capturas de la demo sin registro y una galería del espacio privado en escritorio y móvil. Cada WebP enlaza a la captura PNG de resolución completa.
+README: portada, cuatro capturas de la agenda de demostración y una galería del espacio privado en escritorio y móvil. Cada WebP enlaza a la captura PNG de resolución completa.
 
 ### Portfolio — 14 imágenes
 
